@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, TrendingUp, Target, Lightbulb, FileText, BarChart3, DollarSign } from 'lucide-react'
+import { ChevronLeft, ChevronRight, TrendingUp, Target, FileText, BarChart3, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -96,32 +96,6 @@ export function RightRail({ className }: RightRailProps) {
                   $8.2K
                 </div>
                 <div className="text-xs text-text-muted">Monthly</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* What-if Scenarios */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center space-x-2">
-              <Lightbulb className="w-4 h-4 text-warning" />
-              <span>What-if Scenarios</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <div className="p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors">
-                <p className="text-sm font-medium">Interest Rate +1%</p>
-                <p className="text-xs text-text-muted">Impact: -$240/month cash flow</p>
-              </div>
-              <div className="p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors">
-                <p className="text-sm font-medium">Property Value +10%</p>
-                <p className="text-xs text-text-muted">Impact: +$45K equity gain</p>
-              </div>
-              <div className="p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors">
-                <p className="text-sm font-medium">Rent Increase 5%</p>
-                <p className="text-xs text-text-muted">Impact: +$180/month cash flow</p>
               </div>
             </div>
           </CardContent>

@@ -22,7 +22,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     return saved || 'main';
   });
   // Theme state
-  const [theme, setTheme] = useState<'light' | 'dark'>(
+  const [theme] = useState<'light' | 'dark'>(
     typeof window !== 'undefined' && window.localStorage.getItem('civitas-theme') === 'dark' ? 'dark' : 'light'
   );
 
@@ -34,10 +34,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     }
     window.localStorage.setItem('civitas-theme', theme);
   }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
   const [isRailCollapsed, setIsRailCollapsed] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +44,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   });
   const [streamIntervalId, setStreamIntervalId] = useState<NodeJS.Timeout | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
 
   // Helper to get current time
   const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -62,11 +59,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       timestamp: getTime()
     };
     if (attachment) {
+      const url = URL.createObjectURL(attachment);
       newMsg.attachment = {
         name: attachment.name,
         type: attachment.type,
-        url: URL.createObjectURL(attachment)
+        url: url
       };
+      // Track the URL for cleanup
+      setAttachmentUrls(prev => [...prev, url]);
     }
     setMessages((prev) => [
       ...prev,
@@ -133,6 +133,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   useEffect(() => {
     window.localStorage.setItem('civitas-chat-messages', JSON.stringify(messages));
   }, [messages]);
+
+  // Cleanup object URLs
+  useEffect(() => {
+    return () => {
+      // Revoke all attachment URLs on unmount
+      attachmentUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [attachmentUrls]);
 
   const toggleRail = () => {
     const newState = !isRailCollapsed;
@@ -203,7 +211,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           {/* Contextual Quick Actions for LLM */}
           <div className="p-6 pb-2 border-b border-border bg-background sticky top-0 z-10">
             <div className="flex flex-wrap gap-2">
-              {quickActions.map((action, idx) => (
+              {quickActions.map((action) => (
                 <button
                   key={action.value}
                   className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/60 transition-colors"

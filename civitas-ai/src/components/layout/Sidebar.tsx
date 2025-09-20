@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, MessageSquare, History, Trash2, Edit, MoreVertical } from 'lucide-react'
+import { MessageSquare, History, Trash2, Edit, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 

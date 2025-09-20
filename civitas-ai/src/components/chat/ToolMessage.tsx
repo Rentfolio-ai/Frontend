@@ -4,10 +4,50 @@ import { Card, CardHeader, CardTitle, CardContent } from '../primitives/Card';
 import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
 
+interface ROIAnalysisData {
+  roi: number;
+  capRate: number;
+  cashFlow: number;
+  breakEven: number;
+}
+
+interface MarketData {
+  medianPrice: string;
+  priceGrowth: number;
+  inventory: number;
+  location: string;
+  date: string;
+}
+
+interface PropertyData {
+  address: string;
+  price: string;
+  beds: number;
+  baths: number;
+  sqft: number;
+  roi: number;
+}
+
+interface PropertyComparisonData {
+  properties: PropertyData[];
+}
+
+interface AlertData {
+  title: string;
+  message: string;
+  action?: string;
+}
+
+type ToolData = 
+  | { kind: 'roi_analysis'; data: ROIAnalysisData }
+  | { kind: 'market_data'; data: MarketData }
+  | { kind: 'property_comparison'; data: PropertyComparisonData }
+  | { kind: 'alert'; data: AlertData };
+
 interface ToolResult {
   type: 'roi_analysis' | 'market_data' | 'property_comparison' | 'alert';
   title: string;
-  data: any;
+  data: ToolData['data'];
   status: 'success' | 'warning' | 'error';
 }
 
@@ -16,7 +56,7 @@ interface ToolMessageProps {
   timestamp: string;
 }
 
-const ROIAnalysisCard: React.FC<{ data: any }> = ({ data }) => (
+const ROIAnalysisCard: React.FC<{ data: ROIAnalysisData }> = ({ data }) => (
   <div className="grid grid-cols-2 gap-4">
     <div className="space-y-2">
       <div className="text-sm text-foreground/60">Annual ROI</div>
@@ -37,7 +77,7 @@ const ROIAnalysisCard: React.FC<{ data: any }> = ({ data }) => (
   </div>
 );
 
-const MarketDataCard: React.FC<{ data: any }> = ({ data }) => (
+const MarketDataCard: React.FC<{ data: MarketData }> = ({ data }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-3 gap-4">
       <div className="text-center">
@@ -59,10 +99,10 @@ const MarketDataCard: React.FC<{ data: any }> = ({ data }) => (
   </div>
 );
 
-const PropertyComparisonCard: React.FC<{ data: any }> = ({ data }) => (
+const PropertyComparisonCard: React.FC<{ data: PropertyComparisonData }> = ({ data }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-2 gap-4">
-      {data.properties.map((property: any, index: number) => (
+      {data.properties.map((property: PropertyData, index: number) => (
         <div key={index} className="p-3 bg-muted rounded-lg">
           <div className="font-semibold">{property.address}</div>
           <div className="text-lg font-bold text-primary">${property.price}</div>
@@ -78,7 +118,7 @@ const PropertyComparisonCard: React.FC<{ data: any }> = ({ data }) => (
   </div>
 );
 
-const AlertCard: React.FC<{ data: any }> = ({ data }) => (
+const AlertCard: React.FC<{ data: AlertData }> = ({ data }) => (
   <div className="flex items-start gap-3">
     <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
       <svg className="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 20 20">
@@ -114,13 +154,13 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ tool, timestamp }) => 
   const renderToolContent = () => {
     switch (tool.type) {
       case 'roi_analysis':
-        return <ROIAnalysisCard data={tool.data} />;
+        return <ROIAnalysisCard data={tool.data as ROIAnalysisData} />;
       case 'market_data':
-        return <MarketDataCard data={tool.data} />;
+        return <MarketDataCard data={tool.data as MarketData} />;
       case 'property_comparison':
-        return <PropertyComparisonCard data={tool.data} />;
+        return <PropertyComparisonCard data={tool.data as PropertyComparisonData} />;
       case 'alert':
-        return <AlertCard data={tool.data} />;
+        return <AlertCard data={tool.data as AlertData} />;
       default:
         return <div>Unknown tool type</div>;
     }

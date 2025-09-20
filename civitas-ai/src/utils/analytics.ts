@@ -30,7 +30,7 @@ export class AnalyticsService {
     return AnalyticsService.instance;
   }
 
-  constructor() {
+  private constructor() {
     this.startSession();
     
     // Track page visibility changes
