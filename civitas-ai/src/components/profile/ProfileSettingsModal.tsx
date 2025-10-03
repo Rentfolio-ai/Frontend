@@ -15,8 +15,46 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     email: user?.email || '',
     avatar: user?.avatar || ''
   });
+  
+  // Add error state for validation
+  const [errors, setErrors] = useState<{
+    name?: string;
+    email?: string;
+    general?: string;
+  }>({});
+  
+  // Email validation function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSave = () => {
+    // Clear previous errors
+    setErrors({});
+    
+    // Validate form fields
+    const newErrors: {name?: string; email?: string; general?: string} = {};
+    
+    // Validate name (required)
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    // Validate email (required and format)
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!isValidEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    // If there are errors, set them and return early
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return; // Don't proceed with save if validation fails
+    }
+    
+    // If validation passes, proceed with save
     // TODO: Implement profile update logic
     console.log('Saving profile:', formData);
     onClose();
@@ -54,9 +92,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-border'} rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 ${errors.name ? 'focus:ring-red-500/50' : 'focus:ring-primary/50'}`}
               placeholder="Enter your full name"
             />
+            {errors.name && (
+              <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -68,12 +109,22 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-border'} rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 ${errors.email ? 'focus:ring-red-500/50' : 'focus:ring-primary/50'}`}
               placeholder="Enter your email address"
             />
+            {errors.email && (
+              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+            )}
           </div>
         </div>
 
+        {/* General Error Message (if needed) */}
+        {errors.general && (
+          <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <p className="text-sm text-red-500">{errors.general}</p>
+          </div>
+        )}
+        
         {/* Action Buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-border">
           <button

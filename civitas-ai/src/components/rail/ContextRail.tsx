@@ -3,33 +3,48 @@ import React, { useState } from 'react';
 import { Button } from '../primitives/Button';
 import { NextBestAction } from './NextBestAction';
 import { KpiMiniTiles } from './KpiMiniTiles';
+import { SuggestedNextSteps } from './SuggestedNextSteps';
+import { MyAlerts } from '../alerts/MyAlerts';
 import { ReportsList } from './ReportsList';
 import { cn } from '../../lib/utils';
 
 interface ContextRailProps {
   isCollapsed: boolean;
+  onSendMessage?: (message: string) => void;
 }
 
-type TabId = 'actions' | 'kpis' | 'reports';
+type TabId = 'actions' | 'suggestions' | 'alerts' | 'kpis' | 'reports';
 
 interface Tab {
   id: TabId;
   label: string;
   icon: string;
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
 }
 
 const tabs: Tab[] = [
   {
     id: 'actions',
-    label: 'Next Best Action',
+    label: 'Actions',
     icon: 'M13 10V3L4 14h7v7l9-11h-7z',
     component: NextBestAction
   },
   {
+    id: 'suggestions',
+    label: 'Suggestions',
+    icon: 'M13 2L3 14h18l-8-12z',
+    component: SuggestedNextSteps
+  },
+  {
+    id: 'alerts',
+    label: 'My Alerts',
+    icon: 'M10 2v20M4 7l16 10M4 17l16-10',
+    component: MyAlerts
+  },
+  {
     id: 'kpis',
     label: 'KPIs',
-    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+    icon: 'M3 3v18h18M9 17V9M13 17v-6M17 17v-4',
     component: KpiMiniTiles
   },
   {
@@ -40,20 +55,21 @@ const tabs: Tab[] = [
   }
 ];
 
-export const ContextRail: React.FC<ContextRailProps> = ({ isCollapsed }) => {
-  const [activeTab, setActiveTab] = useState<TabId>('actions');
+export const ContextRail: React.FC<ContextRailProps> = ({ isCollapsed, onSendMessage }) => {
+  const [activeTab, setActiveTab] = useState<TabId>('alerts');
 
   if (isCollapsed) {
     return null;
   }
 
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || NextBestAction;
+  const activeTabData = tabs.find(tab => tab.id === activeTab);
+  const ActiveComponent = activeTabData?.component || NextBestAction;
 
   return (
     <aside className="h-full bg-surface flex flex-col">
       {/* Tab Navigation */}
       <div className="border-b border-border bg-surface">
-        <nav className="grid grid-cols-2 gap-0">
+                <nav className="grid grid-cols-5 gap-1 p-1 bg-muted/20 rounded-lg">{/* Updated to 5 columns */}
           {tabs.map(tab => (
             <Button
               key={tab.id}
@@ -88,7 +104,17 @@ export const ContextRail: React.FC<ContextRailProps> = ({ isCollapsed }) => {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        <ActiveComponent />
+        {activeTab === 'suggestions' ? (
+          <SuggestedNextSteps onActionClick={onSendMessage} />
+        ) : activeTab === 'alerts' ? (
+          <MyAlerts onRunSearch={(query, filters) => {
+            // Construct search message for LLM
+            const searchMessage = query || `Search properties${filters ? ` with filters: ${JSON.stringify(filters)}` : ''}`;
+            onSendMessage?.(searchMessage);
+          }} />
+        ) : (
+          <ActiveComponent />
+        )}
       </div>
     </aside>
   );

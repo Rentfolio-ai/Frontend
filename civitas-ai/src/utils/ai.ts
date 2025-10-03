@@ -36,7 +36,7 @@ export class AIService {
     if (lowerMessage.includes('roi') || lowerMessage.includes('return')) {
       return {
         toolResult: {
-          type: 'roi_analysis',
+          kind: 'roi_analysis',
           title: 'ROI Analysis Results',
           status: 'success',
           data: {
@@ -52,7 +52,7 @@ export class AIService {
     if (lowerMessage.includes('market') || lowerMessage.includes('price')) {
       return {
         toolResult: {
-          type: 'market_data',
+          kind: 'market_data',
           title: 'Market Analysis',
           status: 'success',
           data: {
@@ -76,7 +76,7 @@ export class AIService {
         
       return {
         toolResult: {
-          type: 'property_comparison',
+          kind: 'property_comparison',
           title: 'Property Comparison',
           status: 'success',
           data: {
@@ -89,7 +89,7 @@ export class AIService {
     if (lowerMessage.includes('alert') || lowerMessage.includes('warning')) {
       return {
         toolResult: {
-          type: 'alert',
+          kind: 'alert',
           title: 'Market Alert',
           status: 'warning',
           data: {
@@ -140,46 +140,65 @@ export class AIService {
   }
 
   // Execute tool calls
-  async executeTool(toolName: string, parameters: any): Promise<ToolResult> {
+  async executeTool(toolName: string, parameters: any = {}): Promise<ToolResult> {
     await mockApiDelay(2000);
     
     switch (toolName) {
-      case 'analyze_roi':
+      case 'analyze_roi': {
+        const { 
+          expectedRoi = 8.4, 
+          capRate = 6.2, 
+          cashFlow = 1240, 
+          breakEven = 7.2 
+        } = parameters;
+        
         return {
-          type: 'roi_analysis',
+          kind: 'roi_analysis',
           title: 'ROI Analysis',
           status: 'success',
           data: {
-            roi: parameters.expectedRoi || 8.4,
-            capRate: parameters.capRate || 6.2,
-            cashFlow: parameters.cashFlow || 1240,
-            breakEven: parameters.breakEven || 7.2
+            roi: expectedRoi,
+            capRate: capRate,
+            cashFlow: cashFlow,
+            breakEven: breakEven
           }
         };
+      }
         
-      case 'get_market_data':
+      case 'get_market_data': {
+        const { 
+          location = 'Austin, TX', 
+          medianPrice = '485K', 
+          priceGrowth = 12.3, 
+          inventory = 28 
+        } = parameters;
+        
         return {
-          type: 'market_data',
+          kind: 'market_data',
           title: 'Market Data',
           status: 'success',
           data: {
-            location: parameters.location || 'Austin, TX',
-            medianPrice: parameters.medianPrice || '485K',
-            priceGrowth: parameters.priceGrowth || 12.3,
-            inventory: parameters.inventory || 28,
+            location: location,
+            medianPrice: medianPrice,
+            priceGrowth: priceGrowth,
+            inventory: inventory,
             date: new Date().toLocaleDateString()
           }
         };
+      }
         
-      case 'compare_properties':
+      case 'compare_properties': {
+        const { properties = sampleProperties.slice(0, 2) } = parameters;
+        
         return {
-          type: 'property_comparison',
+          kind: 'property_comparison',
           title: 'Property Comparison',
           status: 'success',
           data: {
-            properties: parameters.properties || sampleProperties.slice(0, 2)
+            properties: properties
           }
         };
+      }
         
       default:
         throw new Error(`Unknown tool: ${toolName}`);

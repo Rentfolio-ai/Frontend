@@ -1,4 +1,8 @@
 // FILE: src/data/seed.ts
+import type { Message as ChatMessage } from '@/types/chat';
+
+// Re-export the Message type
+export type Message = ChatMessage;
 
 export interface Chat {
   id: string;
@@ -9,16 +13,8 @@ export interface Chat {
   date: Date;
 }
 
-export interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: string;
-  isStreaming?: boolean;
-}
-
 export interface ToolResult {
-  type: 'roi_analysis' | 'market_data' | 'property_comparison' | 'alert';
+  kind: 'roi_analysis' | 'market_data' | 'property_comparison' | 'alert';
   title: string;
   data: any;
   status: 'success' | 'warning' | 'error';
@@ -135,7 +131,7 @@ export const seedMessages: Message[] = [
 // Sample tool results
 export const seedToolResults: ToolResult[] = [
   {
-    type: 'market_data',
+    kind: 'market_data',
     title: 'Austin Downtown Market Analysis',
     status: 'success',
     data: {
@@ -147,7 +143,7 @@ export const seedToolResults: ToolResult[] = [
     }
   },
   {
-    type: 'roi_analysis',
+    kind: 'roi_analysis',
     title: 'Investment ROI Analysis',
     status: 'success',
     data: {

@@ -3,12 +3,14 @@ import { ChevronLeft, ChevronRight, TrendingUp, Target, FileText, BarChart3, Dol
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { SuggestedNextSteps } from '../rail/SuggestedNextSteps'
 
 interface RightRailProps {
-  className?: string
+  className?: string;
+  onSendMessage?: (message: string) => void;
 }
 
-export function RightRail({ className }: RightRailProps) {
+export function RightRail({ className, onSendMessage }: RightRailProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   if (isCollapsed) {
@@ -19,8 +21,11 @@ export function RightRail({ className }: RightRailProps) {
           size="icon"
           onClick={() => setIsCollapsed(false)}
           className="w-8 h-8"
+          aria-label="Expand right rail"
+          aria-expanded="false"
         >
           <ChevronLeft className="w-4 h-4" />
+          <span className="sr-only">Expand right rail</span>
         </Button>
       </div>
     )
@@ -36,8 +41,11 @@ export function RightRail({ className }: RightRailProps) {
           size="icon"
           onClick={() => setIsCollapsed(true)}
           className="w-8 h-8"
+          aria-label="Collapse right rail"
+          aria-expanded="true"
         >
           <ChevronRight className="w-4 h-4" />
+          <span className="sr-only">Collapse right rail</span>
         </Button>
       </div>
 
@@ -124,6 +132,15 @@ export function RightRail({ className }: RightRailProps) {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Suggested Next Steps */}
+        <SuggestedNextSteps 
+          onActionClick={(prompt) => {
+            if (onSendMessage) {
+              onSendMessage(prompt);
+            }
+          }}
+        />
       </div>
     </aside>
   )

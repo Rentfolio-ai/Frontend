@@ -1,16 +1,8 @@
 // FILE: src/components/chat/MessageList.tsx
 import React, { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
-import { ToolMessage } from './ToolMessage';
 import { LoadingBubble } from './LoadingBubble';
-
-export interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: string;
-  isStreaming?: boolean;
-}
+import type { Message } from '../../data/seed';
 
 interface MessageListProps {
   messages: Message[];

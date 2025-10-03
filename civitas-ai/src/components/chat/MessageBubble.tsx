@@ -1,35 +1,7 @@
 // FILE: src/components/chat/MessageBubble.tsx
 import React from 'react';
 import { cn } from '../../lib/utils';
-
-// Add slide-in animation CSS
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes slide-in {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.animate-slide-in {
-  animation: slide-in 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-`;
-if (typeof document !== 'undefined' && !document.getElementById('msg-bubble-anim')) {
-  style.id = 'msg-bubble-anim';
-  document.head.appendChild(style);
-}
-
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: string;
-  isStreaming?: boolean;
-  attachment?: {
-    name: string;
-    type: string;
-    url: string;
-  };
-}
+import type { Message } from '@/types/chat';
 
 
 interface MessageBubbleProps {
@@ -108,7 +80,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLeng
             'text-xs text-foreground/60',
             isUser ? 'text-right' : 'text-left'
           )}>
-            {message.timestamp}
+            {typeof message.timestamp === 'string' 
+              ? message.timestamp 
+              : message.timestamp.toLocaleString()}
           </div>
         )}
       </div>

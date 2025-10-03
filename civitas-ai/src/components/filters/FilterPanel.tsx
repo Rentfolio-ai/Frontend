@@ -98,7 +98,15 @@ export const FilterPanel: React.FC = () => {
             min={filterOptions.price.min}
             max={filterOptions.price.max}
             value={priceRange[0]}
-            onChange={e => setPriceRange([Number(e.target.value), priceRange[1]])}
+            onChange={e => {
+              const newMinValue = Number(e.target.value);
+              // Ensure value is within filterOptions range and not greater than current max
+              const clampedValue = Math.max(
+                filterOptions.price.min,
+                Math.min(newMinValue, priceRange[1], filterOptions.price.max)
+              );
+              setPriceRange([clampedValue, priceRange[1]]);
+            }}
             className="w-20 px-2 py-1 border rounded text-sm"
             aria-label="Min price"
           />
@@ -108,7 +116,15 @@ export const FilterPanel: React.FC = () => {
             min={filterOptions.price.min}
             max={filterOptions.price.max}
             value={priceRange[1]}
-            onChange={e => setPriceRange([priceRange[0], Number(e.target.value)])}
+            onChange={e => {
+              const newMaxValue = Number(e.target.value);
+              // Ensure value is within filterOptions range and not less than current min
+              const clampedValue = Math.min(
+                filterOptions.price.max,
+                Math.max(newMaxValue, priceRange[0], filterOptions.price.min)
+              );
+              setPriceRange([priceRange[0], clampedValue]);
+            }}
             className="w-20 px-2 py-1 border rounded text-sm"
             aria-label="Max price"
           />

@@ -23,11 +23,12 @@ const slashCommands = [
   { id: '/search', label: '/search - Find properties', icon: '🔍' },
 ];
 
-interface ComposerProps {
+interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 
+  'value' | 'onChange' | 'rows' | 'disabled' | 'onKeyDown' | 'placeholder'> {
   onSend?: (message: string) => void;
 }
 
-export const Composer: React.FC<ComposerProps> = ({ onSend }) => {
+export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCommands, setShowCommands] = useState(false);
@@ -136,6 +137,7 @@ export const Composer: React.FC<ComposerProps> = ({ onSend }) => {
                        min-h-[48px] max-h-[120px] transition-colors"
             rows={1}
             disabled={isLoading}
+            {...rest}
           />
           
           <Button

@@ -1,5 +1,10 @@
 // FILE: src/utils/analytics.ts
 
+// Browser environment detection
+const isBrowser = typeof window !== "undefined" && 
+                 typeof document !== "undefined" && 
+                 typeof navigator !== "undefined";
+
 export interface AnalyticsEvent {
   name: string;
   properties?: Record<string, any>;
@@ -31,25 +36,33 @@ export class AnalyticsService {
   }
 
   private constructor() {
-    this.startSession();
-    
-    // Track page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.pauseSession();
-      } else {
-        this.resumeSession();
-      }
-    });
-    
-    // Track page unload
-    window.addEventListener('beforeunload', () => {
-      this.endSession();
-    });
+    // Only initialize browser-specific functionality in browser environments
+    if (isBrowser) {
+      this.startSession();
+      
+      // Track page visibility changes
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.pauseSession();
+        } else {
+          this.resumeSession();
+        }
+      });
+      
+      // Track page unload
+      window.addEventListener('beforeunload', () => {
+        this.endSession();
+      });
+    }
   }
 
   // Session management
   startSession(): void {
+    // Early return for non-browser environments
+    if (!isBrowser) {
+      return;
+    }
+    
     this.currentSession = {
       id: this.generateSessionId(),
       startTime: new Date(),
@@ -68,6 +81,11 @@ export class AnalyticsService {
   }
 
   pauseSession(): void {
+    // Early return for non-browser environments
+    if (!isBrowser) {
+      return;
+    }
+    
     if (this.currentSession) {
       this.track('session_pause', {
         sessionId: this.currentSession.id,
@@ -77,6 +95,11 @@ export class AnalyticsService {
   }
 
   resumeSession(): void {
+    // Early return for non-browser environments
+    if (!isBrowser) {
+      return;
+    }
+    
     if (this.currentSession) {
       this.track('session_resume', {
         sessionId: this.currentSession.id
@@ -85,6 +108,11 @@ export class AnalyticsService {
   }
 
   endSession(): void {
+    // Early return for non-browser environments
+    if (!isBrowser) {
+      return;
+    }
+    
     if (this.currentSession) {
       const endTime = new Date();
       this.currentSession.endTime = endTime;
@@ -171,6 +199,16 @@ export class AnalyticsService {
   }
 
   trackError(error: string, context?: Record<string, any>): void {
+    // Skip browser-specific properties in non-browser environments
+    if (!isBrowser) {
+      this.track('error', {
+        error,
+        context,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+    
     this.track('error', {
       error,
       context,
@@ -232,21 +270,33 @@ export class AnalyticsService {
 
 // Convenience functions for common tracking scenarios
 export const trackChatInteraction = (type: 'send' | 'receive', content: string) => {
+  // Skip analytics in non-browser environments
+  if (!isBrowser) return;
+  
   const analytics = AnalyticsService.getInstance();
   analytics.trackChatMessage(type === 'send' ? 'user' : 'assistant', content.length);
 };
 
 export const trackUIInteraction = (component: string, action: string, metadata?: any) => {
+  // Skip analytics in non-browser environments
+  if (!isBrowser) return;
+  
   const analytics = AnalyticsService.getInstance();
   analytics.trackFeatureUsage(component, action, metadata);
 };
 
 export const trackToolExecution = (toolName: string, duration: number, successful: boolean) => {
+  // Skip analytics in non-browser environments
+  if (!isBrowser) return;
+  
   const analytics = AnalyticsService.getInstance();
   analytics.trackToolUsage(toolName, duration, successful);
 };
 
 export const trackPageView = (pageName: string, previousPage?: string) => {
+  // Skip analytics in non-browser environments
+  if (!isBrowser) return;
+  
   const analytics = AnalyticsService.getInstance();
   if (previousPage) {
     analytics.trackNavigation(previousPage, pageName);
@@ -256,4 +306,5 @@ export const trackPageView = (pageName: string, previousPage?: string) => {
 };
 
 // Export singleton instance
+// The service will internally handle browser detection
 export const analytics = AnalyticsService.getInstance();

@@ -1,58 +1,39 @@
 import React from 'react';
 import { CreditCard, Check, Crown } from 'lucide-react';
 import { Modal } from '../ui/Modal';
+import { PLANS } from '../../config/plans';
 
 interface BillingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  planName: string;
+  nextBillingDate: string | Date;
+  priceAmount: number | string;
+  billingInterval: string;
+  paymentMethod?: {
+    cardLastFour: string;
+    expiryDate: string;
+  };
 }
 
-export const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose }) => {
-  const plans = [
-    {
-      name: 'Starter',
-      price: '$29',
-      period: '/month',
-      description: 'Perfect for individual investors',
-      features: [
-        'Up to 10 property analyses',
-        'Basic market insights',
-        'Email support',
-        'Standard reports'
-      ],
-      current: true
-    },
-    {
-      name: 'Professional',
-      price: '$79',
-      period: '/month',
-      description: 'For serious real estate professionals',
-      features: [
-        'Unlimited property analyses',
-        'Advanced AI insights',
-        'Priority support',
-        'Custom reports',
-        'Market predictions',
-        'Portfolio management'
-      ],
-      popular: true
-    },
-    {
-      name: 'Enterprise',
-      price: '$199',
-      period: '/month',
-      description: 'For teams and large organizations',
-      features: [
-        'Everything in Professional',
-        'Team collaboration',
-        'API access',
-        'Custom integrations',
-        'Dedicated support',
-        'White-label options'
-      ]
-    }
-  ];
+export const BillingModal: React.FC<BillingModalProps> = ({
+  isOpen,
+  onClose,
+  planName,
+  nextBillingDate,
+  priceAmount,
+  billingInterval,
+  paymentMethod = { cardLastFour: '4242', expiryDate: '12/26' }
+}) => {
+  // Format the billing date if it's a Date object
+  const formattedBillingDate = nextBillingDate instanceof Date
+    ? nextBillingDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : nextBillingDate;
 
+  // Format the price amount if it's a number
+  const formattedPrice = typeof priceAmount === 'number' 
+    ? `$${priceAmount}` 
+    : priceAmount;
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Billing & Plans" size="xl">
       <div className="space-y-6">
@@ -61,19 +42,19 @@ export const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose }) =
           <div className="flex items-center justify-between">
             <div>
               <h4 className="text-sm font-medium text-foreground">Current Plan</h4>
-              <p className="text-lg font-semibold text-primary">Starter Plan</p>
-              <p className="text-sm text-foreground/60">Next billing: October 12, 2025</p>
+              <p className="text-lg font-semibold text-primary">{planName}</p>
+              <p className="text-sm text-foreground/60">Next billing: {formattedBillingDate}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-foreground">$29</p>
-              <p className="text-sm text-foreground/60">/month</p>
+              <p className="text-2xl font-bold text-foreground">{formattedPrice}</p>
+              <p className="text-sm text-foreground/60">/{billingInterval}</p>
             </div>
           </div>
         </div>
 
         {/* Plans Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {plans.map((plan, index) => (
+          {PLANS.map((plan, index) => (
             <div
               key={index}
               className={`relative border rounded-lg p-6 ${
@@ -136,8 +117,8 @@ export const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose }) =
                 <CreditCard className="w-4 h-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">•••• •••• •••• 4242</p>
-                <p className="text-xs text-foreground/60">Expires 12/26</p>
+                <p className="text-sm font-medium text-foreground">•••• •••• •••• {paymentMethod.cardLastFour}</p>
+                <p className="text-xs text-foreground/60">Expires {paymentMethod.expiryDate}</p>
               </div>
             </div>
             <button className="text-sm text-primary hover:text-primary/80 font-medium">

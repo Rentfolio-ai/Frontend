@@ -11,27 +11,42 @@ interface ChatSession {
 }
 
 interface SidebarProps {
-  className?: string
+  className?: string;
+  chatHistory?: ChatSession[];
+  onNewChat?: () => void;
+  onSelectChat?: (id: string) => void;
+  onEditChat?: (id: string) => void;
+  onMoreChat?: (id: string) => void;
+  clearAllChats?: () => void;
 }
 
-const mockChatHistory: ChatSession[] = [
-  { id: '1', title: 'Property Analysis Downtown Austin', timestamp: '2 hours ago', isActive: true },
-  { id: '2', title: 'Investment ROI Calculator', timestamp: 'Yesterday' },
-  { id: '3', title: 'Market Trends Q4 2024', timestamp: '2 days ago' },
-  { id: '4', title: 'Rental Property Comparison', timestamp: '3 days ago' },
-  { id: '5', title: 'Cap Rate Analysis', timestamp: '1 week ago' },
-  { id: '6', title: 'Property Valuation Report', timestamp: '1 week ago' },
-  { id: '7', title: 'Investment Strategy Planning', timestamp: '2 weeks ago' },
-]
+// Using chatHistory prop instead of hardcoded data
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ 
+  className, 
+  chatHistory = [], 
+  onNewChat, 
+  onSelectChat,
+  onEditChat,
+  onMoreChat,
+  clearAllChats
+}: SidebarProps) {
   const [hoveredChat, setHoveredChat] = useState<string | null>(null)
+
+  const handleNewChat = () => {
+    if (onNewChat) {
+      onNewChat();
+    }
+  };
 
   return (
     <aside className={cn("layout-sidebar bg-surface border-r flex flex-col", className)}>
       {/* Header */}
       <div className="p-4 border-b">
-        <Button className="w-full gradient-accent text-white hover:opacity-90 transition-opacity">
+        <Button 
+          className="w-full gradient-accent text-white hover:opacity-90 transition-opacity"
+          onClick={handleNewChat}
+        >
           New Chat
         </Button>
       </div>
@@ -45,7 +60,7 @@ export function Sidebar({ className }: SidebarProps) {
           </div>
 
           <div className="space-y-1">
-            {mockChatHistory.map((chat) => (
+            {chatHistory.map((chat) => (
               <div
                 key={chat.id}
                 className={cn(
@@ -56,6 +71,7 @@ export function Sidebar({ className }: SidebarProps) {
                 )}
                 onMouseEnter={() => setHoveredChat(chat.id)}
                 onMouseLeave={() => setHoveredChat(null)}
+                onClick={() => onSelectChat?.(chat.id)}
               >
                 <div className="flex items-start space-x-3">
                   <MessageSquare className={cn(
@@ -82,6 +98,11 @@ export function Sidebar({ className }: SidebarProps) {
                       variant="ghost"
                       size="icon"
                       className="w-6 h-6 hover:bg-muted"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the chat selection
+                        onEditChat?.(chat.id);
+                      }}
+                      aria-label="Edit chat"
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
@@ -89,6 +110,11 @@ export function Sidebar({ className }: SidebarProps) {
                       variant="ghost"
                       size="icon"
                       className="w-6 h-6 hover:bg-muted"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the chat selection
+                        onMoreChat?.(chat.id);
+                      }}
+                      aria-label="More options"
                     >
                       <MoreVertical className="w-3 h-3" />
                     </Button>
@@ -105,6 +131,8 @@ export function Sidebar({ className }: SidebarProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-text-muted hover:text-danger hover:bg-danger/10"
+          onClick={() => clearAllChats?.()}
+          aria-label="Clear all chats"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Clear All Chats

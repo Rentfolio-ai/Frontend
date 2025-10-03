@@ -3,22 +3,7 @@ import { Send, Paperclip, Mic, Bot, User, Copy, ThumbsUp, ThumbsDown, RotateCcw 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-
-interface Message {
-  id: string
-  type: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-  tools?: ToolCard[]
-}
-
-interface ToolCard {
-  id: string
-  title: string
-  description: string
-  status: 'running' | 'completed' | 'error'
-  data?: any
-}
+import type { Message, ToolCard } from '@/types/chat'
 
 interface ChatInterfaceProps {
   className?: string
@@ -76,12 +61,25 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     scrollToBottom()
   }, [messages])
 
+    // Create a ref to store the timer ID
+  const timerRef = useRef<number | null>(null);
+
+  // Cleanup effect to clear the timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, []);
+
   const handleSendMessage = () => {
     if (inputValue.trim()) {
       const newMessage: Message = {
         id: Date.now().toString(),
         type: 'user',
-        content: inputValue,
+        content: inputValue.trim(),
         timestamp: new Date(),
       }
       
@@ -89,8 +87,13 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       setInputValue('')
       setIsTyping(true)
       
-      // Simulate AI response
-      setTimeout(() => {
+      // Clear any existing timer
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+      }
+      
+      // Simulate AI response and store the timer ID
+      timerRef.current = setTimeout(() => {
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
@@ -99,7 +102,10 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         }
         setMessages(prev => [...prev, aiResponse])
         setIsTyping(false)
-      }, 2000)
+        
+        // Reset the timer ref
+        timerRef.current = null;
+      }, 2000) as unknown as number;
     }
   }
 
@@ -141,7 +147,12 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       {/* Input Area */}
       <div className="border-t bg-surface p-3 sm:p-4">
         <div className="flex items-end space-x-2 sm:space-x-3">
-          <Button variant="ghost" size="icon" className="mb-2 w-8 h-8 sm:w-10 sm:h-10">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="mb-2 w-8 h-8 sm:w-10 sm:h-10"
+            aria-label="Attach file"
+          >
             <Paperclip className="w-4 h-4" />
           </Button>
           
@@ -164,12 +175,18 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
               disabled={!inputValue.trim()}
               className="absolute right-2 bottom-2 w-8 h-8 gradient-accent"
               size="icon"
+              aria-label="Send message"
             >
               <Send className="w-4 h-4 text-white" />
             </Button>
           </div>
           
-          <Button variant="ghost" size="icon" className="mb-2 w-8 h-8 sm:w-10 sm:h-10">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="mb-2 w-8 h-8 sm:w-10 sm:h-10"
+            aria-label="Start voice input"
+          >
             <Mic className="w-4 h-4" />
           </Button>
         </div>
@@ -180,7 +197,9 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.type === 'user'
-  const timestamp = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const timestamp = message.timestamp instanceof Date 
+    ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   return (
     <div className={cn("flex items-start space-x-3 sm:space-x-4", isUser && "flex-row-reverse space-x-reverse")}>
@@ -224,16 +243,16 @@ function MessageBubble({ message }: { message: Message }) {
           <span>{timestamp}</span>
           {!isUser && (
             <div className="hidden sm:flex items-center space-x-1">
-              <Button variant="ghost" size="icon" className="w-6 h-6">
+              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Copy message">
                 <Copy className="w-3 h-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="w-6 h-6">
+              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Like message">
                 <ThumbsUp className="w-3 h-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="w-6 h-6">
+              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Dislike message">
                 <ThumbsDown className="w-3 h-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="w-6 h-6">
+              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Retry message">
                 <RotateCcw className="w-3 h-3" />
               </Button>
             </div>

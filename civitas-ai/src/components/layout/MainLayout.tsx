@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { TopBar } from './TopBar'
 import { Sidebar } from './Sidebar'
 import { RightRail } from './RightRail'
 import { cn } from '@/lib/utils'
 
 interface MainLayoutProps {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -13,6 +14,15 @@ export function MainLayout({ children }: MainLayoutProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
   const [showRightRail, setShowRightRail] = useState(true)
+  
+  // Sample chat history data - in a real app, this would be loaded from an API or state management
+  const [chatHistory, setChatHistory] = useState([
+    { id: '1', title: 'Property Analysis Downtown Austin', timestamp: '2 hours ago', isActive: true },
+    { id: '2', title: 'Investment ROI Calculator', timestamp: 'Yesterday' },
+    { id: '3', title: 'Market Trends Q4 2024', timestamp: '2 days ago' },
+    { id: '4', title: 'Rental Property Comparison', timestamp: '3 days ago' },
+    { id: '5', title: 'Cap Rate Analysis', timestamp: '1 week ago' },
+  ])
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
@@ -89,6 +99,71 @@ export function MainLayout({ children }: MainLayoutProps) {
         
         {/* Left Sidebar */}
         <Sidebar 
+          chatHistory={chatHistory}
+          onNewChat={() => {
+            // Create a new chat
+            const newId = Date.now().toString();
+            const newChat = {
+              id: newId,
+              title: 'New Chat',
+              timestamp: 'Just now',
+              isActive: true
+            };
+            
+            // Update existing chats to not be active
+            const updatedHistory = chatHistory.map(chat => ({
+              ...chat,
+              isActive: false
+            }));
+            
+            // Add new chat to history
+            setChatHistory([newChat, ...updatedHistory]);
+          }}
+          onSelectChat={(id) => {
+            // Set the selected chat as active and others as inactive
+            const updatedHistory = chatHistory.map(chat => ({
+              ...chat,
+              isActive: chat.id === id
+            }));
+            
+            setChatHistory(updatedHistory);
+          }}
+          onEditChat={(id) => {
+            // Handle edit chat functionality
+            console.log(`Edit chat with id: ${id}`);
+            
+            // Example implementation:
+            // Prompt the user for a new title
+            const chat = chatHistory.find(c => c.id === id);
+            if (chat) {
+              const newTitle = prompt("Enter new chat title:", chat.title);
+              if (newTitle) {
+                const updatedHistory = chatHistory.map(c => 
+                  c.id === id ? { ...c, title: newTitle } : c
+                );
+                setChatHistory(updatedHistory);
+              }
+            }
+          }}
+          onMoreChat={(id) => {
+            // Handle more options functionality
+            console.log(`More options for chat with id: ${id}`);
+            
+            // Example implementation:
+            // Confirm deletion of chat
+            const confirmDelete = window.confirm("Delete this chat?");
+            if (confirmDelete) {
+              const updatedHistory = chatHistory.filter(chat => chat.id !== id);
+              setChatHistory(updatedHistory);
+            }
+          }}
+          clearAllChats={() => {
+            // Confirm before clearing all chats
+            const confirmClear = window.confirm("Are you sure you want to clear all chats? This action cannot be undone.");
+            if (confirmClear) {
+              setChatHistory([]);
+            }
+          }}
           className={cn(
             "transition-transform duration-300 ease-in-out z-50",
             isMobile ? "fixed left-0 top-topbar h-[calc(100vh-theme(spacing.topbar))]" : "",

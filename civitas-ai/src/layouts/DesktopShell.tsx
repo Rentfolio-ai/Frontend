@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { TopBar } from '../components/topbar/TopBar';
 import { Sidebar } from '../components/sidebar/Sidebar';
 import { MessageList } from '../components/chat/MessageList';
-import type { Message } from '../components/chat/MessageList';
+import type { Message } from '../types/chat';
 import { Composer } from '../components/chat/Composer';
 import { ContextRail } from '../components/rail/ContextRail';
 
@@ -14,8 +14,17 @@ interface DesktopShellProps {
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
   // Persistent chat history
   const [chatHistory, setChatHistory] = useState<{ id: string; messages: Message[] }[]>(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('civitas-chat-history') : null;
-    return saved ? JSON.parse(saved) : [];
+    const saved = typeof window !== 'undefined'
+      ? window.localStorage.getItem('civitas-chat-history')
+      : null;
+    if (!saved) return [];
+
+    const parsed = JSON.parse(saved);
+    // Migrate legacy ChatHistoryItem[] format (dropping title/createdAt)
+    return parsed.map((chat: any) => ({
+      id: chat.id,
+      messages: chat.messages || []
+    }));
   });
   const [activeChatId, setActiveChatId] = useState<string>(() => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem('civitas-active-chat-id') : null;
@@ -42,7 +51,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem('civitas-chat-messages') : null;
     return saved ? JSON.parse(saved) : [];
   });
-  const [streamIntervalId, setStreamIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
 
@@ -134,6 +143,16 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     window.localStorage.setItem('civitas-chat-messages', JSON.stringify(messages));
   }, [messages]);
 
+  // Cleanup interval when component unmounts or when streamIntervalId changes
+  useEffect(() => {
+    return () => {
+      // Clean up interval on unmount or when streamIntervalId changes
+      if (streamIntervalId) {
+        clearInterval(streamIntervalId);
+      }
+    };
+  }, [streamIntervalId]);
+  
   // Cleanup object URLs
   useEffect(() => {
     return () => {
@@ -274,7 +293,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           ${isRailCollapsed ? 'w-0' : 'w-right-rail'}
           ${isRailCollapsed ? 'opacity-0' : 'opacity-100'}
         `}>
-          <ContextRail isCollapsed={isRailCollapsed} />
+          <ContextRail 
+            isCollapsed={isRailCollapsed} 
+            onSendMessage={handleSendMessage}
+          />
         </div>
       </div>
     </div>

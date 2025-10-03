@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../primitives/Card';
 import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
+import { PropertyCard } from '../primitives/PropertyCard';
+import type { Property } from '../../../../types/index';
 
 interface ROIAnalysisData {
   roi: number;
@@ -38,18 +40,41 @@ interface AlertData {
   action?: string;
 }
 
-type ToolData = 
-  | { kind: 'roi_analysis'; data: ROIAnalysisData }
-  | { kind: 'market_data'; data: MarketData }
-  | { kind: 'property_comparison'; data: PropertyComparisonData }
-  | { kind: 'alert'; data: AlertData };
-
-interface ToolResult {
-  type: 'roi_analysis' | 'market_data' | 'property_comparison' | 'alert';
+// Define specific tool result types as discriminated unions
+type RoiAnalysisToolResult = {
+  kind: 'roi_analysis';
   title: string;
-  data: ToolData['data'];
+  data: ROIAnalysisData;
   status: 'success' | 'warning' | 'error';
-}
+};
+
+type MarketDataToolResult = {
+  kind: 'market_data';
+  title: string;
+  data: MarketData;
+  status: 'success' | 'warning' | 'error';
+};
+
+type PropertyComparisonToolResult = {
+  kind: 'property_comparison';
+  title: string;
+  data: PropertyComparisonData;
+  status: 'success' | 'warning' | 'error';
+};
+
+type AlertToolResult = {
+  kind: 'alert';
+  title: string;
+  data: AlertData;
+  status: 'success' | 'warning' | 'error';
+};
+
+// Create a discriminated union of all tool result types
+type ToolResult = 
+  | RoiAnalysisToolResult
+  | MarketDataToolResult
+  | PropertyComparisonToolResult
+  | AlertToolResult;
 
 interface ToolMessageProps {
   tool: ToolResult;
@@ -99,24 +124,61 @@ const MarketDataCard: React.FC<{ data: MarketData }> = ({ data }) => (
   </div>
 );
 
-const PropertyComparisonCard: React.FC<{ data: PropertyComparisonData }> = ({ data }) => (
-  <div className="space-y-4">
-    <div className="grid grid-cols-2 gap-4">
-      {data.properties.map((property: PropertyData, index: number) => (
-        <div key={index} className="p-3 bg-muted rounded-lg">
-          <div className="font-semibold">{property.address}</div>
-          <div className="text-lg font-bold text-primary">${property.price}</div>
-          <div className="text-sm text-foreground/60">
-            {property.beds}bd • {property.baths}ba • {property.sqft} sqft
-          </div>
-          <div className="text-sm">
-            ROI: <span className="font-semibold text-success">{property.roi}%</span>
-          </div>
-        </div>
-      ))}
+const PropertyComparisonCard: React.FC<{ data: PropertyComparisonData }> = ({ data }) => {
+  // Convert PropertyData to Property format for the PropertyCard component
+  const convertToProperty = (propertyData: PropertyData, index: number): Property => ({
+    id: `temp-${index}`,
+    title: `Property ${index + 1}`,
+    address: propertyData.address,
+    lat: 0,
+    lng: 0,
+    price: typeof propertyData.price === 'string' 
+      ? parseInt(propertyData.price.replace(/[^0-9]/g, '')) || 0
+      : propertyData.price,
+    beds: propertyData.beds,
+    baths: propertyData.baths,
+    sqft: propertyData.sqft,
+    yearBuilt: 2000,
+    hoa: 0,
+    taxes: 0,
+    rentEst: 0,
+    expensesEst: 0,
+    roiMonthly: [propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi, 
+                 propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi,
+                 propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi],
+    capRate: propertyData.roi * 0.8, // Estimate cap rate as 80% of ROI
+    images: [],
+    zip: '',
+    city: '',
+    state: '',
+    propertyType: 'single-family' as const,
+    amenities: [],
+    description: '',
+    // Enhanced fields with sample data
+    adrRange: {
+      peak: Math.round(propertyData.roi * 15 + 100),
+      offSeason: Math.round(propertyData.roi * 10 + 60)
+    },
+    popularityTag: propertyData.roi > 10 ? 'Hot' : propertyData.roi > 7 ? 'Stable' : 'Declining',
+    regulationSnippet: propertyData.roi > 10 
+      ? 'High-demand area with strict rental regulations.'
+      : 'Standard local rental regulations apply.'
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {data.properties.map((property: PropertyData, index: number) => (
+          <PropertyCard 
+            key={index} 
+            property={convertToProperty(property, index)}
+            compact={true}
+          />
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const AlertCard: React.FC<{ data: AlertData }> = ({ data }) => (
   <div className="flex items-start gap-3">
@@ -152,17 +214,25 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ tool, timestamp }) => 
   };
 
   const renderToolContent = () => {
-    switch (tool.type) {
+    switch (tool.kind) {
       case 'roi_analysis':
-        return <ROIAnalysisCard data={tool.data as ROIAnalysisData} />;
+        // TypeScript now knows tool.data is ROIAnalysisData
+        return <ROIAnalysisCard data={tool.data} />;
       case 'market_data':
-        return <MarketDataCard data={tool.data as MarketData} />;
+        // TypeScript now knows tool.data is MarketData
+        return <MarketDataCard data={tool.data} />;
       case 'property_comparison':
-        return <PropertyComparisonCard data={tool.data as PropertyComparisonData} />;
+        // TypeScript now knows tool.data is PropertyComparisonData
+        return <PropertyComparisonCard data={tool.data} />;
       case 'alert':
-        return <AlertCard data={tool.data as AlertData} />;
+        // TypeScript now knows tool.data is AlertData
+        return <AlertCard data={tool.data} />;
       default:
-        return <div>Unknown tool type</div>;
+        // This ensures exhaustiveness checking at compile time
+        const exhaustiveCheck = (x: never): never => {
+          throw new Error(`Unhandled tool kind: ${(x as any).kind}`);
+        };
+        return exhaustiveCheck(tool);
     }
   };
 

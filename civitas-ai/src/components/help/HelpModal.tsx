@@ -140,22 +140,22 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                   {
                     title: 'User Guide',
                     description: 'Complete guide to using Civitas AI',
-                    link: '#'
+                    link: 'https://docs.civitas-ai.com/user-guide' // TODO: replace with actual URL
                   },
                   {
                     title: 'API Documentation',
                     description: 'For developers integrating with our API',
-                    link: '#'
+                    link: 'https://api.civitas-ai.com/docs' // TODO: replace with actual URL
                   },
                   {
                     title: 'Video Tutorials',
                     description: 'Step-by-step video walkthroughs',
-                    link: '#'
+                    link: 'https://learn.civitas-ai.com/tutorials' // TODO: replace with actual URL
                   },
                   {
                     title: 'Community Forum',
                     description: 'Connect with other users',
-                    link: '#'
+                    link: 'https://community.civitas-ai.com' // TODO: replace with actual URL
                   }
                 ].map((resource, index) => (
                   <a

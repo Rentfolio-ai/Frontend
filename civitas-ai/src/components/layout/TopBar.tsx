@@ -2,6 +2,16 @@ import { useState } from 'react'
 import { Search, Moon, Sun, User, ChevronDown, Menu, PanelRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
+
+// User interface matching the one from AuthContext
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  provider?: string;
+}
 
 interface TopBarProps {
   isDark: boolean
@@ -9,6 +19,7 @@ interface TopBarProps {
   isMobile?: boolean
   onToggleSidebar?: () => void
   onToggleRightRail?: () => void
+  user?: User // Optional user prop
 }
 
 export function TopBar({ 
@@ -16,9 +27,16 @@ export function TopBar({
   onThemeToggle, 
   isMobile = false, 
   onToggleSidebar, 
-  onToggleRightRail 
+  onToggleRightRail,
+  user: propUser // User prop from parent
 }: TopBarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  
+  // Use the auth hook to get user data
+  const { user: authUser } = useAuth()
+  
+  // Use the prop user if provided, otherwise use auth user, with "Guest" as fallback
+  const user = propUser || authUser
 
   return (
     <header className="layout-topbar border-b bg-surface/95 backdrop-blur-sm supports-[backdrop-filter]:bg-surface/60 sticky top-0 z-50">
@@ -32,6 +50,7 @@ export function TopBar({
               size="icon"
               onClick={onToggleSidebar}
               className="w-8 h-8 md:hidden"
+              aria-label="Toggle sidebar"
             >
               <Menu className="w-4 h-4" />
             </Button>
@@ -77,6 +96,7 @@ export function TopBar({
               size="icon"
               onClick={onToggleRightRail}
               className="w-8 h-8 md:hidden"
+              aria-label="Toggle right panel"
             >
               <PanelRight className="w-4 h-4" />
             </Button>
@@ -87,6 +107,7 @@ export function TopBar({
             size="icon"
             onClick={onThemeToggle}
             className="w-8 h-8 sm:w-9 sm:h-9"
+            aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
           >
             {isDark ? (
               <Sun className="w-4 h-4" />
@@ -103,13 +124,17 @@ export function TopBar({
                 isMobile ? "px-2" : "px-3"
               )}
               onClick={() => setShowProfileMenu(!showProfileMenu)}
+              aria-label="Toggle profile menu"
+              aria-expanded={showProfileMenu}
             >
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-primary-foreground" />
               </div>
               {!isMobile && (
                 <>
-                  <span className="text-sm font-medium text-foreground hidden sm:block">John Doe</span>
+                  <span className="text-sm font-medium text-foreground hidden sm:block">
+                    {user?.name || "Guest"}
+                  </span>
                   <ChevronDown className="w-3 h-3 text-text-muted hidden sm:block" />
                 </>
               )}
