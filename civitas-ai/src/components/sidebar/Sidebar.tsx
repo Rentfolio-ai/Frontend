@@ -1,6 +1,6 @@
 // FILE: src/components/sidebar/Sidebar.tsx
 import React, { useState } from 'react';
-import type { Message } from '../chat/MessageList';
+import type { Message } from '@/types/chat';
 import { NewChatButton } from './NewChatButton';
 import { Button } from '../primitives/Button';
 // import { ChatList } from './ChatList';
@@ -8,10 +8,19 @@ import { Button } from '../primitives/Button';
 import { cn } from '../../lib/utils';
 import { generateChatTitle } from '../../utils/chatTitles';
 
+// Extended ChatSession interface that includes messages
+interface ChatSession {
+  id: string;
+  title?: string;
+  timestamp?: string;
+  isActive?: boolean;
+  messages: Message[];
+}
+
 interface SidebarProps {
   isCollapsed: boolean;
   onNewChat?: () => void;
-  chatHistory?: { id: string; messages: Message[] }[];
+  chatHistory?: ChatSession[];
   onSelectChat?: (chatId: string) => void;
   activeChatId?: string;
 }
@@ -83,9 +92,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onNewChat, chatHi
               {Array.isArray(chatHistory) && chatHistory.length === 0 && (
                 <div className="text-xs text-muted text-center py-4">No previous chats</div>
               )}
-              {Array.isArray(chatHistory) && chatHistory.map((chat: { id: string; messages: Message[] }) => {
+              {Array.isArray(chatHistory) && chatHistory.map((chat: ChatSession) => {
                 const firstUserMessage = chat.messages.find(msg => msg.role === 'user')?.content || '';
-                const chatTitle = generateChatTitle(firstUserMessage);
+                const chatTitle = chat.title || generateChatTitle(firstUserMessage);
                 return (
                   <button
                     key={chat.id}

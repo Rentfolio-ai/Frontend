@@ -43,7 +43,9 @@ export const DemoShell: React.FC = () => {
       {/* Main content area with sidebar */}
       <div className="flex-1 flex">
         {/* Left Sidebar */}
-        <div className="flex-shrink-0 w-sidebar border-r border-border">
+        <div className={`flex-shrink-0 transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'w-0' : 'w-sidebar border-r border-border'
+        }`}>
           <Sidebar isCollapsed={isSidebarCollapsed} />
         </div>
         

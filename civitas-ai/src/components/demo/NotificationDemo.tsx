@@ -22,7 +22,9 @@ export const NotificationDemo: React.FC = () => {
     type: NotificationType, 
     animation: 'fade' | 'slide-right' | 'slide-left' | 'scale' = 'fade'
   ) => {
-    const id = `notification-${Date.now()}`;
+    // Generate a random string component to ensure uniqueness
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    const id = `notification-${Date.now()}-${randomPart}`;
     const notificationTypes = {
       'info': {
         title: 'Information',

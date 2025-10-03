@@ -83,7 +83,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         timestamp: new Date(),
       }
       
-      setMessages([...messages, newMessage])
+      setMessages(prev => [...prev, newMessage])
       setInputValue('')
       setIsTyping(true)
       

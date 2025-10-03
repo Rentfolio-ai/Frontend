@@ -227,12 +227,13 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ tool, timestamp }) => 
       case 'alert':
         // TypeScript now knows tool.data is AlertData
         return <AlertCard data={tool.data} />;
-      default:
-        // This ensures exhaustiveness checking at compile time
+      default: {
+        // This ensures exhaustiveness checking at compile time, properly scoped in a block
         const exhaustiveCheck = (x: never): never => {
           throw new Error(`Unhandled tool kind: ${(x as any).kind}`);
         };
         return exhaustiveCheck(tool);
+      }
     }
   };
 

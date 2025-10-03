@@ -1,5 +1,5 @@
 // FILE: src/lib/savedSearches.ts
-import type { PropertySearchFilters } from '../../../types/index';
+import type { PropertySearchFilters } from '../../../types';
 
 export interface SavedSearch {
   id: string;

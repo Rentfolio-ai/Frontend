@@ -85,6 +85,13 @@ export function generateChatTitle(message: string): string {
 }
 
 /**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Extract location-based title from message
  */
 function extractLocationTitle(message: string): string | null {
@@ -94,10 +101,21 @@ function extractLocationTitle(message: string): string | null {
     'east austin', 'west austin', 'north dallas', 'south dallas'
   ];
 
-  const lowerMessage = message.toLowerCase();
-  const foundLocation = locations.find(loc => lowerMessage.includes(loc));
+  // Sort locations by length (descending) to prefer longer matches
+  const sortedLocations = [...locations].sort((a, b) => b.length - a.length);
+  
+  // Pre-compile regexes with word boundaries for more accurate matching
+  const locationRegexes = sortedLocations.map(loc => ({
+    location: loc,
+    regex: new RegExp('\\b' + escapeRegex(loc) + '\\b', 'i')
+  }));
 
-  if (foundLocation) {
+  const lowerMessage = message.toLowerCase();
+  const match = locationRegexes.find(item => item.regex.test(message));
+  
+  if (match) {
+    const foundLocation = match.location;
+    
     // Try to determine the type of inquiry
     if (lowerMessage.includes('analyz') || lowerMessage.includes('evaluat')) {
       return `${capitalize(foundLocation)} Analysis`;

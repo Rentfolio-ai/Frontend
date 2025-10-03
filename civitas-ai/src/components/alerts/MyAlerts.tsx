@@ -82,9 +82,17 @@ export const MyAlerts: React.FC<MyAlertsProps> = ({
       filtered = SavedSearchManager.getRecentlyUsed();
     }
     
-    // Apply search query filter
+    // Apply search query filter while preserving category filtering
     if (searchQuery.trim()) {
-      filtered = SavedSearchManager.search(searchQuery.trim());
+      const query = searchQuery.trim();
+      const lowercaseQuery = query.toLowerCase();
+      
+      // Filter the already category-filtered list to preserve both filters
+      filtered = filtered.filter(search =>
+        search.name.toLowerCase().includes(lowercaseQuery) ||
+        search.query?.toLowerCase().includes(lowercaseQuery) ||
+        search.filters.location?.toLowerCase().includes(lowercaseQuery)
+      );
     }
     
     return filtered;

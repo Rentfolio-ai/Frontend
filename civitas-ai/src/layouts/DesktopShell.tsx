@@ -1,10 +1,11 @@
 // FILE: src/layouts/DesktopShell.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/topbar/TopBar';
 import { Sidebar } from '../components/sidebar/Sidebar';
 import { MessageList } from '../components/chat/MessageList';
 import type { Message } from '../types/chat';
 import { Composer } from '../components/chat/Composer';
+import { generateChatTitle } from '../utils/chatTitles';
 import { ContextRail } from '../components/rail/ContextRail';
 
 interface DesktopShellProps {
@@ -12,17 +13,28 @@ interface DesktopShellProps {
 }
 
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
+  // Import ChatSession from Sidebar component
+  type ChatSession = {
+    id: string;
+    title?: string;
+    timestamp?: string;
+    isActive?: boolean;
+    messages: Message[];
+  };
+
   // Persistent chat history
-  const [chatHistory, setChatHistory] = useState<{ id: string; messages: Message[] }[]>(() => {
+  const [chatHistory, setChatHistory] = useState<ChatSession[]>(() => {
     const saved = typeof window !== 'undefined'
       ? window.localStorage.getItem('civitas-chat-history')
       : null;
     if (!saved) return [];
 
     const parsed = JSON.parse(saved);
-    // Migrate legacy ChatHistoryItem[] format (dropping title/createdAt)
+    // Migrate legacy ChatHistoryItem[] format
     return parsed.map((chat: any) => ({
       id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp,
       messages: chat.messages || []
     }));
   });
@@ -54,6 +66,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
+  // Create a ref to track attachment URLs that persists across renders
+  const attachmentUrlsRef = useRef<string[]>([]);
 
   // Helper to get current time
   const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -74,14 +88,17 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         type: attachment.type,
         url: url
       };
-      // Track the URL for cleanup
+      // Track the URL in both state (for UI) and ref (for cleanup)
       setAttachmentUrls(prev => [...prev, url]);
+      attachmentUrlsRef.current.push(url);
     }
     setMessages((prev) => [
       ...prev,
       newMsg
     ]);
-    setAttachment(null);
+    // We already created a URL for this attachment (if one exists), but we'll keep the URL active
+    // Just clear the attachment input state without revoking URLs
+    setAttachment(null); 
     setIsLoading(true);
     const fullResponse = `This is a simulated LLM response to: "${message}"`;
     let current = '';
@@ -153,13 +170,26 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     };
   }, [streamIntervalId]);
   
-  // Cleanup object URLs
+  // Cleanup object URLs only on component unmount
   useEffect(() => {
     return () => {
-      // Revoke all attachment URLs on unmount
-      attachmentUrls.forEach(url => URL.revokeObjectURL(url));
+      // Revoke all attachment URLs on unmount using the ref
+      attachmentUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      // Clear the ref array
+      attachmentUrlsRef.current = [];
     };
-  }, [attachmentUrls]);
+  }, []);
+
+  // Helper function to clean up attachment URLs and reset attachment state
+  const clearAttachments = () => {
+    // Revoke all current attachment URLs to prevent memory leaks
+    attachmentUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+    // Clear the ref array
+    attachmentUrlsRef.current = [];
+    // Reset state
+    setAttachmentUrls([]);
+    setAttachment(null);
+  };
 
   const toggleRail = () => {
     const newState = !isRailCollapsed;
@@ -200,13 +230,19 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             onNewChat={() => {
               // Save current chat to history if it has messages
               if (messages.length > 0) {
+                const firstUserMessage = messages.find(msg => msg.role === 'user' || msg.type === 'user')?.content || '';
                 setChatHistory(prev => [
                   ...prev,
-                  { id: activeChatId, messages }
+                  { 
+                    id: activeChatId, 
+                    messages,
+                    title: generateChatTitle(firstUserMessage),
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  }
                 ]);
               }
               setMessages([]);
-              setAttachment(null);
+              clearAttachments(); // Use the helper function to clean up attachment URLs
               setIsLoading(false);
               if (streamIntervalId) {
                 clearInterval(streamIntervalId);
@@ -219,6 +255,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             onSelectChat={chatId => {
               const chat = chatHistory.find(c => c.id === chatId);
               setMessages(chat ? chat.messages : []);
+              clearAttachments(); // Clean up current attachments when switching chats
               setActiveChatId(chatId);
             }}
             activeChatId={activeChatId}
