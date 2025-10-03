@@ -18,17 +18,19 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { SavedSearchManager, type SavedSearch } from '../../lib/savedSearches';
-import type { PropertySearchFilters } from '../../../../types/index';
+import type { PropertySearchFilters } from '../../../../types';
 
 interface MyAlertsProps {
   className?: string;
   onRunSearch?: (query?: string, filters?: PropertySearchFilters) => void;
+  onViewAll?: () => void; // Add prop for handling "View all" button click
   compact?: boolean;
 }
 
 export const MyAlerts: React.FC<MyAlertsProps> = ({ 
   className, 
   onRunSearch,
+  onViewAll,
   compact = false
 }) => {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
@@ -179,9 +181,15 @@ export const MyAlerts: React.FC<MyAlertsProps> = ({
               </Card>
             ))}
             
-            {savedSearches.length > 3 && (
+            {savedSearches.length > 3 && onViewAll && (
               <div className="text-center">
-                <Button variant="ghost" size="sm" className="text-xs">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs"
+                  onClick={onViewAll}
+                  aria-label={`View all ${savedSearches.length} alerts`}
+                >
                   View all {savedSearches.length} alerts
                 </Button>
               </div>

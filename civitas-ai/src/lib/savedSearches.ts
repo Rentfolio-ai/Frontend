@@ -41,9 +41,19 @@ export class SavedSearchManager {
    */
   static save(search: Omit<SavedSearch, 'id' | 'createdAt'>): SavedSearch {
     try {
+      // Generate a unique ID using crypto.randomUUID() if available, with fallback
+      const generateId = (): string => {
+        // Use crypto.randomUUID() if available (modern browsers)
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          return `saved-search-${crypto.randomUUID()}`;
+        }
+        // Fallback for environments without crypto.randomUUID()
+        return `saved-search-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      };
+      
       const newSearch: SavedSearch = {
         ...search,
-        id: `saved-search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: generateId(),
         createdAt: new Date()
       };
 
@@ -79,7 +89,7 @@ export class SavedSearchManager {
   /**
    * Update a saved search (e.g., update last used time)
    */
-  static update(id: string, updates: Partial<SavedSearch>): SavedSearch | null {
+  static update(id: string, updates: Partial<SavedSearch>): SavedSearch {
     try {
       const searches = this.getAll();
       const searchIndex = searches.findIndex(search => search.id === id);
@@ -87,19 +97,24 @@ export class SavedSearchManager {
       if (searchIndex === -1) {
         throw new Error('Search not found');
       }
-
+      
+      // Create a safe copy of updates by stripping immutable fields
+      const { id: _id, createdAt: _createdAt, ...safeUpdates } = updates;
+      
+      // Create a new merged object, preserving original immutable fields
       const updatedSearch = {
         ...searches[searchIndex],
-        ...updates
+        ...safeUpdates
       };
 
+      // Update the array with the new object
       searches[searchIndex] = updatedSearch;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(searches));
       
       return updatedSearch;
     } catch (error) {
       console.error('Error updating search:', error);
-      return null;
+      throw new Error('Failed to update search');
     }
   }
 
@@ -107,7 +122,12 @@ export class SavedSearchManager {
    * Mark a search as used (updates lastUsed timestamp)
    */
   static markAsUsed(id: string): void {
-    this.update(id, { lastUsed: new Date() });
+    try {
+      this.update(id, { lastUsed: new Date() });
+    } catch (error) {
+      console.error('Error marking search as used:', error);
+      // We silently fail here since this is a non-critical operation
+    }
   }
 
   /**
@@ -241,15 +261,61 @@ export class SavedSearchManager {
         throw new Error('Invalid format: expected array');
       }
       
-      // Convert and validate each search
-      const validSearches = importedSearches.map((search: any) => ({
-        ...search,
-        id: search.id || `imported-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        createdAt: new Date(search.createdAt),
-        lastUsed: search.lastUsed ? new Date(search.lastUsed) : undefined
-      }));
+      // Get existing searches to merge with imports
+      const existingSearches = this.getAll();
+      const existingIds = new Set(existingSearches.map(search => search.id));
       
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(validSearches));
+      // Generate a unique ID using crypto.randomUUID() if available, with fallback
+      const generateId = (): string => {
+        // Use crypto.randomUUID() if available (modern browsers)
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          return `imported-${crypto.randomUUID()}`;
+        }
+        // Fallback for environments without crypto.randomUUID()
+        return `imported-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      };
+      
+      // Validate each search object and ensure it has required fields with correct types
+      const validatedImports = importedSearches
+        .filter((search: any) => {
+          // Basic structure validation
+          return (
+            search && 
+            typeof search === 'object' && 
+            typeof search.name === 'string' && 
+            search.name.trim() !== '' &&
+            typeof search.filters === 'object'
+          );
+        })
+        .map((search: any) => {
+          // Format and type correction
+          const validated: SavedSearch = {
+            // Generate new ID if missing or already exists to prevent duplicates
+            id: (search.id && !existingIds.has(search.id)) ? search.id : generateId(),
+            name: search.name.trim(),
+            filters: search.filters,
+            // Ensure createdAt is a valid date, default to now if invalid
+            createdAt: search.createdAt && !isNaN(new Date(search.createdAt).getTime())
+              ? new Date(search.createdAt)
+              : new Date(),
+            // Optional fields
+            query: typeof search.query === 'string' ? search.query : undefined,
+            resultsCount: typeof search.resultsCount === 'number' ? search.resultsCount : undefined,
+            lastUsed: search.lastUsed && !isNaN(new Date(search.lastUsed).getTime())
+              ? new Date(search.lastUsed)
+              : undefined
+          };
+          return validated;
+        });
+      
+      // Merge validated imports with existing searches
+      const mergedSearches = [...existingSearches, ...validatedImports];
+      
+      // Limit to 50 saved searches to prevent storage overflow (newest first)
+      const limitedSearches = mergedSearches.slice(0, 50);
+      
+      // Only update localStorage after successful validation
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(limitedSearches));
       return true;
     } catch (error) {
       console.error('Error importing searches:', error);
