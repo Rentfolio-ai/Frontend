@@ -245,38 +245,125 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     { label: 'What are the top zip codes?', value: 'What are the top zip codes?' }
   ];
 
+  const [activeTab, setActiveTab] = useState<'chat' | 'properties' | 'portfolio' | 'market' | 'reports'>('chat');
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
+  const tabs = [
+    { id: 'chat' as const, label: 'Chat / AI Assistant', icon: '💬' },
+    { id: 'properties' as const, label: 'Properties', icon: '🏠' },
+    { id: 'portfolio' as const, label: 'Portfolio', icon: '💼' },
+    { id: 'market' as const, label: 'Market Analysis', icon: '📊' },
+    { id: 'reports' as const, label: 'Reports', icon: '📈' },
+  ];
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
-      {/* Minimal top bar */}
-      <header className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div 
+      className="h-screen flex flex-col overflow-hidden"
+      style={{
+        background: 'linear-gradient(145deg, #FDFDFE 0%, #EAF3FA 25%, #DAF4F0 65%, #F2F7FF 100%)'
+      }}
+    >
+      {/* Immersive top bar with capsule navigation */}
+      <header className="flex-shrink-0 px-6 py-4 flex items-center justify-between">
+        {/* Capsule Dropdown Navigation */}
+        <div className="relative">
+          <button
+            onClick={() => setIsNavOpen(!isNavOpen)}
+            className="flex items-center gap-3 px-5 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:shadow-lg"
+            style={{
+              background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 50%, #7EE8FA 100%)',
+              boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.08)'
+            }}
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
+            <span className="text-white font-semibold text-sm" style={{ fontFamily: 'Satoshi, sans-serif' }}>
+              {tabs.find(t => t.id === activeTab)?.label || 'Navigation'}
+            </span>
+            <svg 
+              className={`w-4 h-4 text-white transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-semibold text-gray-900">Ask</span>
-            <div className="flex items-center gap-2">
-              <AgentAvatar size="sm" />
-              <span className="text-xl font-semibold text-gray-900">Civitas AI</span>
+
+          {/* Dropdown Menu */}
+          {isNavOpen && (
+            <div 
+              className="absolute top-full left-0 mt-2 w-64 rounded-2xl backdrop-blur-md overflow-hidden z-50 animate-slide-in"
+              style={{
+                background: 'rgba(255, 255, 255, 0.9)',
+                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
+              }}
+            >
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsNavOpen(false);
+                  }}
+                  className={`w-full px-4 py-3 flex items-center gap-3 transition-all duration-200 ${
+                    activeTab === tab.id 
+                      ? 'bg-gradient-to-r from-blue-50 to-cyan-50' 
+                      : 'hover:bg-gray-50'
+                  }`}
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    color: activeTab === tab.id ? '#007BFF' : '#1A1A1A'
+                  }}
+                >
+                  <span className="text-xl">{tab.icon}</span>
+                  <span className="font-medium text-sm">{tab.label}</span>
+                  {activeTab === tab.id && (
+                    <div className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+                  )}
+                </button>
+              ))}
             </div>
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-          </div>
+          )}
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-full">
-            <span className="text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+
+        {/* Right side - Civitas AI branding + User */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <AgentAvatar size="sm" />
+            <span className="font-bold text-lg" style={{ fontFamily: 'Satoshi, sans-serif', color: '#1A1A1A' }}>
+              Civitas AI
+            </span>
+            <span className="w-2 h-2 bg-green-500 rounded-full shadow-lg animate-pulse"></span>
+          </div>
+          
+          <div 
+            className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border"
+            style={{
+              background: 'rgba(255, 255, 255, 0.6)',
+              borderColor: 'rgba(0, 123, 255, 0.2)',
+              boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)'
+            }}
+          >
+            <span className="text-sm font-medium" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
+              {user?.name || 'User'}
+            </span>
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)'
+              }}
+            >
               <span className="text-xs font-bold text-white">
-                {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+                {user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
               </span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Clean, centered chat interface */}
+      {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Hidden Left Sidebar - can be toggled if needed */}
         <div className={`

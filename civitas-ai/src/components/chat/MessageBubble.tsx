@@ -45,7 +45,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLeng
             </div>
           )}
           {/* Timestamp below avatar */}
-          <div className="text-xs text-gray-500 font-medium whitespace-nowrap">
+          <div 
+            className="text-xs font-medium whitespace-nowrap"
+            style={{ color: '#5A6473', fontFamily: 'Inter, sans-serif' }}
+          >
             {typeof message.timestamp === 'string' 
               ? message.timestamp 
               : message.timestamp.toLocaleString()}
@@ -58,19 +61,39 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLeng
         <div className="w-12 flex-shrink-0" />
       )}
 
-      {/* Message Content - Clean white card */}
+      {/* Message Content - Frosted glass card */}
       <div className="flex-1 max-w-3xl">
-        <div className={cn(
-          'px-6 py-4 rounded-2xl shadow-md transition-all duration-300 bg-white border border-gray-200',
-          isUser && 'bg-gray-50'
-        )}>
-          <div className={cn(
-            'text-base leading-relaxed whitespace-pre-wrap text-gray-800',
-            message.isStreaming && 'inline'
-          )}>
+        <div 
+          className={cn(
+            'px-6 py-4 rounded-2xl backdrop-blur-md transition-all duration-300',
+            isUser ? 'ml-auto' : ''
+          )}
+          style={{
+            background: isUser 
+              ? 'linear-gradient(135deg, rgba(0, 178, 255, 0.15) 0%, rgba(0, 198, 174, 0.15) 100%)'
+              : 'rgba(255, 255, 255, 0.6)',
+            boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.06)',
+            border: isUser 
+              ? '1px solid rgba(0, 178, 255, 0.2)'
+              : '1px solid rgba(0, 0, 0, 0.05)'
+          }}
+        >
+          <div 
+            className={cn(
+              'text-base leading-relaxed whitespace-pre-wrap',
+              message.isStreaming && 'inline'
+            )}
+            style={{
+              color: '#1A1A1A',
+              fontFamily: 'Inter, sans-serif'
+            }}
+          >
             {message.content}
             {message.isStreaming && (
-              <span className="inline-block w-0.5 h-5 ml-1 bg-gray-800 animate-pulse align-middle" />
+              <span 
+                className="inline-block w-0.5 h-5 ml-1 animate-pulse align-middle"
+                style={{ background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)' }}
+              />
             )}
           </div>
           

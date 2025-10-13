@@ -121,19 +121,30 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
         </div>
       )}
 
-      {/* Input Form - Clean glassmorphic style */}
+      {/* Input Form - Immersive frosted glass style */}
       <form onSubmit={handleSubmit} className="relative">
-        <div className="relative bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 p-2">
+        <div 
+          className="relative backdrop-blur-md rounded-2xl p-2"
+          style={{
+            background: 'rgba(255, 255, 255, 0.6)',
+            boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(0, 123, 255, 0.15)'
+          }}
+        >
           <textarea
             ref={textareaRef}
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Add a message"
+            placeholder="Message Civitas AI..."
             className="w-full resize-none bg-transparent border-none px-4 py-3 pr-14
-                       text-gray-800 placeholder:text-gray-500
+                       placeholder:text-gray-400
                        focus:outline-none
                        min-h-[52px] max-h-[120px] text-base"
+            style={{
+              color: '#1A1A1A',
+              fontFamily: 'Inter, sans-serif'
+            }}
             rows={1}
             disabled={isLoading}
             {...rest}
@@ -142,7 +153,12 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
           <button
             type="submit"
             disabled={!message.trim() || isLoading}
-            className="absolute right-4 bottom-4 w-10 h-10 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-lg"
+            className="absolute right-4 bottom-4 w-10 h-10 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            style={{
+              background: !message.trim() || isLoading 
+                ? '#E0E0E0' 
+                : 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)'
+            }}
           >
             {!isLoading ? (
               <svg
