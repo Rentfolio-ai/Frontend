@@ -376,18 +376,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         </>
       )}
 
-      {/* Floating Hamburger Menu */}
+      {/* Enhanced Floating Hamburger Menu */}
       <div className="absolute top-6 left-6 z-30">
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="flex items-center justify-center w-12 h-12 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105"
+          className="group flex items-center justify-center w-14 h-14 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:scale-110 hover:rotate-180"
           style={{
-            background: 'rgba(255, 255, 255, 0.25)',
-            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.15) 100%)',
+            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.15), inset 0px 1px 2px rgba(255, 255, 255, 0.3)',
+            border: '1.5px solid rgba(255, 255, 255, 0.4)'
           }}
         >
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-7 h-7 text-white transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -439,34 +439,166 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           />
         </div>
 
-        {/* Center: Clean Chat Interface - No Clutter */}
-        <div className="flex-1 flex flex-col min-w-0 relative max-w-5xl mx-auto w-full">
-          {/* Message List - Full height, centered, clean */}
-          <div className="flex-1 overflow-y-auto">
-            <MessageList messages={messages} isLoading={isLoading} />
-          </div>
-          {/* Smart Suggestions */}
-          <div 
-            className="flex-shrink-0 transition-all duration-300 px-0 md:px-8" 
-            style={{ 
-              minHeight: showSuggestions ? 'auto' : '0px', 
-              opacity: showSuggestions ? 1 : 0,
-              overflow: showSuggestions ? 'visible' : 'hidden'
-            }}
-          >
-            {showSuggestions && messages.length > 0 && (
-              <SmartSuggestions 
-                lastMessage={messages[messages.length - 1]?.content || ''}
-                onSuggestionClick={handleSendMessage}
-              />
-            )}
-          </div>
-          {/* Clean Composer - Centered and minimal */}
-          <div className="flex-shrink-0 p-6">
-            <div className="max-w-4xl mx-auto">
-              <Composer onSend={handleSendMessage} aria-label="Chat input" />
+        {/* Center: Main Content Area - Full Width */}
+        <div className="flex-1 flex flex-col min-w-0 relative w-full">
+          {/* Chat Tab */}
+          {activeTab === 'chat' && (
+            <>
+              {/* Chat Header - STR Investment AI */}
+              <div className="flex-shrink-0 px-8 pt-6 pb-4 flex items-center gap-3">
+                <div 
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)'
+                  }}
+                >
+                  <span className="text-2xl">🏠</span>
+                </div>
+                <div>
+                  <h1 
+                    className="text-2xl font-bold text-white"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+                  >
+                    STR Investment AI
+                  </h1>
+                  <p 
+                    className="text-sm text-white/70"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+                  >
+                    Your intelligent real estate assistant
+                  </p>
+                </div>
+              </div>
+
+              {/* Message List - Full height, full width */}
+              <div className="flex-1 overflow-y-auto">
+                <MessageList messages={messages} isLoading={isLoading} />
+              </div>
+              
+              {/* Smart Suggestions */}
+              <div 
+                className="flex-shrink-0 transition-all duration-300 px-0 md:px-8" 
+                style={{ 
+                  minHeight: showSuggestions ? 'auto' : '0px', 
+                  opacity: showSuggestions ? 1 : 0,
+                  overflow: showSuggestions ? 'visible' : 'hidden'
+                }}
+              >
+                {showSuggestions && messages.length > 0 && (
+                  <SmartSuggestions 
+                    lastMessage={messages[messages.length - 1]?.content || ''}
+                    onSuggestionClick={handleSendMessage}
+                  />
+                )}
+              </div>
+              
+              {/* Composer - Full width */}
+              <div className="flex-shrink-0 px-8 py-6">
+                <div className="w-full max-w-6xl mx-auto">
+                  <Composer onSend={handleSendMessage} aria-label="Chat input" />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Properties Tab - Immersive Property View */}
+          {activeTab === 'properties' && (
+            <div className="flex-1 overflow-y-auto">
+              <div className="h-full">
+                {/* Hero Property View */}
+                <div className="relative h-[60vh] overflow-hidden">
+                  {/* Property Image */}
+                  <img 
+                    src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&auto=format&fit=crop" 
+                    alt="Luxury Property"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  
+                  {/* Property Info Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                    <div className="max-w-6xl mx-auto">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h2 className="text-4xl font-bold mb-2">Modern Luxury Villa</h2>
+                          <p className="text-xl text-white/90 mb-4">📍 Beverly Hills, California</p>
+                          <div className="flex gap-6 text-lg">
+                            <span>🛏️ 4 Beds</span>
+                            <span>🛁 3 Baths</span>
+                            <span>📐 3,200 sq ft</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold">$12,500</div>
+                          <div className="text-sm text-white/80">per night</div>
+                          <div className="mt-2 px-4 py-2 rounded-full bg-green-500/20 backdrop-blur-sm border border-green-400/30">
+                            <span className="text-green-300">92% Occupancy</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Property Details */}
+                <div className="bg-white/95 backdrop-blur-lg">
+                  <div className="max-w-6xl mx-auto px-8 py-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Revenue Card */}
+                      <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100">
+                        <div className="text-sm font-semibold text-blue-600 mb-2">Monthly Revenue</div>
+                        <div className="text-3xl font-bold text-gray-900">$285K</div>
+                        <div className="text-sm text-green-600 mt-1">↑ 12% vs last month</div>
+                      </div>
+
+                      {/* ROI Card */}
+                      <div className="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100">
+                        <div className="text-sm font-semibold text-green-600 mb-2">Annual ROI</div>
+                        <div className="text-3xl font-bold text-gray-900">18.5%</div>
+                        <div className="text-sm text-gray-600 mt-1">Above market avg</div>
+                      </div>
+
+                      {/* Bookings Card */}
+                      <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
+                        <div className="text-sm font-semibold text-purple-600 mb-2">Next 30 Days</div>
+                        <div className="text-3xl font-bold text-gray-900">28 Nights</div>
+                        <div className="text-sm text-purple-600 mt-1">2 nights available</div>
+                      </div>
+                    </div>
+
+                    {/* Amenities */}
+                    <div className="mt-8">
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">Premium Amenities</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {['🏊 Pool', '🎾 Tennis Court', '🏋️ Gym', '🚗 Parking', '🔥 Fireplace', '🌳 Garden', '📺 Smart TV', '🍳 Gourmet Kitchen'].map((amenity) => (
+                          <div key={amenity} className="px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
+                            <span className="text-sm font-medium text-gray-700">{amenity}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Other Tabs Placeholder */}
+          {(activeTab === 'portfolio' || activeTab === 'market' || activeTab === 'reports') && (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center text-white/80">
+                <div className="text-6xl mb-4">
+                  {activeTab === 'portfolio' && '💼'}
+                  {activeTab === 'market' && '📊'}
+                  {activeTab === 'reports' && '📈'}
+                </div>
+                <h2 className="text-2xl font-bold mb-2 capitalize">{activeTab}</h2>
+                <p>Coming soon...</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
