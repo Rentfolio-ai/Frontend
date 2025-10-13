@@ -6,7 +6,6 @@ import type { Message } from '../types/chat';
 import { Composer } from '../components/chat/Composer';
 import { generateChatTitle } from '../utils/chatTitles';
 import { SmartSuggestions } from '../components/chat/SmartSuggestions';
-import { AgentAvatar } from '../components/common/AgentAvatar';
 import { useAuth } from '../contexts/AuthContext';
 
 interface DesktopShellProps {
@@ -246,122 +245,153 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   ];
 
   const [activeTab, setActiveTab] = useState<'chat' | 'properties' | 'portfolio' | 'market' | 'reports'>('chat');
-  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const tabs = [
-    { id: 'chat' as const, label: 'Chat / AI Assistant', icon: '💬' },
+  const menuItems = [
+    { id: 'chat' as const, label: 'Chat', icon: '💬' },
     { id: 'properties' as const, label: 'Properties', icon: '🏠' },
     { id: 'portfolio' as const, label: 'Portfolio', icon: '💼' },
-    { id: 'market' as const, label: 'Market Analysis', icon: '📊' },
+    { id: 'market' as const, label: 'Market Insights', icon: '📊' },
     { id: 'reports' as const, label: 'Reports', icon: '📈' },
+  ];
+
+  const accountMenuItems = [
+    { id: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
   return (
     <div 
       className="h-screen flex flex-col overflow-hidden"
       style={{
-        background: 'linear-gradient(145deg, #FDFDFE 0%, #EAF3FA 25%, #DAF4F0 65%, #F2F7FF 100%)'
+        background: 'linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%)'
       }}
     >
-      {/* Immersive top bar with capsule navigation */}
-      <header className="flex-shrink-0 px-6 py-4 flex items-center justify-between">
-        {/* Capsule Dropdown Navigation */}
-        <div className="relative">
-          <button
-            onClick={() => setIsNavOpen(!isNavOpen)}
-            className="flex items-center gap-3 px-5 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:shadow-lg"
+      {/* Sidebar Menu - Slides from left */}
+      {isSidebarOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+          
+          {/* Sidebar Panel */}
+          <div 
+            className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col shadow-2xl animate-slide-in-left"
             style={{
-              background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 50%, #7EE8FA 100%)',
-              boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.08)'
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
             }}
           >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span className="text-white font-semibold text-sm" style={{ fontFamily: 'Satoshi, sans-serif' }}>
-              {tabs.find(t => t.id === activeTab)?.label || 'Navigation'}
-            </span>
-            <svg 
-              className={`w-4 h-4 text-white transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {/* Dropdown Menu */}
-          {isNavOpen && (
-            <div 
-              className="absolute top-full left-0 mt-2 w-64 rounded-2xl backdrop-blur-md overflow-hidden z-50 animate-slide-in"
-              style={{
-                background: 'rgba(255, 255, 255, 0.9)',
-                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
-              }}
-            >
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setIsNavOpen(false);
-                  }}
-                  className={`w-full px-4 py-3 flex items-center gap-3 transition-all duration-200 ${
-                    activeTab === tab.id 
-                      ? 'bg-gradient-to-r from-blue-50 to-cyan-50' 
-                      : 'hover:bg-gray-50'
-                  }`}
+            {/* Sidebar Header with User Profile */}
+            <div className="p-6 border-b" style={{ borderColor: 'rgba(0, 123, 255, 0.1)' }}>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{
-                    fontFamily: 'Inter, sans-serif',
-                    color: activeTab === tab.id ? '#007BFF' : '#1A1A1A'
+                    background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)'
                   }}
                 >
-                  <span className="text-xl">{tab.icon}</span>
-                  <span className="font-medium text-sm">{tab.label}</span>
-                  {activeTab === tab.id && (
-                    <div className="ml-auto w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"></div>
-                  )}
-                </button>
-              ))}
+                  <span className="text-base font-bold text-white">
+                    {user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-base truncate" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
+                    {user?.name || 'User'}
+                  </p>
+                  <p className="text-xs truncate" style={{ color: '#5A6473', fontFamily: 'Inter, sans-serif' }}>
+                    {user?.email || 'user@example.com'}
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Right side - Civitas AI branding + User */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <AgentAvatar size="sm" />
-            <span className="font-bold text-lg" style={{ fontFamily: 'Satoshi, sans-serif', color: '#1A1A1A' }}>
-              Civitas AI
-            </span>
-            <span className="w-2 h-2 bg-green-500 rounded-full shadow-lg animate-pulse"></span>
-          </div>
-          
-          <div 
-            className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md border"
-            style={{
-              background: 'rgba(255, 255, 255, 0.6)',
-              borderColor: 'rgba(0, 123, 255, 0.2)',
-              boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)'
-            }}
-          >
-            <span className="text-sm font-medium" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
-              {user?.name || 'User'}
-            </span>
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)'
-              }}
-            >
-              <span className="text-xs font-bold text-white">
-                {user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
-              </span>
+            {/* Main Navigation */}
+            <div className="flex-1 overflow-y-auto py-6">
+              <div className="px-4 space-y-3">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsSidebarOpen(false);
+                    }}
+                    className={`w-full px-5 py-4 rounded-2xl flex items-center gap-4 transition-all duration-200 ${
+                      activeTab === item.id
+                        ? 'shadow-lg'
+                        : 'hover:bg-gray-50'
+                    }`}
+                    style={{
+                      background: activeTab === item.id 
+                        ? 'linear-gradient(135deg, rgba(0, 178, 255, 0.1) 0%, rgba(0, 198, 174, 0.1) 100%)'
+                        : 'transparent'
+                    }}
+                  >
+                    <span className="text-2xl">{item.icon}</span>
+                    <span 
+                      className="font-semibold text-base"
+                      style={{ 
+                        fontFamily: 'Inter, sans-serif',
+                        color: activeTab === item.id ? '#007BFF' : '#1A1A1A'
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                    {activeTab === item.id && (
+                      <div className="ml-auto w-2 h-2 rounded-full" style={{ background: 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)' }}></div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="my-6 mx-4 border-t" style={{ borderColor: 'rgba(0, 123, 255, 0.1)' }} />
+
+              {/* Account Items */}
+              <div className="px-4 space-y-3">
+                {accountMenuItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setIsSidebarOpen(false);
+                    }}
+                    className="w-full px-5 py-4 rounded-2xl flex items-center gap-4 transition-all duration-200 hover:bg-gray-50"
+                  >
+                    <span className="text-2xl">{item.icon}</span>
+                    <span 
+                      className="font-semibold text-base"
+                      style={{ 
+                        fontFamily: 'Inter, sans-serif',
+                        color: '#1A1A1A'
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </>
+      )}
+
+      {/* Floating Hamburger Menu */}
+      <div className="absolute top-6 left-6 z-30">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="flex items-center justify-center w-12 h-12 rounded-2xl backdrop-blur-xl transition-all duration-300 hover:scale-105"
+          style={{
+            background: 'rgba(255, 255, 255, 0.25)',
+            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.3)'
+          }}
+        >
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
