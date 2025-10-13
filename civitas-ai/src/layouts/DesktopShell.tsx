@@ -6,12 +6,16 @@ import type { Message } from '../types/chat';
 import { Composer } from '../components/chat/Composer';
 import { generateChatTitle } from '../utils/chatTitles';
 import { SmartSuggestions } from '../components/chat/SmartSuggestions';
+import { AgentAvatar } from '../components/common/AgentAvatar';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
 }
 
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
+  const { user } = useAuth();
+  
   // Import ChatSession from Sidebar component
   type ChatSession = {
     id: string;
@@ -242,8 +246,37 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   ];
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600">
-      {/* Clean, centered chat interface - no clutter */}
+    <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
+      {/* Minimal top bar */}
+      <header className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-semibold text-gray-900">Ask</span>
+            <div className="flex items-center gap-2">
+              <AgentAvatar size="sm" />
+              <span className="text-xl font-semibold text-gray-900">Civitas AI</span>
+            </div>
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-full">
+            <span className="text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+              <span className="text-xs font-bold text-white">
+                {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Clean, centered chat interface */}
       <div className="flex flex-1 overflow-hidden">
         {/* Hidden Left Sidebar - can be toggled if needed */}
         <div className={`
