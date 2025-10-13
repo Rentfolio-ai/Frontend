@@ -156,6 +156,7 @@
 
     .animate-fade-in,
     .animate-slide-in,
+    .animate-slide-in-left,
     .animate-pulse-subtle,
     .animate-accordion-down,
     .animate-accordion-up,
@@ -217,5 +218,21 @@
   
   .animation-duration-slow {
     animation-duration: 500ms;
+  }
+
+  /* Slide-in animations for sidebar */
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-out forwards;
   }
 }

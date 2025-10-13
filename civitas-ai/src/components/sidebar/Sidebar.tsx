@@ -126,7 +126,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onNewChat, chatHi
                     </button>
                     {chatHistory.length > 1 && onDeleteChat && (
                       <button
-                        onClick={(e) => onDeleteChat(chat.id, e)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onDeleteChat(chat.id, e);
+                        }}
                         className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:bg-red-100 text-gray-400 hover:text-red-600 transition-all"
                         aria-label="Delete chat"
                         title="Delete chat"

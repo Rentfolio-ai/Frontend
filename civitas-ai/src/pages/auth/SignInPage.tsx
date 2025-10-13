@@ -1,7 +1,6 @@
 // FILE: src/pages/auth/SignInPage.tsx
 import React, { useState } from 'react';
 import { Button } from '../../components/primitives/Button';
-import { ThemeToggle } from '../../components/primitives/ThemeToggle';
 
 interface SignInPageProps {
   onSignIn: (user: any) => void;
@@ -47,80 +46,41 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-center lg:px-8 bg-gradient-to-br from-primary to-accent-from relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        
-        <div className="relative z-10 max-w-md mx-auto text-center">
-          <div className="w-16 h-16 mx-auto mb-8 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          
-          <h1 className="text-3xl font-bold text-white mb-4">
-            Welcome to Civitas AI
-          </h1>
-          
-          <p className="text-lg text-white/90 leading-relaxed">
-            Your intelligent real estate investment assistant. Analyze properties, 
-            generate reports, and discover opportunities with AI-powered insights.
-          </p>
-          
-          <div className="mt-8 space-y-4 text-white/80">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-              <span>AI-powered property analysis</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-              <span>Comprehensive market reports</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-              <span>Investment opportunity discovery</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute bottom-20 left-20 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-      </div>
-
-      {/* Right Panel - Sign In Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-8 max-w-lg lg:max-w-md xl:max-w-lg mx-auto w-full">
-        <div className="flex justify-between items-center mb-8">
-          <div className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+    <div className="min-h-screen flex" style={{
+      background: 'linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%)'
+    }}>
+      {/* Left Panel - Sign In Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-12">
+        <div 
+          className="w-full max-w-md mx-auto rounded-2xl p-8"
+          style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)'
+          }}
+        >
+          {/* Logo and Title */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{
+              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)'
+            }}>
               <svg
-                className="w-5 h-5 text-primary-foreground"
+                className="w-8 h-8 text-white"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-foreground">Civitas AI</span>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h1>
+            <p className="text-sm text-gray-600">
+              Sign in to continue to Civitas
+            </p>
           </div>
-          <ThemeToggle />
-        </div>
 
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="text-2xl font-bold leading-9 tracking-tight text-foreground mb-2">
-            Sign in to your account
-          </h2>
-          <p className="text-sm text-foreground/60 mb-8">
-            Welcome back! Please enter your details.
-          </p>
-        </div>
-
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm space-y-6">
+          <div className="space-y-6">
           {/* Google Sign In */}
           <Button
             onClick={handleGoogleSignIn}
@@ -155,17 +115,17 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
+              <span className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-foreground/60">Or continue with email</span>
+              <span className="bg-white px-2 text-gray-500">Or continue with email</span>
             </div>
           </div>
 
           {/* Email Sign In Form */}
           <form className="space-y-4" onSubmit={handleEmailSignIn}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email address
               </label>
               <input
@@ -176,15 +136,15 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground
-                           placeholder:text-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary 
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900
+                           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 
                            focus:border-transparent transition-colors"
                 placeholder="Enter your email"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
@@ -195,8 +155,8 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground
-                           placeholder:text-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary 
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900
+                           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 
                            focus:border-transparent transition-colors"
                 placeholder="Enter your password"
               />
@@ -208,17 +168,25 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-foreground/70">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary hover:text-primary/80 transition-colors">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    // TODO: Implement password reset flow
+                    alert('Password reset functionality coming soon');
+                  }}
+                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  aria-label="Reset your password"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -231,15 +199,129 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
             </Button>
           </form>
 
-          <p className="text-center text-sm text-foreground/60">
+          <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
             <button
               onClick={onNavigateToSignUp}
-              className="font-medium text-primary hover:text-primary/80 transition-colors"
+              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
             >
               Sign up
             </button>
           </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - App Preview */}
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
+        <div className="max-w-lg text-white">
+          <h2 className="text-4xl font-bold mb-4">
+            Welcome to Civitas
+          </h2>
+          <p className="text-xl text-white/90 mb-8">
+            Your AI-Powered STR Investment Partner
+          </p>
+          
+          <div className="space-y-6 mb-10">
+            <div className="flex items-start gap-4">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+                role="img"
+                aria-label="Chat icon"
+              >
+                <span className="text-2xl" aria-hidden="true">💬</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Chat with Civitas AI</h3>
+                <p className="text-white/80 text-sm">Get instant insights and answers about STR investments, market trends, and property analysis</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+                role="img"
+                aria-label="Analytics icon"
+              >
+                <span className="text-2xl" aria-hidden="true">📊</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Analyze Property Performance</h3>
+                <p className="text-white/80 text-sm">Track revenue, occupancy rates, and ROI across your entire portfolio in real-time</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+                role="img"
+                aria-label="Portfolio icon"
+              >
+                <span className="text-2xl" aria-hidden="true">🏠</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Manage Your Portfolio</h3>
+                <p className="text-white/80 text-sm">Keep all your properties organized in one place with detailed performance metrics</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)'
+                }}
+                role="img"
+                aria-label="Market insights icon"
+              >
+                <span className="text-2xl" aria-hidden="true">📈</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Market Insights & Trends</h3>
+                <p className="text-white/80 text-sm">Get data-driven investment recommendations based on current market conditions</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Image Placeholder */}
+          <div 
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <div className="aspect-video flex items-center justify-center">
+              <div className="text-center">
+                <svg 
+                  className="w-16 h-16 mx-auto mb-4 text-white/60" 
+                  fill="currentColor" 
+                  viewBox="0 0 24 24"
+                  role="img"
+                  aria-labelledby="app-preview-icon-title"
+                  focusable="false"
+                >
+                  <title id="app-preview-icon-title">Home icon</title>
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+                <p className="text-white/60 text-sm">App Interface Preview</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

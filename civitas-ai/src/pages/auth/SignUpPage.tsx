@@ -1,7 +1,6 @@
 // FILE: src/pages/auth/SignUpPage.tsx
 import React, { useState } from 'react';
 import { Button } from '../../components/primitives/Button';
-import { ThemeToggle } from '../../components/primitives/ThemeToggle';
 
 interface SignUpPageProps {
   onSignUp: (user: any) => void;
@@ -94,80 +93,41 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-center lg:px-8 bg-gradient-to-br from-accent-from to-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        
-        <div className="relative z-10 max-w-md mx-auto text-center">
-          <div className="w-16 h-16 mx-auto mb-8 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          
-          <h1 className="text-3xl font-bold text-white mb-4">
-            Start Your Journey
-          </h1>
-          
-          <p className="text-lg text-white/90 leading-relaxed">
-            Join thousands of investors using AI to make smarter real estate decisions. 
-            Get started with your free account today.
-          </p>
-          
-          <div className="mt-8 space-y-4 text-white/80">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-              <span>Free to start, upgrade anytime</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-              <span>Advanced AI analysis tools</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-              <span>Expert insights and reports</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-32 left-16 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute bottom-32 right-16 w-28 h-28 bg-white/10 rounded-full blur-xl"></div>
-      </div>
-
-      {/* Right Panel - Sign Up Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-8 max-w-lg lg:max-w-md xl:max-w-lg mx-auto w-full">
-        <div className="flex justify-between items-center mb-8">
-          <div className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+    <div className="min-h-screen flex" style={{
+      background: 'linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%)'
+    }}>
+      {/* Left Panel - Sign Up Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-12">
+        <div 
+          className="w-full max-w-md mx-auto rounded-2xl p-8"
+          style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)'
+          }}
+        >
+          {/* Logo and Title */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{
+              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)'
+            }}>
               <svg
-                className="w-5 h-5 text-primary-foreground"
+                className="w-8 h-8 text-white"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-foreground">Civitas AI</span>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Create Your Account
+            </h1>
+            <p className="text-sm text-gray-600">
+              Start your STR investment journey with Civitas
+            </p>
           </div>
-          <ThemeToggle />
-        </div>
 
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="text-2xl font-bold leading-9 tracking-tight text-foreground mb-2">
-            Create your account
-          </h2>
-          <p className="text-sm text-foreground/60 mb-8">
-            Get started with your free Civitas AI account.
-          </p>
-        </div>
-
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm space-y-6">
+          <div className="space-y-6">
           {/* Google Sign Up */}
           <Button
             onClick={handleGoogleSignUp}
@@ -202,10 +162,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
+              <span className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-foreground/60">Or continue with email</span>
+              <span className="bg-white px-2 text-gray-500">Or continue with email</span>
             </div>
           </div>
 
@@ -213,7 +173,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
           <form className="space-y-4" onSubmit={handleEmailSignUp}>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-foreground mb-2">
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
                   First name
                 </label>
                 <input
@@ -224,22 +184,22 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   required
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded-lg bg-background text-foreground
-                             placeholder:text-foreground/60 focus:outline-none focus:ring-2 
+                  className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
+                             placeholder:text-gray-400 focus:outline-none focus:ring-2 
                              focus:border-transparent transition-colors ${
                                errors.firstName 
-                                 ? 'border-danger focus:ring-danger' 
-                                 : 'border-border focus:ring-primary'
+                                 ? 'border-red-500 focus:ring-red-500' 
+                                 : 'border-gray-300 focus:ring-blue-500'
                              }`}
                   placeholder="John"
                 />
                 {errors.firstName && (
-                  <p className="mt-1 text-xs text-danger">{errors.firstName}</p>
+                  <p className="mt-1 text-xs text-red-600">{errors.firstName}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-foreground mb-2">
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
                   Last name
                 </label>
                 <input
@@ -250,23 +210,23 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   required
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded-lg bg-background text-foreground
-                             placeholder:text-foreground/60 focus:outline-none focus:ring-2 
+                  className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
+                             placeholder:text-gray-400 focus:outline-none focus:ring-2 
                              focus:border-transparent transition-colors ${
                                errors.lastName 
-                                 ? 'border-danger focus:ring-danger' 
-                                 : 'border-border focus:ring-primary'
+                                 ? 'border-red-500 focus:ring-red-500' 
+                                 : 'border-gray-300 focus:ring-blue-500'
                              }`}
                   placeholder="Doe"
                 />
                 {errors.lastName && (
-                  <p className="mt-1 text-xs text-danger">{errors.lastName}</p>
+                  <p className="mt-1 text-xs text-red-600">{errors.lastName}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email address
               </label>
               <input
@@ -277,22 +237,22 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-background text-foreground
-                           placeholder:text-foreground/60 focus:outline-none focus:ring-2 
+                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
+                           placeholder:text-gray-400 focus:outline-none focus:ring-2 
                            focus:border-transparent transition-colors ${
                              errors.email 
-                               ? 'border-danger focus:ring-danger' 
-                               : 'border-border focus:ring-primary'
+                               ? 'border-red-500 focus:ring-red-500' 
+                               : 'border-gray-300 focus:ring-blue-500'
                            }`}
                 placeholder="john@example.com"
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-danger">{errors.email}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.email}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
@@ -303,22 +263,23 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-background text-foreground
-                           placeholder:text-foreground/60 focus:outline-none focus:ring-2 
+                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
+                           placeholder:text-gray-400 focus:outline-none focus:ring-2 
                            focus:border-transparent transition-colors ${
                              errors.password 
-                               ? 'border-danger focus:ring-danger' 
-                               : 'border-border focus:ring-primary'
+                               ? 'border-red-500 focus:ring-red-500' 
+                               : 'border-gray-300 focus:ring-blue-500'
                            }`}
                 placeholder="Create a strong password"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-danger">{errors.password}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
               )}
+              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm password
               </label>
               <input
@@ -329,17 +290,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-background text-foreground
-                           placeholder:text-foreground/60 focus:outline-none focus:ring-2 
+                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
+                           placeholder:text-gray-400 focus:outline-none focus:ring-2 
                            focus:border-transparent transition-colors ${
                              errors.confirmPassword 
-                               ? 'border-danger focus:ring-danger' 
-                               : 'border-border focus:ring-primary'
+                               ? 'border-red-500 focus:ring-red-500' 
+                               : 'border-gray-300 focus:ring-blue-500'
                            }`}
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-danger">{errors.confirmPassword}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -349,15 +310,25 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 mt-0.5 text-primary focus:ring-primary border-border rounded"
+                className="h-4 w-4 mt-0.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-foreground/70">
+              <label htmlFor="terms" className="ml-2 block text-sm text-gray-600">
                 I agree to the{' '}
-                <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+                <a 
+                  href="/terms-of-service" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:text-blue-500 transition-colors"
+                >
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+                <a 
+                  href="/privacy-policy" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:text-blue-500 transition-colors"
+                >
                   Privacy Policy
                 </a>
               </label>
@@ -372,15 +343,101 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
             </Button>
           </form>
 
-          <p className="text-center text-sm text-foreground/60">
+          <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
             <button
               onClick={onNavigateToSignIn}
-              className="font-medium text-primary hover:text-primary/80 transition-colors"
+              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
             >
               Sign in
             </button>
           </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - App Preview */}
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
+        <div className="max-w-lg text-white">
+          <h2 className="text-4xl font-bold mb-4">
+            Start Your Journey
+          </h2>
+          <p className="text-xl text-white/90 mb-8">
+            Join thousands of investors using AI for smarter STR decisions
+          </p>
+          
+          <div className="space-y-6 mb-10">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <span className="text-2xl">🚀</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Free to Start</h3>
+                <p className="text-white/80 text-sm">Begin with essential features, upgrade anytime as your portfolio grows</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <span className="text-2xl">🤖</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">AI-Powered Analysis</h3>
+                <p className="text-white/80 text-sm">Get instant property valuations, ROI projections, and market insights</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <span className="text-2xl">📊</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Comprehensive Reports</h3>
+                <p className="text-white/80 text-sm">Track performance metrics, generate tax reports, and monitor occupancy rates</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <span className="text-2xl">💡</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Expert Insights</h3>
+                <p className="text-white/80 text-sm">Access market trends, investment opportunities, and data-driven recommendations</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview Image Placeholder */}
+          <div 
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <div className="aspect-video flex items-center justify-center">
+              <div className="text-center">
+                <svg className="w-16 h-16 mx-auto mb-4 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                </svg>
+                <p className="text-white/60 text-sm">App Interface Preview</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

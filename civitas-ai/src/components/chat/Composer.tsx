@@ -94,14 +94,6 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
 
   return (
     <div className="space-y-4">
-      {/* Suggestion Chips */}
-      {message === '' && (
-        <SuggestionChips
-          suggestions={defaultSuggestions}
-          onSuggestionClick={handleSuggestionClick}
-        />
-      )}
-
       {/* Slash Commands */}
       {showCommands && (
         <div className="bg-surface border border-border rounded-lg p-2 space-y-1">
@@ -121,63 +113,105 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
         </div>
       )}
 
-      {/* Input Form - Immersive frosted glass style */}
-      <form onSubmit={handleSubmit} className="relative">
+      {/* Input Form - Enhanced with buttons inside */}
+      <form onSubmit={handleSubmit} className="relative max-w-4xl mx-auto">
+        {/* Main Input Container - Sleek glassmorphism design with integrated buttons */}
         <div 
-          className="relative backdrop-blur-md rounded-2xl p-2"
+          className="relative rounded-2xl transition-all duration-200"
           style={{
-            background: 'rgba(255, 255, 255, 0.6)',
-            boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.06)',
-            border: '1px solid rgba(0, 123, 255, 0.15)'
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0px 4px 20px rgba(59, 130, 246, 0.12), 0px 1px 3px rgba(0, 0, 0, 0.06)',
+            border: '1px solid rgba(59, 130, 246, 0.2)'
           }}
         >
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Message Civitas AI..."
-            className="w-full resize-none bg-transparent border-none px-4 py-3 pr-14
-                       placeholder:text-gray-400
-                       focus:outline-none
-                       min-h-[52px] max-h-[120px] text-base"
-            style={{
-              color: '#1A1A1A',
-              fontFamily: 'Inter, sans-serif'
-            }}
-            rows={1}
-            disabled={isLoading}
-            {...rest}
-          />
-          
-          <button
-            type="submit"
-            disabled={!message.trim() || isLoading}
-            className="absolute right-4 bottom-4 w-10 h-10 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            style={{
-              background: !message.trim() || isLoading 
-                ? '#E0E0E0' 
-                : 'linear-gradient(135deg, #00B2FF 0%, #00C6AE 100%)'
-            }}
-          >
-            {!isLoading ? (
+          <div className="flex items-center">
+            {/* File Upload Button - Left side */}
+            {/* TODO: Implement file upload functionality */}
+            <button
+              type="button"
+              className="w-10 h-10 ml-2 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0 opacity-50 cursor-not-allowed"
+              title="Feature coming soon"
+              disabled
+              aria-disabled="true"
+            >
               <svg
-                className="w-5 h-5 text-white"
+                className="w-5 h-5 text-slate-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                strokeWidth={2}
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                 />
               </svg>
-            ) : (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            )}
-          </button>
+            </button>
+
+            {/* Vertical Separator */}
+            <div 
+              className="w-px h-8 mx-2"
+              style={{
+                background: 'linear-gradient(180deg, rgba(148, 163, 184, 0) 0%, rgba(148, 163, 184, 0.3) 50%, rgba(148, 163, 184, 0) 100%)'
+              }}
+            />
+
+            {/* Text Input - Flexible */}
+            <div className="flex-1 py-3">
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about properties, markets, or investment strategies..."
+                className="w-full resize-none bg-transparent border-none
+                           placeholder:text-slate-400
+                           focus:outline-none
+                           min-h-[24px] max-h-[120px] text-base leading-relaxed"
+                style={{
+                  color: '#0f172a',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif'
+                }}
+                rows={1}
+                disabled={isLoading}
+                {...rest}
+              />
+            </div>
+
+            {/* Vertical Separator */}
+            <div 
+              className="w-px h-8 mx-2"
+              style={{
+                background: 'linear-gradient(180deg, rgba(148, 163, 184, 0) 0%, rgba(148, 163, 184, 0.3) 50%, rgba(148, 163, 184, 0) 100%)'
+              }}
+            />
+
+            {/* Voice Input Button - Right side */}
+            {/* TODO: Implement voice recording functionality */}
+            <button
+              type="button"
+              className="w-10 h-10 mr-2 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0 opacity-50 cursor-not-allowed"
+              title="Feature coming soon"
+              disabled
+              aria-disabled="true"
+            >
+              <svg
+                className="w-5 h-5 text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </form>
     </div>

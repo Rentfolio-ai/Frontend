@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Camera, Save, Palette } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,6 +18,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     email: user?.email || '',
     avatar: user?.avatar || ''
   });
+  
+  // Reset form data when modal opens or user changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: user?.name || '',
+        email: user?.email || '',
+        avatar: user?.avatar || ''
+      });
+    }
+  }, [isOpen, user]);
   
   const [errors, setErrors] = useState<{
     name?: string;
@@ -90,13 +101,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       {formData.avatar || formData.name.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </div>
-                  <button className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white hover:bg-primary/80 transition-colors">
+                  {/* TODO: Implement avatar upload functionality */}
+                  <button 
+                    className="absolute -bottom-1 -right-1 w-7 h-7 bg-gray-400 rounded-full flex items-center justify-center text-white opacity-50 cursor-not-allowed"
+                    disabled
+                    aria-disabled="true"
+                    title="Feature coming soon"
+                  >
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-foreground">Profile Photo</h4>
-                  <p className="text-xs text-foreground/60">Click the camera icon to upload</p>
+                  <p className="text-xs text-foreground/60">Avatar upload coming soon</p>
                 </div>
               </div>
 

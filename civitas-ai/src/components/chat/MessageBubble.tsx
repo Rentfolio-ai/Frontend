@@ -2,71 +2,107 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
+import { AgentAvatar } from '../common/AgentAvatar';
+import { UserAvatar } from '../common/UserAvatar';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MessageBubbleProps {
   message: Message;
-  groupLength?: number;
-  isFirst?: boolean;
 }
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === 'user';
+  const { user } = useAuth();
   
-  // iMessage style: AI on left, User on right - stacked conversation
+  // Real Estate STR-focused design: Professional cards with investment theme
   return (
     <div className={cn(
-      'flex gap-3 animate-slide-in px-6 mb-3',
+      'flex gap-4 animate-slide-in px-6 mb-4',
       isUser ? 'justify-end' : 'justify-start'
     )}>
-      {/* Message Bubble - iMessage style */}
+      {/* AI Agent Avatar - Left side only */}
+      {!isUser && (
+        <div className="flex-shrink-0 pt-1">
+          <AgentAvatar size="md" />
+        </div>
+      )}
+      
+      {/* Message Card - Floating Real Estate Style */}
       <div className={cn(
-        'max-w-[70%] px-5 py-3.5 rounded-[22px] backdrop-blur-lg transition-all duration-200 relative',
+        'max-w-[68%] px-6 py-4 rounded-2xl backdrop-blur-2xl transition-all duration-300 relative hover:translate-y-[-2px]',
         isUser 
-          ? 'rounded-br-md' // User bubble tail on bottom-right
-          : 'rounded-bl-md'  // AI bubble tail on bottom-left
+          ? 'rounded-tr-sm' // Subtle corner cut for user
+          : 'rounded-tl-sm'  // Subtle corner cut for AI
       )}
       style={{
         background: isUser 
-          ? 'linear-gradient(135deg, #477CB2 0%, #3B5998 100%)' // Darker blue like reference
-          : 'rgba(235, 238, 241, 0.95)', // Light gray like reference
+          ? 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)' // Brighter blue gradient
+          : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)', // Soft white-to-light-gray gradient
         boxShadow: isUser 
-          ? '0px 1px 4px rgba(0, 0, 0, 0.15)'
-          : '0px 1px 4px rgba(0, 0, 0, 0.08)',
+          ? '0px 12px 32px rgba(37, 99, 235, 0.3), 0px 4px 12px rgba(30, 64, 175, 0.2), 0px 2px 4px rgba(0, 0, 0, 0.1)'
+          : '0px 4px 20px rgba(148, 163, 184, 0.12), 0px 2px 10px rgba(203, 213, 225, 0.1), 0px 1px 3px rgba(100, 116, 139, 0.08)',
         border: isUser 
-          ? 'none'
-          : '1px solid rgba(0, 0, 0, 0.04)'
+          ? '1px solid rgba(255, 255, 255, 0.15)'
+          : '1px solid rgba(226, 232, 240, 0.8)',
+        transform: 'translateZ(0)' // Hardware acceleration for smooth floating effect
       }}
       >
+        {/* Real Estate Professional Badge (for AI messages) */}
+        {!isUser && (
+          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
+            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+              Civitas Advisor
+            </span>
+          </div>
+        )}
+
         <div 
           className={cn(
-            'text-[15px] leading-[1.47] whitespace-pre-wrap',
+            'text-[15px] leading-relaxed whitespace-pre-wrap',
             message.isStreaming && 'inline'
           )}
           style={{
-            color: isUser ? '#FFFFFF' : '#4A5568',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            fontWeight: 400
+            color: isUser ? '#FFFFFF' : '#1e293b',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            fontWeight: isUser ? 400 : 500
           }}
         >
           {message.content}
           {message.isStreaming && (
             <span 
-              className="inline-block w-0.5 h-4 ml-1 animate-pulse align-middle"
-              style={{ background: isUser ? '#FFFFFF' : '#007AFF' }}
+              className="inline-block w-1 h-4 ml-1 animate-pulse align-middle rounded-sm"
+              style={{ background: isUser ? 'rgba(255, 255, 255, 0.8)' : '#3b82f6' }}
             />
           )}
         </div>
         
-        {/* Timestamp inside bubble - bottom right */}
+        {/* Timestamp with property context indicator */}
         <div 
-          className="text-[11px] mt-1.5 text-right opacity-70"
+          className="flex items-center justify-between mt-3 pt-2 border-t"
           style={{
-            color: isUser ? '#FFFFFF' : '#6B7280',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            borderColor: isUser ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.05)'
           }}
         >
-          {typeof message.timestamp === 'string' 
-            ? message.timestamp 
-            : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          <div 
+            className="text-[10px] font-medium uppercase tracking-wide"
+            style={{
+              color: isUser ? 'rgba(255, 255, 255, 0.7)' : '#94a3b8'
+            }}
+          >
+            {typeof message.timestamp === 'string' 
+              ? message.timestamp 
+              : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          </div>
+          
+          {/* STR Investment Badge */}
+          {!isUser && (
+            <div className="flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 22V12h6v10" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="text-[9px] font-semibold text-emerald-600">STR</span>
+            </div>
+          )}
         </div>
         
         {/* Attachment rendering */}
@@ -92,6 +128,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           </div>
         )}
       </div>
+      
+      {/* User Avatar - Right side only */}
+      {isUser && (
+        <div className="flex-shrink-0 pt-1">
+          <UserAvatar name={user?.name || 'User'} size="md" />
+        </div>
+      )}
     </div>
   );
 };
