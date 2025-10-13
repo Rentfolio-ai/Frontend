@@ -23,14 +23,16 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
 
   if (messages.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md">
+      <div className="h-full flex items-center justify-center bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600">
+        <div className="text-center space-y-6 max-w-md px-6">
           <div className="mx-auto flex justify-center">
-            <AgentAvatar size="lg" />
+            <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl border border-white/30 shadow-2xl">
+              <AgentAvatar size="lg" />
+            </div>
           </div>
           <div>
-            <h3 className="text-h2 mb-2">Welcome to Civitas AI</h3>
-            <p className="text-foreground/60 text-body">
+            <h3 className="text-3xl font-bold mb-3 text-white">Welcome to Civitas AI</h3>
+            <p className="text-white/90 text-lg leading-relaxed">
               Start a conversation to analyze properties, generate reports, or explore investment opportunities.
             </p>
           </div>
@@ -61,7 +63,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
   }
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600">
       <div className="p-6 pb-32 space-y-1">
         {grouped.map(({ message, groupLength, isFirst }) => (
           <MessageBubble key={message.id} message={message} groupLength={groupLength} isFirst={isFirst} />

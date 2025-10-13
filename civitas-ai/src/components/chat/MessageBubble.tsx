@@ -29,88 +29,76 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLeng
   // Only show avatar/timestamp for first message in group
   return (
     <div className={cn(
-      'flex gap-3 mb-1 animate-slide-in',
-      isUser ? 'justify-end' : 'justify-start'
+      'flex gap-4 mb-6 animate-slide-in',
+      'justify-start' // Always align left with avatar on left
     )}>
-      {/* AI Avatar */}
-      {!isUser && (isFirst || groupLength === 1) && (
-        <AgentAvatar size="sm" />
-      )}
-      
-      {/* User Avatar */}
-      {isUser && (isFirst || groupLength === 1) && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0 order-last">
-          <span className="text-sm font-bold text-white">
-            {getUserInitials()}
-          </span>
-        </div>
-      )}
-
-      {/* Message Content */}
-      <div className={cn(
-        'max-w-[80%] space-y-2',
-        isUser ? 'order-first' : ''
-      )}>
-        {/* Message bubble */}
-        <div className={cn(
-          'px-4 py-3 rounded-2xl shadow-md transition-transform duration-200',
-          isUser
-            ? 'bg-gradient-to-br from-primary via-primary/80 to-primary/60 text-primary-foreground ml-auto scale-105'
-            : 'bg-gradient-to-br from-surface via-surface/80 to-surface/60 border border-border scale-100'
-        )}>
-          <div className={cn(
-            'text-body whitespace-pre-wrap',
-            message.isStreaming && 'typing-animation'
-          )}>
-            {message.content}
-            {message.isStreaming && (
-              <span className="inline-block w-2 h-5 ml-1 bg-current animate-pulse" />
-            )}
-            {/* Attachment rendering */}
-            {message.attachment && (
-              <div className="mt-2">
-                {message.attachment.type.startsWith('image') ? (
-                  <img
-                    src={message.attachment.url}
-                    alt={message.attachment.name}
-                    className="max-w-xs max-h-48 rounded-lg border border-border shadow"
-                  />
-                ) : (
-                  <a
-                    href={message.attachment.url}
-                    download={message.attachment.name}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs text-primary border border-border"
-                  >
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 16V4M12 16l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="18" width="16" height="2" rx="1" fill="currentColor"/></svg>
-                    {message.attachment.name}
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Timestamp */}
-        {(isFirst || groupLength === 1) && (
-          <div className={cn(
-            'text-xs text-foreground/60',
-            isUser ? 'text-right' : 'text-left'
-          )}>
+      {/* Avatar - Always on the left */}
+      {(isFirst || groupLength === 1) && (
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          {!isUser ? (
+            <AgentAvatar size="md" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg border-2 border-white/30">
+              <span className="text-base font-bold text-white">
+                {getUserInitials()}
+              </span>
+            </div>
+          )}
+          {/* Timestamp below avatar */}
+          <div className="text-xs text-white/70 font-medium whitespace-nowrap">
             {typeof message.timestamp === 'string' 
               ? message.timestamp 
               : message.timestamp.toLocaleString()}
           </div>
-        )}
-      </div>
-
-      {/* User Avatar */}
-      {isUser && (isFirst || groupLength === 1) && (
-        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-medium text-foreground">
-            U
-          </span>
         </div>
       )}
+      
+      {/* Spacer when avatar is hidden */}
+      {!(isFirst || groupLength === 1) && (
+        <div className="w-12 flex-shrink-0" />
+      )}
+
+      {/* Message Content - Glassmorphic bubble */}
+      <div className="flex-1 max-w-3xl">
+        <div className={cn(
+          'px-6 py-4 rounded-3xl shadow-xl backdrop-blur-md transition-all duration-300',
+          isUser
+            ? 'bg-white/20 text-white border border-white/30'
+            : 'bg-white/25 text-white border border-white/40'
+        )}>
+          <div className={cn(
+            'text-base leading-relaxed whitespace-pre-wrap',
+            message.isStreaming && 'inline'
+          )}>
+            {message.content}
+            {message.isStreaming && (
+              <span className="inline-block w-0.5 h-5 ml-1 bg-white animate-pulse align-middle" />
+            )}
+          </div>
+          
+          {/* Attachment rendering */}
+          {message.attachment && (
+            <div className="mt-3">
+              {message.attachment.type.startsWith('image') ? (
+                <img
+                  src={message.attachment.url}
+                  alt={message.attachment.name}
+                  className="max-w-md max-h-64 rounded-2xl border-2 border-white/30 shadow-lg"
+                />
+              ) : (
+                <a
+                  href={message.attachment.url}
+                  download={message.attachment.name}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-xl text-sm text-white border border-white/30 hover:bg-white/30 transition-colors"
+                >
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 16V4M12 16l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="18" width="16" height="2" rx="1" fill="currentColor"/></svg>
+                  {message.attachment.name}
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
