@@ -7,6 +7,7 @@ import type { Message } from '../types/chat';
 import { Composer } from '../components/chat/Composer';
 import { generateChatTitle } from '../utils/chatTitles';
 import { ContextRail } from '../components/rail/ContextRail';
+import { SmartSuggestions } from '../components/chat/SmartSuggestions';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -64,6 +65,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
   // Create a ref to track attachment URLs that persists across renders
@@ -147,6 +149,19 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     }
   }, []);
 
+  // Control smart suggestions display
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    const shouldShow = !isLoading && messages.length > 1 && 
+                       lastMessage?.role === 'assistant' && !lastMessage?.isStreaming;
+    if (shouldShow) {
+      const timer = setTimeout(() => setShowSuggestions(true), 300);
+      return () => clearTimeout(timer);
+    } else {
+      setShowSuggestions(false);
+    }
+  }, [messages, isLoading]);
+
   // Persist chat history, active chat, and messages to localStorage
   useEffect(() => {
     window.localStorage.setItem('civitas-chat-history', JSON.stringify(chatHistory));
@@ -199,6 +214,25 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  // Handle chat deletion
+  const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Prevent deletion if it's the only chat
+    if (chatHistory.length === 1) return;
+    
+    // Remove the chat from history
+    const updatedHistory = chatHistory.filter(c => c.id !== chatId);
+    setChatHistory(updatedHistory);
+    
+    // If deleting the active chat, switch to another chat
+    if (chatId === activeChatId) {
+      const nextChat = updatedHistory[0];
+      setActiveChatId(nextChat.id);
+      setMessages(nextChat.messages || []);
+      clearAttachments();
+    }
   };
 
   // Static quick actions
@@ -258,6 +292,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
               clearAttachments(); // Clean up current attachments when switching chats
               setActiveChatId(chatId);
             }}
+            onDeleteChat={handleDeleteChat}
             activeChatId={activeChatId}
           />
         </div>
@@ -283,6 +318,22 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           {/* Message List */}
           <div className="flex-1 overflow-y-auto px-0 md:px-8 pb-32">
             <MessageList messages={messages} isLoading={isLoading} />
+          </div>
+          {/* Smart Suggestions */}
+          <div 
+            className="flex-shrink-0 transition-all duration-300 px-0 md:px-8" 
+            style={{ 
+              minHeight: showSuggestions ? 'auto' : '0px', 
+              opacity: showSuggestions ? 1 : 0,
+              overflow: showSuggestions ? 'visible' : 'hidden'
+            }}
+          >
+            {showSuggestions && messages.length > 0 && (
+              <SmartSuggestions 
+                lastMessage={messages[messages.length - 1]?.content || ''}
+                onSuggestionClick={handleSendMessage}
+              />
+            )}
           </div>
           {/* Sticky Composer with attachment */}
           <div className="sticky bottom-0 left-0 right-0 bg-background p-4 border-t border-border z-20">
