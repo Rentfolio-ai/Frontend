@@ -39,32 +39,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     );
   }
 
-  // Group consecutive messages by sender
-  const grouped: Array<{ message: Message; groupLength: number; isFirst: boolean }> = [];
-  let i = 0;
-  while (i < messages.length) {
-    const current = messages[i];
-    let groupLen = 1;
-    let j = i + 1;
-    while (j < messages.length && messages[j].role === current.role) {
-      groupLen++;
-      j++;
-    }
-    for (let k = 0; k < groupLen; k++) {
-      grouped.push({
-        message: messages[i + k],
-        groupLength: groupLen,
-        isFirst: k === 0
-      });
-    }
-    i += groupLen;
-  }
-
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto p-6 pb-32 space-y-1">
-        {grouped.map(({ message, groupLength, isFirst }) => (
-          <MessageBubble key={message.id} message={message} groupLength={groupLength} isFirst={isFirst} />
+      <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} groupLength={1} isFirst={true} />
         ))}
         {isLoading && <LoadingBubble />}
         <div ref={messagesEndRef} />

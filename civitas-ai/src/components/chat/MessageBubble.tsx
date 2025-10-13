@@ -2,83 +2,49 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
-import { AgentAvatar } from '../common/AgentAvatar';
-import { useAuth } from '../../contexts/AuthContext';
 
 interface MessageBubbleProps {
   message: Message;
   groupLength?: number;
   isFirst?: boolean;
 }
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLength = 1, isFirst = true }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === 'user';
-  const { user } = useAuth();
   
-  // Get user initials
-  const getUserInitials = () => {
-    if (user?.name) {
-      const names = user.name.split(' ');
-      if (names.length >= 2) {
-        return `${names[0][0]}${names[1][0]}`.toUpperCase();
-      }
-      return user.name.substring(0, 2).toUpperCase();
-    }
-    return 'U';
-  };
-  
-  // iMessage style: AI on left, User on right
+  // iMessage style: AI on left, User on right - stacked conversation
   return (
     <div className={cn(
-      'flex gap-3 mb-4 animate-slide-in px-4',
+      'flex gap-3 animate-slide-in px-6 mb-3',
       isUser ? 'justify-end' : 'justify-start'
     )}>
-      {/* AI Avatar - Left side only */}
-      {!isUser && (isFirst || groupLength === 1) && (
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
-          <AgentAvatar size="sm" />
-          <div 
-            className="text-[10px] font-medium whitespace-nowrap text-white/60"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            {typeof message.timestamp === 'string' 
-              ? message.timestamp 
-              : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-          </div>
-        </div>
-      )}
-      
-      {/* Spacer when AI avatar is hidden */}
-      {!isUser && !(isFirst || groupLength === 1) && (
-        <div className="w-10 flex-shrink-0" />
-      )}
-
       {/* Message Bubble - iMessage style */}
       <div className={cn(
-        'max-w-[65%] px-4 py-3 rounded-[20px] backdrop-blur-lg transition-all duration-200',
+        'max-w-[70%] px-5 py-3.5 rounded-[22px] backdrop-blur-lg transition-all duration-200 relative',
         isUser 
-          ? 'rounded-br-sm' // User bubble tail on bottom-right
-          : 'rounded-bl-sm'  // AI bubble tail on bottom-left
+          ? 'rounded-br-md' // User bubble tail on bottom-right
+          : 'rounded-bl-md'  // AI bubble tail on bottom-left
       )}
       style={{
         background: isUser 
-          ? 'linear-gradient(135deg, #0084FF 0%, #0071E3 100%)' // iMessage blue
-          : 'rgba(255, 255, 255, 0.9)',
+          ? 'linear-gradient(135deg, #477CB2 0%, #3B5998 100%)' // Darker blue like reference
+          : 'rgba(235, 238, 241, 0.95)', // Light gray like reference
         boxShadow: isUser 
-          ? '0px 2px 8px rgba(0, 132, 255, 0.25)'
-          : '0px 2px 8px rgba(0, 0, 0, 0.1)',
+          ? '0px 1px 4px rgba(0, 0, 0, 0.15)'
+          : '0px 1px 4px rgba(0, 0, 0, 0.08)',
         border: isUser 
           ? 'none'
-          : '1px solid rgba(0, 0, 0, 0.05)'
+          : '1px solid rgba(0, 0, 0, 0.04)'
       }}
       >
         <div 
           className={cn(
-            'text-[15px] leading-[1.4] whitespace-pre-wrap',
+            'text-[15px] leading-[1.47] whitespace-pre-wrap',
             message.isStreaming && 'inline'
           )}
           style={{
-            color: isUser ? '#FFFFFF' : '#1A1A1A',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            color: isUser ? '#FFFFFF' : '#4A5568',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            fontWeight: 400
           }}
         >
           {message.content}
@@ -88,6 +54,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLeng
               style={{ background: isUser ? '#FFFFFF' : '#007AFF' }}
             />
           )}
+        </div>
+        
+        {/* Timestamp inside bubble - bottom right */}
+        <div 
+          className="text-[11px] mt-1.5 text-right opacity-70"
+          style={{
+            color: isUser ? '#FFFFFF' : '#6B7280',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+          }}
+        >
+          {typeof message.timestamp === 'string' 
+            ? message.timestamp 
+            : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
         </div>
         
         {/* Attachment rendering */}
@@ -113,20 +92,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLeng
           </div>
         )}
       </div>
-      
-      {/* User timestamp - Right side only */}
-      {isUser && (isFirst || groupLength === 1) && (
-        <div className="flex flex-col items-center gap-1 flex-shrink-0 justify-end pb-1">
-          <div 
-            className="text-[10px] font-medium whitespace-nowrap text-white/60"
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            {typeof message.timestamp === 'string' 
-              ? message.timestamp 
-              : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
