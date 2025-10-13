@@ -1,6 +1,5 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef } from 'react';
-import { Button } from '../primitives/Button';
 import { SuggestionChips } from './SuggestionChips';
 
 interface SuggestionChip {
@@ -122,34 +121,32 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
         </div>
       )}
 
-      {/* Input Form */}
+      {/* Input Form - Clean glassmorphic style */}
       <form onSubmit={handleSubmit} className="relative">
-        <div className="relative">
+        <div className="relative bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 p-2">
           <textarea
             ref={textareaRef}
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Message Civitas AI... (Type / for commands)"
-            className="w-full resize-none bg-surface border border-border rounded-lg px-4 py-3 pr-12
-                       text-foreground placeholder:text-foreground/60
-                       focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
-                       min-h-[48px] max-h-[120px] transition-colors"
+            placeholder="Add a message"
+            className="w-full resize-none bg-transparent border-none px-4 py-3 pr-14
+                       text-gray-800 placeholder:text-gray-500
+                       focus:outline-none
+                       min-h-[52px] max-h-[120px] text-base"
             rows={1}
             disabled={isLoading}
             {...rest}
           />
           
-          <Button
+          <button
             type="submit"
-            size="sm"
             disabled={!message.trim() || isLoading}
-            isLoading={isLoading}
-            className="absolute right-2 bottom-2 w-8 h-8 p-0"
+            className="absolute right-4 bottom-4 w-10 h-10 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-lg"
           >
-            {!isLoading && (
+            {!isLoading ? (
               <svg
-                className="w-4 h-4"
+                className="w-5 h-5 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -161,13 +158,10 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
                   d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                 />
               </svg>
+            ) : (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
-          </Button>
-        </div>
-
-        {/* Helper text */}
-        <div className="flex justify-center items-center mt-2 text-xs text-foreground/60">
-          <span>Press Enter to send, Shift+Enter for new line</span>
+          </button>
         </div>
       </form>
     </div>

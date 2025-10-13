@@ -1,12 +1,10 @@
 // FILE: src/layouts/DesktopShell.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { TopBar } from '../components/topbar/TopBar';
 import { Sidebar } from '../components/sidebar/Sidebar';
 import { MessageList } from '../components/chat/MessageList';
 import type { Message } from '../types/chat';
 import { Composer } from '../components/chat/Composer';
 import { generateChatTitle } from '../utils/chatTitles';
-import { ContextRail } from '../components/rail/ContextRail';
 import { SmartSuggestions } from '../components/chat/SmartSuggestions';
 
 interface DesktopShellProps {
@@ -244,16 +242,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   ];
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col overflow-hidden">
-      {/* Top Bar */}
-      <TopBar 
-        onToggleSidebar={toggleSidebar}
-        onToggleRail={toggleRail}
-        isRailCollapsed={isRailCollapsed}
-      />
-      {/* Main Content Area */}
+    <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-cyan-500 via-blue-500 to-blue-600">
+      {/* Clean, centered chat interface - no clutter */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar (collapsed by default) */}
+        {/* Hidden Left Sidebar - can be toggled if needed */}
         <div className={`
           flex-shrink-0 transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? 'w-0' : 'w-sidebar'}
@@ -297,26 +289,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           />
         </div>
 
-        {/* Center: Chat Area - visually dominant */}
-        <div className="flex-1 flex flex-col min-w-0 bg-background relative">
-          {/* Contextual Quick Actions for LLM */}
-          <div className="p-6 pb-2 border-b border-border bg-background sticky top-0 z-10">
-            <div className="flex flex-wrap gap-2">
-              {quickActions.map((action) => (
-                <button
-                  key={action.value}
-                  className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/60 transition-colors"
-                  onClick={() => handleSendMessage(action.value)}
-                  aria-label={action.label}
-                  tabIndex={0}
-                >
-                  {action.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Message List */}
-          <div className="flex-1 overflow-y-auto px-0 md:px-8 pb-32">
+        {/* Center: Clean Chat Interface - No Clutter */}
+        <div className="flex-1 flex flex-col min-w-0 relative max-w-5xl mx-auto w-full">
+          {/* Message List - Full height, centered, clean */}
+          <div className="flex-1 overflow-y-auto">
             <MessageList messages={messages} isLoading={isLoading} />
           </div>
           {/* Smart Suggestions */}
@@ -335,56 +311,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
               />
             )}
           </div>
-          {/* Sticky Composer with attachment */}
-          <div className="sticky bottom-0 left-0 right-0 bg-background p-4 border-t border-border z-20">
-            <div className="max-w-chat mx-auto flex items-center gap-2">
-              <input
-                type="file"
-                id="chat-attachment"
-                className="hidden"
-                onChange={e => {
-                  if (e.target.files && e.target.files[0]) {
-                    setAttachment(e.target.files[0]);
-                  }
-                }}
-                aria-label="Attach file or image"
-              />
-              <label htmlFor="chat-attachment" className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 hover:bg-primary/30 border border-primary text-primary focus:outline-none focus:ring-2 focus:ring-primary/60" aria-label="Attach file or image" tabIndex={0}>
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M16.5 13.5V7.5C16.5 5.01472 14.4853 3 12 3C9.51472 3 7.5 5.01472 7.5 7.5V16.5C7.5 18.9853 9.51472 21 12 21C14.4853 21 16.5 18.9853 16.5 16.5V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </label>
-              {attachment && (
-                <span className="text-xs text-primary font-medium px-2 py-1 bg-primary/10 rounded">{attachment.name}</span>
-              )}
+          {/* Clean Composer - Centered and minimal */}
+          <div className="flex-shrink-0 p-6">
+            <div className="max-w-4xl mx-auto">
               <Composer onSend={handleSendMessage} aria-label="Chat input" />
-              {isLoading && (
-                <button
-                  className="ml-2 w-10 h-10 flex items-center justify-center rounded-xl bg-red-600/20 hover:bg-red-600/40 transition-colors border border-red-600 shadow focus:outline-none focus:ring-2 focus:ring-red-600"
-                  onClick={handleStopStream}
-                  title="Stop response"
-                  aria-label="Stop assistant response"
-                  tabIndex={0}
-                >
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-red-600 text-white">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="4" y="4" width="8" height="8" rx="2" fill="currentColor" />
-                    </svg>
-                  </span>
-                </button>
-              )}
             </div>
           </div>
-        </div>
-
-        {/* Right Context Rail (less visual emphasis) */}
-        <div className={`
-          flex-shrink-0 transition-all duration-300 ease-in-out border-l border-border
-          ${isRailCollapsed ? 'w-0' : 'w-right-rail'}
-          ${isRailCollapsed ? 'opacity-0' : 'opacity-100'}
-        `}>
-          <ContextRail 
-            isCollapsed={isRailCollapsed} 
-            onSendMessage={handleSendMessage}
-          />
         </div>
       </div>
     </div>
