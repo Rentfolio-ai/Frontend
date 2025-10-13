@@ -2,7 +2,8 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
-
+import { AgentAvatar } from '../common/AgentAvatar';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MessageBubbleProps {
   message: Message;
@@ -11,22 +12,37 @@ interface MessageBubbleProps {
 }
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLength = 1, isFirst = true }) => {
   const isUser = message.role === 'user';
+  const { user } = useAuth();
+  
+  // Get user initials
+  const getUserInitials = () => {
+    if (user?.name) {
+      const names = user.name.split(' ');
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+      }
+      return user.name.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+  
   // Only show avatar/timestamp for first message in group
   return (
     <div className={cn(
       'flex gap-3 mb-1 animate-slide-in',
       isUser ? 'justify-end' : 'justify-start'
     )}>
-      {/* Avatar */}
+      {/* AI Avatar */}
       {!isUser && (isFirst || groupLength === 1) && (
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-          <svg
-            className="w-4 h-4 text-primary-foreground"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-          </svg>
+        <AgentAvatar size="sm" />
+      )}
+      
+      {/* User Avatar */}
+      {isUser && (isFirst || groupLength === 1) && (
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0 order-last">
+          <span className="text-sm font-bold text-white">
+            {getUserInitials()}
+          </span>
         </div>
       )}
 

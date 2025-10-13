@@ -166,9 +166,8 @@ export const Composer: React.FC<ComposerProps> = ({ onSend, ...rest }) => {
         </div>
 
         {/* Helper text */}
-        <div className="flex justify-between items-center mt-2 text-xs text-foreground/60">
+        <div className="flex justify-center items-center mt-2 text-xs text-foreground/60">
           <span>Press Enter to send, Shift+Enter for new line</span>
-          <span>{message.length}/2000</span>
         </div>
       </form>
     </div>
