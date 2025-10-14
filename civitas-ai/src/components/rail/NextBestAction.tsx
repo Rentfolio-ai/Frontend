@@ -3,13 +3,15 @@ import React from 'react';
 import { Card } from '../primitives/Card';
 import { Button } from '../primitives/Button';
 import { Badge } from '../primitives/Badge';
+import { Priority, ActionType } from '@/types/enums';
+import type { Priority as PriorityType, ActionType as ActionTypeType } from '@/types/enums';
 
 interface NextAction {
   id: string;
   title: string;
   description: string;
-  priority: 'high' | 'medium' | 'low';
-  type: 'analysis' | 'alert' | 'opportunity' | 'follow_up';
+  priority: PriorityType;
+  type: ActionTypeType;
   action: string;
 }
 
@@ -18,71 +20,71 @@ const sampleActions: NextAction[] = [
     id: '1',
     title: 'Review Market Alert',
     description: 'Austin downtown prices increased 15% - consider accelerating investment timeline',
-    priority: 'high',
-    type: 'alert',
+    priority: Priority.High,
+    type: ActionType.Alert,
     action: 'View Details'
   },
   {
     id: '2',
     title: 'Complete ROI Analysis',
     description: 'Finish analyzing the 3 properties you saved from yesterday\'s search',
-    priority: 'medium',
-    type: 'analysis',
+    priority: Priority.Medium,
+    type: ActionType.Analysis,
     action: 'Continue Analysis'
   },
   {
     id: '3',
     title: 'New Opportunity',
     description: 'Found 2 properties matching your criteria in desired neighborhoods',
-    priority: 'medium',
-    type: 'opportunity',
+    priority: Priority.Medium,
+    type: ActionType.Opportunity,
     action: 'View Properties'
   },
   {
     id: '4',
     title: 'Follow up: Property Visit',
     description: 'Schedule visit for 123 Main St based on positive analysis results',
-    priority: 'low',
-    type: 'follow_up',
+    priority: Priority.Low,
+    type: ActionType.FollowUp,
     action: 'Schedule'
   }
 ];
 
 export const NextBestAction: React.FC = () => {
-  const getPriorityBadge = (priority: string) => {
+  const getPriorityBadge = (priority: PriorityType) => {
     switch (priority) {
-      case 'high':
+      case Priority.High:
         return <Badge variant="danger" size="sm">High</Badge>;
-      case 'medium':
+      case Priority.Medium:
         return <Badge variant="warning" size="sm">Medium</Badge>;
-      case 'low':
+      case Priority.Low:
         return <Badge variant="default" size="sm">Low</Badge>;
       default:
         return null;
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: ActionTypeType) => {
     switch (type) {
-      case 'alert':
+      case ActionType.Alert:
         return (
           <svg className="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
         );
-      case 'analysis':
+      case ActionType.Analysis:
         return (
           <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         );
-      case 'opportunity':
+      case ActionType.Opportunity:
         return (
           <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         );
-      case 'follow_up':
+      case ActionType.FollowUp:
         return (
           <svg className="w-4 h-4 text-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

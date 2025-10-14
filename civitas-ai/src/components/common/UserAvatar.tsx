@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
+import { AvatarSize } from '@/types/enums';
+import type { AvatarSize as AvatarSizeType } from '@/types/enums';
 
 interface UserAvatarProps {
   name: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: AvatarSizeType;
   className?: string;
 }
 
@@ -29,11 +31,11 @@ const getInitials = (fullName: string): string => {
   return (firstInitial + lastInitial) || 'U';
 };
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = 'md', className = '' }) => {
-  const sizeClasses = {
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-12 h-12 text-base'
+export const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = AvatarSize.Medium, className = '' }) => {
+  const sizeClasses: Record<AvatarSizeType, string> = {
+    [AvatarSize.Small]: 'w-8 h-8 text-xs',
+    [AvatarSize.Medium]: 'w-10 h-10 text-sm',
+    [AvatarSize.Large]: 'w-12 h-12 text-base'
   };
 
   // Memoize initials calculation to avoid recomputing on every render

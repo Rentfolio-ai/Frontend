@@ -3,13 +3,15 @@ import React from 'react';
 import { Card } from '../primitives/Card';
 import { Button } from '../primitives/Button';
 import { Badge } from '../primitives/Badge';
+import { ReportType, ReportStatus } from '@/types/enums';
+import type { ReportType as ReportTypeType, ReportStatus as ReportStatusType } from '@/types/enums';
 
 interface Report {
   id: string;
   title: string;
-  type: 'market_analysis' | 'portfolio_summary' | 'roi_analysis' | 'comparative_analysis';
+  type: ReportTypeType;
   date: string;
-  status: 'ready' | 'generating' | 'draft';
+  status: ReportStatusType;
   size?: string;
 }
 
@@ -17,58 +19,58 @@ const sampleReports: Report[] = [
   {
     id: '1',
     title: 'Q3 Portfolio Performance',
-    type: 'portfolio_summary',
+    type: ReportType.PortfolioSummary,
     date: '2 days ago',
-    status: 'ready',
+    status: ReportStatus.Ready,
     size: '2.3 MB'
   },
   {
     id: '2',
     title: 'Austin Market Analysis',
-    type: 'market_analysis',
+    type: ReportType.MarketAnalysis,
     date: '1 week ago',
-    status: 'ready',
+    status: ReportStatus.Ready,
     size: '1.8 MB'
   },
   {
     id: '3',
     title: 'Downtown Properties ROI',
-    type: 'roi_analysis',
+    type: ReportType.ROIAnalysis,
     date: '2 weeks ago',
-    status: 'ready',
+    status: ReportStatus.Ready,
     size: '950 KB'
   },
   {
     id: '4',
     title: 'Property Comparison Report',
-    type: 'comparative_analysis',
+    type: ReportType.ComparativeAnalysis,
     date: 'Just now',
-    status: 'generating'
+    status: ReportStatus.Generating
   }
 ];
 
 export const ReportsList: React.FC = () => {
-  const getReportIcon = (type: string) => {
+  const getReportIcon = (type: ReportTypeType) => {
     switch (type) {
-      case 'market_analysis':
+      case ReportType.MarketAnalysis:
         return (
           <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
         );
-      case 'portfolio_summary':
+      case ReportType.PortfolioSummary:
         return (
           <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         );
-      case 'roi_analysis':
+      case ReportType.ROIAnalysis:
         return (
           <svg className="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         );
-      case 'comparative_analysis':
+      case ReportType.ComparativeAnalysis:
         return (
           <svg className="w-4 h-4 text-foreground/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l-3-3m3 3l3-3" />
@@ -83,13 +85,13 @@ export const ReportsList: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ReportStatusType) => {
     switch (status) {
-      case 'ready':
+      case ReportStatus.Ready:
         return <Badge variant="success" size="sm">Ready</Badge>;
-      case 'generating':
+      case ReportStatus.Generating:
         return <Badge variant="warning" size="sm">Generating</Badge>;
-      case 'draft':
+      case ReportStatus.Draft:
         return <Badge variant="default" size="sm">Draft</Badge>;
       default:
         return null;

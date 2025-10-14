@@ -1,7 +1,7 @@
 // FILE: src/components/demo/PropertyCardDemo.tsx
 import React from 'react';
 import { PropertyCard } from '../primitives/PropertyCard';
-import type { Property } from '../../../../types/index';
+import type { Property } from '../../types';
 
 export const PropertyCardDemo: React.FC = () => {
   // Sample properties with different ROI levels to showcase features
@@ -21,7 +21,7 @@ export const PropertyCardDemo: React.FC = () => {
       taxes: 12000,
       rentEst: 4500,
       expensesEst: 2000,
-      roiMonthly: [12.5, 13.2, 11.8, 12.9, 13.5, 14.1, 13.8, 12.7, 11.9, 12.3, 13.4, 12.8],
+      monthlyRoiData: [12.5, 13.2, 11.8, 12.9, 13.5, 14.1, 13.8, 12.7, 11.9, 12.3, 13.4, 12.8],
       capRate: 6.8,
       images: ['https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800'],
       zip: '10001',
@@ -52,7 +52,7 @@ export const PropertyCardDemo: React.FC = () => {
       taxes: 8000,
       rentEst: 2800,
       expensesEst: 1200,
-      roiMonthly: [8.2, 7.9, 8.5, 8.1, 7.8, 8.3, 8.7, 8.0, 7.6, 8.4, 8.1, 7.9],
+      monthlyRoiData: [8.2, 7.9, 8.5, 8.1, 7.8, 8.3, 8.7, 8.0, 7.6, 8.4, 8.1, 7.9],
       capRate: 5.5,
       images: ['https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800'],
       zip: '07302',
@@ -83,13 +83,13 @@ export const PropertyCardDemo: React.FC = () => {
       taxes: 5000,
       rentEst: 1800,
       expensesEst: 800,
-      roiMonthly: [5.2, 4.8, 5.5, 5.1, 4.9, 5.3, 5.7, 5.0, 4.6, 5.4, 5.1, 4.8],
+      monthlyRoiData: [5.2, 4.8, 5.5, 5.1, 4.9, 5.3, 5.7, 5.0, 4.6, 5.4, 5.1, 4.8],
       capRate: 4.2,
       images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800'],
       zip: '19107',
       city: 'Philadelphia',
       state: 'PA',
-      propertyType: 'single-family',
+      propertyType: 'single_family',
       amenities: ['Parking', 'Basement'],
       description: 'Affordable property in emerging neighborhood',
       adrRange: {

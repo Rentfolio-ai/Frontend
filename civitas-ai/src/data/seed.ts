@@ -1,5 +1,13 @@
 // FILE: src/data/seed.ts
 import type { Message as ChatMessage } from '@/types/chat';
+import { 
+  ToolKind,
+  ToolStatus,
+  Trend,
+  KPIFormat,
+  ReportType,
+  ReportStatus
+} from '@/types/enums';
 
 // Re-export the Message type
 export type Message = ChatMessage;
@@ -14,10 +22,10 @@ export interface Chat {
 }
 
 export interface ToolResult {
-  kind: 'roi_analysis' | 'market_data' | 'property_comparison' | 'alert';
+  kind: ToolKind;
   title: string;
   data: any;
-  status: 'success' | 'warning' | 'error';
+  status: ToolStatus;
 }
 
 export interface KpiData {
@@ -25,16 +33,16 @@ export interface KpiData {
   label: string;
   value: string | number;
   change?: string;
-  trend?: 'up' | 'down' | 'neutral';
-  format?: 'currency' | 'percentage' | 'number' | 'text';
+  trend?: Trend;
+  format?: KPIFormat;
 }
 
 export interface Report {
   id: string;
   title: string;
-  type: 'market_analysis' | 'portfolio_summary' | 'roi_analysis' | 'comparative_analysis';
+  type: ReportType;
   date: string;
-  status: 'ready' | 'generating' | 'draft';
+  status: ReportStatus;
   size?: string;
 }
 
@@ -131,9 +139,9 @@ export const seedMessages: Message[] = [
 // Sample tool results
 export const seedToolResults: ToolResult[] = [
   {
-    kind: 'market_data',
+    kind: ToolKind.MarketData,
     title: 'Austin Downtown Market Analysis',
-    status: 'success',
+    status: ToolStatus.Success,
     data: {
       location: 'Downtown Austin, TX',
       medianPrice: '485K',
@@ -143,9 +151,9 @@ export const seedToolResults: ToolResult[] = [
     }
   },
   {
-    kind: 'roi_analysis',
+    kind: ToolKind.ROIAnalysis,
     title: 'Investment ROI Analysis',
-    status: 'success',
+    status: ToolStatus.Success,
     data: {
       roi: 8.4,
       capRate: 6.2,
@@ -162,44 +170,44 @@ export const seedKpis: KpiData[] = [
     label: 'Portfolio Value',
     value: '2.4M',
     change: '+12.3%',
-    trend: 'up',
-    format: 'currency'
+    trend: Trend.Up,
+    format: KPIFormat.Currency
   },
   {
     id: '2',
     label: 'Monthly Revenue',
     value: '18.5K',
     change: '+5.2%',
-    trend: 'up',
-    format: 'currency'
+    trend: Trend.Up,
+    format: KPIFormat.Currency
   },
   {
     id: '3',
     label: 'Avg Cap Rate',
     value: '6.8',
     change: '+0.3%',
-    trend: 'up',
-    format: 'percentage'
+    trend: Trend.Up,
+    format: KPIFormat.Percentage
   },
   {
     id: '4',
     label: 'Occupancy Rate',
     value: '94.2',
     change: '-1.8%',
-    trend: 'down',
-    format: 'percentage'
+    trend: Trend.Down,
+    format: KPIFormat.Percentage
   },
   {
     id: '5',
     label: 'Active Properties',
     value: 12,
-    format: 'number'
+    format: KPIFormat.Number
   },
   {
     id: '6',
     label: 'Markets',
     value: 4,
-    format: 'number'
+    format: KPIFormat.Number
   }
 ];
 
@@ -208,33 +216,33 @@ export const seedReports: Report[] = [
   {
     id: '1',
     title: 'Q3 Portfolio Performance',
-    type: 'portfolio_summary',
+    type: ReportType.PortfolioSummary,
     date: '2 days ago',
-    status: 'ready',
+    status: ReportStatus.Ready,
     size: '2.3 MB'
   },
   {
     id: '2',
     title: 'Austin Market Analysis',
-    type: 'market_analysis',
+    type: ReportType.MarketAnalysis,
     date: '1 week ago',
-    status: 'ready',
+    status: ReportStatus.Ready,
     size: '1.8 MB'
   },
   {
     id: '3',
     title: 'Downtown Properties ROI',
-    type: 'roi_analysis',
+    type: ReportType.ROIAnalysis,
     date: '2 weeks ago',
-    status: 'ready',
+    status: ReportStatus.Ready,
     size: '950 KB'
   },
   {
     id: '4',
     title: 'Property Comparison Report',
-    type: 'comparative_analysis',
+    type: ReportType.ComparativeAnalysis,
     date: 'Just now',
-    status: 'generating'
+    status: ReportStatus.Generating
   }
 ];
 

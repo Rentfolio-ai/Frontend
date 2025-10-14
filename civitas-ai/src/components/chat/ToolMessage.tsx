@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../primitives/Card';
 import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
 import { PropertyCard } from '../primitives/PropertyCard';
-import type { Property } from '../../../../types/index';
+import type { Property } from '../../types';
 
 interface ROIAnalysisData {
   roi: number;
@@ -143,15 +143,15 @@ const PropertyComparisonCard: React.FC<{ data: PropertyComparisonData }> = ({ da
     taxes: 0,
     rentEst: 0,
     expensesEst: 0,
-    roiMonthly: [propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi, 
-                 propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi,
-                 propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi],
+    monthlyRoiData: [propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi, 
+                     propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi,
+                     propertyData.roi, propertyData.roi, propertyData.roi, propertyData.roi],
     capRate: propertyData.roi * 0.8, // Estimate cap rate as 80% of ROI
     images: [],
     zip: '',
     city: '',
     state: '',
-    propertyType: 'single-family' as const,
+    propertyType: 'single_family' as const,
     amenities: [],
     description: '',
     // Enhanced fields with sample data
