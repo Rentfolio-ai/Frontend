@@ -183,6 +183,7 @@ export function useDesktopShell() {
               {
                 id,
                 content,
+                role: 'assistant',
                 type: 'assistant',
                 timestamp: new Date(),
                 isStreaming: content.length < fullResponse.length

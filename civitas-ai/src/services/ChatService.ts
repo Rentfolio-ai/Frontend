@@ -81,6 +81,7 @@ export class ChatService {
     const message: Message = {
       id: `${Date.now()}`,
       content,
+      role: 'user',
       type: 'user',
       timestamp: new Date()
     };
@@ -99,6 +100,7 @@ export class ChatService {
     return {
       id: id || `${Date.now() + 1}`,
       content,
+      role: 'assistant',
       type: 'assistant',
       timestamp: new Date()
     };
