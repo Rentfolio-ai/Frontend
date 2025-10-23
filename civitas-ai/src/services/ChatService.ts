@@ -1,40 +1,245 @@
 // FILE: src/services/ChatService.ts
 import type { Message } from '../types/chat';
+import { executeToolCalls, getChatContext, type ToolCall } from '../utils/toolExecution';
+
+const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
 
 export class ChatService {
   /**
-   * Generate human-like STR-focused responses based on user message
+   * Generate STR-focused responses using Civitas backend
+   * Returns both content and optional navigation action
    */
-  static generateSTRResponse(userMessage: string): string {
+  static async generateSTRResponse(userMessage: string, userContext?: { name?: string; onboarding_completed?: boolean }, conversationHistory?: Message[]): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any }> {
+    try {
+      // Get current settings context for chat API
+      const chatContext = getChatContext();
+      
+      // Call Civitas API for real AI processing
+      const response = await fetch(`${CIVITAS_API_BASE}/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: userMessage,
+          user_context: { ...userContext, ...chatContext },
+          history: conversationHistory?.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })) || [],
+          include_analytics: true
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔥 BACKEND RESPONSE:', data);
+        
+        // Check for navigation action from backend
+        const navigate = data.navigate || data.action?.navigate;
+        
+        // Check for action buttons (report generation prompt, etc.)
+        const action = data.action;
+        
+        // Check for tool calls
+        const toolCalls = data.toolCalls || [];
+        
+        // Execute tool calls if present
+        if (toolCalls.length > 0) {
+          console.log('🔧 Executing tool calls:', toolCalls);
+          const results = executeToolCalls(toolCalls);
+          console.log('✅ Tool execution results:', results);
+        }
+        
+        // Handle different response formats
+        let content: string;
+        if (data.message && typeof data.message === 'string') {
+          // New format with message field (for settings changes)
+          content = data.message;
+        } else if (data.result && typeof data.result === 'string') {
+          try {
+            const parsedResult = JSON.parse(data.result);
+            if (parsedResult && typeof parsedResult === 'object' && parsedResult.location) {
+              content = this.formatPropertyData(parsedResult, userMessage);
+            } else {
+              content = data.result;
+            }
+          } catch (e) {
+            content = data.result;
+          }
+        } else if (data.result && typeof data.result === 'object') {
+          content = this.formatPropertyData(data.result, userMessage);
+        } else if (typeof data === 'object' && data.location) {
+          content = this.formatPropertyData(data, userMessage);
+        } else {
+          content = this.generateFallbackSTRResponse(userMessage).content;
+        }
+        
+        return { content, navigate, toolCalls, action };
+      } else {
+        console.warn('Civitas API error:', response.status);
+        return this.generateFallbackSTRResponse(userMessage);
+      }
+    } catch (error) {
+      console.warn('Civitas API unavailable, using fallback:', error);
+      return this.generateFallbackSTRResponse(userMessage);
+    }
+  }
+
+  /**
+   * Check if message is a navigation intent (local fallback)
+   */
+  static detectNavigationIntent(message: string): string | null {
+    const lower = message.toLowerCase();
+    
+    // Properties tab
+    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(properties|property tab|saved properties)/)) {
+      return 'properties';
+    }
+    
+    // Portfolio tab
+    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(portfolio|my investments|my properties)/)) {
+      return 'portfolio';
+    }
+    
+    // Market trends tab
+    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(market|trends|market trends|market data)/)) {
+      return 'market';
+    }
+    
+    // Reports tab
+    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(reports|report tab|my reports)/)) {
+      return 'reports';
+    }
+    
+    // Settings tab
+    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(settings|preferences|account)/)) {
+      return 'settings';
+    }
+    
+    // Chat tab
+    if (lower.match(/\b(go to|open|show|navigate to|take me to|back to)\b.*(chat|main|home)/)) {
+      return null; // null = chat tab
+    }
+    
+    return null;
+  }
+
+  /**
+   * Format property data into a user-friendly message
+   */
+  static formatPropertyData(data: any, userMessage: string): string {
+    try {
+      if (data.location && typeof data.total_properties === 'number') {
+        const location = data.location;
+        const totalProperties = data.total_properties;
+        
+        let response = `📍 **Real Estate Analysis: ${location}**\n\n`;
+        
+        response += `I found ${totalProperties} investment properties in ${location}!\n\n`;
+        
+        if (data.reports && Array.isArray(data.reports) && data.reports.length > 0) {
+          response += '**🏆 Top STR Investment Properties:**\n\n';
+          
+          data.reports.forEach((property: any, index: number) => {
+            response += `**${index + 1}. ${property.description || property.address || 'Property'}**\n`;
+            if (property.address) response += `📍 ${property.address}\n`;
+            if (property.price) response += `💰 Purchase: $${Number(property.price).toLocaleString()}\n`;
+            
+            // Property details
+            const beds = property.bedrooms || property.beds;
+            const baths = property.bathrooms || property.baths;
+            if (beds || baths) response += `🏠 ${beds || 0} bed, ${baths || 0} bath`;
+            if (property.sqft) response += ` • ${property.sqft} sqft`;
+            response += '\n';
+            
+            // STR-specific metrics
+            if (property.nightly_price) response += `🌙 Nightly Rate: $${property.nightly_price}\n`;
+            if (property.monthly_revenue_estimate) response += `📊 Monthly Revenue: $${Number(property.monthly_revenue_estimate).toLocaleString()}\n`;
+            if (property.cash_on_cash_roi) response += `📈 Cash-on-Cash ROI: ${property.cash_on_cash_roi}%\n`;
+            if (property.avg_occupancy_rate) response += `🎯 Occupancy: ${Math.round(property.avg_occupancy_rate * 100)}%\n`;
+            
+            // Amenities
+            if (property.amenities && Array.isArray(property.amenities)) {
+              response += `✨ Amenities: ${property.amenities.join(', ')}\n`;
+            }
+            
+            response += '\n';
+          });
+        } else {
+          response += "I'm working on gathering detailed information about specific properties.\n\n";
+          response += "Would you like me to search for properties with specific criteria? For example:\n";
+          response += "- Properties under a certain price\n";
+          response += "- Minimum number of bedrooms/bathrooms\n";
+          response += "- Properties with high ROI potential\n";
+        }
+        
+        response += "\n*What specific property details would you like to know more about?*";
+        return response;
+      }
+      
+      // Fallback for other data formats
+      return JSON.stringify(data, null, 2);
+    } catch (error) {
+      console.error('Error formatting property data:', error);
+      return this.generateFallbackSTRResponse(userMessage).content;
+    }
+  }
+
+  /**
+   * Fallback STR responses when Civitas API is unavailable
+   */
+  static generateFallbackSTRResponse(userMessage: string): { content: string; navigate?: string } {
     const lower = userMessage.toLowerCase();
     
     // Property analysis questions
     if (lower.includes('property') || lower.includes('address') || lower.includes('location')) {
-      return "Great question! 🏡 For property analysis, I'd need the address or location you're considering. Once you share that, I can pull up:\n\n• Recent comparable STR listings and their revenue\n• Average occupancy rates in that area\n• Seasonal demand trends\n• Local regulations and permit requirements\n• Estimated startup costs and ROI projections\n\nJust drop the address or city you're interested in, and I'll get to work!";
+      return { content: "Great question! 🏡 For property analysis, I'd need the address or location you're considering. Once you share that, I can pull up:\n\n• Recent comparable STR listings and their revenue\n• Average occupancy rates in that area\n• Seasonal demand trends\n• Local regulations and permit requirements\n• Estimated startup costs and ROI projections\n\nJust drop the address or city you're interested in, and I'll get to work!" };
     }
     
     // Market research questions
     if (lower.includes('market') || lower.includes('city') || lower.includes('where')) {
-      return "Love that you're thinking strategically! 📊 The best STR markets right now really depend on your investment goals. Are you looking for:\n\n• High cash flow with strong year-round demand?\n• Appreciation potential in emerging markets?\n• Low competition with underserved demand?\n• Specific regions or budget ranges?\n\nTell me more about your criteria, and I can recommend some markets that might be perfect for you.";
+      return { content: "Love that you're thinking strategically! 📊 The best STR markets right now really depend on your investment goals. Are you looking for:\n\n• High cash flow with strong year-round demand?\n• Appreciation potential in emerging markets?\n• Low competition with underserved demand?\n• Specific regions or budget ranges?\n\nTell me more about your criteria, and I can recommend some markets that might be perfect for you." };
     }
     
     // Revenue/ROI questions
     if (lower.includes('revenue') || lower.includes('roi') || lower.includes('money') || lower.includes('profit')) {
-      return "Ah, the bottom line – my favorite topic! 💰 STR returns can vary wildly based on location, property type, and how well you manage it.\n\nTypically, I see successful STRs generating:\n• 8-15% cash-on-cash returns in good markets\n• 15-25%+ in exceptional locations with great management\n• Higher returns during peak seasons\n\nTo give you a specific analysis, I'd need to know more about the property you're considering. Want to share some details?";
+      return { content: "Ah, the bottom line – my favorite topic! 💰 STR returns can vary wildly based on location, property type, and how well you manage it.\n\nTypically, I see successful STRs generating:\n• 8-15% cash-on-cash returns in good markets\n• 15-25%+ in exceptional locations with great management\n• Higher returns during peak seasons\n\nTo give you a specific analysis, I'd need to know more about the property you're considering. Want to share some details?" };
     }
     
     // Regulations/legal questions
     if (lower.includes('regulation') || lower.includes('legal') || lower.includes('permit') || lower.includes('law')) {
-      return "Smart to think about regulations upfront – this trips up a lot of new investors! 📋\n\nSTR regulations vary dramatically by location. Some cities welcome them with open arms, others have strict caps or outright bans.\n\nWhich market are you looking at? I can check:\n• Registration/licensing requirements\n• Occupancy limits and rental restrictions\n• Tax obligations (TOT, sales tax, etc.)\n• HOA restrictions if applicable\n\nThis stuff matters way more than people think!";
+      return { content: "Smart to think about regulations upfront – this trips up a lot of new investors! 📋\n\nSTR regulations vary dramatically by location. Some cities welcome them with open arms, others have strict caps or outright bans.\n\nWhich market are you looking at? I can check:\n• Registration/licensing requirements\n• Occupancy limits and rental restrictions\n• Tax obligations (TOT, sales tax, etc.)\n• HOA restrictions if applicable\n\nThis stuff matters way more than people think!" };
     }
     
     // Pricing/occupancy optimization
     if (lower.includes('price') || lower.includes('pricing') || lower.includes('occupancy') || lower.includes('optimize')) {
-      return "Pricing is both an art and a science! 🎯 Get it right and you'll maximize revenue while keeping occupancy high.\n\nHere's what I typically recommend:\n• Dynamic pricing based on demand, seasonality, and local events\n• Competitive analysis against similar listings\n• Weekend vs. weekday pricing strategies\n• Minimum stay requirements for peak periods\n\nAre you managing an existing property or planning for a future one? I can give you more specific guidance based on your situation.";
+      return { content: "Pricing is both an art and a science! 🎯 Get it right and you'll maximize revenue while keeping occupancy high.\n\nHere's what I typically recommend:\n• Dynamic pricing based on demand, seasonality, and local events\n• Competitive analysis against similar listings\n• Weekend vs. weekday pricing strategies\n• Minimum stay requirements for peak periods\n\nAre you managing an existing property or planning for a future one? I can give you more specific guidance based on your situation." };
     }
     
-    // General/other questions
-    return "That's a great question! 🤔 I'm here to help you navigate the STR investment world.\n\nTo give you the most useful answer, could you tell me a bit more about:\n• What stage you're at (researching, analyzing, or already managing properties?)\n• Any specific markets or properties you're interested in?\n• Your main goals (cash flow, appreciation, portfolio growth?)\n\nThe more context you share, the better I can tailor my advice to your situation!";
+    // Check for navigation intent - only respond if explicitly matched (not just returning null)
+    const hasExplicitNavigationKeywords = /\b(go to|open|show|navigate to|take me to|view|back to)\b/.test(lower);
+    
+    if (hasExplicitNavigationKeywords) {
+      const navigate = this.detectNavigationIntent(userMessage);
+      const tabNames: Record<string, string> = {
+        'properties': 'Properties',
+        'portfolio': 'Portfolio',
+        'market': 'Market Trends',
+        'reports': 'Reports',
+        'settings': 'Settings'
+      };
+      const tabName = navigate ? tabNames[navigate] : 'Chat';
+      return {
+        content: `Sure! Taking you to the ${tabName} tab now. 🎯`,
+        navigate: navigate || undefined
+      };
+    }
+    
+    // General/other questions (including first message/greeting)
+    return {
+      content: "I'm here to help you find and evaluate short-term rental (STR) investment opportunities. Here's what I can do for you:\n\n• 🏠 **Property Analysis** - Evaluate specific properties for STR potential\n• 📊 **Market Research** - Identify the best markets for your investment goals\n• 💰 **Revenue Projections** - Estimate cash flow and ROI\n• 📋 **Regulatory Guidance** - Navigate local STR laws and requirements\n• 🎯 **Optimization Tips** - Maximize occupancy and pricing strategies\n\n*Tip: You can also ask me to navigate to different tabs, like \"Show me my properties\" or \"Take me to reports\"*\n\nWhat would you like to explore today?"
+    };
   }
 
   /**

@@ -8,6 +8,17 @@ export interface ToolCard {
   data?: any;
 }
 
+export interface ActionOption {
+  label: string;
+  action: string;
+}
+
+export interface Action {
+  type: 'confirm';
+  message: string;
+  options: ActionOption[];
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -21,4 +32,5 @@ export interface Message {
     url: string;
   };
   tools?: ToolCard[];
+  action?: Action;
 }

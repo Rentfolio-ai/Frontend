@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { Message } from '../types/chat';
 import { generateChatTitle } from '../utils/chatTitles';
 import { ChatService } from '../services/ChatService';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface ChatSession {
   id: string;
@@ -15,6 +16,8 @@ export interface ChatSession {
 export type TabType = 'chat' | 'properties' | 'portfolio' | 'market' | 'reports' | 'settings';
 
 export function useDesktopShell() {
+  // Get user context
+  const { user } = useAuth();
   // Chat history state
   const [chatHistory, setChatHistory] = useState<ChatSession[]>(() => {
     const saved = typeof window !== 'undefined'
@@ -151,14 +154,16 @@ export function useDesktopShell() {
   const handleSendMessage = (message: string) => {
     if (!message.trim() && !attachment) return;
 
-    // Create user message
-    const userMessage: Message = ChatService.createUserMessage(message, 
-      attachment ? {
-        name: attachment.name,
-        type: attachment.type,
-        url: URL.createObjectURL(attachment)
-      } : undefined
-    );
+    // Create user message with attachment if present
+    const attachmentInfo = attachment 
+      ? {
+          name: attachment.name,
+          type: attachment.type,
+          url: URL.createObjectURL(attachment)
+        }
+      : undefined;
+    
+    const userMessage: Message = ChatService.createUserMessage(message, attachmentInfo);
 
     if (userMessage.attachment?.url) {
       attachmentUrlsRef.current.push(userMessage.attachment.url);
@@ -168,36 +173,67 @@ export function useDesktopShell() {
     setAttachment(null);
     setIsLoading(true);
     
-    // Simulate AI response with delay
+    // Get AI response from Civitas API
     const delay = 1000 + Math.random() * 1000;
-    setTimeout(() => {
-      const fullResponse = ChatService.generateSTRResponse(message);
-      
-      const { intervalId } = ChatService.streamResponse(
-        fullResponse,
-        (content, id) => {
-          setMessages(prev => {
-            const filtered = prev.filter(m => m.id !== id);
-            return [
-              ...filtered,
-              {
-                id,
-                content,
-                role: 'assistant',
-                type: 'assistant',
-                timestamp: new Date(),
-                isStreaming: content.length < fullResponse.length
-              } as Message
-            ];
-          });
-        },
-        () => {
-          setStreamIntervalId(null);
-          setIsLoading(false);
-        }
-      );
-      
-      setStreamIntervalId(intervalId);
+    setTimeout(async () => {
+      try {
+        // Pass user context to backend
+        const userContext = {
+          name: user?.name?.split(' ')[0] || 'there',
+          onboarding_completed: user?.onboarding_completed ?? false
+        };
+        const response = await ChatService.generateSTRResponse(message, userContext);
+        const fullResponse = response.content;
+        const navigate = response.navigate;
+        
+        const { intervalId } = ChatService.streamResponse(
+          fullResponse,
+          (content, id) => {
+            const isComplete = content.length >= fullResponse.length;
+            setMessages(prev => {
+              const filtered = prev.filter(m => m.id !== id);
+              return [
+                ...filtered,
+                {
+                  id,
+                  content,
+                  role: 'assistant',
+                  type: 'assistant',
+                  timestamp: new Date(),
+                  isStreaming: !isComplete
+                } as Message
+              ];
+            });
+          },
+          () => {
+            setStreamIntervalId(null);
+            setIsLoading(false);
+            
+            // Handle navigation after message is displayed (only if explicitly set to a valid tab)
+            if (navigate && typeof navigate === 'string' && ['properties', 'portfolio', 'market', 'reports', 'settings'].includes(navigate)) {
+              setTimeout(() => {
+                setActiveTab(navigate as TabType);
+              }, 800); // Small delay so user sees the message
+            }
+          }
+        );
+        
+        setStreamIntervalId(intervalId);
+      } catch (error) {
+        console.error('Failed to get AI response:', error);
+        setIsLoading(false);
+        
+        // Add error message
+        const errorMessage: Message = {
+          id: `error_${Date.now()}`,
+          content: "I'm having trouble connecting to the AI service. Please try again.",
+          role: 'assistant',
+          type: 'assistant',
+          timestamp: new Date(),
+          isStreaming: false
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     }, delay);
   };
 

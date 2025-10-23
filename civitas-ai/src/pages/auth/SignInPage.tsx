@@ -1,5 +1,6 @@
 // FILE: src/pages/auth/SignInPage.tsx
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '../../components/primitives/Button';
 
 interface SignInPageProps {
@@ -12,6 +13,9 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,24 +50,52 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
   };
 
   return (
-    <div className="min-h-screen flex" style={{
-      background: 'linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%)'
-    }}>
+    <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Deep Purple Gradient Background */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-[#1B0034] via-[#3B0A72] to-[#6E00FF]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      />
+      
+      {/* Animated Glow Layers */}
+      <motion.div
+        className="absolute -z-10 w-[700px] h-[700px] rounded-full blur-3xl"
+        style={{ background: "radial-gradient(circle, rgba(0,199,140,0.3), transparent 70%)", top: "20%", left: "10%" }}
+        animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute -z-10 w-[600px] h-[600px] rounded-full blur-3xl"
+        style={{ background: "radial-gradient(circle, rgba(110,0,255,0.25), transparent 70%)", bottom: "15%", right: "10%" }}
+        animate={{ scale: [1, 0.95, 1], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      
+      {/* Content Container */}
+      <div className="relative z-10 w-full min-h-screen flex flex-col lg:flex-row">
       {/* Left Panel - Sign In Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-12">
-        <div 
-          className="w-full max-w-md mx-auto rounded-2xl p-8"
-          style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)'
-          }}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-16">
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          whileHover={{ y: -4, boxShadow: "0 20px 60px rgba(110,0,255,0.3)" }}
+          className="w-full max-w-md mx-auto rounded-3xl shadow-2xl backdrop-blur-lg bg-white/95 p-10 transition-all duration-500"
         >
           {/* Logo and Title */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{
-              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)'
-            }}>
+          <motion.div 
+            className="text-center mb-8"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <motion.div 
+              className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-600 via-teal-500 to-green-400 shadow-lg"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <svg
                 className="w-8 h-8 text-white"
                 fill="currentColor"
@@ -71,22 +103,31 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
               >
                 <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
               </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            </motion.div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter Tight, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
               Welcome Back
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500 }}>
               Sign in to continue to Civitas
             </p>
-          </div>
+          </motion.div>
 
-          <div className="space-y-6">
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
           {/* Google Sign In */}
-          <Button
-            onClick={handleGoogleSignIn}
-            isLoading={isGoogleLoading}
-            variant="outline"
-            className="w-full h-12"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              onClick={handleGoogleSignIn}
+              isLoading={isGoogleLoading}
+              variant="outline"
+              className="w-full h-12 bg-white text-gray-900 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 ease-in-out"
             leftIcon={
               !isGoogleLoading && (
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -109,26 +150,40 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                 </svg>
               )
             }
-          >
-            Continue with Google
-          </Button>
+            >
+              Continue with Google
+            </Button>
+          </motion.div>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+              <span className="bg-white px-2 text-gray-500" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, letterSpacing: '0.05em' }}>Or continue with email</span>
             </div>
           </div>
 
           {/* Email Sign In Form */}
-          <form className="space-y-4" onSubmit={handleEmailSignIn}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <form className="space-y-6" onSubmit={handleEmailSignIn}>
+            {/* Email Field */}
+            <motion.div 
+              className="relative"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.label 
+                htmlFor="email" 
+                className={`absolute left-4 transition-all duration-200 pointer-events-none font-medium ${
+                  emailFocused || email 
+                    ? 'top-2 text-xs text-[#6E00FF]' 
+                    : 'top-4 text-sm text-gray-500'
+                }`}
+              >
                 Email address
-              </label>
-              <input
+              </motion.label>
+              <motion.input
                 id="email"
                 name="email"
                 type="email"
@@ -136,18 +191,33 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900
-                           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 
-                           focus:border-transparent transition-colors"
-                placeholder="Enter your email"
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+                whileFocus={{ scale: 1.01 }}
+                className="w-full px-4 pt-6 pb-2 border-2 border-gray-200 rounded-xl bg-white text-gray-900
+                           focus:outline-none focus:ring-2 focus:ring-[#6E00FF]/20 focus:border-[#6E00FF]
+                           transition-all duration-300"
               />
-            </div>
+            </motion.div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            {/* Password Field */}
+            <motion.div 
+              className="relative"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <motion.label 
+                htmlFor="password" 
+                className={`absolute left-4 transition-all duration-200 pointer-events-none font-medium ${
+                  passwordFocused || password 
+                    ? 'top-2 text-xs text-[#6E00FF]' 
+                    : 'top-4 text-sm text-gray-500'
+                }`}
+              >
                 Password
-              </label>
-              <input
+              </motion.label>
+              <motion.input
                 id="password"
                 name="password"
                 type="password"
@@ -155,175 +225,215 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-900
-                           placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 
-                           focus:border-transparent transition-colors"
-                placeholder="Enter your password"
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+                whileFocus={{ scale: 1.01 }}
+                className="w-full px-4 pt-6 pb-2 border-2 border-gray-200 rounded-xl bg-white text-gray-900
+                           focus:outline-none focus:ring-2 focus:ring-[#6E00FF]/20 focus:border-[#6E00FF]
+                           transition-all duration-300"
               />
-            </div>
+            </motion.div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
+            <motion.div 
+              className="flex items-center justify-between"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.div 
+                className="flex items-center gap-2 cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                onClick={() => setRememberMe(!rememberMe)}
+              >
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                  rememberMe 
+                    ? 'bg-gradient-to-r from-[#6E00FF] to-[#00C78C] border-transparent' 
+                    : 'border-gray-300 bg-white'
+                }`}>
+                  {rememberMe && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <label htmlFor="remember-me" className="text-sm text-gray-600 cursor-pointer select-none" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500 }}>
                   Remember me
                 </label>
-              </div>
+              </motion.div>
 
-              <div className="text-sm">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    // TODO: Implement password reset flow
-                    alert('Password reset functionality coming soon');
-                  }}
-                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-                  aria-label="Reset your password"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            </div>
+              <motion.button 
+                type="button"
+                onClick={() => {
+                  // TODO: Implement password reset flow
+                }}
+                whileHover={{ scale: 1.05, x: 2 }}
+                className="text-sm font-medium text-[#6E00FF] hover:text-[#00C78C] transition-colors"
+                style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600 }}
+                aria-label="Reset your password"
+              >
+                Forgot password?
+              </motion.button>
+            </motion.div>
 
-            <Button
+            <motion.button
               type="submit"
-              isLoading={isLoading}
-              className="w-full h-12"
+              disabled={isLoading}
+              whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(0,199,140,0.6)" }}
+              whileTap={{ scale: 0.98 }}
+              className="relative w-full py-4 bg-gradient-to-r from-[#6E00FF] to-[#00C78C] text-white rounded-xl shadow-lg overflow-hidden group transition-all duration-300"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600, fontSize: '16px' }}
             >
-              Sign in
-            </Button>
+              {/* Shimmer effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                initial={{ x: '-100%' }}
+                animate={{ x: '100%' }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              />
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign in'
+                )}
+              </span>
+            </motion.button>
           </form>
 
-          <p className="text-center text-sm text-gray-600">
+          <motion.p 
+            className="text-center text-sm text-gray-600"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
             Don't have an account?{' '}
-            <button
+            <motion.button
               onClick={onNavigateToSignUp}
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              className="font-semibold text-[#6E00FF] hover:text-[#00C78C] transition-colors"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600 }}
             >
               Sign up
-            </button>
-          </p>
-          </div>
-        </div>
+            </motion.button>
+          </motion.p>
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* Right Panel - App Preview */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
-        <div className="max-w-lg text-white">
-          <h2 className="text-4xl font-bold mb-4">
+      {/* Right Panel - Features */}
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-16">
+        <div className="max-w-lg relative z-10">
+          <motion.h2 
+            className="text-5xl font-bold mb-4 text-white"
+            style={{ fontFamily: 'Inter Tight, system-ui, sans-serif', letterSpacing: '-0.03em' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
             Welcome to Civitas
-          </h2>
-          <p className="text-xl text-white/90 mb-8">
+          </motion.h2>
+          <motion.p 
+            className="text-xl text-gray-300 mb-12"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400, lineHeight: '1.6' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
             Your AI-Powered STR Investment Partner
-          </p>
+          </motion.p>
           
           <div className="space-y-6 mb-10">
-            <div className="flex items-start gap-4">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
-                }}
+            <motion.div 
+              className="flex items-start gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <motion.div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
                 role="img"
                 aria-label="Chat icon"
               >
                 <span className="text-2xl" aria-hidden="true">💬</span>
-              </div>
+              </motion.div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">Chat with Civitas AI</h3>
-                <p className="text-white/80 text-sm">Get instant insights and answers about STR investments, market trends, and property analysis</p>
+                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Chat with Civitas AI</h3>
+                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Get instant insights and answers about STR investments, market trends, and property analysis</p>
               </div>
-            </div>
+            </motion.div>
             
-            <div className="flex items-start gap-4">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
-                }}
+            <motion.div 
+              className="flex items-start gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              <motion.div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
                 role="img"
                 aria-label="Analytics icon"
               >
                 <span className="text-2xl" aria-hidden="true">📊</span>
-              </div>
+              </motion.div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">Analyze Property Performance</h3>
-                <p className="text-white/80 text-sm">Track revenue, occupancy rates, and ROI across your entire portfolio in real-time</p>
+                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Analyze Property Performance</h3>
+                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Track revenue, occupancy rates, and ROI across your entire portfolio in real-time</p>
               </div>
-            </div>
+            </motion.div>
             
-            <div className="flex items-start gap-4">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
-                }}
+            <motion.div 
+              className="flex items-start gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+            >
+              <motion.div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
                 role="img"
                 aria-label="Portfolio icon"
               >
                 <span className="text-2xl" aria-hidden="true">🏠</span>
-              </div>
+              </motion.div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">Manage Your Portfolio</h3>
-                <p className="text-white/80 text-sm">Keep all your properties organized in one place with detailed performance metrics</p>
+                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Manage Your Portfolio</h3>
+                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Keep all your properties organized in one place with detailed performance metrics</p>
               </div>
-            </div>
+            </motion.div>
             
-            <div className="flex items-start gap-4">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" 
-                style={{
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)'
-                }}
+            <motion.div 
+              className="flex items-start gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              <motion.div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
                 role="img"
                 aria-label="Market insights icon"
               >
                 <span className="text-2xl" aria-hidden="true">📈</span>
-              </div>
+              </motion.div>
               <div>
-                <h3 className="font-semibold text-lg mb-1">Market Insights & Trends</h3>
-                <p className="text-white/80 text-sm">Get data-driven investment recommendations based on current market conditions</p>
+                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Market Insights & Trends</h3>
+                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Get data-driven investment recommendations based on current market conditions</p>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Preview Image Placeholder */}
-          <div 
-            className="rounded-2xl overflow-hidden"
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.2)'
-            }}
-          >
-            <div className="aspect-video flex items-center justify-center">
-              <div className="text-center">
-                <svg 
-                  className="w-16 h-16 mx-auto mb-4 text-white/60" 
-                  fill="currentColor" 
-                  viewBox="0 0 24 24"
-                  role="img"
-                  aria-labelledby="app-preview-icon-title"
-                  focusable="false"
-                >
-                  <title id="app-preview-icon-title">Home icon</title>
-                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-                </svg>
-                <p className="text-white/60 text-sm">App Interface Preview</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-    </div>
+      </div>
+    </main>
   );
 };

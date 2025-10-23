@@ -21,6 +21,10 @@ import { useDesktopShell } from '../hooks/useDesktopShell';
 import { useThemeState } from '../hooks/useThemeState';
 import { usePreferences } from '../hooks/usePreferences';
 import { ChatTabView, SettingsTabView, DesktopSidebarMenu } from '../components/desktop-shell';
+import { PropertiesTabView } from '../components/views/PropertiesTabView';
+import { PortfolioTabView } from '../components/views/PortfolioTabView';
+import { MarketTrendsTabView } from '../components/views/MarketTrendsTabView';
+import { ReportsTabView } from '../components/views/ReportsTabView';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -39,7 +43,6 @@ const STATE_OPTIONS = [
 ];
 
 const MENU_ITEMS = [
-  { id: 'chat' as const, label: 'Chat', icon: '💬' },
   { id: 'properties' as const, label: 'Properties', icon: '🏠' },
   { id: 'portfolio' as const, label: 'Portfolio', icon: '💼' },
   { id: 'market' as const, label: 'Market Insights', icon: '📊' },
@@ -81,8 +84,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       className="h-screen flex flex-col overflow-hidden transition-all duration-500"
       style={{
         background: selectedState 
-          ? `linear-gradient(180deg, ${currentTheme.primary} 0%, ${currentTheme.secondary} 100%)`
-          : 'linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%)'
+          ? `linear-gradient(135deg, ${currentTheme.primary} 0%, ${currentTheme.secondary} 100%)`
+          : 'linear-gradient(135deg, #0062E6 0%, #00C78C 50%, #10B981 100%)' // Blue → Teal → Green
       }}
     >
       {/* Sidebar Menu */}
@@ -126,79 +129,25 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             <ChatTabView
               messages={messages}
               isLoading={isLoading}
-              showSuggestions={showSuggestions}
               userName={user?.name?.split(' ')[0]}
               selectedState={selectedState}
               onSendMessage={handleSendMessage}
             />
           )}
-
           {activeTab === 'properties' && (
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-4">Properties</h1>
-                <div 
-                  className="rounded-2xl p-8 text-center"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  <p className="text-gray-600">Properties view coming soon...</p>
-                </div>
-              </div>
-            </div>
+            <PropertiesTabView />
           )}
 
           {activeTab === 'portfolio' && (
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-4">Portfolio</h1>
-                <div 
-                  className="rounded-2xl p-8 text-center"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  <p className="text-gray-600">Portfolio view coming soon...</p>
-                </div>
-              </div>
-            </div>
+            <PortfolioTabView />
           )}
 
           {activeTab === 'market' && (
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-4">Market Insights</h1>
-                <div 
-                  className="rounded-2xl p-8 text-center"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  <p className="text-gray-600">Market insights coming soon...</p>
-                </div>
-              </div>
-            </div>
+            <MarketTrendsTabView />
           )}
 
           {activeTab === 'reports' && (
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-white mb-4">Reports</h1>
-                <div 
-                  className="rounded-2xl p-8 text-center"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  <p className="text-gray-600">Reports view coming soon...</p>
-                </div>
-              </div>
-            </div>
+            <ReportsTabView />
           )}
 
           {activeTab === 'settings' && (

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { Message, ToolCard } from '@/types/chat'
+import { ActionButtons } from './ActionButtons'
 
 interface ChatInterfaceProps {
   className?: string
@@ -116,12 +117,41 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     }
   }
 
+  const handleAction = (actionValue: string) => {
+    if (actionValue === 'generate_report') {
+      // Send follow-up message to generate report
+      const reportMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: 'Yes, generate the report',
+        timestamp: new Date(),
+      }
+      setMessages(prev => [...prev, reportMessage])
+      
+      // Simulate backend response
+      setIsTyping(true)
+      setTimeout(() => {
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: '📊 Generating your detailed investment report... This will be ready shortly!',
+          timestamp: new Date(),
+        }
+        setMessages(prev => [...prev, aiResponse])
+        setIsTyping(false)
+      }, 1500)
+    } else if (actionValue === 'skip') {
+      // Just acknowledge
+      console.log('User skipped report generation')
+    }
+  }
+
   return (
     <div className={cn("flex flex-col h-full", className)}>
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble key={message.id} message={message} onAction={handleAction} />
         ))}
         
         {isTyping && (
@@ -195,7 +225,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   )
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message, onAction }: { message: Message; onAction: (action: string) => void }) {
   const isUser = message.type === 'user'
   const timestamp = message.timestamp instanceof Date 
     ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -232,6 +262,13 @@ function MessageBubble({ message }: { message: Message }) {
             {message.tools.map((tool) => (
               <ToolCardComponent key={tool.id} tool={tool} />
             ))}
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        {message.action && !isUser && (
+          <div className="max-w-full sm:max-w-2xl">
+            <ActionButtons action={message.action} onAction={onAction} />
           </div>
         )}
 

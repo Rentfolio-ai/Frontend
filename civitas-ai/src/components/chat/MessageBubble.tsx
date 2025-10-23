@@ -49,7 +49,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         {/* Real Estate Professional Badge (for AI messages) */}
         {!isUser && (
           <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
-            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+            <span 
+              className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.08em' }}
+            >
               Civitas Advisor
             </span>
           </div>
@@ -57,13 +60,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
 
         <div 
           className={cn(
-            'text-[15px] leading-relaxed whitespace-pre-wrap',
+            'leading-relaxed whitespace-pre-wrap',
             message.isStreaming && 'inline'
           )}
           style={{
             color: isUser ? '#FFFFFF' : '#1e293b',
-            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            fontWeight: isUser ? 400 : 500
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
+            fontSize: '15px',
+            fontWeight: isUser ? 400 : 450,
+            lineHeight: '1.6',
+            letterSpacing: '0.01em'
           }}
         >
           {message.content}
@@ -83,9 +89,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           }}
         >
           <div 
-            className="text-[10px] font-medium uppercase tracking-wide"
+            className="text-[10px] font-medium uppercase"
             style={{
-              color: isUser ? 'rgba(255, 255, 255, 0.7)' : '#94a3b8'
+              color: isUser ? 'rgba(255, 255, 255, 0.7)' : '#94a3b8',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              letterSpacing: '0.06em'
             }}
           >
             {typeof message.timestamp === 'string' 
@@ -100,7 +108,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
                 <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M9 22V12h6v10" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span className="text-[9px] font-semibold text-emerald-600">STR</span>
+              <span 
+                className="text-[9px] font-bold text-emerald-600"
+                style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.05em' }}
+              >
+                STR
+              </span>
             </div>
           )}
         </div>
