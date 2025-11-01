@@ -143,7 +143,6 @@ interface ThemeCardProps {
 }
 
 const ThemeCard: React.FC<ThemeCardProps> = ({
-  value,
   label,
   icon,
   isSelected,

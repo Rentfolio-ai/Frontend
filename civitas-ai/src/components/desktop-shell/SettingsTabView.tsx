@@ -1,7 +1,6 @@
 // FILE: src/components/desktop-shell/SettingsTabView.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AgentAvatar } from '../common/AgentAvatar';
 

@@ -1,5 +1,4 @@
 import { useSettingsStore } from '../stores/settingsStore';
-import { useAuth } from '../contexts/AuthContext';
 
 export interface ToolCall {
   name: string;

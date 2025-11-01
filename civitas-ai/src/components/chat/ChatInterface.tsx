@@ -1,8 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Bot, User, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Send, User, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Message, ToolCard } from '@/types/chat'
 import { ActionButtons } from './ActionButtons'
@@ -213,7 +211,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         
         // Extract location from property details or use a default
         const location = reportData.property_details?.location || lastPropertyData?.location || 'Unknown Location';
-        const property_address = reportData.property_details?.address || 'Unknown Address';
+        const property_address = lastPropertyData?.address || 'Unknown Address';
         const title = `Investment Analysis - ${location}`;
         
         // Save report to backend (in-memory storage)

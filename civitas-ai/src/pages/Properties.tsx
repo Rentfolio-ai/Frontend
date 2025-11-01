@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GradientBackground } from '../components/GradientBackground';
 
 interface Property {
   id: string;

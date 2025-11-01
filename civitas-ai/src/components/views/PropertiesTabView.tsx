@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Home, Search, MapPin, Bed, Bath, Maximize, DollarSign, TrendingUp, Calendar } from 'lucide-react';
-import { getRecentSearches } from '../../services/agentsApi';
+import { Home, Search } from 'lucide-react';
 
 // TODO: Update this interface when real Mashvisor/AirDNA API is integrated
 interface Property {
@@ -22,7 +21,6 @@ interface Property {
 
 export const PropertiesTabView: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // TODO: Fetch properties from cached searches or Mashvisor/AirDNA
@@ -31,21 +29,13 @@ export const PropertiesTabView: React.FC = () => {
 
   const fetchProperties = async () => {
     try {
-      setLoading(true);
       // TODO: Replace with actual API call when Mashvisor/AirDNA is integrated
       // const data = await getRecentSearches(10);
       // setProperties(data.searches[0]?.results?.properties || []);
       setProperties([]);
     } catch (err) {
       console.error('Error fetching properties:', err);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // TODO: Replace placeholder with actual image from Mashvisor/AirDNA
-  const getPropertyImage = (property: Property) => {
-    return property.image_url || 'https://placehold.co/400x300/1e293b/white?text=Property';
   };
 
   // TODO: Remove this when real data is available

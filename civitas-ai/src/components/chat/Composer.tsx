@@ -1,20 +1,11 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { cn } from '@/lib/utils';
-import { SuggestionChips } from './SuggestionChips';
 
 interface SuggestionChip {
   id: string;
   label: string;
   icon?: string;
 }
-
-const defaultSuggestions: SuggestionChip[] = [
-  { id: '1', label: 'Analyze market trends', icon: '📈' },
-  { id: '2', label: 'Compare properties', icon: '🏠' },
-  { id: '3', label: 'Generate ROI report', icon: '📊' },
-  { id: '4', label: 'Find investment opportunities', icon: '💰' },
-];
 
 const slashCommands = [
   { id: '/analyze', label: '/analyze - Market analysis', icon: '📈' },
@@ -87,13 +78,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, ...res
       setIsLoading(false);
       setMessage('');
     }, 2000);
-  };
-
-  const handleSuggestionClick = (suggestion: SuggestionChip) => {
-    setMessage(suggestion.label);
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
