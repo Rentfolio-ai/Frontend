@@ -184,6 +184,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   required
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  aria-invalid={!!errors.firstName}
+                  aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                   className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
                              placeholder:text-gray-400 focus:outline-none focus:ring-2 
                              focus:border-transparent transition-colors ${
@@ -194,7 +196,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   placeholder="John"
                 />
                 {errors.firstName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.firstName}</p>
+                  <p id="firstName-error" className="mt-1 text-xs text-red-600" role="alert">{errors.firstName}</p>
                 )}
               </div>
 
@@ -210,6 +212,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   required
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  aria-invalid={!!errors.lastName}
+                  aria-describedby={errors.lastName ? 'lastName-error' : undefined}
                   className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
                              placeholder:text-gray-400 focus:outline-none focus:ring-2 
                              focus:border-transparent transition-colors ${
@@ -220,7 +224,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   placeholder="Doe"
                 />
                 {errors.lastName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.lastName}</p>
+                  <p id="lastName-error" className="mt-1 text-xs text-red-600" role="alert">{errors.lastName}</p>
                 )}
               </div>
             </div>
@@ -237,6 +241,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
                 className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
                            placeholder:text-gray-400 focus:outline-none focus:ring-2 
                            focus:border-transparent transition-colors ${
@@ -247,7 +253,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 placeholder="john@example.com"
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                <p id="email-error" className="mt-1 text-xs text-red-600" role="alert">{errors.email}</p>
               )}
             </div>
 
@@ -263,6 +269,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-error' : undefined}
                 className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
                            placeholder:text-gray-400 focus:outline-none focus:ring-2 
                            focus:border-transparent transition-colors ${
@@ -273,7 +281,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 placeholder="Create a strong password"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
+                <p id="password-error" className="mt-1 text-xs text-red-600" role="alert">{errors.password}</p>
               )}
               <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
             </div>
@@ -290,6 +298,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                aria-invalid={!!errors.confirmPassword}
+                aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                 className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
                            placeholder:text-gray-400 focus:outline-none focus:ring-2 
                            focus:border-transparent transition-colors ${
@@ -300,7 +310,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 placeholder="Confirm your password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
+                <p id="confirmPassword-error" className="mt-1 text-xs text-red-600" role="alert">{errors.confirmPassword}</p>
               )}
             </div>
 

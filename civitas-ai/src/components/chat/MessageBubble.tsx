@@ -4,19 +4,21 @@ import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
 import { AgentAvatar } from '../common/AgentAvatar';
 import { UserAvatar } from '../common/UserAvatar';
+import { ActionButtons } from './ActionButtons';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface MessageBubbleProps {
   message: Message;
+  onAction?: (actionValue: string, actionContext?: any) => void;
 }
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onAction }) => {
   const isUser = message.role === 'user';
   const { user } = useAuth();
   
-  // Real Estate STR-focused design: Professional cards with investment theme
+  // Translucent, breathable design
   return (
     <div className={cn(
-      'flex gap-4 animate-slide-in px-6 mb-4',
+      'flex gap-3 animate-slide-in mb-3',
       isUser ? 'justify-end' : 'justify-start'
     )}>
       {/* AI Agent Avatar - Left side only */}
@@ -26,96 +28,37 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         </div>
       )}
       
-      {/* Message Card - Floating Real Estate Style */}
+      {/* Message Card - Premium glassmorphism with STR context */}
       <div className={cn(
-        'max-w-[68%] px-6 py-4 rounded-2xl backdrop-blur-2xl transition-all duration-300 relative hover:translate-y-[-2px]',
+        'max-w-[55%] px-4 py-3.5 backdrop-blur-2xl transition-all duration-150 hover:translate-y-[-2px] group',
         isUser 
-          ? 'rounded-tr-sm' // Subtle corner cut for user
-          : 'rounded-tl-sm'  // Subtle corner cut for AI
+          ? 'rounded-2xl rounded-br-md bg-gradient-to-br from-blue-500/20 to-cyan-500/15 border border-blue-400/25 shadow-2xl shadow-blue-500/10 hover:shadow-blue-500/20 hover:border-blue-400/35' 
+          : 'rounded-2xl rounded-tl-md bg-white/[0.08] border border-white/[0.12] hover:bg-white/[0.11] shadow-xl shadow-black/5 hover:shadow-cyan-500/5 hover:border-white/[0.18]'
       )}
-      style={{
-        background: isUser 
-          ? 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)' // Brighter blue gradient
-          : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)', // Soft white-to-light-gray gradient
-        boxShadow: isUser 
-          ? '0px 12px 32px rgba(37, 99, 235, 0.3), 0px 4px 12px rgba(30, 64, 175, 0.2), 0px 2px 4px rgba(0, 0, 0, 0.1)'
-          : '0px 4px 20px rgba(148, 163, 184, 0.12), 0px 2px 10px rgba(203, 213, 225, 0.1), 0px 1px 3px rgba(100, 116, 139, 0.08)',
-        border: isUser 
-          ? '1px solid rgba(255, 255, 255, 0.15)'
-          : '1px solid rgba(226, 232, 240, 0.8)',
-        transform: 'translateZ(0)' // Hardware acceleration for smooth floating effect
-      }}
       >
-        {/* Real Estate Professional Badge (for AI messages) */}
-        {!isUser && (
-          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-100">
-            <span 
-              className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider"
-              style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.08em' }}
-            >
-              Civitas Advisor
-            </span>
-          </div>
-        )}
 
         <div 
           className={cn(
-            'leading-relaxed whitespace-pre-wrap',
-            message.isStreaming && 'inline'
+            'text-sm leading-relaxed whitespace-pre-wrap group-hover:text-white/95 transition-colors duration-150',
+            message.isStreaming && 'inline',
+            isUser ? 'text-white/95' : 'text-white/85'
           )}
-          style={{
-            color: isUser ? '#FFFFFF' : '#1e293b',
-            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif',
-            fontSize: '15px',
-            fontWeight: isUser ? 400 : 450,
-            lineHeight: '1.6',
-            letterSpacing: '0.01em'
-          }}
         >
           {message.content}
           {message.isStreaming && (
             <span 
-              className="inline-block w-1 h-4 ml-1 animate-pulse align-middle rounded-sm"
-              style={{ background: isUser ? 'rgba(255, 255, 255, 0.8)' : '#3b82f6' }}
+              className="inline-block w-1 h-4 ml-1 animate-pulse align-middle rounded-sm bg-blue-400"
             />
           )}
         </div>
         
-        {/* Timestamp with property context indicator */}
-        <div 
-          className="flex items-center justify-between mt-3 pt-2 border-t"
-          style={{
-            borderColor: isUser ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.05)'
-          }}
-        >
-          <div 
-            className="text-[10px] font-medium uppercase"
-            style={{
-              color: isUser ? 'rgba(255, 255, 255, 0.7)' : '#94a3b8',
-              fontFamily: 'Inter, system-ui, sans-serif',
-              letterSpacing: '0.06em'
-            }}
-          >
+        {/* Timestamp - Subtle */}
+        <div className="flex items-center gap-2 text-[10px] text-white/30 font-medium mt-2">
+          <span>
             {typeof message.timestamp === 'string' 
               ? message.timestamp 
               : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-          </div>
-          
-          {/* STR Investment Badge */}
-          {!isUser && (
-            <div className="flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 22V12h6v10" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span 
-                className="text-[9px] font-bold text-emerald-600"
-                style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.05em' }}
-              >
-                STR
-              </span>
-            </div>
-          )}
+          </span>
         </div>
         
         {/* Attachment rendering */}
@@ -139,6 +82,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               </a>
             )}
           </div>
+        )}
+
+        {/* Action Buttons - for assistant messages only */}
+        {!isUser && message.action && onAction && (
+          <ActionButtons action={message.action} onAction={onAction} />
         )}
       </div>
       

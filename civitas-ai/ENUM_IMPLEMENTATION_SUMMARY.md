@@ -78,10 +78,6 @@ interface Props {
 export function Avatar({ size = AvatarSize.Medium }: Props) {
   // AvatarSize.Medium is the runtime value here
 }
-
-export function Avatar({ size = AvatarSize.Medium }: Props) {
-  // ...
-}
 ```
 
 ## 🚀 Next Steps

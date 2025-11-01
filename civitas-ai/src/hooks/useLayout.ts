@@ -17,17 +17,26 @@ export function useLayout(initialChatHistory: ChatSession[] = []) {
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemDark);
-    setIsDark(shouldBeDark);
-    
-    // Apply theme to document
-    if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    try {
+      const savedTheme = typeof window.localStorage !== 'undefined' 
+        ? localStorage.getItem('theme') 
+        : null;
+      const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches || false;
+      
+      const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemDark);
+      setIsDark(shouldBeDark);
+      
+      // Apply theme to document
+      if (shouldBeDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (error) {
+      console.error('Failed to initialize theme:', error);
+      setIsDark(false);
     }
   }, []);
 

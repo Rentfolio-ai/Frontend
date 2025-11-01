@@ -131,7 +131,7 @@ export default {
         "slide-in-left": "slideInLeft 0.3s ease-out",
         "slide-in-right": "slideInRight 0.3s ease-out",
         "scale-in": "scaleIn 0.2s ease-out",
-        "gradient": "gradient 15s ease infinite",
+        "gradient": "gradient 20s ease infinite",
       },
     },
   },

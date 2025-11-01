@@ -1,6 +1,7 @@
 // FILE: src/services/ChatService.ts
 import type { Message } from '../types/chat';
 import { executeToolCalls, getChatContext, type ToolCall } from '../utils/toolExecution';
+import { stripMarkdown } from '../utils/stripMarkdown';
 
 const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
 
@@ -9,26 +10,45 @@ export class ChatService {
    * Generate STR-focused responses using Civitas backend
    * Returns both content and optional navigation action
    */
-  static async generateSTRResponse(userMessage: string, userContext?: { name?: string; onboarding_completed?: boolean }, conversationHistory?: Message[]): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any }> {
+  static async generateSTRResponse(
+    userMessage: string, 
+    userContext?: { name?: string; onboarding_completed?: boolean }, 
+    conversationHistory?: Message[],
+    actionContext?: any
+  ): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any; tool_results?: any }> {
     try {
       // Get current settings context for chat API
       const chatContext = getChatContext();
       
-      // Call Civitas API for real AI processing
-      const response = await fetch(`${CIVITAS_API_BASE}/query`, {
+      // Prepare request body
+      const requestBody: any = {
+        message: userMessage,
+        user_context: { ...userContext, ...chatContext },
+        conversation_history: conversationHistory?.map(msg => {
+          const historyMsg: any = {
+            role: msg.role,
+            content: msg.content
+          };
+          // Include tool_results if present (for context preservation)
+          if ((msg as any).tool_results) {
+            historyMsg.tool_results = (msg as any).tool_results;
+          }
+          return historyMsg;
+        }) || []
+      };
+      
+      // Include action_context if provided (for report generation confirmation)
+      if (actionContext) {
+        requestBody.action_context = actionContext;
+      }
+      
+      // Call new Civitas agents API for chat
+      const response = await fetch(`${CIVITAS_API_BASE}/api/agents/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query: userMessage,
-          user_context: { ...userContext, ...chatContext },
-          history: conversationHistory?.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          })) || [],
-          include_analytics: true
-        })
+        body: JSON.stringify(requestBody)
       });
       
       if (response.ok) {
@@ -36,10 +56,14 @@ export class ChatService {
         console.log('🔥 BACKEND RESPONSE:', data);
         
         // Check for navigation action from backend
-        const navigate = data.navigate || data.action?.navigate;
+        const navigate = data.navigate;
         
         // Check for action buttons (report generation prompt, etc.)
         const action = data.action;
+        
+        // Get result and strip markdown formatting
+        let content = data.result || data.message || '';
+        content = stripMarkdown(content);
         
         // Check for tool calls
         const toolCalls = data.toolCalls || [];
@@ -51,31 +75,11 @@ export class ChatService {
           console.log('✅ Tool execution results:', results);
         }
         
-        // Handle different response formats
-        let content: string;
-        if (data.message && typeof data.message === 'string') {
-          // New format with message field (for settings changes)
-          content = data.message;
-        } else if (data.result && typeof data.result === 'string') {
-          try {
-            const parsedResult = JSON.parse(data.result);
-            if (parsedResult && typeof parsedResult === 'object' && parsedResult.location) {
-              content = this.formatPropertyData(parsedResult, userMessage);
-            } else {
-              content = data.result;
-            }
-          } catch (e) {
-            content = data.result;
-          }
-        } else if (data.result && typeof data.result === 'object') {
-          content = this.formatPropertyData(data.result, userMessage);
-        } else if (typeof data === 'object' && data.location) {
-          content = this.formatPropertyData(data, userMessage);
-        } else {
-          content = this.generateFallbackSTRResponse(userMessage).content;
-        }
+        // Extract tool_results for conversation context (if available)
+        const toolResults = data.tool_results;
         
-        return { content, navigate, toolCalls, action };
+        // Return cleaned content with navigation, actions, and tool_results
+        return { content, navigate, toolCalls, action, ...(toolResults && { tool_results: toolResults }) };
       } else {
         console.warn('Civitas API error:', response.status);
         return this.generateFallbackSTRResponse(userMessage);

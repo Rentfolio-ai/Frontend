@@ -1,7 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { PortfolioPage } from '../Portfolio';
 
 export const PortfolioTabView: React.FC = () => {
+  const [experimentalEnabled, setExperimentalEnabled] = useState(false);
+
+  useEffect(() => {
+    // Check if experimental features are enabled
+    try {
+      const enabled = localStorage.getItem('civitas-experimental-portfolio') === 'true';
+      setExperimentalEnabled(enabled);
+    } catch (err) {
+      console.error('Failed to read experimental portfolio setting:', err);
+      setExperimentalEnabled(false);
+    }
+  }, []);
+
+  const handleToggle = () => {
+    const newValue = !experimentalEnabled;
+    setExperimentalEnabled(newValue);
+    try {
+      localStorage.setItem('civitas-experimental-portfolio', String(newValue));
+    } catch (err) {
+      console.error('Failed to save experimental portfolio setting:', err);
+    }
+  };
+
+  // If experimental mode is enabled, show the actual portfolio
+  if (experimentalEnabled) {
+    return <PortfolioPage />;
+  }
   return (
     <div 
       className="flex-1 overflow-y-auto relative flex items-center justify-center"
@@ -28,7 +56,7 @@ export const PortfolioTabView: React.FC = () => {
             Portfolio
           </h1>
           <p className="text-xl text-white/70 font-['Inter_Tight'] mb-6">
-            Coming Soon
+            Coming Soon - Phase 2
           </p>
         </motion.div>
 
@@ -52,11 +80,28 @@ export const PortfolioTabView: React.FC = () => {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.7 }}
-          className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500"
+          className="mt-8 space-y-4"
         >
-          <span className="text-white font-['Inter_Tight'] font-semibold">
-            ✨ Portfolio Analytics Coming Soon
-          </span>
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500">
+            <span className="text-white font-['Inter_Tight'] font-semibold">
+              ✨ Portfolio Analytics Coming in Phase 2
+            </span>
+          </div>
+          
+          <div className="pt-4">
+            <button
+              onClick={handleToggle}
+              className="px-6 py-3 rounded-xl font-['Inter_Tight'] font-semibold transition-all duration-300 hover:scale-105"
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                color: 'white'
+              }}
+            >
+              🧪 Enable Experimental Portfolio (Preview)
+            </button>
+          </div>
         </motion.div>
       </div>
     </div>

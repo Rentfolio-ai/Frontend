@@ -285,15 +285,15 @@ const PropertyCard: React.FC<{ property: Property; index: number; isLoading: boo
           {isLoading && (
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              animate={{ 
+                opacity: 1,
+                backgroundPosition: ['200% 0', '-200% 0']
+              }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 pointer-events-none"
               style={{
                 background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
                 backgroundSize: '200% 100%'
-              }}
-              animate={{
-                backgroundPosition: ['200% 0', '-200% 0']
               }}
               transition={{
                 duration: 1,

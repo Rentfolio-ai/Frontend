@@ -20,8 +20,7 @@ export const sendChatMessage = async (
   message: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<ChatResponse> => {
-  // TODO: Replace with your actual backend endpoint
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/chat`, {
@@ -68,4 +67,49 @@ export const getUserContext = () => {
     settings: localStorage.getItem('civitas-settings'),
     user: localStorage.getItem('civitas-user'),
   };
+};
+
+interface OnboardingData {
+  message: string;
+  example_prompts?: Array<{
+    text: string;
+    label: string;
+    category: string;
+    placeholder?: boolean;
+  }>;
+  user_name?: string;
+  timestamp?: string;
+}
+
+/**
+ * Fetch the onboarding/welcome message from backend
+ */
+export const getOnboardingMessage = async (userName?: string): Promise<OnboardingData> => {
+  const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+
+  try {
+    const url = new URL(`${BACKEND_URL}/onboarding`);
+    if (userName) {
+      url.searchParams.append('user_name', userName);
+    }
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch onboarding message:', error);
+    // Return fallback message if API fails
+    return {
+      message: "Welcome to Civitas! 🏠✨\n\nI'm your AI-powered short-term rental investment assistant. Ask me anything about STR properties!",
+      example_prompts: [
+        { text: "Find properties in Austin", label: "🏠 Search", category: "search" },
+        { text: "Analyze Miami market", label: "📊 Market", category: "market" }
+      ]
+    };
+  }
 };

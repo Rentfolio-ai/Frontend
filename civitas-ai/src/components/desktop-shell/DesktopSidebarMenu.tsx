@@ -51,13 +51,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
       <div 
         className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col shadow-2xl animate-slide-in-left"
         style={{
-          background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 50%, rgba(241, 245, 249, 0.92) 100%)',
-          backdropFilter: 'blur(24px)',
-          boxShadow: '0 0 0 1px rgba(148, 163, 184, 0.1), 0 20px 60px rgba(0, 0, 0, 0.15)',
+          background: 'linear-gradient(180deg, rgba(71, 85, 105, 0.35) 0%, rgba(100, 116, 139, 0.32) 50%, rgba(148, 163, 184, 0.30) 100%)',
+          backdropFilter: 'blur(48px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(48px) saturate(200%)',
+          boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.18), 0 20px 60px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         }}
       >
         {/* New Chat Button */}
-        <div className="p-4 pb-3 border-b" style={{ borderColor: 'rgba(148, 163, 184, 0.15)' }}>
+        <div className="p-4 pb-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }}>
           <motion.button
             onClick={() => {
               onNewChat();
@@ -71,8 +72,11 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             whileTap={{ scale: 0.98 }}
             className="w-full px-4 py-3.5 rounded-xl flex items-center justify-center gap-2.5 group relative overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4), 0 2px 8px rgba(118, 75, 162, 0.3)',
+              background: 'linear-gradient(135deg, rgba(103, 232, 249, 0.25) 0%, rgba(96, 165, 250, 0.22) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(103, 232, 249, 0.5)',
+              boxShadow: '0 4px 28px rgba(103, 232, 249, 0.3), 0 0 56px rgba(96, 165, 250, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
             }}
           >
             {/* Animated shine effect */}
@@ -103,7 +107,17 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </motion.svg>
-            <span className="font-bold text-sm text-white tracking-wide relative z-10" style={{ fontFamily: 'Inter Tight, sans-serif' }}>
+            <span 
+              className="font-bold text-sm tracking-wide relative z-10" 
+              style={{ 
+                fontFamily: 'Inter Tight, sans-serif',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(103, 232, 249, 0.9) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0 0 8px rgba(103, 232, 249, 0.5))'
+              }}
+            >
               New Chat
             </span>
           </motion.button>
@@ -111,18 +125,19 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
         {/* Chat History */}
         {chatHistory.length > 0 && (
-          <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(148, 163, 184, 0.12)' }}>
+          <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}>
             <motion.h3 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
               className="text-xs font-bold uppercase tracking-wider mb-3 px-1"
               style={{ 
-                background: 'linear-gradient(90deg, #64748b 0%, #94a3b8 100%)',
+                background: 'linear-gradient(90deg, rgba(203, 213, 225, 0.9) 0%, rgba(226, 232, 240, 1) 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 fontFamily: 'Inter, sans-serif', 
-                letterSpacing: '0.1em' 
+                letterSpacing: '0.1em',
+                filter: 'drop-shadow(0 0 6px rgba(203, 213, 225, 0.4))'
               }}
             >
               Recent Chats
@@ -140,15 +155,16 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                   className="w-full px-3 py-2.5 rounded-xl flex items-center justify-between gap-2 relative overflow-hidden group"
                   style={{
                     background: activeChatId === chat.id 
-                      ? `linear-gradient(135deg, ${currentTheme.primary}20 0%, ${currentTheme.secondary}12 100%)`
-                      : 'rgba(255, 255, 255, 0.5)',
-                    backdropFilter: 'blur(10px)',
+                      ? 'linear-gradient(135deg, rgba(103, 232, 249, 0.22) 0%, rgba(96, 165, 250, 0.18) 100%)'
+                      : 'rgba(255, 255, 255, 0.12)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
                     border: activeChatId === chat.id 
-                      ? `1.5px solid ${currentTheme.primary}50`
-                      : '1px solid rgba(148, 163, 184, 0.15)',
+                      ? '1px solid rgba(103, 232, 249, 0.5)'
+                      : '1px solid rgba(255, 255, 255, 0.18)',
                     boxShadow: activeChatId === chat.id 
-                      ? `0 2px 8px ${currentTheme.primary}25`
-                      : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                      ? '0 2px 20px rgba(103, 232, 249, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                      : '0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
                   }}
                 >
                   {/* Hover gradient effect */}
@@ -166,13 +182,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                     <p 
                       className="text-sm font-medium truncate"
                       style={{ 
-                        color: activeChatId === chat.id ? '#1e40af' : '#334155',
-                        fontFamily: 'Inter, sans-serif'
+                        color: activeChatId === chat.id ? 'rgba(103, 232, 249, 1)' : 'rgba(241, 245, 249, 0.95)',
+                        fontFamily: 'Inter, sans-serif',
+                        textShadow: activeChatId === chat.id ? '0 0 8px rgba(103, 232, 249, 0.5)' : 'none'
                       }}
                     >
                       {chat.title || 'Untitled Chat'}
                     </p>
-                    <p className="text-xs truncate mt-0.5" style={{ color: '#94a3b8' }}>
+                    <p className="text-xs truncate mt-0.5" style={{ color: 'rgba(203, 213, 225, 0.8)' }}>
                       {chat.timestamp}
                     </p>
                   </div>
@@ -183,7 +200,9 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                       whileTap={{ scale: 0.9 }}
                       className="p-1.5 rounded-lg transition-colors flex-shrink-0 relative z-10"
                       style={{
-                        background: 'rgba(255, 255, 255, 0.8)',
+                        background: 'rgba(255, 255, 255, 0.12)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(239, 68, 68, 0.4)',
                       }}
                     >
                       <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,15 +234,16 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                 className="group w-full px-3 py-2.5 rounded-xl flex items-center gap-3 relative overflow-hidden"
                 style={{
                   background: activeTab === item.id 
-                    ? `linear-gradient(135deg, ${currentTheme.primary}20 0%, ${currentTheme.secondary}12 100%)`
-                    : 'rgba(255, 255, 255, 0.45)',
-                  backdropFilter: 'blur(12px)',
+                    ? 'linear-gradient(135deg, rgba(103, 232, 249, 0.22) 0%, rgba(96, 165, 250, 0.18) 100%)'
+                    : 'rgba(255, 255, 255, 0.12)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
                   border: activeTab === item.id 
-                    ? `1.5px solid ${currentTheme.primary}50` 
-                    : '1px solid rgba(148, 163, 184, 0.15)',
+                    ? '1px solid rgba(103, 232, 249, 0.5)' 
+                    : '1px solid rgba(255, 255, 255, 0.18)',
                   boxShadow: activeTab === item.id
-                    ? `0 2px 8px ${currentTheme.primary}20`
-                    : '0 1px 2px rgba(0, 0, 0, 0.05)',
+                    ? '0 2px 20px rgba(103, 232, 249, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                    : '0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
                 }}
               >
                 {/* Active indicator bar */}
@@ -251,25 +271,34 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                 
                 <motion.div 
                   whileHover={{ rotate: 5, scale: 1.1 }}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center relative z-10"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center relative z-10"
                   style={{
                     background: activeTab === item.id
-                      ? currentTheme.gradient
-                      : 'rgba(255, 255, 255, 0.6)',
+                      ? 'linear-gradient(135deg, rgba(103, 232, 249, 0.3) 0%, rgba(96, 165, 250, 0.28) 100%)'
+                      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.15) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: activeTab === item.id
+                      ? '1px solid rgba(103, 232, 249, 0.5)'
+                      : '1px solid rgba(255, 255, 255, 0.25)',
                     boxShadow: activeTab === item.id
-                      ? `0 3px 10px ${currentTheme.primary}55`
-                      : '0 1px 2px rgba(0, 0, 0, 0.05)'
+                      ? '0 4px 20px rgba(103, 232, 249, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                      : '0 2px 10px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
                   }}
                 >
-                  <span className={activeTab === item.id ? 'filter brightness-0 invert' : ''}>
+                  <span style={{ 
+                    fontSize: '1.25rem',
+                    filter: activeTab === item.id ? 'drop-shadow(0 0 6px rgba(103, 232, 249, 0.6))' : 'none'
+                  }}>
                     {item.icon}
                   </span>
                 </motion.div>
                 <span 
                   className="font-medium text-sm relative z-10"
                   style={{ 
-                    color: activeTab === item.id ? '#1e40af' : '#475569',
-                    fontFamily: 'Inter, sans-serif'
+                    color: activeTab === item.id ? 'rgba(103, 232, 249, 1)' : 'rgba(241, 245, 249, 0.95)',
+                    fontFamily: 'Inter, sans-serif',
+                    textShadow: activeTab === item.id ? '0 0 8px rgba(103, 232, 249, 0.5)' : 'none'
                   }}
                 >
                   {item.label}
@@ -285,15 +314,17 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
           className="px-4 pb-4 pt-3 border-t" 
-          style={{ borderColor: 'rgba(148, 163, 184, 0.15)' }}
+          style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }}
         >
           <motion.div 
             whileHover={{ scale: 1.02 }}
             className="rounded-xl p-3 relative overflow-hidden"
             style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.6) 100%)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(148, 163, 184, 0.15)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.12) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 16px rgba(0, 0, 0, 0.08)',
             }}
           >
             {/* Background gradient glow */}
@@ -323,11 +354,15 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
               <div className="flex-1 min-w-0">
                 <div 
                   className="text-sm font-semibold truncate"
-                  style={{ color: '#1e293b', fontFamily: 'Inter, sans-serif' }}
+                  style={{ 
+                    color: 'rgba(248, 250, 252, 1)', 
+                    fontFamily: 'Inter, sans-serif',
+                    textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
+                  }}
                 >
                   {user?.name || 'User'}
                 </div>
-                <div className="text-xs truncate" style={{ color: '#64748b' }}>
+                <div className="text-xs truncate" style={{ color: 'rgba(203, 213, 225, 0.9)' }}>
                   {user?.email || 'user@example.com'}
                 </div>
               </div>
@@ -341,8 +376,11 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
               whileTap={{ scale: 0.97 }}
               className="w-full p-2.5 rounded-lg flex items-center justify-center gap-2 relative z-10 overflow-hidden group"
               style={{
-                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.08) 100%)',
-                border: '1.5px solid rgba(239, 68, 68, 0.25)',
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.12) 100%)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
               }}
               title="Sign Out"
             >

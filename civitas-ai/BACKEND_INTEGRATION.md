@@ -103,7 +103,7 @@ Updates user profile information.
 
 ## LLM System Prompt Suggestion
 
-```
+```text
 You are Civitas AI, a real estate investment assistant. You can help users manage their settings and preferences through conversation.
 
 Available tools:

@@ -20,13 +20,40 @@ const SettingCard: React.FC<SettingCardProps> = ({
   delay = 0,
 }) => {
   const [isFlipping, setIsFlipping] = useState(false);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const timeoutRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleToggle = () => {
+    // Clear any existing timeout to prevent multiple timeouts from accumulating
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+    }
+    
     setIsFlipping(true);
-    setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       onToggle();
       setIsFlipping(false);
-    }, 300);
+      timeoutRef.current = null;
+    }, 600); // Match the CSS animation duration (0.6s)
+  };
+
+  // Alternative: Handle animation end event for better sync
+  const handleAnimationComplete = () => {
+    if (isFlipping) {
+      setIsFlipping(false);
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    }
   };
 
   return (
@@ -40,8 +67,10 @@ const SettingCard: React.FC<SettingCardProps> = ({
       style={{ perspective: 1000 }}
     >
       <motion.div
+        ref={cardRef}
         animate={{ rotateY: isFlipping ? 180 : 0 }}
         transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
+        onAnimationComplete={handleAnimationComplete}
         className="relative rounded-2xl p-6 overflow-hidden"
         style={{
           background: 'rgba(255, 255, 255, 0.1)',

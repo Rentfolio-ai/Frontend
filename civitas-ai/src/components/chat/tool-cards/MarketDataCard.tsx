@@ -21,7 +21,11 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ data }) => (
         <div className="text-sm text-foreground/60">Median Price</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-success">+{data.priceGrowth}%</div>
+        <div className={`text-2xl font-bold ${
+          data.priceGrowth > 0 ? 'text-success' : data.priceGrowth < 0 ? 'text-danger' : 'text-foreground'
+        }`}>
+          {data.priceGrowth > 0 ? '+' : ''}{data.priceGrowth}%
+        </div>
         <div className="text-sm text-foreground/60">YoY Growth</div>
       </div>
       <div className="text-center">

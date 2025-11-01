@@ -4,21 +4,21 @@
 
 @layer base {
   :root {
-    /* Civitas AI Design System Colors */
-    --primary: 213 84% 56%; /* #2563EB */
-    --accent-from: 239 74% 66%; /* #6366F1 */
-    --accent-to: 189 84% 56%; /* #22D3EE */
-    --success: 160 84% 39%; /* #10B981 */
-    --warning: 37 91% 55%; /* #F59E0B */
-    --danger: 0 84% 60%; /* #EF4444 */
+    /* Civitas AI Design System Colors - Softer palette */
+    --primary: 213 80% 58%; /* Slightly lighter blue */
+    --accent-from: 239 70% 68%; /* Softer purple */
+    --accent-to: 189 80% 60%; /* Softer cyan */
+    --success: 160 75% 42%; /* Gentler green */
+    --warning: 37 85% 58%; /* Warmer orange */
+    --danger: 0 75% 62%; /* Softer red */
     
-    /* Light mode colors */
-    --background: 210 20% 98%; /* #F9FAFB */
-    --surface: 0 0% 100%; /* #FFFFFF */
-    --muted: 214 32% 91%; /* #F3F4F6 */
-    --border: 220 13% 91%; /* #E5E7EB */
-    --foreground: 222 84% 5%; /* #111827 */
-    --text-muted: 220 9% 46%; /* #4B5563 */
+    /* Light mode colors - More breathing room */
+    --background: 210 25% 98%; /* Slightly cooler white */
+    --surface: 0 0% 100%; /* Pure white */
+    --muted: 214 28% 93%; /* Lighter muted */
+    --border: 220 15% 92%; /* Subtler borders */
+    --foreground: 222 80% 8%; /* Slightly lighter text */
+    --text-muted: 220 12% 50%; /* More readable muted text */
     
     /* Standard shadcn/ui variables for compatibility */
     --card: 0 0% 100%;
@@ -36,16 +36,36 @@
     --ring: 213 84% 56%;
     --radius: 0.5rem;
     --input: 220 13% 91%;
+    
+    /* Agent Avatar colors - Light mode */
+    --agent-avatar-skin-start: #FFDDC1;
+    --agent-avatar-skin-end: #FFCBA4;
+    --agent-avatar-hair-start: #4A3728;
+    --agent-avatar-hair-end: #6B4423;
+    --agent-avatar-blazer-start: #1E3A8A;
+    --agent-avatar-blazer-end: #1E40AF;
+    --agent-avatar-bg-start: #E3F2FD;
+    --agent-avatar-bg-end: #BBDEFB;
   }
 
   .dark {
-    /* Dark mode colors */
-    --background: 222 84% 5%; /* #0F172A */
-    --surface: 217 33% 17%; /* #1E293B */
-    --muted: 222 84% 7%; /* #111827 */
-    --border: 215 28% 17%; /* #334155 */
-    --foreground: 213 27% 84%; /* #E2E8F0 */
-    --text-muted: 218 11% 65%; /* #94A3B8 */
+    /* Dark mode colors - More depth, less harsh */
+    --background: 222 80% 6%; /* Slightly lighter base */
+    --surface: 217 30% 18%; /* Softer surface */
+    --muted: 222 75% 8%; /* Less pure black */
+    --border: 215 25% 18%; /* Gentler borders */
+    --foreground: 213 30% 88%; /* Slightly warmer white */
+    --text-muted: 218 15% 68%; /* More readable muted */
+    
+    /* Agent Avatar colors */
+    --agent-avatar-skin-start: #FFDDC1;
+    --agent-avatar-skin-end: #FFCBA4;
+    --agent-avatar-hair-start: #4A3728;
+    --agent-avatar-hair-end: #6B4423;
+    --agent-avatar-blazer-start: #1E3A8A;
+    --agent-avatar-blazer-end: #1E40AF;
+    --agent-avatar-bg-start: #E3F2FD;
+    --agent-avatar-bg-end: #BBDEFB;
     
     /* Standard shadcn/ui dark mode variables */
     --card: 217 33% 17%;
@@ -184,6 +204,21 @@
     background: linear-gradient(135deg, hsl(var(--accent-from)), hsl(var(--accent-to)));
   }
   
+  /* Subtle backdrop blur effect */
+  .backdrop-breathe {
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  }
+  
+  /* Smooth hover lift */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-1px);
+  }
+  
   /* Additional animation utility classes should be defined in tailwind.config.js */
   
   /* Animation delay utilities */
@@ -234,5 +269,136 @@
 
   .animate-slide-in-left {
     animation: slide-in-left 0.3s ease-out forwards;
+  }
+  
+  /* Agent Avatar SVG Styling */
+  .agent-avatar-skin-start {
+    stop-color: var(--agent-avatar-skin-start);
+  }
+  
+  .agent-avatar-skin-end {
+    stop-color: var(--agent-avatar-skin-end);
+  }
+  
+  .agent-avatar-hair-start {
+    stop-color: var(--agent-avatar-hair-start);
+  }
+  
+  .agent-avatar-hair-end {
+    stop-color: var(--agent-avatar-hair-end);
+  }
+  
+  .agent-avatar-blazer-start {
+    stop-color: var(--agent-avatar-blazer-start);
+  }
+  
+  .agent-avatar-blazer-end {
+    stop-color: var(--agent-avatar-blazer-end);
+  }
+  
+  .agent-avatar-bg-start {
+    stop-color: var(--agent-avatar-bg-start);
+  }
+  
+  .agent-avatar-bg-end {
+    stop-color: var(--agent-avatar-bg-end);
+  }
+  
+  .agent-avatar-blazer-accent {
+    fill: #1E3A8A;
+  }
+  
+  .agent-avatar-shirt {
+    fill: #FFFFFF;
+  }
+  
+  .agent-avatar-ear {
+    fill: #FFCBA4;
+  }
+  
+  .agent-avatar-ear-inner {
+    fill: #FFB088;
+    opacity: 0.6;
+  }
+  
+  .agent-avatar-hair-detail {
+    stroke: #3D2817;
+    opacity: 0.3;
+  }
+  
+  .agent-avatar-eyebrow {
+    stroke: #3D2817;
+  }
+  
+  .agent-avatar-eye-white {
+    fill: #FFFFFF;
+  }
+  
+  .agent-avatar-iris {
+    fill: #5D4E37;
+  }
+  
+  .agent-avatar-pupil {
+    fill: #2C1810;
+  }
+  
+  .agent-avatar-eye-highlight-primary {
+    fill: #FFFFFF;
+    opacity: 0.9;
+  }
+  
+  .agent-avatar-eye-highlight-secondary {
+    fill: #FFFFFF;
+    opacity: 0.6;
+  }
+  
+  .agent-avatar-eyelid {
+    stroke: #3D2817;
+    opacity: 0.4;
+  }
+  
+  .agent-avatar-nose {
+    stroke: #FFCBA4;
+  }
+  
+  .agent-avatar-nostril {
+    fill: #FFB088;
+    opacity: 0.5;
+  }
+  
+  .agent-avatar-smile {
+    stroke: #D94A6B;
+  }
+  
+  .agent-avatar-smile-highlight {
+    stroke: #FFFFFF;
+    opacity: 0.4;
+  }
+  
+  .agent-avatar-smile-line {
+    stroke: #FFCBA4;
+    opacity: 0.3;
+  }
+  
+  .agent-avatar-cheek {
+    fill: #FFB6C1;
+    opacity: 0.25;
+  }
+  
+  .agent-avatar-shadow {
+    fill: #000000;
+    opacity: 0.05;
+  }
+  
+  .agent-avatar-pin-bg {
+    fill: #F59E0B;
+  }
+  
+  .agent-avatar-pin-house {
+    fill: #1E40AF;
+  }
+  
+  .agent-avatar-pin-door {
+    fill: #F59E0B;
   }
 }

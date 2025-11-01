@@ -23,20 +23,10 @@ interface SettingsTabViewProps {
 
 type SettingsSubTab = 'profile' | 'preferences';
 
+// Phase 1: Read-only "Coming Soon" UI - settings functionality will be added in future phase
 export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
   const { user } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState<SettingsSubTab>('profile');
-  
-  const {
-    emailNotifications,
-    marketAlerts,
-    roiAlerts,
-    pushNotifications,
-    setEmailNotifications,
-    setMarketAlerts,
-    setRoiAlerts,
-    setPushNotifications,
-  } = useSettingsStore();
 
   const subTabs = [
     { id: 'profile' as const, label: 'Profile', icon: '👤' },
@@ -65,7 +55,14 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-3xl font-bold text-white mb-6"
+            className="text-3xl font-bold mb-6"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.9) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
+            }}
           >
             Settings
           </motion.h1>
@@ -75,8 +72,11 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="flex gap-2 p-1.5 rounded-xl relative"
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(10px)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.10) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15)',
             }}
           >
             {subTabs.map((tab, index) => (
@@ -91,12 +91,13 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                 className="flex-1 px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 font-medium text-sm relative overflow-hidden"
                 style={{
                   background: activeSubTab === tab.id 
-                    ? 'rgba(255, 255, 255, 0.95)'
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)'
                     : 'transparent',
-                  color: activeSubTab === tab.id ? '#1e293b' : '#ffffff',
+                  color: activeSubTab === tab.id ? '#1e293b' : 'rgba(255, 255, 255, 0.9)',
                   boxShadow: activeSubTab === tab.id
-                    ? '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    ? '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
                     : 'none',
+                  backdropFilter: activeSubTab === tab.id ? 'blur(10px)' : 'none',
                 }}
               >
                 {activeSubTab === tab.id && (
@@ -104,8 +105,9 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                     layoutId="activeTab"
                     className="absolute inset-0 rounded-lg"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)',
+                      backdropFilter: 'blur(10px)',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
@@ -132,15 +134,25 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
               transition={{ duration: 0.3 }}
               className="rounded-2xl p-6 shadow-lg" 
               style={{
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(10px)'
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
               }}
             >
               <motion.h2 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="text-xl font-bold mb-6 text-gray-900"
+                className="text-xl font-bold mb-6"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2))'
+                }}
               >
                 User Information
               </motion.h2>
@@ -163,12 +175,13 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                   whileHover={{ 
                     scale: 1.1, 
                     rotate: 5,
-                    boxShadow: '0 8px 24px rgba(59, 130, 246, 0.5)'
+                    boxShadow: '0 8px 32px rgba(103, 232, 249, 0.4)'
                   }}
                   className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 cursor-pointer"
                   style={{ 
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                    background: 'linear-gradient(135deg, rgba(103, 232, 249, 0.9) 0%, rgba(96, 165, 250, 0.9) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 20px rgba(103, 232, 249, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
                   }}
                 >
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -178,7 +191,8 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="text-2xl font-bold text-gray-900 mb-1"
+                    className="text-2xl font-bold mb-1"
+                    style={{ color: 'rgba(255, 255, 255, 0.95)' }}
                   >
                     {user?.name || 'User'}
                   </motion.h3>
@@ -186,7 +200,8 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-gray-600 mb-4"
+                    className="mb-4"
+                    style={{ color: 'rgba(226, 232, 240, 0.8)' }}
                   >
                     {user?.email || 'user@example.com'}
                   </motion.p>
@@ -217,7 +232,7 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                 </div>
               </motion.div>
 
-              <div className="space-y-4 pt-6 border-t border-gray-200">
+              <div className="space-y-4 pt-6 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }}>
                 {profileItems.map((item, index) => (
                   <motion.div
                     key={item.title}
@@ -231,35 +246,41 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                     whileHover={{ 
                       scale: 1.02, 
                       x: 10,
-                      backgroundColor: 'rgba(243, 244, 246, 1)',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 6px 20px rgba(103, 232, 249, 0.15)'
                     }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 cursor-pointer transition-all relative overflow-hidden"
+                    className="flex items-center justify-between p-4 rounded-xl cursor-pointer transition-all relative overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.06) 100%)',
+                      backdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                    }}
                   >
                     {/* Hover gradient effect */}
                     <motion.div
                       className="absolute inset-0 opacity-0"
-                      whileHover={{ opacity: 0.1 }}
+                      whileHover={{ opacity: 1 }}
                       style={{
-                        background: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent)'
+                        background: 'linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.1), transparent)'
                       }}
                     />
                     <div className="relative z-10">
                       <motion.h4 
-                        className="font-semibold text-gray-900"
-                        whileHover={{ color: '#3b82f6' }}
+                        className="font-semibold"
+                        style={{ color: 'rgba(255, 255, 255, 0.95)' }}
+                        whileHover={{ color: 'rgba(103, 232, 249, 1)' }}
                       >
                         {item.title}
                       </motion.h4>
-                      <p className="text-sm text-gray-600 mt-1">{item.value}</p>
+                      <p className="text-sm mt-1" style={{ color: 'rgba(203, 213, 225, 0.8)' }}>{item.value}</p>
                     </div>
                     {/* Arrow indicator on hover */}
                     <motion.div
                       initial={{ opacity: 0, x: -10 }}
                       whileHover={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="text-blue-600"
+                      style={{ color: 'rgba(103, 232, 249, 0.9)' }}
                     >
                       →
                     </motion.div>
@@ -286,7 +307,11 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                 whileHover={{ scale: 1.02, y: -5 }}
                 className="rounded-2xl p-6 shadow-lg mb-6 relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  background: 'linear-gradient(135deg, rgba(103, 232, 249, 0.18) 0%, rgba(96, 165, 250, 0.15) 100%)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(103, 232, 249, 0.3)',
+                  boxShadow: '0 8px 32px rgba(103, 232, 249, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
                 }}
               >
                 {/* Animated background glow */}
@@ -332,15 +357,25 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                 transition={{ delay: 0.2 }}
                 className="rounded-2xl p-6 shadow-lg"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  backdropFilter: 'blur(10px)'
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
                 }}
               >
                 <motion.h2 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-xl font-bold mb-4 text-gray-900"
+                  className="text-xl font-bold mb-4"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2))'
+                  }}
                 >
                   Current Preferences
                 </motion.h2>
@@ -352,11 +387,16 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + index * 0.1 }}
                       whileHover={{ scale: 1.02 }}
-                      className="flex items-center justify-between p-4 rounded-xl bg-gray-50 opacity-60"
+                      className="flex items-center justify-between p-4 rounded-xl opacity-60"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.06) 100%)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                      }}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <h3 className="font-semibold flex items-center gap-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                             {item.icon} {item.title}
                           </h3>
                           <motion.span 
@@ -368,7 +408,7 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                             Phase 2
                           </motion.span>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">{item.desc}</p>
+                        <p className="text-sm mt-1" style={{ color: 'rgba(203, 213, 225, 0.7)' }}>{item.desc}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <motion.span
@@ -388,14 +428,23 @@ export const SettingsTabView: React.FC<SettingsTabViewProps> = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 }}
                   whileHover={{ scale: 1.02 }}
-                  className="mt-6 p-4 rounded-xl bg-blue-50 border border-blue-200 relative overflow-hidden"
+                  className="mt-6 p-4 rounded-xl relative overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(103, 232, 249, 0.12) 0%, rgba(96, 165, 250, 0.10) 100%)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(103, 232, 249, 0.25)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  }}
                 >
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-100 to-transparent opacity-50"
+                    className="absolute inset-0 opacity-30"
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.2), transparent)'
+                    }}
                     animate={{ x: ['-100%', '100%'] }}
                     transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                   />
-                  <p className="text-sm text-blue-800 relative z-10">
+                  <p className="text-sm relative z-10" style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
                     <motion.span
                       animate={{ rotate: [0, 20, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}

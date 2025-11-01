@@ -10,9 +10,10 @@ interface AlertData {
 
 interface AlertCardProps {
   data: AlertData;
+  onAction?: () => void;
 }
 
-export const AlertCard: React.FC<AlertCardProps> = ({ data }) => (
+export const AlertCard: React.FC<AlertCardProps> = ({ data, onAction }) => (
   <div className="flex items-start gap-3">
     <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
       <svg className="w-4 h-4 text-warning" fill="currentColor" viewBox="0 0 20 20">
@@ -23,7 +24,13 @@ export const AlertCard: React.FC<AlertCardProps> = ({ data }) => (
       <div className="font-semibold">{data.title}</div>
       <div className="text-sm text-foreground/60 mt-1">{data.message}</div>
       {data.action && (
-        <Button variant="outline" size="sm" className="mt-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-2"
+          onClick={onAction}
+          disabled={!onAction}
+        >
           {data.action}
         </Button>
       )}

@@ -7,9 +7,10 @@ import type { Message } from '../../data/seed';
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
+  onAction?: (actionValue: string, actionContext?: any) => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onAction }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -21,11 +22,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
   }, [messages, isLoading]);
 
   if (messages.length === 0) {
-    // Show welcome message as first AI message - Real Estate Agent style
+    // Show comprehensive onboarding message as first AI message
     const welcomeMessage: Message = {
       id: 'welcome',
       role: 'assistant',
-      content: "Hey there! 👋 I'm Civitas, your personal STR investment advisor.\n\nThink of me as your always-available real estate partner who lives and breathes short-term rentals. I've helped investors like you analyze thousands of properties and maximize their returns.\n\nHere's what I can help you with:\n\n💰 Find high-performing STR markets and properties\n📊 Run detailed revenue projections and cash flow analysis\n📈 Optimize your pricing and boost occupancy rates\n🏘️ Navigate local STR regulations and licensing\n⭐ Track your portfolio's performance in real-time\n\nWhether you're eyeing your first Airbnb or scaling to 10+ properties, I'm here to make sure you make data-driven decisions.\n\nSo... what property are you curious about? Or should we explore some hot markets together?",
+      content: "Welcome to Civitas! 🏠✨\n\nYour AI-powered assistant for finding profitable Airbnb/VRBO properties across the U.S. I analyze properties, calculate ROI projections, and generate agent-ready reports.\n\nWHAT I CAN DO:\n\n🔍 Scout properties based on location, price, and criteria\n📊 Calculate STR revenue projections with occupancy and rates\n💰 Show cash-on-cash returns and investment grades (A/B/C/D)\n📋 Generate comprehensive reports with market data\n⚖️ Check local STR regulations and compliance\n\nEXPLORE THE APP:\n\n🏘️ Properties - Saved properties with STR analysis\n📈 Portfolio - Track performance and returns\n📄 Reports - Investment reports and analysis\n🌍 Market - U.S. market trends and demand\n⚙️ Settings - Customize preferences\n\nTRY ASKING:\n• \"Find properties in Austin under $400k\"\n• \"What makes a good STR investment?\"\n• \"Search for 3 bedroom homes in Miami\"\n\nWhat would you like to explore? 🚀",
       timestamp: new Date(),
       isStreaming: false
     };
@@ -33,7 +34,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     return (
       <div className="h-full overflow-y-auto">
         <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
-          <MessageBubble message={welcomeMessage} />
+          <MessageBubble message={welcomeMessage} onAction={onAction} />
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -44,7 +45,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     <div className="h-full overflow-y-auto">
       <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+          <MessageBubble key={message.id} message={message} onAction={onAction} />
         ))}
         {isLoading && <LoadingBubble />}
         <div ref={messagesEndRef} />

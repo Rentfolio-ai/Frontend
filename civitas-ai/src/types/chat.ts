@@ -17,6 +17,11 @@ export interface Action {
   type: 'confirm';
   message: string;
   options: ActionOption[];
+  context?: {
+    action_type: string;
+    query: string;
+    [key: string]: any;
+  };
 }
 
 export interface Message {

@@ -24,12 +24,28 @@ export function ToolCard({ tool }: ToolCardProps) {
             
             {tool.status === 'completed' && tool.data && (
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                {Object.entries(tool.data).map(([key, value]) => (
-                  <div key={key} className="text-center p-2 rounded border">
-                    <div className="font-medium">{value as string}</div>
-                    <div className="text-text-muted capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
-                  </div>
-                ))}
+                {Object.entries(tool.data).map(([key, value]) => {
+                  let displayValue: string;
+                  
+                  if (value == null) {
+                    displayValue = '—';
+                  } else if (typeof value === 'object') {
+                    try {
+                      displayValue = JSON.stringify(value);
+                    } catch {
+                      displayValue = '[Complex Object]';
+                    }
+                  } else {
+                    displayValue = String(value);
+                  }
+                  
+                  return (
+                    <div key={key} className="text-center p-2 rounded border">
+                      <div className="font-medium">{displayValue}</div>
+                      <div className="text-text-muted capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

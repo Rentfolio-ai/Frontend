@@ -127,12 +127,14 @@ function executeUpdateUserProfile(parameters: Record<string, any>): ToolExecutio
       };
     }
     
+    // TODO: Implement actual profile update via API
     // In a real implementation, this would call an API endpoint
-    console.log('Profile update requested:', parameters);
+    // For now, return not implemented error
     
     return {
-      success: true,
-      message: 'Profile updated successfully',
+      success: false,
+      error: 'Update user profile not implemented',
+      message: 'Profile update functionality will be available in a future release',
     };
   } catch (error) {
     return {
@@ -148,13 +150,27 @@ function executeUpdateUserProfile(parameters: Record<string, any>): ToolExecutio
 export function getChatContext() {
   const { getContextForChat } = useSettingsStore.getState();
   
-  // TODO: Add user context from AuthContext
+  // Attempt to retrieve user from localStorage
+  let user: { id?: string; name?: string; email?: string } | undefined;
+  
+  if (typeof window !== 'undefined') {
+    try {
+      const userStr = window.localStorage.getItem('civitas-user');
+      if (userStr) {
+        const parsed = JSON.parse(userStr);
+        user = {
+          id: parsed.id,
+          name: parsed.name,
+          email: parsed.email
+        };
+      }
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error);
+    }
+  }
+  
   return {
     ...getContextForChat(),
-    user: {
-      id: '123', // Replace with actual user ID
-      name: 'John Doe', // Replace with actual user name
-      email: 'john@example.com', // Replace with actual user email
-    },
+    ...(user && { user })
   };
 }

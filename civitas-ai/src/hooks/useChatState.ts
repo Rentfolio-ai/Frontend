@@ -18,14 +18,23 @@ export function useChatState() {
       : null;
     if (!saved) return [];
 
-    const parsed = JSON.parse(saved);
-    // Migrate legacy ChatHistoryItem[] format
-    return parsed.map((chat: any) => ({
-      id: chat.id,
-      title: chat.title,
-      timestamp: chat.timestamp,
-      messages: chat.messages || []
-    }));
+    try {
+      const parsed = JSON.parse(saved);
+      // Migrate legacy ChatHistoryItem[] format
+      return parsed.map((chat: any) => ({
+        id: chat.id,
+        title: chat.title,
+        timestamp: chat.timestamp,
+        messages: chat.messages || []
+      }));
+    } catch (error) {
+      console.error('Failed to parse chat history:', error);
+      // Clear corrupted data
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('civitas-chat-history');
+      }
+      return [];
+    }
   });
 
   const [activeChatId, setActiveChatId] = useState<string>(() => {
@@ -39,7 +48,18 @@ export function useChatState() {
     const saved = typeof window !== 'undefined' 
       ? window.localStorage.getItem('civitas-chat-messages') 
       : null;
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    
+    try {
+      return JSON.parse(saved);
+    } catch (error) {
+      console.error('Failed to parse chat messages:', error);
+      // Clear corrupted data
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('civitas-chat-messages');
+      }
+      return [];
+    }
   });
 
   // Persist chat history

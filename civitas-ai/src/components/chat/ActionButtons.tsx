@@ -5,7 +5,7 @@ import type { Action } from '@/types/chat';
 
 interface ActionButtonsProps {
   action: Action;
-  onAction: (actionValue: string) => void;
+  onAction: (actionValue: string, actionContext?: any) => void;
 }
 
 export function ActionButtons({ action, onAction }: ActionButtonsProps) {
@@ -34,7 +34,7 @@ export function ActionButtons({ action, onAction }: ActionButtonsProps) {
               transition={{ duration: 0.2, delay: 0.3 + index * 0.1 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onAction(option.action)}
+              onClick={() => onAction(option.action, action.context)}
               className={`
                 flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
                 transition-all duration-200

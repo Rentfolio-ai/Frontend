@@ -23,12 +23,29 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
     
     // Simulate authentication
     setTimeout(() => {
-      onSignIn({
+      const userData = {
         id: '1',
         name: 'John Doe',
         email: email,
         avatar: 'JD'
-      });
+      };
+      
+      onSignIn(userData);
+      
+      // Handle rememberMe: persist session based on checkbox
+      // TODO: In production, send rememberMe to backend which should:
+      // - Set HttpOnly, Secure, SameSite cookie with long expiration if rememberMe=true
+      // - Set short-lived session cookie if rememberMe=false
+      // For now, store a flag to indicate session persistence preference
+      if (typeof window !== 'undefined') {
+        if (rememberMe) {
+          window.localStorage.setItem('civitas-remember-me', 'true');
+        } else {
+          window.sessionStorage.setItem('civitas-session-only', 'true');
+          window.localStorage.removeItem('civitas-remember-me');
+        }
+      }
+      
       setIsLoading(false);
     }, 1500);
   };

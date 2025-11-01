@@ -64,7 +64,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       return;
     }
     
-    console.log('Saving profile:', formData);
+    // TODO: Call API to save profile
     onClose();
   };
 
