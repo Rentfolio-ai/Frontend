@@ -2,97 +2,98 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
-
+import { AgentAvatar } from '../common/AgentAvatar';
+import { UserAvatar } from '../common/UserAvatar';
+import { ActionButtons } from './ActionButtons';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MessageBubbleProps {
   message: Message;
-  groupLength?: number;
-  isFirst?: boolean;
+  onAction?: (actionValue: string, actionContext?: any) => void;
 }
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, groupLength = 1, isFirst = true }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onAction }) => {
   const isUser = message.role === 'user';
-  // Only show avatar/timestamp for first message in group
+  const { user } = useAuth();
+  
+  // Translucent, breathable design
   return (
     <div className={cn(
-      'flex gap-3 mb-1 animate-slide-in',
+      'flex gap-3 animate-slide-in mb-3',
       isUser ? 'justify-end' : 'justify-start'
     )}>
-      {/* Avatar */}
-      {!isUser && (isFirst || groupLength === 1) && (
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-          <svg
-            className="w-4 h-4 text-primary-foreground"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-          </svg>
+      {/* AI Agent Avatar - Left side only */}
+      {!isUser && (
+        <div className="flex-shrink-0 pt-1">
+          <AgentAvatar size="md" />
         </div>
       )}
-
-      {/* Message Content */}
+      
+      {/* Message Card - Premium glassmorphism with STR context */}
       <div className={cn(
-        'max-w-[80%] space-y-2',
-        isUser ? 'order-first' : ''
-      )}>
-        {/* Message bubble */}
-        <div className={cn(
-          'px-4 py-3 rounded-2xl shadow-md transition-transform duration-200',
-          isUser
-            ? 'bg-gradient-to-br from-primary via-primary/80 to-primary/60 text-primary-foreground ml-auto scale-105'
-            : 'bg-gradient-to-br from-surface via-surface/80 to-surface/60 border border-border scale-100'
-        )}>
-          <div className={cn(
-            'text-body whitespace-pre-wrap',
-            message.isStreaming && 'typing-animation'
-          )}>
-            {message.content}
-            {message.isStreaming && (
-              <span className="inline-block w-2 h-5 ml-1 bg-current animate-pulse" />
-            )}
-            {/* Attachment rendering */}
-            {message.attachment && (
-              <div className="mt-2">
-                {message.attachment.type.startsWith('image') ? (
-                  <img
-                    src={message.attachment.url}
-                    alt={message.attachment.name}
-                    className="max-w-xs max-h-48 rounded-lg border border-border shadow"
-                  />
-                ) : (
-                  <a
-                    href={message.attachment.url}
-                    download={message.attachment.name}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs text-primary border border-border"
-                  >
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 16V4M12 16l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="18" width="16" height="2" rx="1" fill="currentColor"/></svg>
-                    {message.attachment.name}
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        'max-w-[55%] px-4 py-3.5 backdrop-blur-2xl transition-all duration-150 hover:translate-y-[-2px] group',
+        isUser 
+          ? 'rounded-2xl rounded-br-md bg-gradient-to-br from-blue-500/20 to-cyan-500/15 border border-blue-400/25 shadow-2xl shadow-blue-500/10 hover:shadow-blue-500/20 hover:border-blue-400/35' 
+          : 'rounded-2xl rounded-tl-md bg-white/[0.08] border border-white/[0.12] hover:bg-white/[0.11] shadow-xl shadow-black/5 hover:shadow-cyan-500/5 hover:border-white/[0.18]'
+      )}
+      >
 
-        {/* Timestamp */}
-        {(isFirst || groupLength === 1) && (
-          <div className={cn(
-            'text-xs text-foreground/60',
-            isUser ? 'text-right' : 'text-left'
-          )}>
+        <div 
+          className={cn(
+            'text-sm leading-relaxed whitespace-pre-wrap group-hover:text-white/95 transition-colors duration-150',
+            message.isStreaming && 'inline',
+            isUser ? 'text-white/95' : 'text-white/85'
+          )}
+        >
+          {message.content}
+          {message.isStreaming && (
+            <span 
+              className="inline-block w-1 h-4 ml-1 animate-pulse align-middle rounded-sm bg-blue-400"
+            />
+          )}
+        </div>
+        
+        {/* Timestamp - Subtle */}
+        <div className="flex items-center gap-2 text-[10px] text-white/30 font-medium mt-2">
+          <span>
             {typeof message.timestamp === 'string' 
               ? message.timestamp 
-              : message.timestamp.toLocaleString()}
+              : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+          </span>
+        </div>
+        
+        {/* Attachment rendering */}
+        {message.attachment && (
+          <div className="mt-2">
+            {message.attachment.type.startsWith('image') ? (
+              <img
+                src={message.attachment.url}
+                alt={message.attachment.name}
+                className="max-w-md max-h-64 rounded-xl shadow"
+              />
+            ) : (
+              <a
+                href={message.attachment.url}
+                download={message.attachment.name}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-black/10 rounded-lg text-sm hover:bg-black/20 transition-colors"
+                style={{ color: isUser ? '#FFFFFF' : '#1A1A1A' }}
+              >
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 16V4M12 16l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="18" width="16" height="2" rx="1" fill="currentColor"/></svg>
+                {message.attachment.name}
+              </a>
+            )}
           </div>
         )}
-      </div>
 
-      {/* User Avatar */}
-      {isUser && (isFirst || groupLength === 1) && (
-        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-medium text-foreground">
-            U
-          </span>
+        {/* Action Buttons - for assistant messages only */}
+        {!isUser && message.action && onAction && (
+          <ActionButtons action={message.action} onAction={onAction} />
+        )}
+      </div>
+      
+      {/* User Avatar - Right side only */}
+      {isUser && (
+        <div className="flex-shrink-0 pt-1">
+          <UserAvatar name={user?.name || 'User'} size="md" />
         </div>
       )}
     </div>

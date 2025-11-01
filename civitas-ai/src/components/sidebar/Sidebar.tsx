@@ -22,10 +22,11 @@ interface SidebarProps {
   onNewChat?: () => void;
   chatHistory?: ChatSession[];
   onSelectChat?: (chatId: string) => void;
+  onDeleteChat?: (chatId: string, e: React.MouseEvent) => void;
   activeChatId?: string;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onNewChat, chatHistory = [], onSelectChat, activeChatId }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onNewChat, chatHistory = [], onSelectChat, onDeleteChat, activeChatId }) => {
   const [activeSection, setActiveSection] = useState<'chats' | 'properties'>('chats');
   const handleNewChat = onNewChat ?? (() => {});
 
@@ -107,22 +108,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onNewChat, chatHi
                 const firstUserMessage = chat.messages.find(msg => msg.role === 'user')?.content || '';
                 const chatTitle = chat.title || generateChatTitle(firstUserMessage);
                 return (
-                  <button
-                    key={chat.id}
-                    onClick={() => onSelectChat && onSelectChat(chat.id)}
-                    className={cn(
-                      "w-full text-left p-3 rounded-lg transition-colors",
-                      activeChatId === chat.id
-                        ? "bg-blue-50 border border-blue-200"
-                        : "hover:bg-gray-50"
+                  <div key={chat.id} className="relative group">
+                    <button
+                      onClick={() => onSelectChat && onSelectChat(chat.id)}
+                      className={cn(
+                        "w-full text-left p-3 rounded-lg transition-colors",
+                        activeChatId === chat.id
+                          ? "bg-blue-50 border border-blue-200"
+                          : "hover:bg-gray-50"
+                      )}
+                      aria-label={`Select chat: ${chatTitle}`}
+                    >
+                      <div className="font-medium pr-8">{chatTitle}</div>
+                      <div className="text-sm text-gray-500 truncate">
+                        {chat.messages.length} messages
+                      </div>
+                    </button>
+                    {chatHistory.length > 1 && onDeleteChat && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onDeleteChat(chat.id, e);
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:bg-red-100 text-gray-400 hover:text-red-600 transition-all"
+                        aria-label="Delete chat"
+                        title="Delete chat"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     )}
-                    aria-label={`Select chat: ${chatTitle}`}
-                  >
-                    <div className="font-medium">{chatTitle}</div>
-                    <div className="text-sm text-gray-500 truncate">
-                      {chat.messages.length} messages
-                    </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>

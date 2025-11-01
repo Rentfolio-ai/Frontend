@@ -13,14 +13,15 @@ import {
   Zap
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import type { SuggestionCategory, Priority } from '@/types/enums';
 
 interface SuggestedAction {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   prompt: string;
-  category: 'market' | 'analysis' | 'comparison' | 'report';
-  priority: 'high' | 'medium' | 'low';
+  category: SuggestionCategory;
+  priority: Priority;
 }
 
 interface SuggestedNextStepsProps {
@@ -28,80 +29,82 @@ interface SuggestedNextStepsProps {
   className?: string;
 }
 
+import { SuggestionCategory as SuggestionCategoryEnum, Priority as PriorityEnum } from '@/types/enums';
+
 const suggestedActions: SuggestedAction[] = [
   {
     id: 'compare-la',
     label: 'Compare with Los Angeles',
     icon: MapPin,
     prompt: 'Compare current property market trends between this area and Los Angeles, including price differences, ROI potential, and investment opportunities.',
-    category: 'comparison',
-    priority: 'high'
+    category: SuggestionCategoryEnum.Comparison,
+    priority: PriorityEnum.High
   },
   {
     id: 'market-trends',
     label: 'Analyze Market Trends',
     icon: TrendingUp,
     prompt: 'Analyze current real estate market trends in this area, including price movements, demand patterns, and future projections.',
-    category: 'market',
-    priority: 'high'
+    category: SuggestionCategoryEnum.Market,
+    priority: PriorityEnum.High
   },
   {
     id: 'roi-calculator',
     label: 'Calculate ROI Scenarios',
     icon: Calculator,
     prompt: 'Calculate detailed ROI scenarios for different investment strategies, including buy-and-hold, fix-and-flip, and rental income analysis.',
-    category: 'analysis',
-    priority: 'medium'
+    category: SuggestionCategoryEnum.Analysis,
+    priority: PriorityEnum.Medium
   },
   {
     id: 'neighborhood-analysis',
     label: 'Neighborhood Deep Dive',
     icon: Search,
     prompt: 'Provide a comprehensive neighborhood analysis including demographics, growth potential, amenities, and investment risks.',
-    category: 'analysis',
-    priority: 'medium'
+    category: SuggestionCategoryEnum.Analysis,
+    priority: PriorityEnum.Medium
   },
   {
     id: 'cash-flow-analysis',
     label: 'Cash Flow Analysis',
     icon: DollarSign,
     prompt: 'Analyze potential cash flow scenarios including rental income, expenses, vacancy rates, and net operating income projections.',
-    category: 'analysis',
-    priority: 'high'
+    category: SuggestionCategoryEnum.Analysis,
+    priority: PriorityEnum.High
   },
   {
     id: 'competitive-analysis',
     label: 'Competitive Properties',
     icon: BarChart3,
     prompt: 'Find and analyze competitive properties in the area, comparing prices, features, and investment potential.',
-    category: 'comparison',
-    priority: 'medium'
+    category: SuggestionCategoryEnum.Comparison,
+    priority: PriorityEnum.Medium
   },
   {
     id: 'investment-strategy',
     label: 'Investment Strategy',
     icon: Target,
     prompt: 'Develop a customized investment strategy based on my risk tolerance, budget, and investment goals.',
-    category: 'analysis',
-    priority: 'medium'
+    category: SuggestionCategoryEnum.Analysis,
+    priority: PriorityEnum.Medium
   },
   {
     id: 'market-report',
     label: 'Generate Market Report',
     icon: FileText,
     prompt: 'Generate a comprehensive market report with data visualizations, trends analysis, and investment recommendations.',
-    category: 'report',
-    priority: 'low'
+    category: SuggestionCategoryEnum.Report,
+    priority: PriorityEnum.Low
   }
 ];
 
-const getPriorityIcon = (priority: string) => {
+const getPriorityIcon = (priority: Priority) => {
   switch (priority) {
-    case 'high':
+    case PriorityEnum.High:
       return '🔥';
-    case 'medium':
+    case PriorityEnum.Medium:
       return '⚡';
-    case 'low':
+    case PriorityEnum.Low:
       return '💡';
     default:
       return '⚡';

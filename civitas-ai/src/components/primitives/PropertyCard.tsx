@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from './Card';
 import { Badge } from './Badge';
 import { cn } from '../../lib/utils';
-import type { Property } from '../../../../types/index';
+import type { Property } from '../../types';
 
 interface PropertyCardProps {
   property: Property;
@@ -17,13 +17,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   compact = false 
 }) => {
   // Calculate annualized ROI from monthly % returns (compound over 12 months)
-  const calculateAnnualROI = (roiMonthly: number[]): number => {
-    if (!roiMonthly?.length) return 0;
-    const factor = roiMonthly.reduce((acc, m) => acc * (1 + m / 100), 1);
+  const calculateAnnualROI = (monthlyRoiData: number[]): number => {
+    if (!monthlyRoiData?.length) return 0;
+    const factor = monthlyRoiData.reduce((acc, m) => acc * (1 + m / 100), 1);
     return Math.round(((factor - 1) * 100) * 10) / 10; // percent, 1 decimal
   };
 
-  const annualROI = calculateAnnualROI(property.roiMonthly);
+  const annualROI = calculateAnnualROI(property.monthlyRoiData);
   const isHighROI = annualROI > 10;
 
   // Format price with proper commas

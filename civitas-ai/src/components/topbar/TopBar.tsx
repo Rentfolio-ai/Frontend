@@ -5,9 +5,7 @@ import { ThemeToggle } from '../primitives/ThemeToggle';
 import { Tooltip } from '../primitives/Tooltip';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
-import { ProfileSettingsModal } from '../profile/ProfileSettingsModal';
-import { BillingModal } from '../billing/BillingModal';
-import { PreferencesModal } from '../preferences/PreferencesModal';
+import { SettingsModal } from '../settings/SettingsModal';
 import { HelpModal } from '../help/HelpModal';
 import { ProfileDropdown } from './ProfileDropdown';
 
@@ -26,9 +24,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
-  const [isBillingOpen, setIsBillingOpen] = useState(false);
-  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
@@ -244,13 +240,9 @@ export const TopBar: React.FC<TopBarProps> = ({
             onOpenModal={(modalName) => {
               switch (modalName) {
                 case 'profile':
-                  setIsProfileSettingsOpen(true);
-                  break;
                 case 'billing':
-                  setIsBillingOpen(true);
-                  break;
                 case 'preferences':
-                  setIsPreferencesOpen(true);
+                  setIsSettingsOpen(true);
                   break;
                 case 'help':
                   setIsHelpOpen(true);
@@ -264,17 +256,9 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Modals */}
-      <ProfileSettingsModal 
-        isOpen={isProfileSettingsOpen} 
-        onClose={() => setIsProfileSettingsOpen(false)} 
-      />
-      <BillingModal 
-        isOpen={isBillingOpen} 
-        onClose={() => setIsBillingOpen(false)} 
-      />
-      <PreferencesModal 
-        isOpen={isPreferencesOpen} 
-        onClose={() => setIsPreferencesOpen(false)} 
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
       />
       <HelpModal 
         isOpen={isHelpOpen} 

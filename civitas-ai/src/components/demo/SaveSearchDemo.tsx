@@ -5,7 +5,7 @@ import { SaveSearchButton } from '../search/SaveSearchButton';
 import { Button } from '../primitives/Button';
 import { Badge } from '../primitives/Badge';
 import { Search, Filter } from 'lucide-react';
-import type { Property, PropertySearchFilters } from '../../../../types/index';
+import type { Property, PropertySearchFilters } from '../../types';
 
 // Sample search results
 const sampleSearchResults: Property[] = [
@@ -24,7 +24,7 @@ const sampleSearchResults: Property[] = [
     taxes: 9000,
     rentEst: 3500,
     expensesEst: 1500,
-    roiMonthly: [11.2, 10.8, 11.5, 11.0, 10.9, 11.3, 11.7, 11.1, 10.6, 11.4, 11.0, 10.8],
+    monthlyRoiData: [11.2, 10.8, 11.5, 11.0, 10.9, 11.3, 11.7, 11.1, 10.6, 11.4, 11.0, 10.8],
     capRate: 6.8,
     images: ['https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800'],
     zip: '94105',
@@ -52,7 +52,7 @@ const sampleSearchResults: Property[] = [
     taxes: 6500,
     rentEst: 2800,
     expensesEst: 1200,
-    roiMonthly: [8.5, 8.2, 8.8, 8.4, 8.7, 8.6, 8.9, 8.3, 8.1, 8.6, 8.4, 8.5],
+    monthlyRoiData: [8.5, 8.2, 8.8, 8.4, 8.7, 8.6, 8.9, 8.3, 8.1, 8.6, 8.4, 8.5],
     capRate: 5.2,
     images: ['https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800'],
     zip: '94607',
@@ -204,7 +204,7 @@ export const SaveSearchDemo: React.FC = () => {
                 minPrice: 300000,
                 maxPrice: 800000,
                 beds: 3,
-                propertyType: 'single-family'
+                propertyType: 'single_family'
               });
             }}
           >

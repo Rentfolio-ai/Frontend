@@ -7,9 +7,10 @@ import type { Message } from '../../data/seed';
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
+  onAction?: (actionValue: string, actionContext?: any) => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onAction }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -21,61 +22,30 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
   }, [messages, isLoading]);
 
   if (messages.length === 0) {
+    // Show comprehensive onboarding message as first AI message
+    const welcomeMessage: Message = {
+      id: 'welcome',
+      role: 'assistant',
+      content: "Welcome to Civitas! 🏠✨\n\nYour AI-powered assistant for finding profitable Airbnb/VRBO properties across the U.S. I analyze properties, calculate ROI projections, and generate agent-ready reports.\n\nWHAT I CAN DO:\n\n🔍 Scout properties based on location, price, and criteria\n📊 Calculate STR revenue projections with occupancy and rates\n💰 Show cash-on-cash returns and investment grades (A/B/C/D)\n📋 Generate comprehensive reports with market data\n⚖️ Check local STR regulations and compliance\n\nEXPLORE THE APP:\n\n🏘️ Properties - Saved properties with STR analysis\n📈 Portfolio - Track performance and returns\n📄 Reports - Investment reports and analysis\n🌍 Market - U.S. market trends and demand\n⚙️ Settings - Customize preferences\n\nTRY ASKING:\n• \"Find properties in Austin under $400k\"\n• \"What makes a good STR investment?\"\n• \"Search for 3 bedroom homes in Miami\"\n\nWhat would you like to explore? 🚀",
+      timestamp: new Date(),
+      isStreaming: false
+    };
+    
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md">
-          <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-h2 mb-2">Welcome to Civitas AI</h3>
-            <p className="text-foreground/60 text-body">
-              Start a conversation to analyze properties, generate reports, or explore investment opportunities.
-            </p>
-          </div>
+      <div className="h-full overflow-y-auto">
+        <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
+          <MessageBubble message={welcomeMessage} onAction={onAction} />
+          <div ref={messagesEndRef} />
         </div>
       </div>
     );
   }
 
-  // Group consecutive messages by sender
-  const grouped: Array<{ message: Message; groupLength: number; isFirst: boolean }> = [];
-  let i = 0;
-  while (i < messages.length) {
-    const current = messages[i];
-    let groupLen = 1;
-    let j = i + 1;
-    while (j < messages.length && messages[j].role === current.role) {
-      groupLen++;
-      j++;
-    }
-    for (let k = 0; k < groupLen; k++) {
-      grouped.push({
-        message: messages[i + k],
-        groupLength: groupLen,
-        isFirst: k === 0
-      });
-    }
-    i += groupLen;
-  }
-
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-6 space-y-1">
-        {grouped.map(({ message, groupLength, isFirst }) => (
-          <MessageBubble key={message.id} message={message} groupLength={groupLength} isFirst={isFirst} />
+      <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} onAction={onAction} />
         ))}
         {isLoading && <LoadingBubble />}
         <div ref={messagesEndRef} />

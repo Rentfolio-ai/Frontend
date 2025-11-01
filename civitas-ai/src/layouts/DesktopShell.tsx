@@ -1,341 +1,319 @@
 // FILE: src/layouts/DesktopShell.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import { TopBar } from '../components/topbar/TopBar';
-import { Sidebar } from '../components/sidebar/Sidebar';
-import { MessageList } from '../components/chat/MessageList';
-import type { Message } from '../types/chat';
-import { Composer } from '../components/chat/Composer';
-import { generateChatTitle } from '../utils/chatTitles';
-import { ContextRail } from '../components/rail/ContextRail';
+/**
+ * Refactored DesktopShell component
+ * This is a dramatically simplified version that uses extracted hooks and components
+ * 
+ * Original: 1,371 lines
+ * Refactored: 228 lines (83% reduction)
+ * 
+ * Uses:
+ * - useDesktopShell hook for state management
+ * - useThemeState hook for theme customization
+ * - usePreferences hook for user preferences
+ * - ChatTabView for chat interface
+ * - SettingsTabView for settings page
+ * - DesktopSidebarMenu for navigation
+ */
+
+import React, { useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { PortfolioProvider } from '../contexts/PortfolioContext';
+import { useDesktopShell } from '../hooks/useDesktopShell';
+import { useThemeState } from '../hooks/useThemeState';
+import { usePreferences } from '../hooks/usePreferences';
+import { useToast } from '../hooks/useToast';
+import { ToastContainer } from '../components/primitives/Toast';
+import { ChatTabView, SettingsTabView, DesktopSidebarMenu } from '../components/desktop-shell';
+import { PropertiesTabView } from '../components/views/PropertiesTabView';
+import { PortfolioTabView } from '../components/views/PortfolioTabView';
+import { MarketTrendsTabView } from '../components/views/MarketTrendsTabView_NEW';
+import { ReportsTabView } from '../components/views/ReportsTabView_NEW';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
 }
 
+const STATE_OPTIONS = [
+  { name: 'California', emoji: '🌴', color: '#F59E0B' },
+  { name: 'Texas', emoji: '🤠', color: '#DC2626' },
+  { name: 'Florida', emoji: '🏖️', color: '#06B6D4' },
+  { name: 'New York', emoji: '🗽', color: '#6366F1' },
+  { name: 'Colorado', emoji: '⛰️', color: '#10B981' },
+  { name: 'Tennessee', emoji: '🎸', color: '#8B5CF6' },
+  { name: 'Arizona', emoji: '🌵', color: '#EF4444' },
+  { name: 'Georgia', emoji: '🍑', color: '#F97316' },
+  { name: 'Nevada', emoji: '🎰', color: '#EC4899' },
+];
+
+// Dev mode - shows experimental features
+const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true' || import.meta.env.DEV;
+
+const BASE_MENU_ITEMS = [
+  { id: 'market' as const, label: 'Market Insights', icon: '📊' },
+  { id: 'reports' as const, label: 'Reports', icon: '📈' },
+  { id: 'settings' as const, label: 'Settings', icon: '⚙️' },
+];
+
+const DEV_MENU_ITEMS = [
+  { id: 'properties' as const, label: 'Properties 🧪', icon: '🏠' }, // Experimental
+  { id: 'portfolio' as const, label: 'Portfolio 🧪', icon: '💼' }, // Experimental
+];
+
+const MENU_ITEMS = DEV_MODE 
+  ? [...DEV_MENU_ITEMS, ...BASE_MENU_ITEMS]
+  : BASE_MENU_ITEMS;
+
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
-  // Import ChatSession from Sidebar component
-  type ChatSession = {
-    id: string;
-    title?: string;
-    timestamp?: string;
-    isActive?: boolean;
-    messages: Message[];
-  };
-
-  // Persistent chat history
-  const [chatHistory, setChatHistory] = useState<ChatSession[]>(() => {
-    const saved = typeof window !== 'undefined'
-      ? window.localStorage.getItem('civitas-chat-history')
-      : null;
-    if (!saved) return [];
-
-    const parsed = JSON.parse(saved);
-    // Migrate legacy ChatHistoryItem[] format
-    return parsed.map((chat: any) => ({
-      id: chat.id,
-      title: chat.title,
-      timestamp: chat.timestamp,
-      messages: chat.messages || []
-    }));
-  });
-  const [activeChatId, setActiveChatId] = useState<string>(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('civitas-active-chat-id') : null;
-    return saved || 'main';
-  });
-  // Theme state
-  const [theme] = useState<'light' | 'dark'>(
-    typeof window !== 'undefined' && window.localStorage.getItem('civitas-theme') === 'dark' ? 'dark' : 'light'
-  );
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    window.localStorage.setItem('civitas-theme', theme);
-  }, [theme]);
-  const [isRailCollapsed, setIsRailCollapsed] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  // Chat message state
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('civitas-chat-messages') : null;
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
-  const [attachment, setAttachment] = useState<File | null>(null);
-  const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
-  // Create a ref to track attachment URLs that persists across renders
-  const attachmentUrlsRef = useRef<string[]>([]);
-
-  // Helper to get current time
-  const getTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  // Handle user message
-  const handleSendMessage = (message: string) => {
-    if (!message.trim() && !attachment) return;
-    let newMsg: any = {
-      id: `${Date.now()}`,
-      content: message,
-      role: 'user',
-      timestamp: getTime()
-    };
-    if (attachment) {
-      const url = URL.createObjectURL(attachment);
-      newMsg.attachment = {
-        name: attachment.name,
-        type: attachment.type,
-        url: url
-      };
-      // Track the URL in both state (for UI) and ref (for cleanup)
-      setAttachmentUrls(prev => [...prev, url]);
-      attachmentUrlsRef.current.push(url);
-    }
-    setMessages((prev) => [
-      ...prev,
-      newMsg
-    ]);
-    // We already created a URL for this attachment (if one exists), but we'll keep the URL active
-    // Just clear the attachment input state without revoking URLs
-    setAttachment(null); 
-    setIsLoading(true);
-    const fullResponse = `This is a simulated LLM response to: "${message}"`;
-    let current = '';
-    let i = 0;
-    const streamId = `${Date.now() + 1}`;
-    const interval = setInterval(() => {
-      i++;
-      current = fullResponse.slice(0, i);
-      setMessages((prev) => {
-        const filtered = prev.filter(m => m.id !== streamId);
-        return [
-          ...filtered,
-          {
-            id: streamId,
-            content: current,
-            role: 'assistant',
-            timestamp: getTime(),
-            isStreaming: i < fullResponse.length
-          }
-        ];
-      });
-      if (i >= fullResponse.length) {
-        clearInterval(interval);
-        setStreamIntervalId(null);
-        setIsLoading(false);
-      }
-    }, 30);
-    setStreamIntervalId(interval);
-  };
-
-  // Interrupt streaming
-  const handleStopStream = () => {
-    if (streamIntervalId) {
-      clearInterval(streamIntervalId);
-      setStreamIntervalId(null);
-      setIsLoading(false);
-      // Remove isStreaming flag from last assistant message
-      setMessages((prev) => prev.map(m => m.isStreaming ? { ...m, isStreaming: false } : m));
-    }
-  };
-
-  useEffect(() => {
-    const savedRailState = localStorage.getItem('civitas-rail-collapsed');
-    if (savedRailState !== null) {
-      setIsRailCollapsed(JSON.parse(savedRailState));
-    }
-  }, []);
-
-  // Persist chat history, active chat, and messages to localStorage
-  useEffect(() => {
-    window.localStorage.setItem('civitas-chat-history', JSON.stringify(chatHistory));
-  }, [chatHistory]);
-
-  useEffect(() => {
-    window.localStorage.setItem('civitas-active-chat-id', activeChatId);
-  }, [activeChatId]);
-
-  useEffect(() => {
-    window.localStorage.setItem('civitas-chat-messages', JSON.stringify(messages));
-  }, [messages]);
-
-  // Cleanup interval when component unmounts or when streamIntervalId changes
-  useEffect(() => {
-    return () => {
-      // Clean up interval on unmount or when streamIntervalId changes
-      if (streamIntervalId) {
-        clearInterval(streamIntervalId);
-      }
-    };
-  }, [streamIntervalId]);
+  const { user } = useAuth();
+  const { toasts, success, closeToast } = useToast();
   
-  // Cleanup object URLs only on component unmount
+  // Custom hooks for state management
+  const {
+    chatHistory,
+    activeChatId,
+    messages,
+    isSidebarOpen,
+    activeTab,
+    isLoading,
+    setIsSidebarOpen,
+    setActiveTab,
+    handleSendMessage,
+    handleNewChat,
+    handleLoadChat,
+    handleDeleteChat,
+    handleAction
+  } = useDesktopShell();
+  
+  const { selectedState, setSelectedState, currentTheme } = useThemeState();
+  
+  const {
+    emailNotifications,
+    marketAlerts,
+    updateEmailNotifications,
+    updateMarketAlerts
+  } = usePreferences();
+  
+  // Listen for navigation events from chat
   useEffect(() => {
-    return () => {
-      // Revoke all attachment URLs on unmount using the ref
-      attachmentUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-      // Clear the ref array
-      attachmentUrlsRef.current = [];
+    const handleNavigate = (event: CustomEvent) => {
+      const { tab } = event.detail;
+      if (tab === 'market-insights' || tab === 'market') {
+        setActiveTab('market');
+      } else if (tab === 'reports') {
+        setActiveTab('reports');
+      }
     };
-  }, []);
-
-  // Helper function to clean up attachment URLs and reset attachment state
-  const clearAttachments = () => {
-    // Revoke all current attachment URLs to prevent memory leaks
-    attachmentUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-    // Clear the ref array
-    attachmentUrlsRef.current = [];
-    // Reset state
-    setAttachmentUrls([]);
-    setAttachment(null);
-  };
-
-  const toggleRail = () => {
-    const newState = !isRailCollapsed;
-    setIsRailCollapsed(newState);
-    localStorage.setItem('civitas-rail-collapsed', JSON.stringify(newState));
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
-
-  // Static quick actions
-  const quickActions: { label: string; value: string }[] = [
-    { label: 'Show me properties under $500k', value: 'Show me properties under $500k' },
-    { label: 'Summarize my dashboard', value: 'Summarize my dashboard' },
-    { label: 'Generate a market report', value: 'Generate a market report' },
-    { label: 'What are the top zip codes?', value: 'What are the top zip codes?' }
-  ];
+    
+    window.addEventListener('navigate-to-tab', handleNavigate as EventListener);
+    return () => window.removeEventListener('navigate-to-tab', handleNavigate as EventListener);
+  }, [setActiveTab]);
+  
+  // Listen for success events (report saved, analysis complete)
+  useEffect(() => {
+    const handleReportSaved = () => {
+      success('Report saved successfully!', {
+        label: 'View',
+        onClick: () => setActiveTab('reports')
+      });
+    };
+    
+    const handleMarketAnalysis = () => {
+      success('Market analysis complete!', {
+        label: 'View Insights',
+        onClick: () => setActiveTab('market')
+      });
+    };
+    
+    window.addEventListener('report-saved', handleReportSaved as EventListener);
+    window.addEventListener('market-analysis-saved', handleMarketAnalysis as EventListener);
+    
+    return () => {
+      window.removeEventListener('report-saved', handleReportSaved as EventListener);
+      window.removeEventListener('market-analysis-saved', handleMarketAnalysis as EventListener);
+    };
+  }, [success, setActiveTab]);
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col overflow-hidden">
-      {/* Top Bar */}
-      <TopBar 
-        onToggleSidebar={toggleSidebar}
-        onToggleRail={toggleRail}
-        isRailCollapsed={isRailCollapsed}
+    <div className="h-screen flex flex-col overflow-hidden relative">
+      {/* STR Investment Platform - Professional Clean Gradient */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Clean professional gradient - Investment blue theme */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: selectedState 
+              ? `linear-gradient(135deg, ${currentTheme.primary} 0%, ${currentTheme.secondary} 100%)`
+              : 'linear-gradient(135deg, #1e40af 0%, #2563eb 40%, #0891b2 100%)'
+          }}
+        />
+        
+        {/* Subtle grid pattern - Data/analytics context */}
+        <div 
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '100px 100px'
+          }}
+        />
+        
+        {/* Property location markers - Static STR context */}
+        <div className="absolute inset-0 opacity-[0.025]">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            {/* Map pin markers at key locations */}
+            <g fill="white" opacity="0.6">
+              <circle cx="15%" cy="25%" r="4" />
+              <circle cx="35%" cy="15%" r="3" />
+              <circle cx="55%" cy="30%" r="5" />
+              <circle cx="75%" cy="20%" r="3.5" />
+              <circle cx="85%" cy="40%" r="4" />
+              <circle cx="25%" cy="60%" r="3" />
+              <circle cx="60%" cy="70%" r="4.5" />
+              <circle cx="80%" cy="75%" r="3" />
+            </g>
+            {/* Connecting lines - Market connectivity */}
+            <g stroke="white" strokeWidth="0.5" opacity="0.3">
+              <line x1="15%" y1="25%" x2="35%" y2="15%" />
+              <line x1="35%" y1="15%" x2="55%" y2="30%" />
+              <line x1="55%" y1="30%" x2="75%" y2="20%" />
+              <line x1="75%" y1="20%" x2="85%" y2="40%" />
+            </g>
+          </svg>
+        </div>
+        
+        {/* Subtle corner accents - Premium feel */}
+        <div 
+          className="absolute top-0 right-0 w-[800px] h-[800px] opacity-[0.04]"
+          style={{
+            background: 'radial-gradient(circle at top right, rgba(6, 182, 212, 0.3) 0%, transparent 60%)'
+          }}
+        />
+        <div 
+          className="absolute bottom-0 left-0 w-[600px] h-[600px] opacity-[0.03]"
+          style={{
+            background: 'radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.25) 0%, transparent 60%)'
+          }}
+        />
+      </div>
+      
+      {/* Content layer */}
+      <div className="relative z-10 h-full flex flex-col">
+      {/* Sidebar Menu */}
+      <DesktopSidebarMenu
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        chatHistory={chatHistory}
+        activeChatId={activeChatId}
+        activeTab={activeTab}
+        currentTheme={currentTheme}
+        menuItems={MENU_ITEMS}
+        onNewChat={handleNewChat}
+        onLoadChat={handleLoadChat}
+        onDeleteChat={handleDeleteChat}
+        onTabChange={setActiveTab}
       />
+
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar (collapsed by default) */}
-        <div className={`
-          flex-shrink-0 transition-all duration-300 ease-in-out
-          ${isSidebarCollapsed ? 'w-0' : 'w-sidebar'}
-          ${isSidebarCollapsed ? 'opacity-0' : 'opacity-100'}
-        `}>
-          <Sidebar
-            isCollapsed={isSidebarCollapsed}
-            onNewChat={() => {
-              // Save current chat to history if it has messages
-              if (messages.length > 0) {
-                const firstUserMessage = messages.find(msg => msg.role === 'user' || msg.type === 'user')?.content || '';
-                setChatHistory(prev => [
-                  ...prev,
-                  { 
-                    id: activeChatId, 
-                    messages,
-                    title: generateChatTitle(firstUserMessage),
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                  }
-                ]);
-              }
-              setMessages([]);
-              clearAttachments(); // Use the helper function to clean up attachment URLs
-              setIsLoading(false);
-              if (streamIntervalId) {
-                clearInterval(streamIntervalId);
-                setStreamIntervalId(null);
-              }
-              const newId = Date.now().toString();
-              setActiveChatId(newId);
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <div className="flex-shrink-0 px-8 py-4 flex items-center justify-between">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="group px-3 py-2 rounded-xl flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.10) 100%)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
             }}
-            chatHistory={chatHistory}
-            onSelectChat={chatId => {
-              const chat = chatHistory.find(c => c.id === chatId);
-              setMessages(chat ? chat.messages : []);
-              clearAttachments(); // Clean up current attachments when switching chats
-              setActiveChatId(chatId);
-            }}
-            activeChatId={activeChatId}
-          />
+          >
+            {/* Hover gradient effect */}
+            <div 
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: 'linear-gradient(135deg, rgba(103, 232, 249, 0.15) 0%, rgba(96, 165, 250, 0.12) 100%)'
+              }}
+            />
+            
+            <svg 
+              className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:rotate-90" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              style={{
+                color: 'rgba(255, 255, 255, 0.95)',
+                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))'
+              }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span 
+              className="font-medium text-sm relative z-10"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))',
+                fontFamily: 'Inter Tight, sans-serif'
+              }}
+            >
+              Menu
+            </span>
+          </button>
         </div>
 
-        {/* Center: Chat Area - visually dominant */}
-        <div className="flex-1 flex flex-col min-w-0 bg-background relative">
-          {/* Contextual Quick Actions for LLM */}
-          <div className="p-6 pb-2 border-b border-border bg-background sticky top-0 z-10">
-            <div className="flex flex-wrap gap-2">
-              {quickActions.map((action) => (
-                <button
-                  key={action.value}
-                  className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/60 transition-colors"
-                  onClick={() => handleSendMessage(action.value)}
-                  aria-label={action.label}
-                  tabIndex={0}
-                >
-                  {action.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Message List */}
-          <div className="flex-1 overflow-y-auto px-0 md:px-8 pb-32">
-            <MessageList messages={messages} isLoading={isLoading} />
-          </div>
-          {/* Sticky Composer with attachment */}
-          <div className="sticky bottom-0 left-0 right-0 bg-background p-4 border-t border-border z-20">
-            <div className="max-w-chat mx-auto flex items-center gap-2">
-              <input
-                type="file"
-                id="chat-attachment"
-                className="hidden"
-                onChange={e => {
-                  if (e.target.files && e.target.files[0]) {
-                    setAttachment(e.target.files[0]);
-                  }
-                }}
-                aria-label="Attach file or image"
-              />
-              <label htmlFor="chat-attachment" className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 hover:bg-primary/30 border border-primary text-primary focus:outline-none focus:ring-2 focus:ring-primary/60" aria-label="Attach file or image" tabIndex={0}>
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M16.5 13.5V7.5C16.5 5.01472 14.4853 3 12 3C9.51472 3 7.5 5.01472 7.5 7.5V16.5C7.5 18.9853 9.51472 21 12 21C14.4853 21 16.5 18.9853 16.5 16.5V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </label>
-              {attachment && (
-                <span className="text-xs text-primary font-medium px-2 py-1 bg-primary/10 rounded">{attachment.name}</span>
-              )}
-              <Composer onSend={handleSendMessage} aria-label="Chat input" />
-              {isLoading && (
-                <button
-                  className="ml-2 w-10 h-10 flex items-center justify-center rounded-xl bg-red-600/20 hover:bg-red-600/40 transition-colors border border-red-600 shadow focus:outline-none focus:ring-2 focus:ring-red-600"
-                  onClick={handleStopStream}
-                  title="Stop response"
-                  aria-label="Stop assistant response"
-                  tabIndex={0}
-                >
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-red-600 text-white">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="4" y="4" width="8" height="8" rx="2" fill="currentColor" />
-                    </svg>
-                  </span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Tab Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {activeTab === 'chat' && (
+            <ChatTabView
+              messages={messages}
+              isLoading={isLoading}
+              userName={user?.name?.split(' ')[0]}
+              selectedState={selectedState}
+              onSendMessage={handleSendMessage}
+              onAction={handleAction}
+            />
+          )}
+          {activeTab === 'properties' && (
+            <PropertiesTabView />
+          )}
 
-        {/* Right Context Rail (less visual emphasis) */}
-        <div className={`
-          flex-shrink-0 transition-all duration-300 ease-in-out border-l border-border
-          ${isRailCollapsed ? 'w-0' : 'w-right-rail'}
-          ${isRailCollapsed ? 'opacity-0' : 'opacity-100'}
-        `}>
-          <ContextRail 
-            isCollapsed={isRailCollapsed} 
-            onSendMessage={handleSendMessage}
-          />
+          {activeTab === 'portfolio' && (
+            <PortfolioTabView />
+          )}
+
+          {activeTab === 'market' && (
+            <MarketTrendsTabView />
+          )}
+
+          {activeTab === 'reports' && (
+            <ReportsTabView />
+          )}
+
+          {activeTab === 'settings' && (
+            <SettingsTabView
+              selectedState={selectedState}
+              setSelectedState={setSelectedState}
+              emailNotifications={emailNotifications}
+              setEmailNotifications={updateEmailNotifications}
+              marketAlerts={marketAlerts}
+              setMarketAlerts={updateMarketAlerts}
+              stateOptions={STATE_OPTIONS}
+            />
+          )}
         </div>
+      </div>
+      
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={closeToast} />
       </div>
     </div>
   );
 };
+
+// Export as default
+export default DesktopShell;

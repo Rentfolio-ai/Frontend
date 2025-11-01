@@ -1,9 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, Paperclip, Mic, Bot, User, Copy, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Send, Bot, User, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { Message, ToolCard } from '@/types/chat'
+import { ActionButtons } from './ActionButtons'
+import { useReportsStore } from '../../stores/reportsStore'
+import { generateReport, saveReport } from '../../services/agentsApi'
+
+interface PropertyData {
+  location: string;
+  address?: string;
+  price?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  images?: string[];
+  [key: string]: any;
+}
 
 interface ChatInterfaceProps {
   className?: string
@@ -50,8 +64,10 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [lastPropertyData, setLastPropertyData] = useState<PropertyData | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const { addReport } = useReportsStore()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -60,6 +76,60 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Extract property data from messages for report generation
+  useEffect(() => {
+    const extractPropertyData = (msgs: Message[]): PropertyData | null => {
+      // Look through messages in reverse to find the latest property data
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        const msg = msgs[i];
+        if (msg.type === 'assistant' && msg.tools) {
+          // Check if any tool has property/valuation data
+          for (const tool of msg.tools) {
+            if (tool.data && typeof tool.data === 'object') {
+              // Check if this looks like property data
+              if ('location' in tool.data || 'address' in tool.data || 'price' in tool.data) {
+                return {
+                  location: tool.data.location || tool.data.address || 'Unknown',
+                  address: tool.data.address,
+                  price: tool.data.price,
+                  bedrooms: tool.data.bedrooms,
+                  bathrooms: tool.data.bathrooms,
+                  images: tool.data.images,
+                  ...tool.data
+                };
+              }
+            }
+          }
+        }
+        // Also check message content for tool_results (from backend)
+        const msgAny = msg as any;
+        if (msgAny.tool_results && Array.isArray(msgAny.tool_results)) {
+          for (const result of msgAny.tool_results) {
+            if (result.data && typeof result.data === 'object') {
+              if ('location' in result.data || 'address' in result.data) {
+                return {
+                  location: result.data.location || result.data.address || 'Unknown',
+                  address: result.data.address,
+                  price: result.data.price,
+                  bedrooms: result.data.bedrooms,
+                  bathrooms: result.data.bathrooms,
+                  images: result.data.images,
+                  ...result.data
+                };
+              }
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    const propertyData = extractPropertyData(messages);
+    if (propertyData) {
+      setLastPropertyData(propertyData);
+    }
+  }, [messages]);
 
     // Create a ref to store the timer ID
   const timerRef = useRef<number | null>(null);
@@ -116,188 +186,375 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     }
   }
 
+  const handleAction = async (actionValue: string) => {
+    if (actionValue === 'generate_report') {
+      // Send follow-up message to generate report
+      const reportMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: 'Yes, generate the report',
+        timestamp: new Date(),
+      }
+      setMessages(prev => [...prev, reportMessage])
+      
+      setIsTyping(true)
+      
+      try {
+        // Check if we have property data to generate report from
+        if (!lastPropertyData) {
+          throw new Error('No property data available for report generation');
+        }
+        
+        // Call backend API to generate report
+        const reportData = await generateReport({
+          valuation: lastPropertyData,
+          export_format: 'text'
+        });
+        
+        // Extract location from property details or use a default
+        const location = reportData.property_details?.location || lastPropertyData?.location || 'Unknown Location';
+        const property_address = reportData.property_details?.address || 'Unknown Address';
+        const title = `Investment Analysis - ${location}`;
+        
+        // Save report to backend (in-memory storage)
+        await saveReport({
+          title,
+          location,
+          property_address,
+          report_content: reportData.report,
+          property_details: reportData.property_details
+        });
+        
+        // Also save to local store for immediate display
+        addReport({
+          title,
+          content: reportData.report,
+          location,
+          property_details: reportData.property_details,
+          type: 'property_analysis'
+        });
+        
+        // Show success message
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: '✅ Report generated and saved successfully! You can view it in the Reports tab.',
+          timestamp: new Date(),
+        }
+        setMessages(prev => [...prev, aiResponse])
+        
+      } catch (error) {
+        console.error('Error generating report:', error);
+        
+        // Show error message
+        const errorResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: '❌ Sorry, I encountered an error generating the report. Please try searching for properties again.',
+          timestamp: new Date(),
+        }
+        setMessages(prev => [...prev, errorResponse])
+      }
+      
+      setIsTyping(false)
+      
+    } else if (actionValue === 'skip') {
+      // Just acknowledge
+      console.log('User skipped action')
+    } else if (actionValue === 'navigate_market_insights') {
+      // Trigger navigation to Market Insights tab
+      const event = new CustomEvent('navigate-to-tab', { detail: { tab: 'market-insights' } });
+      window.dispatchEvent(event);
+      
+      // Show confirmation message
+      const confirmMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: '📊 Navigating to Market Insights tab...',
+        timestamp: new Date(),
+      }
+      setMessages(prev => [...prev, confirmMessage])
+    }
+  }
+
   return (
     <div className={cn("flex flex-col h-full", className)}>
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+        <AnimatePresence initial={false}>
+          {messages.map((message, index) => (
+            <MessageBubble 
+              key={message.id} 
+              message={message} 
+              onAction={handleAction}
+              index={index}
+            />
+          ))}
+        </AnimatePresence>
         
         {isTyping && (
-          <div className="flex items-start space-x-3 sm:space-x-4">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <Bot className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <div className="flex-1">
-              <div className="bg-muted rounded-lg p-4 max-w-xs">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-text-muted rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-text-muted rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-text-muted rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-start gap-3"
+          >
+            <motion.div 
+              className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-400/20"
+              animate={{ 
+                boxShadow: [
+                  '0 0 0 0 rgba(59, 130, 246, 0.1)',
+                  '0 0 0 8px rgba(59, 130, 246, 0)',
+                  '0 0 0 0 rgba(59, 130, 246, 0)'
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Sparkles className="w-4 h-4 text-blue-400" />
+            </motion.div>
+            <div className="flex-1 max-w-xs">
+              <div className="rounded-2xl rounded-tl-sm backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] p-4">
+                <div className="flex gap-1.5">
+                  <motion.div 
+                    className="w-2 h-2 rounded-full bg-blue-400/60"
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+                  />
+                  <motion.div 
+                    className="w-2 h-2 rounded-full bg-cyan-400/60"
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                  />
+                  <motion.div 
+                    className="w-2 h-2 rounded-full bg-purple-400/60"
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+                  />
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
         
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="border-t bg-surface p-3 sm:p-4">
-        <div className="flex items-end space-x-2 sm:space-x-3">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="mb-2 w-8 h-8 sm:w-10 sm:h-10"
-            aria-label="Attach file"
-          >
-            <Paperclip className="w-4 h-4" />
-          </Button>
-          
-          <div className="flex-1 relative">
-            <textarea
-              ref={inputRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about real estate investments..."
-              className={cn(
-                "w-full resize-none rounded-lg border bg-background px-4 py-3 pr-12",
-                "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-                "text-sm placeholder:text-text-muted min-h-[48px] max-h-32"
-              )}
-              rows={1}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim()}
-              className="absolute right-2 bottom-2 w-8 h-8 gradient-accent"
-              size="icon"
-              aria-label="Send message"
-            >
-              <Send className="w-4 h-4 text-white" />
-            </Button>
+      {/* Input Area - Floating translucent bar */}
+      <div className="p-4 sm:p-6 border-t border-white/[0.05] bg-gradient-to-b from-transparent to-black/5 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 relative">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask about properties, markets, or investments..."
+                className={cn(
+                  "w-full resize-none rounded-2xl backdrop-blur-xl",
+                  "bg-white/[0.03] border border-white/[0.08]",
+                  "px-4 py-3 pr-14",
+                  "text-sm text-white/90 placeholder:text-white/30",
+                  "focus:outline-none focus:border-blue-400/30 focus:bg-white/[0.05]",
+                  "transition-all duration-200",
+                  "min-h-[48px] max-h-32"
+                )}
+                rows={1}
+              />
+              <motion.button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim()}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={cn(
+                  "absolute right-2 bottom-2 p-2 rounded-xl",
+                  "backdrop-blur-sm transition-all duration-200",
+                  inputValue.trim()
+                    ? "bg-gradient-to-br from-blue-500/80 to-cyan-500/80 border border-blue-400/30 shadow-lg shadow-blue-500/20"
+                    : "bg-white/[0.05] border border-white/[0.08] opacity-50 cursor-not-allowed"
+                )}
+                aria-label="Send message"
+              >
+                <Send className="w-4 h-4 text-white" />
+              </motion.button>
+            </div>
           </div>
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="mb-2 w-8 h-8 sm:w-10 sm:h-10"
-            aria-label="Start voice input"
-          >
-            <Mic className="w-4 h-4" />
-          </Button>
         </div>
       </div>
     </div>
   )
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ 
+  message, 
+  onAction,
+  index 
+}: { 
+  message: Message; 
+  onAction: (action: string) => void;
+  index: number;
+}) {
   const isUser = message.type === 'user'
   const timestamp = message.timestamp instanceof Date 
     ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className={cn("flex items-start space-x-3 sm:space-x-4", isUser && "flex-row-reverse space-x-reverse")}>
-      {/* Avatar */}
-      <div className={cn(
-        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-        isUser ? "bg-muted" : "bg-primary"
-      )}>
-        {isUser ? (
-          <User className="w-4 h-4 text-foreground" />
-        ) : (
-          <Bot className="w-4 h-4 text-primary-foreground" />
-        )}
-      </div>
-
-      {/* Message Content */}
-      <div className={cn("flex-1 space-y-2", isUser && "items-end")}>
-        <div className={cn(
-          "rounded-lg p-3 sm:p-4 max-w-full sm:max-w-2xl",
+    <motion.div
+      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ 
+        duration: 0.3,
+        delay: index * 0.05,
+        ease: [0.4, 0, 0.2, 1]
+      }}
+      className={cn(
+        "flex items-start gap-3",
+        isUser && "flex-row-reverse"
+      )}
+    >
+      {/* Avatar - Glassy orb */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: index * 0.05 + 0.1, type: 'spring', stiffness: 200 }}
+        className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 backdrop-blur-xl border",
           isUser 
-            ? "bg-primary text-primary-foreground ml-auto" 
-            : "bg-muted"
-        )}>
-          <p className="text-sm leading-relaxed break-words">{message.content}</p>
-        </div>
+            ? "bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/20" 
+            : "bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-400/20"
+        )}
+      >
+        {isUser ? (
+          <User className="w-4 h-4 text-purple-300" />
+        ) : (
+          <Sparkles className="w-4 h-4 text-blue-400" />
+        )}
+      </motion.div>
 
-        {/* Tool Cards */}
+      {/* Message Content - Translucent bubble */}
+      <div className={cn(
+        "flex-1 space-y-2 max-w-[55%]",
+        isUser && "items-end"
+      )}>
+        <motion.div
+          whileHover={{ y: -1 }}
+          className={cn(
+            "rounded-2xl backdrop-blur-xl border p-4 transition-all duration-200",
+            isUser 
+              ? "rounded-tr-sm bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-400/20 ml-auto shadow-lg shadow-blue-500/5" 
+              : "rounded-tl-sm bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.05]"
+          )}
+        >
+          <p className={cn(
+            "text-sm leading-relaxed",
+            isUser ? "text-white/95" : "text-white/85"
+          )}>
+            {message.content}
+          </p>
+        </motion.div>
+
+        {/* Tool Cards - Nested translucent cards */}
         {message.tools && (
-          <div className="space-y-3 max-w-full sm:max-w-2xl">
-            {message.tools.map((tool) => (
-              <ToolCardComponent key={tool.id} tool={tool} />
+          <div className="space-y-2">
+            {message.tools.map((tool, toolIndex) => (
+              <motion.div
+                key={tool.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 + toolIndex * 0.1 }}
+              >
+                <ToolCardComponent tool={tool} />
+              </motion.div>
             ))}
           </div>
         )}
 
-        {/* Message Actions */}
+        {/* Action Buttons */}
+        {message.action && !isUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <ActionButtons action={message.action} onAction={onAction} />
+          </motion.div>
+        )}
+
+        {/* Timestamp - Subtle */}
         <div className={cn(
-          "flex items-center space-x-2 text-xs text-text-muted",
+          "flex items-center gap-2 text-[10px] text-white/30 font-medium px-1",
           isUser && "justify-end"
         )}>
           <span>{timestamp}</span>
-          {!isUser && (
-            <div className="hidden sm:flex items-center space-x-1">
-              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Copy message">
-                <Copy className="w-3 h-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Like message">
-                <ThumbsUp className="w-3 h-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Dislike message">
-                <ThumbsDown className="w-3 h-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="w-6 h-6" aria-label="Retry message">
-                <RotateCcw className="w-3 h-3" />
-              </Button>
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
 function ToolCardComponent({ tool }: { tool: ToolCard }) {
-  const statusColors = {
-    running: 'border-warning bg-warning/5',
-    completed: 'border-success bg-success/5',
-    error: 'border-danger bg-danger/5'
+  const statusConfig = {
+    running: {
+      color: 'border-amber-400/20 bg-amber-500/5',
+      dot: 'bg-amber-400',
+      icon: '⚡'
+    },
+    completed: {
+      color: 'border-emerald-400/20 bg-emerald-500/5',
+      dot: 'bg-emerald-400',
+      icon: '✓'
+    },
+    error: {
+      color: 'border-red-400/20 bg-red-500/5',
+      dot: 'bg-red-400',
+      icon: '✕'
+    }
   }
 
+  const status = statusConfig[tool.status]
+
   return (
-    <Card className={cn("border-l-4", statusColors[tool.status])}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h4 className="font-medium text-sm">{tool.title}</h4>
-            <p className="text-xs text-text-muted mt-1">{tool.description}</p>
-            
-            {tool.status === 'completed' && tool.data && (
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                {Object.entries(tool.data).map(([key, value]) => (
-                  <div key={key} className="text-center p-2 rounded border">
-                    <div className="font-medium">{value as string}</div>
-                    <div className="text-text-muted capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
-                  </div>
-                ))}
-              </div>
-            )}
+    <motion.div
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "rounded-xl backdrop-blur-xl border p-4 transition-all",
+        status.color
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs">{status.icon}</span>
+            <h4 className="font-medium text-sm text-white/90 truncate">{tool.title}</h4>
           </div>
+          <p className="text-xs text-white/50 leading-relaxed">{tool.description}</p>
           
-          <div className={cn(
-            "w-2 h-2 rounded-full ml-3 mt-1",
-            tool.status === 'running' && "bg-warning animate-pulse",
-            tool.status === 'completed' && "bg-success",
-            tool.status === 'error' && "bg-danger"
-          )} />
+          {tool.status === 'completed' && tool.data && (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {Object.entries(tool.data).map(([key, value]) => (
+                <div key={key} className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-center">
+                  <div className="text-sm font-semibold text-white/90">{value as string}</div>
+                  <div className="text-[10px] text-white/40 mt-0.5 capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+        
+        <motion.div
+          animate={tool.status === 'running' ? { scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] } : {}}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className={cn(
+            "w-2 h-2 rounded-full flex-shrink-0 mt-1",
+            status.dot
+          )}
+        />
+      </div>
+    </motion.div>
   )
 }
