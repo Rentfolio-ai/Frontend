@@ -3,14 +3,16 @@ import React, { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { LoadingBubble } from './LoadingBubble';
 import type { Message } from '../../data/seed';
+import type { AgentStatus } from '../common/AgentAvatar';
 
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
   onAction?: (actionValue: string, actionContext?: any) => void;
+  agentStatus?: AgentStatus;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onAction }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onAction, agentStatus = 'online' }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -26,15 +28,15 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     const welcomeMessage: Message = {
       id: 'welcome',
       role: 'assistant',
-      content: "Welcome to Civitas! 🏠✨\n\nYour AI-powered assistant for finding profitable Airbnb/VRBO properties across the U.S. I analyze properties, calculate ROI projections, and generate agent-ready reports.\n\nWHAT I CAN DO:\n\n🔍 Scout properties based on location, price, and criteria\n📊 Calculate STR revenue projections with occupancy and rates\n💰 Show cash-on-cash returns and investment grades (A/B/C/D)\n📋 Generate comprehensive reports with market data\n⚖️ Check local STR regulations and compliance\n\nEXPLORE THE APP:\n\n🏘️ Properties - Saved properties with STR analysis\n📈 Portfolio - Track performance and returns\n📄 Reports - Investment reports and analysis\n🌍 Market - U.S. market trends and demand\n⚙️ Settings - Customize preferences\n\nTRY ASKING:\n• \"Find properties in Austin under $400k\"\n• \"What makes a good STR investment?\"\n• \"Search for 3 bedroom homes in Miami\"\n\nWhat would you like to explore? 🚀",
+      content: "Welcome to Civitas! 🏠✨\n\nI'm your AI partner for scouting profitable STR opportunities across the U.S. I can analyze properties, calculate revenue projections, and help you craft a winning plan—directly from this chat window.\n\nWHAT I CAN DO:\n\n🔍 Scout properties by city, budget, or criteria\n📊 Estimate nightly rates, occupancy, and cash-on-cash returns\n💬 Summarize pros/cons and surface hidden insights\n⚖️ Check local regulations, fees, and permitting steps\n🧠 Suggest next steps for offers, financing, or ops\n\nAPP CONTROLS:\n\n💬 Chat - Ask me anything and I'll run the analysis\n⚙️ Settings - Update your state focus and alert preferences\n\nTRY ASKING:\n• \"Find STR-friendly markets with strong ROI\"\n• \"Analyze a 3 bed in Scottsdale at $750k\"\n• \"Compare nightly rates for Austin vs. Nashville\"\n\nReady when you are—what should we explore first? 🚀",
       timestamp: new Date(),
       isStreaming: false
     };
     
     return (
       <div className="h-full overflow-y-auto">
-        <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
-          <MessageBubble message={welcomeMessage} onAction={onAction} />
+        <div className="max-w-6xl mx-auto py-8 px-4 space-y-4">
+          <MessageBubble message={welcomeMessage} onAction={onAction} agentStatus={agentStatus} />
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -43,9 +45,9 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto py-8 px-4 space-y-4">
+      <div className="max-w-6xl mx-auto py-8 px-4 space-y-4">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} onAction={onAction} />
+          <MessageBubble key={message.id} message={message} onAction={onAction} agentStatus={agentStatus} />
         ))}
         {isLoading && <LoadingBubble />}
         <div ref={messagesEndRef} />

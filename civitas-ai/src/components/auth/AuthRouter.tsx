@@ -1,46 +1,15 @@
 // FILE: src/components/auth/AuthRouter.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DesktopShell } from '../../layouts/DesktopShell';
-import { DemoShell } from '../../layouts/DemoShell';
 import { SignInPage } from '../../pages/auth/SignInPage';
 import { SignUpPage } from '../../pages/auth/SignUpPage';
 
 type AuthView = 'signin' | 'signup';
-type AppView = 'main' | 'demo';
 
 export const AuthRouter: React.FC = () => {
   const { user, isLoading, signIn, signUp } = useAuth();
   const [authView, setAuthView] = useState<AuthView>('signin');
-  const [appView, setAppView] = useState<AppView>(() => {
-    // Check if the demo view is requested via URL parameter or local storage
-    const urlParams = new URLSearchParams(window.location.search);
-    const demoParam = urlParams.get('view');
-    const storedView = localStorage.getItem('civitas-app-view');
-    
-    if (demoParam === 'demo') return 'demo';
-    return storedView === 'demo' ? 'demo' : 'main';
-  });
-
-  // Store the current view preference
-  useEffect(() => {
-    localStorage.setItem('civitas-app-view', appView);
-  }, [appView]);
-  
-  // Add a keyboard shortcut (Alt+D) to toggle demo view
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Alt+D to toggle demo view
-      if (e.altKey && e.key === 'd') {
-        setAppView(prev => prev === 'main' ? 'demo' : 'main');
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
 
   // Show loading spinner while checking auth state
   if (isLoading) {
@@ -65,9 +34,9 @@ export const AuthRouter: React.FC = () => {
     );
   }
 
-  // If user is authenticated, show the selected app view
+  // If user is authenticated, show the main desktop shell
   if (user) {
-    return appView === 'demo' ? <DemoShell /> : <DesktopShell />;
+    return <DesktopShell />;
   }
 
   // If not authenticated, show auth pages

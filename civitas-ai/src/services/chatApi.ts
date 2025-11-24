@@ -1,4 +1,7 @@
 // FILE: src/services/chatApi.ts
+import { apiLogger } from '@/utils/logger';
+
+const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -20,25 +23,34 @@ export const sendChatMessage = async (
   message: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<ChatResponse> => {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+  const requestUrl = `${BACKEND_URL}/api/chat`;
+  const startedAt = performance.now();
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/chat`, {
+    apiLogger.request({ method: 'POST', url: requestUrl, service: 'chat', payloadPreview: message.slice(0, 120) });
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
       },
       body: JSON.stringify({
         message,
-        history: conversationHistory,
+        context: {
+          history: conversationHistory,
+        }
       }),
     });
 
     if (!response.ok) {
+      const durationMs = performance.now() - startedAt;
+      apiLogger.error({ method: 'POST', url: requestUrl, service: 'chat', status: response.status, durationMs, error: `HTTP ${response.status}` });
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    apiLogger.response({ method: 'POST', url: requestUrl, service: 'chat', status: 200, durationMs: performance.now() - startedAt });
     
     // Expected backend response format:
     // {
@@ -53,7 +65,7 @@ export const sendChatMessage = async (
     
     return data;
   } catch (error) {
-    console.error('Chat API error:', error);
+    apiLogger.error({ method: 'POST', url: requestUrl, service: 'chat', error });
     throw error;
   }
 };
@@ -77,6 +89,9 @@ interface OnboardingData {
     category: string;
     placeholder?: boolean;
   }>;
+  // Backend-specific fields from Civitas /onboarding API
+  thread_id?: string;
+  suggested_actions?: string[];
   user_name?: string;
   timestamp?: string;
 }
@@ -86,30 +101,79 @@ interface OnboardingData {
  */
 export const getOnboardingMessage = async (userName?: string): Promise<OnboardingData> => {
   const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+  const url = new URL(`${BACKEND_URL}/onboarding`);
+  const startedAt = performance.now();
 
   try {
-    const url = new URL(`${BACKEND_URL}/onboarding`);
     if (userName) {
       url.searchParams.append('user_name', userName);
     }
 
-    const response = await fetch(url.toString());
+    apiLogger.request({ method: 'GET', url: url.toString(), service: 'chat', payloadPreview: userName });
+    const response = await fetch(url.toString(), {
+      headers: {
+        ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+      },
+    });
 
     if (!response.ok) {
+      apiLogger.error({ method: 'GET', url: url.toString(), service: 'chat', status: response.status, durationMs: performance.now() - startedAt, error: `HTTP ${response.status}` });
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const raw = await response.json();
+    apiLogger.response({ method: 'GET', url: url.toString(), service: 'chat', status: 200, durationMs: performance.now() - startedAt });
+
+    // Backend OnboardingResponse shape:
+    // { message: string; thread_id: string; suggested_actions: string[] }
+    const threadId: string | undefined = raw.thread_id;
+    const suggestedActions: string[] | undefined = raw.suggested_actions;
+
+    // Persist thread_id for subsequent chat calls
+    if (typeof window !== 'undefined' && threadId) {
+      window.localStorage.setItem('civitas-thread-id', threadId);
+    }
+
+    const example_prompts = Array.isArray(suggestedActions)
+      ? suggestedActions.map((text: string) => ({
+          text,
+          label: text,
+          category: 'general',
+        }))
+      : undefined;
+
+    const data: OnboardingData = {
+      message: raw.message,
+      thread_id: threadId,
+      suggested_actions: suggestedActions,
+      example_prompts,
+    };
+
     return data;
   } catch (error) {
-    console.error('Failed to fetch onboarding message:', error);
-    // Return fallback message if API fails
-    return {
-      message: "Welcome to Civitas! 🏠✨\n\nI'm your AI-powered short-term rental investment assistant. Ask me anything about STR properties!",
+    apiLogger.error({ method: 'GET', url: url.toString(), service: 'chat', error });
+
+    // Fallback: keep experience usable even if backend is down
+    const fallbackThreadId =
+      typeof window !== 'undefined'
+        ? window.localStorage.getItem('civitas-thread-id') || `local-${Date.now()}`
+        : undefined;
+
+    if (typeof window !== 'undefined' && fallbackThreadId) {
+      window.localStorage.setItem('civitas-thread-id', fallbackThreadId);
+    }
+
+    // Return graceful static message if API fails
+    const data: OnboardingData = {
+      message:
+        "Welcome to Civitas! 🏠✨\n\nI'm your AI-powered short-term rental investment assistant. Ask me anything about STR properties!",
       example_prompts: [
-        { text: "Find properties in Austin", label: "🏠 Search", category: "search" },
-        { text: "Analyze Miami market", label: "📊 Market", category: "market" }
-      ]
+        { text: 'Find properties in Austin', label: '🏠 Search', category: 'search' },
+        { text: 'Analyze Miami market', label: '📊 Market', category: 'market' },
+      ],
+      thread_id: fallbackThreadId,
     };
+
+    return data;
   }
 };

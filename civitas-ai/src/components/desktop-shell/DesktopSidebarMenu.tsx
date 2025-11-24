@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { ChatSession, TabType } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatChatDateCompact } from '../../utils/dateFormatters';
 
 interface DesktopSidebarMenuProps {
   isOpen: boolean;
@@ -47,18 +48,12 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
         onClick={onClose}
       />
       
-      {/* Sidebar Panel */}
+      {/* Sidebar Panel - Professional Real Estate Copilot */}
       <div 
-        className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col shadow-2xl animate-slide-in-left"
-        style={{
-          background: 'linear-gradient(180deg, rgba(71, 85, 105, 0.35) 0%, rgba(100, 116, 139, 0.32) 50%, rgba(148, 163, 184, 0.30) 100%)',
-          backdropFilter: 'blur(48px) saturate(200%)',
-          WebkitBackdropFilter: 'blur(48px) saturate(200%)',
-          boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.18), 0 20px 60px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
-        }}
+        className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col shadow-2xl animate-slide-in-left backdrop-blur-2xl bg-white/95 border-r border-blue-900/10"
       >
-        {/* New Chat Button */}
-        <div className="p-4 pb-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }}>
+        {/* New Chat Button - Coral CTA */}
+        <div className="p-4 pb-3 border-b border-blue-900/10">
           <motion.button
             onClick={() => {
               onNewChat();
@@ -70,75 +65,35 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             transition={{ duration: 0.4 }}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full px-4 py-3.5 rounded-xl flex items-center justify-center gap-2.5 group relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(103, 232, 249, 0.25) 0%, rgba(96, 165, 250, 0.22) 100%)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(103, 232, 249, 0.5)',
-              boxShadow: '0 4px 28px rgba(103, 232, 249, 0.3), 0 0 56px rgba(96, 165, 250, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-            }}
+            className="w-full px-4 py-3.5 rounded-xl flex items-center justify-center gap-2.5 group relative overflow-hidden border border-orange-400/20 shadow-lg shadow-orange-400/15"
+            style={{ background: 'linear-gradient(135deg, #FF7A45 0%, #FF6B4A 100%)' }}
           >
-            {/* Animated shine effect */}
-            <motion.div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
-                backgroundSize: '200% 100%',
-              }}
-              animate={{
-                backgroundPosition: ['200% 0', '-200% 0'],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
-            />
-            
             <motion.svg 
               className="w-5 h-5 text-white" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
-              animate={{ rotate: [0, 90, 0] }}
-              transition={{ duration: 0.5, ease: 'easeInOut' }}
               whileHover={{ rotate: 90 }}
+              transition={{ duration: 0.3 }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </motion.svg>
             <span 
-              className="font-bold text-sm tracking-wide relative z-10" 
-              style={{ 
-                fontFamily: 'Inter Tight, sans-serif',
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(103, 232, 249, 0.9) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                filter: 'drop-shadow(0 0 8px rgba(103, 232, 249, 0.5))'
-              }}
+              className="font-bold text-sm tracking-wide relative z-10 text-white"
             >
               New Chat
             </span>
           </motion.button>
         </div>
 
-        {/* Chat History */}
+        {/* Chat History - Professional Real Estate */}
         {chatHistory.length > 0 && (
-          <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}>
+          <div className="px-4 py-3 border-b border-blue-900/10">
             <motion.h3 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xs font-bold uppercase tracking-wider mb-3 px-1"
-              style={{ 
-                background: 'linear-gradient(90deg, rgba(203, 213, 225, 0.9) 0%, rgba(226, 232, 240, 1) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontFamily: 'Inter, sans-serif', 
-                letterSpacing: '0.1em',
-                filter: 'drop-shadow(0 0 6px rgba(203, 213, 225, 0.4))'
-              }}
+              className="text-xs font-bold uppercase tracking-wider mb-3 px-1 text-blue-900"
             >
               Recent Chats
             </motion.h3>
@@ -152,45 +107,30 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                   whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onLoadChat(chat.id)}
-                  className="w-full px-3 py-2.5 rounded-xl flex items-center justify-between gap-2 relative overflow-hidden group"
+                  className="w-full px-3 py-2.5 rounded-xl flex items-center justify-between gap-2 relative overflow-hidden group backdrop-blur-lg border transition-all"
                   style={{
                     background: activeChatId === chat.id 
-                      ? 'linear-gradient(135deg, rgba(103, 232, 249, 0.22) 0%, rgba(96, 165, 250, 0.18) 100%)'
-                      : 'rgba(255, 255, 255, 0.12)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    border: activeChatId === chat.id 
-                      ? '1px solid rgba(103, 232, 249, 0.5)'
-                      : '1px solid rgba(255, 255, 255, 0.18)',
+                      ? 'linear-gradient(135deg, rgba(26, 166, 183, 0.1) 0%, rgba(77, 182, 229, 0.08) 100%)'
+                      : 'rgba(255, 255, 255, 0.5)',
+                    borderColor: activeChatId === chat.id 
+                      ? 'rgba(26, 166, 183, 0.3)'
+                      : 'rgba(21, 46, 95, 0.08)',
                     boxShadow: activeChatId === chat.id 
-                      ? '0 2px 20px rgba(103, 232, 249, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                      : '0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+                      ? '0 2px 12px rgba(26, 166, 183, 0.15)'
+                      : '0 1px 3px rgba(0, 0, 0, 0.05)',
                   }}
                 >
-                  {/* Hover gradient effect */}
-                  <motion.div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100"
-                    style={{
-                      background: `linear-gradient(90deg, transparent 0%, ${currentTheme.primary}10 50%, transparent 100%)`,
-                    }}
-                    initial={false}
-                    animate={{ x: ['-100%', '100%'] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                  />
-                  
                   <div className="flex-1 min-w-0 text-left relative z-10">
                     <p 
-                      className="text-sm font-medium truncate"
+                      className="text-sm font-semibold truncate"
                       style={{ 
-                        color: activeChatId === chat.id ? 'rgba(103, 232, 249, 1)' : 'rgba(241, 245, 249, 0.95)',
-                        fontFamily: 'Inter, sans-serif',
-                        textShadow: activeChatId === chat.id ? '0 0 8px rgba(103, 232, 249, 0.5)' : 'none'
+                        color: activeChatId === chat.id ? '#0F4C5C' : '#1E3A5F'
                       }}
                     >
                       {chat.title || 'Untitled Chat'}
                     </p>
-                    <p className="text-xs truncate mt-0.5" style={{ color: 'rgba(203, 213, 225, 0.8)' }}>
-                      {chat.timestamp}
+                    <p className="text-xs truncate mt-0.5 text-slate-600">
+                      {formatChatDateCompact(chat.createdAt)}
                     </p>
                   </div>
                   {chatHistory.length > 1 && (
@@ -296,9 +236,9 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                 <span 
                   className="font-medium text-sm relative z-10"
                   style={{ 
-                    color: activeTab === item.id ? 'rgba(103, 232, 249, 1)' : 'rgba(241, 245, 249, 0.95)',
+                    color: activeTab === item.id ? 'rgba(103, 232, 249, 1)' : '#1D2E49',
                     fontFamily: 'Inter, sans-serif',
-                    textShadow: activeTab === item.id ? '0 0 8px rgba(103, 232, 249, 0.5)' : 'none'
+                    textShadow: activeTab === item.id ? '0 0 8px rgba(103, 232, 249, 0.5)' : '0 1px 0 rgba(255, 255, 255, 0.4)'
                   }}
                 >
                   {item.label}

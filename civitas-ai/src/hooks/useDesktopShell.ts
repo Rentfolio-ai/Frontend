@@ -3,27 +3,30 @@ import { useState, useEffect, useRef } from 'react';
 import type { Message } from '../types/chat';
 import { generateChatTitle } from '../utils/chatTitles';
 import { ChatService } from '../services/ChatService';
-import { useReportsStore } from '../stores/reportsStore';
-import { generateReport, saveReport } from '../services/agentsApi';
 import { useAuth } from '../contexts/AuthContext';
+import { analyzeFile } from '../services/fileService';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 export interface ChatSession {
   id: string;
   title?: string;
   timestamp?: string;
+  createdAt?: string;
   isActive?: boolean;
   messages: Message[];
 }
 
-export type TabType = 'chat' | 'properties' | 'portfolio' | 'market' | 'reports' | 'settings';
+export type TabType = 'chat' | 'settings';
+
+const NAVIGABLE_TABS: TabType[] = ['chat', 'settings'];
+const isNavigableTab = (tab?: string): tab is TabType =>
+  !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 
 export function useDesktopShell() {
   // Get user context
   const { user } = useAuth();
   // Get portfolio context for tracking properties
   // const { addProperty } = usePortfolio();
-  const { addReport } = useReportsStore();
   // Chat history state
   const [chatHistory, setChatHistory] = useState<ChatSession[]>(() => {
     const saved = typeof window !== 'undefined'
@@ -36,6 +39,7 @@ export function useDesktopShell() {
       id: chat.id,
       title: chat.title,
       timestamp: chat.timestamp,
+      createdAt: chat.createdAt,
       messages: chat.messages || []
     }));
   });
@@ -99,7 +103,8 @@ export function useDesktopShell() {
                   ...chat, 
                   messages: [...messages],
                   title: generateChatTitle(firstUserMessage),
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  createdAt: chat.createdAt || new Date().toISOString()
                 }
               : chat
           );
@@ -122,7 +127,7 @@ export function useDesktopShell() {
     }
   }, [messages, isLoading]);
 
-  // Cleanup interval
+  // Cleanup stream interval
   useEffect(() => {
     return () => {
       if (streamIntervalId) {
@@ -130,22 +135,15 @@ export function useDesktopShell() {
       }
     };
   }, [streamIntervalId]);
-  
-  // Cleanup attachment URLs
+
+  // Cleanup attachment URLs on unmount
   useEffect(() => {
     return () => {
       attachmentUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
       attachmentUrlsRef.current = [];
     };
   }, []);
-
-  // Helper functions
-  const clearAttachments = () => {
-    attachmentUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-    attachmentUrlsRef.current = [];
-    setAttachment(null);
-  };
-
+  
   const toggleRail = () => {
     const newState = !isRailCollapsed;
     setIsRailCollapsed(newState);
@@ -156,24 +154,30 @@ export function useDesktopShell() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const clearPendingAttachment = () => {
+    setAttachment(null);
+  };
+
   // Chat handlers
   const handleSendMessage = (message: string) => {
     if (!message.trim() && !attachment) return;
 
-    // Create user message with attachment if present
-    const attachmentInfo = attachment 
+    const currentAttachment = attachment;
+    const trimmedMessage = message.trim();
+    const attachmentInfo = currentAttachment
       ? {
-          name: attachment.name,
-          type: attachment.type,
-          url: URL.createObjectURL(attachment)
+          name: currentAttachment.name,
+          type: currentAttachment.type,
+          url: URL.createObjectURL(currentAttachment)
         }
       : undefined;
-    
-    const userMessage: Message = ChatService.createUserMessage(message, attachmentInfo);
 
-    if (userMessage.attachment?.url) {
-      attachmentUrlsRef.current.push(userMessage.attachment.url);
+    if (attachmentInfo?.url) {
+      attachmentUrlsRef.current.push(attachmentInfo.url);
     }
+
+    const displayMessage = trimmedMessage || (currentAttachment ? 'Shared an attachment' : '');
+    const userMessage: Message = ChatService.createUserMessage(displayMessage, attachmentInfo);
 
     setMessages(prev => [...prev, userMessage]);
     setAttachment(null);
@@ -183,23 +187,40 @@ export function useDesktopShell() {
     const delay = 1000 + Math.random() * 1000;
     setTimeout(async () => {
       try {
-        // Pass user context to backend
-        const userContext = {
-          name: user?.name?.split(' ')[0] || 'there',
-          onboarding_completed: false
-        };
-        const response = await ChatService.generateSTRResponse(message, userContext, messages);
-        const fullResponse = response.content;
-        const navigate = response.navigate;
-        const action = response.action; // Get action data from backend
-        // const metadata = response.metadata; // Get metadata from backend if needed
-        const toolResults = response.tool_results; // Get tool_results for context
+        let fullResponse = '';
+        let navigate: string | undefined;
+        let action: any;
+        let toolResults: any;
+        let tour: any;
+
+        if (currentAttachment) {
+          try {
+            const analysisPrompt = trimmedMessage || `Analyze ${currentAttachment.name} and summarize the key details.`;
+            const analysisResult = await analyzeFile(currentAttachment, analysisPrompt);
+            fullResponse = analysisResult.analysis || 'Here is what I found in that attachment.';
+            toolResults = analysisResult.metadata;
+          } catch (error) {
+            console.error('File analysis failed:', error);
+            fullResponse = "I couldn't analyze that attachment right now. Please share the important details in chat or try again.";
+          }
+        } else {
+          // Pass user context to backend
+          const userContext = {
+            name: user?.name?.split(' ')[0] || 'there',
+            onboarding_completed: false
+          };
+          const response = await ChatService.generateSTRResponse(trimmedMessage, userContext, messages);
+          fullResponse = response.content;
+          navigate = response.navigate;
+          action = response.action;
+          toolResults = response.tool_results;
+          tour = response.tour;
+        }
         
-        // Check if this was a market analysis and emit toast event
-        if (toolResults?.query_type === 'market_analysis') {
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('market-analysis-saved'));
-          }, 1000); // Small delay so message appears first
+        // For tour navigation, navigate IMMEDIATELY before showing message
+        if (tour?.navigate_first && isNavigableTab(navigate)) {
+          console.log(`🎯 Tour navigation: Jumping to ${navigate} FIRST`);
+          setActiveTab(navigate as TabType);
         }
         
         // Auto-track properties from search results (temporarily disabled)
@@ -251,6 +272,10 @@ export function useDesktopShell() {
               if (isComplete && toolResults) {
                 assistantMessage.tool_results = toolResults;
               }
+              // Include tour data if available
+              if (isComplete && tour) {
+                assistantMessage.tour = tour;
+              }
               return [
                 ...filtered,
                 assistantMessage as Message
@@ -261,11 +286,17 @@ export function useDesktopShell() {
             setStreamIntervalId(null);
             setIsLoading(false);
             
-            // Handle navigation after message is displayed (only if explicitly set to a valid tab)
-            if (navigate && typeof navigate === 'string' && ['properties', 'portfolio', 'market', 'reports', 'settings'].includes(navigate)) {
+            // Handle navigation after message is displayed
+            if (isNavigableTab(navigate)) {
+              // For tour navigation, navigate immediately
+              // For other navigation, add small delay so user sees the message
+              const isTour = tour && tour.active;
+              const delay = isTour ? 100 : 800;
+              
               setTimeout(() => {
+                console.log(`📡 Navigating to: ${navigate}`);
                 setActiveTab(navigate as TabType);
-              }, 800); // Small delay so user sees the message
+              }, delay);
             }
           }
         );
@@ -309,7 +340,8 @@ export function useDesktopShell() {
             id: activeChatId,
             messages: [...messages],
             title: generateChatTitle(firstUserMessage),
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            createdAt: new Date().toISOString()
           },
           ...prev
         ]);
@@ -321,7 +353,7 @@ export function useDesktopShell() {
     }
     
     setMessages([]);
-    clearAttachments();
+    clearPendingAttachment();
     setIsLoading(false);
     if (streamIntervalId) {
       clearInterval(streamIntervalId);
@@ -338,7 +370,7 @@ export function useDesktopShell() {
     
     setActiveChatId(chatId);
     setMessages(chat.messages || []);
-    clearAttachments();
+    clearPendingAttachment();
     setIsLoading(false);
     if (streamIntervalId) {
       clearInterval(streamIntervalId);
@@ -359,186 +391,35 @@ export function useDesktopShell() {
       const nextChat = updatedHistory[0];
       setActiveChatId(nextChat.id);
       setMessages(nextChat.messages || []);
-      clearAttachments();
+      clearPendingAttachment();
     }
   };
 
-  const handleAction = (actionValue: string, actionContext?: any) => {
-    if (actionValue === 'generate_report') {
-      // User clicked "Generate Report" button
-      console.log('📊 Generate report action triggered');
-      console.log('Action context:', actionContext);
-      setIsLoading(true);
-      
-      const delay = 500;
-      setTimeout(async () => {
-        try {
-          // If we have actionContext with valuation data, generate report directly
-          if (actionContext?.valuation) {
-            console.log('✅ Using direct report generation (valuation path)');
-            // Call backend API to generate report
-            const reportData = await generateReport({
-              valuation: actionContext.valuation,
-              export_format: 'text'
-            });
-            
-            // Extract location
-            const location = reportData.property_details?.location || actionContext.location || 'Unknown Location';
-            const property_address = 'Property Address'; // Address not in property_details type
-            const title = `Investment Analysis - ${location}`;
-            
-            // Save report to backend (in-memory storage)
-            await saveReport({
-              title,
-              location,
-              property_address,
-              report_content: reportData.report,
-              property_details: reportData.property_details
-            });
-            
-            // Also save to local store for immediate display
-            addReport({
-              title,
-              content: reportData.report,
-              location,
-              property_details: reportData.property_details,
-              type: 'property_analysis'
-            });
-            
-            // Emit event for toast notification
-            window.dispatchEvent(new CustomEvent('report-saved'));
-            
-            // Show success message with action button to view report
-            const successMessage: Message = {
-              id: `${Date.now() + 1}`,
-              content: '✅ Report generated and saved successfully!',
-              role: 'assistant',
-              type: 'assistant',
-              timestamp: new Date(),
-              isStreaming: false,
-              action: {
-                type: 'confirm',
-                message: 'Your investment report is ready',
-                options: [
-                  { label: 'View Report', action: 'view_report' },
-                  { label: 'Stay Here', action: 'skip' }
-                ]
-              }
-            };
-            setMessages(prev => [...prev, successMessage]);
-            setIsLoading(false);
-            
-          } else {
-          // Fallback: Let backend handle it through chat
-            console.log('🔄 Using backend chat service for report generation');
-            const userContext = {
-              name: user?.name?.split(' ')[0] || 'there',
-              onboarding_completed: false
-            };
-            
-            const response = await ChatService.generateSTRResponse(
-              'User confirmed report generation',
-              userContext,
-              messages,
-              actionContext
-            );
-            
-            const fullResponse = response.content;
-            const navigate = response.navigate;
-            const action = response.action;
-            
-            console.log('📨 Backend response:', { navigate, action: action?.type });
-            
-            // If backend returned generated report data, save it to backend
-            if (action && action.type === 'report_generated') {
-              const location = action.location || 'Unknown Location';
-              const title = `Investment Report - ${location} - ${new Date().toLocaleString()}`;
-              
-              // Save comprehensive multi-property report to backend
-              await saveReport({
-                title,
-                location,
-                property_address: `${action.properties?.length || 0} properties`,
-                report_content: action.report_text,
-                property_details: {
-                  property_count: action.properties?.length,
-                  properties: action.properties
-                }
-              });
-              
-              console.log('✅ Multi-property report saved to backend');
-              
-              // Emit event for toast notification
-              window.dispatchEvent(new CustomEvent('report-saved'));
-              
-              // IMPORTANT: Don't save to local store here
-              // The backend is the source of truth, and ReportsTabView will fetch from there
-              // This prevents duplicate reports in the UI
-            }
-            
-            const { intervalId } = ChatService.streamResponse(
-              fullResponse,
-              (content, id) => {
-                const isComplete = content.length >= fullResponse.length;
-                setMessages(prev => {
-                  const filtered = prev.filter(m => m.id !== id);
-                  const assistantMessage: any = {
-                    id,
-                    content,
-                    role: 'assistant',
-                    type: 'assistant',
-                    timestamp: new Date(),
-                    isStreaming: !isComplete,
-                    action: isComplete ? action : undefined
-                  };
-                  // Include tool_results for conversation context if available from report generation
-                  if (isComplete && (response as any).tool_results) {
-                    assistantMessage.tool_results = (response as any).tool_results;
-                  }
-                  return [
-                    ...filtered,
-                    assistantMessage as Message
-                  ];
-                });
-              },
-              () => {
-                setStreamIntervalId(null);
-                setIsLoading(false);
-                
-                console.log('🔍 Stream complete. Navigate value:', navigate);
-                
-                // Don't auto-navigate, let user click button instead
-                // (Navigation handled by view_report action)
-              }
-            );
-            
-            setStreamIntervalId(intervalId);
-          }
-        } catch (error) {
-          console.error('Failed to generate report:', error);
-          setIsLoading(false);
-          
-          const errorMessage: Message = {
-            id: `error_${Date.now()}`,
-            content: "❌ I'm having trouble generating the report. Please try again.",
-            role: 'assistant',
-            type: 'assistant',
-            timestamp: new Date(),
-            isStreaming: false
-          };
-          setMessages(prev => [...prev, errorMessage]);
-        }
-      }, delay);
-    } else if (actionValue === 'view_report') {
-      // User clicked "View Report" - navigate to reports tab
-      console.log('📊 User chose to view report - navigating to reports tab');
-      setActiveTab('reports');
-    } else if (actionValue === 'navigate_market_insights') {
-      // User clicked "View in Market Insights" - navigate to market tab
-      console.log('📊 User chose to view market insights - navigating to market tab');
-      setActiveTab('market');
-    } else if (actionValue === 'skip') {
-      // User clicked "No, thanks" or "Stay Here" - just hide the buttons
+  const notifyFeatureUnavailable = () => {
+    const infoMessage: Message = {
+      id: `${Date.now()}`,
+      content: "That dashboard feature isn't available in this build, but I'm here in chat to help with anything else.",
+      role: 'assistant',
+      type: 'assistant',
+      timestamp: new Date(),
+      isStreaming: false
+    };
+    setMessages(prev => [...prev, infoMessage]);
+  };
+
+  const handleAction = (actionValue: string, _actionContext?: any) => {
+    if (actionValue === 'navigate_settings') {
+      setActiveTab('settings');
+      setIsSidebarOpen(false);
+      return;
+    }
+
+    if (['generate_report', 'view_report', 'navigate_market_insights'].includes(actionValue)) {
+      notifyFeatureUnavailable();
+      return;
+    }
+
+    if (actionValue === 'skip') {
       console.log('User skipped action');
     }
   };

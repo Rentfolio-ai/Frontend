@@ -10,6 +10,7 @@ export default {
       colors: {
         // Core system colors
         border: "hsl(var(--border))",
+        'border-subtle': "hsl(var(--border-subtle))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -42,11 +43,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Civitas AI Design System Colors
+        // Civitas AI Design System Colors - Enhanced
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         danger: "hsl(var(--danger))",
+        info: "hsl(var(--info))",
+        neutral: "hsl(var(--neutral))",
         surface: "hsl(var(--surface))",
+        'surface-elevated': "hsl(var(--surface-elevated))",
         'text-muted': "hsl(var(--text-muted))",
         'accent-from': "hsl(var(--accent-from))",
         'accent-to': "hsl(var(--accent-to))",
@@ -77,6 +81,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "1rem",
+        '2xl': "1.5rem",
+      },
+      boxShadow: {
+        'soft': '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        'medium': '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06)',
+        'hard': '0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08)',
+        'glow': '0 0 20px hsl(var(--primary) / 0.3)',
+        'glow-lg': '0 0 40px hsl(var(--primary) / 0.4)',
       },
       keyframes: {
         "accordion-down": {
@@ -120,6 +133,18 @@ export default {
           '50%': { backgroundPosition: '100% 50%' },
           '100%': { backgroundPosition: '0% 50%' },
         },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        glow: {
+          '0%, 100%': { boxShadow: '0 0 20px hsl(var(--primary) / 0.2)' },
+          '50%': { boxShadow: '0 0 30px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)' },
+        },
+        shimmerEnhanced: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -132,6 +157,9 @@ export default {
         "slide-in-right": "slideInRight 0.3s ease-out",
         "scale-in": "scaleIn 0.2s ease-out",
         "gradient": "gradient 20s ease infinite",
+        "float": "float 3s ease-in-out infinite",
+        "glow": "glow 2s ease-in-out infinite",
+        "shimmer-enhanced": "shimmerEnhanced 2s ease-in-out infinite",
       },
     },
   },

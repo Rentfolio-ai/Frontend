@@ -4,84 +4,123 @@
 
 @layer base {
   :root {
-    /* Civitas AI Design System Colors - Softer palette */
-    --primary: 213 80% 58%; /* Slightly lighter blue */
-    --accent-from: 239 70% 68%; /* Softer purple */
-    --accent-to: 189 80% 60%; /* Softer cyan */
-    --success: 160 75% 42%; /* Gentler green */
-    --warning: 37 85% 58%; /* Warmer orange */
-    --danger: 0 75% 62%; /* Softer red */
+    /* Civitas AI - Real Estate Copilot Color System */
+    --primary: 222 58% 28%; /* Deep Navy #152E5F - Trust & Expertise */
+    --accent-from: 186 75% 42%; /* Teal #1AA6B7 - Tech/Insight */
+    --accent-to: 200 65% 56%; /* Cyan #4DB6E5 - Data Clarity */
+    --highlight: 16 100% 64%; /* Coral #FF7A45 - CTA/Action */
+    --success: 142 65% 45%; /* Forest Green - Investment Growth */
+    --warning: 38 92% 50%; /* Amber - Attention */
+    --danger: 340 82% 52%; /* Rose - Alert */
+    --info: 186 75% 42%; /* Teal - Information */
+    --neutral: 30 4% 48%; /* Warm Gray - Balance */
     
-    /* Light mode colors - More breathing room */
-    --background: 210 25% 98%; /* Slightly cooler white */
-    --surface: 0 0% 100%; /* Pure white */
-    --muted: 214 28% 93%; /* Lighter muted */
-    --border: 220 15% 92%; /* Subtler borders */
-    --foreground: 222 80% 8%; /* Slightly lighter text */
-    --text-muted: 220 12% 50%; /* More readable muted text */
+    /* Light mode colors - Calm Real Estate Professional */
+    --background: 30 25% 96%; /* #FAF5F0 Warm Off-White */
+    --surface: 30 30% 98%; /* #FCF8F4 Lighter Surface */
+    --surface-elevated: 0 0% 100%; /* Pure White Cards */
+    --muted: 210 40% 96.1%;
+    --border: 214.3 31.8% 91.4%;
+    --border-subtle: 210 40% 96.1%;
+    --foreground: 222.2 84% 4.9%; /* Deep Navy */
+    --text-muted: 215.4 16.3% 46.9%;
     
-    /* Standard shadcn/ui variables for compatibility */
+    /* Standard shadcn/ui variables */
     --card: 0 0% 100%;
-    --card-foreground: 222 84% 5%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 84% 5%;
+    --popover-foreground: 222.2 84% 4.9%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 84% 5%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 84% 5%;
-    --destructive: 0 84% 60%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --ring: 213 84% 56%;
-    --radius: 0.5rem;
-    --input: 220 13% 91%;
-    
-    /* Agent Avatar colors - Light mode */
-    --agent-avatar-skin-start: #FFDDC1;
-    --agent-avatar-skin-end: #FFCBA4;
-    --agent-avatar-hair-start: #4A3728;
-    --agent-avatar-hair-end: #6B4423;
-    --agent-avatar-blazer-start: #1E3A8A;
-    --agent-avatar-blazer-end: #1E40AF;
-    --agent-avatar-bg-start: #E3F2FD;
-    --agent-avatar-bg-end: #BBDEFB;
-  }
-
-  .dark {
-    /* Dark mode colors - More depth, less harsh */
-    --background: 222 80% 6%; /* Slightly lighter base */
-    --surface: 217 30% 18%; /* Softer surface */
-    --muted: 222 75% 8%; /* Less pure black */
-    --border: 215 25% 18%; /* Gentler borders */
-    --foreground: 213 30% 88%; /* Slightly warmer white */
-    --text-muted: 218 15% 68%; /* More readable muted */
+    --ring: 243 75% 59%;
+    --radius: 1rem;
+    --input: 214.3 31.8% 91.4%;
     
     /* Agent Avatar colors */
     --agent-avatar-skin-start: #FFDDC1;
     --agent-avatar-skin-end: #FFCBA4;
     --agent-avatar-hair-start: #4A3728;
     --agent-avatar-hair-end: #6B4423;
-    --agent-avatar-blazer-start: #1E3A8A;
-    --agent-avatar-blazer-end: #1E40AF;
-    --agent-avatar-bg-start: #E3F2FD;
-    --agent-avatar-bg-end: #BBDEFB;
+    --agent-avatar-blazer-start: #4F46E5;
+    --agent-avatar-blazer-end: #4338CA;
+    --agent-avatar-bg-start: #E0E7FF;
+    --agent-avatar-bg-end: #C7D2FE;
+  }
+
+  .dark {
+    /* Dark mode colors - Smart City Night */
+    --background: 222 47% 11%; /* Deep Navy/Slate - Professional Dark */
+    --surface: 217 33% 17%; /* Lighter Navy */
+    --surface-elevated: 217 33% 20%;
+    --muted: 217 33% 17%;
+    --border: 217 33% 22%;
+    --border-subtle: 217 33% 17%;
+    --foreground: 210 40% 98%;
+    --text-muted: 215 20% 65%;
+    
+    /* Enhanced semantic colors for dark mode */
+    --primary: 243 100% 70%; /* Brighter Indigo */
+    --accent-from: 199 100% 60%; /* Brighter Sky */
+    --accent-to: 280 100% 70%; /* Brighter Purple */
+    --success: 158 100% 50%;
+    --warning: 38 100% 60%;
+    --danger: 340 100% 65%;
+    --info: 217 100% 65%;
+    --neutral: 215 19% 40%;
     
     /* Standard shadcn/ui dark mode variables */
-    --card: 217 33% 17%;
-    --card-foreground: 213 27% 84%;
-    --popover: 217 33% 17%;
-    --popover-foreground: 213 27% 84%;
-    --primary-foreground: 222 84% 5%;
-    --secondary: 215 28% 17%;
-    --secondary-foreground: 213 27% 84%;
-    --muted-foreground: 218 11% 65%;
-    --accent: 215 28% 17%;
-    --accent-foreground: 213 27% 84%;
-    --destructive-foreground: 213 27% 84%;
-    --ring: 213 84% 56%;
-    --input: 215 28% 17%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 243 75% 59%;
+    --input: 217.2 32.6% 17.5%;
   }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl border border-blue-900/10 dark:border-blue-400/10 shadow-lg shadow-blue-900/5;
+  }
+  
+  .glass-card {
+    @apply bg-gradient-to-br from-white/90 to-blue-50/30 dark:bg-slate-800/60 backdrop-blur-2xl border border-blue-900/15 dark:border-white/10 shadow-xl rounded-2xl;
+  }
+  
+  .glass-hero {
+    @apply bg-white/85 backdrop-blur-2xl border border-blue-900/15 rounded-3xl;
+  }
+  
+  .glass-panel {
+    @apply bg-white/90 dark:bg-slate-900/90 backdrop-blur-3xl border-r border-gray-200/50 dark:border-white/5;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent-from to-accent-to;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
 @layer base {
@@ -157,7 +196,12 @@
     background: hsl(var(--muted-foreground));
   }
 
-  /* Animation classes now provided by Tailwind configuration */
+  /* Smooth theme transitions */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
 
   /* Reduced motion for accessibility */
   @media (prefers-reduced-motion: reduce) {
@@ -180,7 +224,9 @@
     .animate-pulse-subtle,
     .animate-accordion-down,
     .animate-accordion-up,
-    .animate-shimmer {
+    .animate-shimmer,
+    .animate-float,
+    .animate-glow {
       animation: none !important;
     }
   }
@@ -188,20 +234,16 @@
 
 /* Custom utilities for desktop-first design */
 @layer utilities {
-  .layout-sidebar {
-    width: 300px;
-  }
-  
-  .layout-right-rail {
-    width: 360px;
-  }
-  
-  .layout-topbar {
-    height: 64px;
-  }
-  
   .gradient-accent {
     background: linear-gradient(135deg, hsl(var(--accent-from)), hsl(var(--accent-to)));
+  }
+  
+  /* Enhanced gradient with mesh effect */
+  .gradient-mesh {
+    background: 
+      radial-gradient(at 0% 0%, hsla(213, 94%, 68%, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(280, 90%, 70%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, hsla(195, 100%, 65%, 0.08) 0px, transparent 50%);
   }
   
   /* Subtle backdrop blur effect */
@@ -210,16 +252,60 @@
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
   }
   
-  /* Smooth hover lift */
+  /* Enhanced hover lift with micro-interaction */
   .hover-lift {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .hover-lift:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
   
-  /* Additional animation utility classes should be defined in tailwind.config.js */
+  /* New: Hover glow effect */
+  .hover-glow {
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3),
+                0 0 40px hsl(var(--primary) / 0.15);
+  }
+  
+  /* New: Hover scale effect */
+  .hover-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+  
+  /* New: Interactive press effect */
+  .active-press:active {
+    transform: scale(0.98);
+  }
+  
+  /* New: Gradient border utility */
+  .gradient-border {
+    position: relative;
+    background: hsl(var(--card));
+    border-radius: 12px;
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent-from)));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
   
   /* Animation delay utilities */
   .animation-delay-100 {
@@ -254,6 +340,21 @@
   .animation-duration-slow {
     animation-duration: 500ms;
   }
+  
+  /* Background gradient animations */
+  @keyframes gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 15s ease infinite;
+  }
 
   /* Slide-in animations for sidebar */
   @keyframes slide-in-left {
@@ -269,6 +370,56 @@
 
   .animate-slide-in-left {
     animation: slide-in-left 0.3s ease-out forwards;
+  }
+  
+  /* New: Float animation for subtle movement */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* New: Glow animation for interactive elements */
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(var(--primary) / 0.4),
+                  0 0 40px hsl(var(--primary) / 0.2);
+    }
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+  
+  /* New: Shimmer effect for loading states */
+  @keyframes shimmer-enhanced {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .animate-shimmer-enhanced {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--surface)) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-enhanced 2s ease-in-out infinite;
   }
   
   /* Agent Avatar SVG Styling */

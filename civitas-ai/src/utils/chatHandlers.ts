@@ -4,6 +4,7 @@ interface ChatSession {
   id: string;
   title: string;
   timestamp: string;
+  createdAt?: string;
   isActive?: boolean;
 }
 
@@ -20,6 +21,7 @@ export class ChatHandlers {
       id: newId,
       title: 'New Chat',
       timestamp: 'Just now',
+      createdAt: new Date().toISOString(),
       isActive: true
     };
     

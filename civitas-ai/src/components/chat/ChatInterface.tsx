@@ -4,18 +4,6 @@ import { Send, User, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Message, ToolCard } from '@/types/chat'
 import { ActionButtons } from './ActionButtons'
-import { useReportsStore } from '../../stores/reportsStore'
-import { generateReport, saveReport } from '../../services/agentsApi'
-
-interface PropertyData {
-  location: string;
-  address?: string;
-  price?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  images?: string[];
-  [key: string]: any;
-}
 
 interface ChatInterfaceProps {
   className?: string
@@ -62,10 +50,8 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [lastPropertyData, setLastPropertyData] = useState<PropertyData | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const { addReport } = useReportsStore()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -74,60 +60,6 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
-
-  // Extract property data from messages for report generation
-  useEffect(() => {
-    const extractPropertyData = (msgs: Message[]): PropertyData | null => {
-      // Look through messages in reverse to find the latest property data
-      for (let i = msgs.length - 1; i >= 0; i--) {
-        const msg = msgs[i];
-        if (msg.type === 'assistant' && msg.tools) {
-          // Check if any tool has property/valuation data
-          for (const tool of msg.tools) {
-            if (tool.data && typeof tool.data === 'object') {
-              // Check if this looks like property data
-              if ('location' in tool.data || 'address' in tool.data || 'price' in tool.data) {
-                return {
-                  location: tool.data.location || tool.data.address || 'Unknown',
-                  address: tool.data.address,
-                  price: tool.data.price,
-                  bedrooms: tool.data.bedrooms,
-                  bathrooms: tool.data.bathrooms,
-                  images: tool.data.images,
-                  ...tool.data
-                };
-              }
-            }
-          }
-        }
-        // Also check message content for tool_results (from backend)
-        const msgAny = msg as any;
-        if (msgAny.tool_results && Array.isArray(msgAny.tool_results)) {
-          for (const result of msgAny.tool_results) {
-            if (result.data && typeof result.data === 'object') {
-              if ('location' in result.data || 'address' in result.data) {
-                return {
-                  location: result.data.location || result.data.address || 'Unknown',
-                  address: result.data.address,
-                  price: result.data.price,
-                  bedrooms: result.data.bedrooms,
-                  bathrooms: result.data.bathrooms,
-                  images: result.data.images,
-                  ...result.data
-                };
-              }
-            }
-          }
-        }
-      }
-      return null;
-    };
-
-    const propertyData = extractPropertyData(messages);
-    if (propertyData) {
-      setLastPropertyData(propertyData);
-    }
-  }, [messages]);
 
     // Create a ref to store the timer ID
   const timerRef = useRef<number | null>(null);
@@ -183,100 +115,26 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       handleSendMessage()
     }
   }
-
+  
   const handleAction = async (actionValue: string) => {
-    if (actionValue === 'generate_report') {
-      // Send follow-up message to generate report
-      const reportMessage: Message = {
+    if (['generate_report', 'view_report', 'navigate_market_insights'].includes(actionValue)) {
+      const infoMessage: Message = {
         id: Date.now().toString(),
-        type: 'user',
-        content: 'Yes, generate the report',
-        timestamp: new Date(),
-      }
-      setMessages(prev => [...prev, reportMessage])
-      
-      setIsTyping(true)
-      
-      try {
-        // Check if we have property data to generate report from
-        if (!lastPropertyData) {
-          throw new Error('No property data available for report generation');
-        }
-        
-        // Call backend API to generate report
-        const reportData = await generateReport({
-          valuation: lastPropertyData,
-          export_format: 'text'
-        });
-        
-        // Extract location from property details or use a default
-        const location = reportData.property_details?.location || lastPropertyData?.location || 'Unknown Location';
-        const property_address = lastPropertyData?.address || 'Unknown Address';
-        const title = `Investment Analysis - ${location}`;
-        
-        // Save report to backend (in-memory storage)
-        await saveReport({
-          title,
-          location,
-          property_address,
-          report_content: reportData.report,
-          property_details: reportData.property_details
-        });
-        
-        // Also save to local store for immediate display
-        addReport({
-          title,
-          content: reportData.report,
-          location,
-          property_details: reportData.property_details,
-          type: 'property_analysis'
-        });
-        
-        // Show success message
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: '✅ Report generated and saved successfully! You can view it in the Reports tab.',
-          timestamp: new Date(),
-        }
-        setMessages(prev => [...prev, aiResponse])
-        
-      } catch (error) {
-        console.error('Error generating report:', error);
-        
-        // Show error message
-        const errorResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: '❌ Sorry, I encountered an error generating the report. Please try searching for properties again.',
-          timestamp: new Date(),
-        }
-        setMessages(prev => [...prev, errorResponse])
-      }
-      
-      setIsTyping(false)
-      
-    } else if (actionValue === 'skip') {
-      // Just acknowledge
-      console.log('User skipped action')
-    } else if (actionValue === 'navigate_market_insights') {
-      // Trigger navigation to Market Insights tab
-      const event = new CustomEvent('navigate-to-tab', { detail: { tab: 'market-insights' } });
-      window.dispatchEvent(event);
-      
-      // Show confirmation message
-      const confirmMessage: Message = {
-        id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: '📊 Navigating to Market Insights tab...',
+        content: 'Those legacy dashboards are no longer part of this demo, but I can keep helping you right here in chat.',
         timestamp: new Date(),
       }
-      setMessages(prev => [...prev, confirmMessage])
+      setMessages(prev => [...prev, infoMessage])
+      return
+    }
+
+    if (actionValue === 'skip') {
+      console.log('User skipped action')
     }
   }
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
+    <div className={cn("flex flex-col h-full relative", className)}>
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
         <AnimatePresence initial={false}>

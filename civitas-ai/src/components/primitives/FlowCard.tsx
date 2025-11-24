@@ -9,7 +9,8 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, ReactNode } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

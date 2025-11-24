@@ -2,8 +2,15 @@
  * API service for Civitas AI agent endpoints
  * Provides typed functions for property search, valuation, and reports
  */
+import { apiLogger } from '@/utils/logger';
 
 const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
+const jsonHeaders: HeadersInit = {
+  'Content-Type': 'application/json',
+  ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+};
 
 // ============================================================================
 // Types
@@ -118,7 +125,7 @@ export interface ReportResponse {
 export async function searchProperties(params: PropertySearchParams): Promise<PropertySearchResponse> {
   const response = await fetch(`${API_BASE}/api/agents/search`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(params),
   });
 
@@ -136,7 +143,7 @@ export async function searchProperties(params: PropertySearchParams): Promise<Pr
 export async function calculateValuation(params: ValuationParams): Promise<ValuationResponse> {
   const response = await fetch(`${API_BASE}/api/agents/valuation`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(params),
   });
 
@@ -154,7 +161,7 @@ export async function calculateValuation(params: ValuationParams): Promise<Valua
 export async function generateReport(params: ReportParams): Promise<ReportResponse> {
   const response = await fetch(`${API_BASE}/api/agents/report`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(params),
   });
 
@@ -178,7 +185,7 @@ export async function saveReport(params: {
 }): Promise<{ success: boolean; report_id: string; report: any }> {
   const response = await fetch(`${API_BASE}/api/agents/reports/save`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(params),
   });
 
@@ -196,7 +203,7 @@ export async function saveReport(params: {
 export async function getSavedReports(): Promise<{ success: boolean; count: number; reports: any[] }> {
   const response = await fetch(`${API_BASE}/api/agents/reports`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -213,7 +220,7 @@ export async function getSavedReports(): Promise<{ success: boolean; count: numb
 export async function getReportById(reportId: string): Promise<{ success: boolean; report: any }> {
   const response = await fetch(`${API_BASE}/api/agents/reports/${reportId}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -238,7 +245,7 @@ export async function updateReport(
 ): Promise<{ success: boolean; message: string; report: any }> {
   const response = await fetch(`${API_BASE}/api/agents/reports/${reportId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(updates),
   });
 
@@ -256,7 +263,7 @@ export async function updateReport(
 export async function deleteReport(reportId: string): Promise<{ success: boolean; message: string }> {
   const response = await fetch(`${API_BASE}/api/agents/reports/${reportId}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -278,7 +285,7 @@ export async function cacheSearchResults(params: {
 }): Promise<{ success: boolean; search_id: string }> {
   const response = await fetch(`${API_BASE}/api/agents/searches/cache`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(params),
   });
 
@@ -296,7 +303,7 @@ export async function cacheSearchResults(params: {
 export async function getRecentSearches(limit: number = 10): Promise<{ success: boolean; count: number; searches: any[] }> {
   const response = await fetch(`${API_BASE}/api/agents/searches/recent?limit=${limit}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -313,7 +320,7 @@ export async function getRecentSearches(limit: number = 10): Promise<{ success: 
 export async function getCachedSearch(searchId: string): Promise<{ success: boolean; search: any }> {
   const response = await fetch(`${API_BASE}/api/agents/searches/${searchId}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -329,20 +336,51 @@ export async function getCachedSearch(searchId: string): Promise<{ success: bool
  */
 export async function checkHealth(): Promise<{
   status: string;
-  service: string;
-  version: string;
-  endpoints: Record<string, string>;
+  service?: string;
+  version?: string;
+  endpoints?: Record<string, string>;
 }> {
-  const response = await fetch(`${API_BASE}/api/agents/health`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
+  const candidatePaths = ['/api/agents/health', '/health', '/api/health'];
+  let lastError: unknown = null;
 
-  if (!response.ok) {
-    throw new Error('Health check failed');
+  for (const path of candidatePaths) {
+    try {
+      const endpoint = `${API_BASE}${path}`;
+      const startedAt = performance.now();
+      apiLogger.request({ method: 'GET', url: endpoint, service: 'agents' });
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: jsonHeaders,
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Try the next candidate path if the endpoint doesn't exist
+          continue;
+        }
+        const errorText = await response.text().catch(() => '');
+        apiLogger.error({ method: 'GET', url: endpoint, service: 'agents', status: response.status, durationMs: performance.now() - startedAt, error: errorText || `HTTP ${response.status}` });
+        throw new Error(errorText || `Health check failed (${response.status})`);
+      }
+
+      const data = await response.json().catch(() => ({}));
+      apiLogger.response({ method: 'GET', url: endpoint, service: 'agents', status: response.status, durationMs: performance.now() - startedAt });
+      return {
+        status: data.status ?? 'ok',
+        service: data.service,
+        version: data.version,
+        endpoints: data.endpoints,
+      };
+    } catch (error) {
+      apiLogger.error({ method: 'GET', url: `${API_BASE}${path}`, service: 'agents', error });
+      lastError = error;
+    }
   }
 
-  return response.json();
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+  throw new Error('Health check failed');
 }
 
 // ============================================================================
@@ -439,7 +477,7 @@ export interface MarketData {
 export async function getPortfolios(): Promise<{ success: boolean; portfolios: Portfolio[] }> {
   const response = await fetch(`${API_BASE}/api/portfolios`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -456,7 +494,7 @@ export async function getPortfolios(): Promise<{ success: boolean; portfolios: P
 export async function getPortfolioSummary(portfolioId: string): Promise<{ success: boolean; data: PortfolioSummary }> {
   const response = await fetch(`${API_BASE}/api/portfolios/${portfolioId}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -473,7 +511,7 @@ export async function getPortfolioSummary(portfolioId: string): Promise<{ succes
 export async function createPortfolio(data: { name: string; description?: string }): Promise<{ success: boolean; portfolio: Portfolio }> {
   const response = await fetch(`${API_BASE}/api/portfolios`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(data),
   });
 
@@ -494,7 +532,7 @@ export async function updatePortfolio(
 ): Promise<{ success: boolean; portfolio: Portfolio }> {
   const response = await fetch(`${API_BASE}/api/portfolios/${portfolioId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(data),
   });
 
@@ -512,7 +550,7 @@ export async function updatePortfolio(
 export async function deletePortfolio(portfolioId: string): Promise<{ success: boolean; message: string }> {
   const response = await fetch(`${API_BASE}/api/portfolios/${portfolioId}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -529,7 +567,7 @@ export async function deletePortfolio(portfolioId: string): Promise<{ success: b
 export async function refreshPortfolio(portfolioId: string): Promise<{ success: boolean; data: PortfolioSummary }> {
   const response = await fetch(`${API_BASE}/api/portfolios/${portfolioId}/refresh`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -549,7 +587,7 @@ export async function addPropertyToPortfolio(
 ): Promise<{ success: boolean; property: PortfolioProperty }> {
   const response = await fetch(`${API_BASE}/api/portfolios/${portfolioId}/properties`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(data),
   });
 
@@ -570,7 +608,7 @@ export async function updateProperty(
 ): Promise<{ success: boolean; property: PortfolioProperty }> {
   const response = await fetch(`${API_BASE}/api/properties/${propertyId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
     body: JSON.stringify(data),
   });
 
@@ -588,7 +626,7 @@ export async function updateProperty(
 export async function deleteProperty(propertyId: string): Promise<{ success: boolean; message: string }> {
   const response = await fetch(`${API_BASE}/api/properties/${propertyId}`, {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {
@@ -605,7 +643,7 @@ export async function deleteProperty(propertyId: string): Promise<{ success: boo
 export async function getMarketData(location: string): Promise<{ success: boolean; data: MarketData }> {
   const response = await fetch(`${API_BASE}/api/market-data?location=${encodeURIComponent(location)}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders,
   });
 
   if (!response.ok) {

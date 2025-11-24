@@ -1,9 +1,14 @@
 // FILE: src/services/ChatService.ts
 import type { Message } from '../types/chat';
-import { executeToolCalls, getChatContext, type ToolCall } from '../utils/toolExecution';
 import { stripMarkdown } from '../utils/stripMarkdown';
 
 const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
+interface ToolCall {
+  name: string;
+  parameters: Record<string, any>;
+}
 
 export class ChatService {
   /**
@@ -11,75 +16,83 @@ export class ChatService {
    * Returns both content and optional navigation action
    */
   static async generateSTRResponse(
-    userMessage: string, 
-    userContext?: { name?: string; onboarding_completed?: boolean }, 
-    conversationHistory?: Message[],
+    userMessage: string,
+    userContext?: { name?: string; onboarding_completed?: boolean },
+    _conversationHistory?: Message[],
     actionContext?: any
-  ): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any; tool_results?: any }> {
+  ): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any; tool_results?: any; tour?: any }> {
     try {
       // Get current settings context for chat API
-      const chatContext = getChatContext();
-      
-      // Prepare request body
-      const requestBody: any = {
+      const chatContext = buildChatContext();
+
+      // Read thread id established during onboarding (if any)
+      const threadId =
+        typeof window !== 'undefined'
+          ? window.localStorage.getItem('civitas-thread-id') || undefined
+          : undefined;
+
+      // Prepare request body for backend ChatRequest schema
+      const requestBody = {
         message: userMessage,
-        user_context: { ...userContext, ...chatContext },
-        conversation_history: conversationHistory?.map(msg => {
-          const historyMsg: any = {
-            role: msg.role,
-            content: msg.content
-          };
-          // Include tool_results if present (for context preservation)
-          if ((msg as any).tool_results) {
-            historyMsg.tool_results = (msg as any).tool_results;
-          }
-          return historyMsg;
-        }) || []
+        thread_id: threadId,
+        // Use conversation_history from args if needed, but backend might handle thread history separately
+        context: {
+          user_context: { ...userContext, ...chatContext },
+          action_context: actionContext,
+        },
       };
-      
-      // Include action_context if provided (for report generation confirmation)
-      if (actionContext) {
-        requestBody.action_context = actionContext;
-      }
-      
+
       // Call new Civitas agents API for chat
-      const response = await fetch(`${CIVITAS_API_BASE}/api/agents/chat`, {
+      const response = await fetch(`${CIVITAS_API_BASE}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       });
       
       if (response.ok) {
         const data = await response.json();
         console.log('🔥 BACKEND RESPONSE:', data);
+
+        // Persist thread_id from backend if provided
+        if (typeof window !== 'undefined' && data.thread_id) {
+          window.localStorage.setItem('civitas-thread-id', data.thread_id);
+        }
         
         // Check for navigation action from backend
-        const navigate = data.navigate;
+        const navigate = data.data?.navigate;
         
         // Check for action buttons (report generation prompt, etc.)
-        const action = data.action;
+        const action = data.data?.action;
         
         // Get result and strip markdown formatting
-        let content = data.result || data.message || '';
+        let content = data.message || '';
         content = stripMarkdown(content);
         
         // Check for tool calls
-        const toolCalls = data.toolCalls || [];
+        const toolCalls: ToolCall[] = data.data?.toolCalls || [];
         
-        // Execute tool calls if present
         if (toolCalls.length > 0) {
-          console.log('🔧 Executing tool calls:', toolCalls);
-          const results = executeToolCalls(toolCalls);
-          console.log('✅ Tool execution results:', results);
+          console.log('🔧 Received tool calls (no local executors configured):', toolCalls);
         }
         
         // Extract tool_results for conversation context (if available)
-        const toolResults = data.tool_results;
+        const toolResults = data.data?.tool_results;
         
-        // Return cleaned content with navigation, actions, and tool_results
-        return { content, navigate, toolCalls, action, ...(toolResults && { tool_results: toolResults }) };
+        // Extract tour data if present
+        const tour = data.data?.tour;
+        
+        // Return cleaned content with navigation, actions, tool_results, and tour data
+        return { 
+          content, 
+          navigate, 
+          toolCalls, 
+          action, 
+          ...(toolResults && { tool_results: toolResults }),
+          ...(tour && { tour })
+        };
       } else {
         console.warn('Civitas API error:', response.status);
         return this.generateFallbackSTRResponse(userMessage);
@@ -95,26 +108,6 @@ export class ChatService {
    */
   static detectNavigationIntent(message: string): string | null {
     const lower = message.toLowerCase();
-    
-    // Properties tab
-    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(properties|property tab|saved properties)/)) {
-      return 'properties';
-    }
-    
-    // Portfolio tab
-    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(portfolio|my investments|my properties)/)) {
-      return 'portfolio';
-    }
-    
-    // Market trends tab
-    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(market|trends|market trends|market data)/)) {
-      return 'market';
-    }
-    
-    // Reports tab
-    if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(reports|report tab|my reports)/)) {
-      return 'reports';
-    }
     
     // Settings tab
     if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(settings|preferences|account)/)) {
@@ -223,19 +216,28 @@ export class ChatService {
     
     // Check for navigation intent - only respond if explicitly matched (not just returning null)
     const hasExplicitNavigationKeywords = /\b(go to|open|show|navigate to|take me to|view|back to)\b/.test(lower);
-    
+
     if (hasExplicitNavigationKeywords) {
+      const deprecatedTabs = [
+        { pattern: /(properties|property tab|saved properties)/, label: 'Properties' },
+        { pattern: /(portfolio|my investments|my properties)/, label: 'Portfolio' },
+        { pattern: /(market|trends|market trends|market data)/, label: 'Market' },
+        { pattern: /(reports|report tab|my reports)/, label: 'Reports' }
+      ];
+      const deprecatedMatch = deprecatedTabs.find(entry => entry.pattern.test(lower));
+      if (deprecatedMatch) {
+        return {
+          content: `The ${deprecatedMatch.label} tab isn't part of this build anymore, but I can still help you right here in chat. Try asking for insights directly and I'll guide you. 💬`
+        };
+      }
+
       const navigate = this.detectNavigationIntent(userMessage);
       const tabNames: Record<string, string> = {
-        'properties': 'Properties',
-        'portfolio': 'Portfolio',
-        'market': 'Market Trends',
-        'reports': 'Reports',
         'settings': 'Settings'
       };
       const tabName = navigate ? tabNames[navigate] : 'Chat';
       return {
-        content: `Sure! Taking you to the ${tabName} tab now. 🎯`,
+        content: `Sure! Taking you to the ${tabName} view now. 🎯`,
         navigate: navigate || undefined
       };
     }
@@ -313,5 +315,30 @@ export class ChatService {
       type: 'assistant',
       timestamp: new Date()
     };
+  }
+}
+
+function buildChatContext() {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+
+  try {
+    const userStr = window.localStorage.getItem('civitas-user');
+    if (!userStr) {
+      return {};
+    }
+
+    const parsed = JSON.parse(userStr);
+    return {
+      user: {
+        id: parsed.id,
+        name: parsed.name,
+        email: parsed.email,
+      },
+    };
+  } catch (error) {
+    console.error('Failed to read user context from localStorage:', error);
+    return {};
   }
 }

@@ -6,6 +6,7 @@ export interface ChatSession {
   id: string;
   title?: string;
   timestamp?: string;
+  createdAt?: string;
   isActive?: boolean;
   messages: Message[];
 }
