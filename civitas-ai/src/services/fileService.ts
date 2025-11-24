@@ -4,6 +4,15 @@ export interface AnalyzeFileResponse {
   analysis: string;
   highlights?: string[];
   metadata?: Record<string, unknown>;
+  thread_id?: string;
+  file_name?: string;
+}
+
+export interface AskFileResponse {
+  analysis: string;
+  thread_id: string;
+  file_name?: string;
+  metadata?: Record<string, unknown>;
 }
 
 const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
@@ -14,7 +23,7 @@ export const analyzeFile = async (
   prompt: string,
   temperature: number = 0.35
 ): Promise<AnalyzeFileResponse> => {
-  const endpoint = `${API_BASE}/analyze/file`;
+  const endpoint = `${API_BASE}/api/analyze/file`;
   const formData = new FormData();
   formData.append('file', file);
   formData.append('prompt', prompt || 'Analyze this file');
@@ -43,5 +52,42 @@ export const analyzeFile = async (
 
   const data = (await response.json()) as AnalyzeFileResponse;
   apiLogger.response({ method: 'POST', url: endpoint, service: 'file-analysis', status: response.status, durationMs });
+  return data;
+};
+
+export const askAboutFile = async (
+  prompt: string,
+  threadId: string,
+  temperature: number = 0.35
+): Promise<AskFileResponse> => {
+  const endpoint = `${API_BASE}/api/ask`;
+  const formData = new FormData();
+  formData.append('prompt', prompt);
+  formData.append('thread_id', threadId);
+  formData.append('temperature', temperature.toString());
+
+  const headers: HeadersInit = {
+    ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+  };
+
+  const startedAt = performance.now();
+  apiLogger.request({ method: 'POST', url: endpoint, service: 'file-followup', payloadPreview: prompt.slice(0, 120) });
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  const durationMs = performance.now() - startedAt;
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'File follow-up failed');
+    apiLogger.error({ method: 'POST', url: endpoint, service: 'file-followup', status: response.status, durationMs, error: errorText });
+    throw new Error(errorText || `File follow-up failed (${response.status})`);
+  }
+
+  const data = (await response.json()) as AskFileResponse;
+  apiLogger.response({ method: 'POST', url: endpoint, service: 'file-followup', status: response.status, durationMs });
   return data;
 };

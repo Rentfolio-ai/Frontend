@@ -4,7 +4,7 @@ import type { Message } from '../types/chat';
 import { generateChatTitle } from '../utils/chatTitles';
 import { ChatService } from '../services/ChatService';
 import { useAuth } from '../contexts/AuthContext';
-import { analyzeFile } from '../services/fileService';
+import { analyzeFile, askAboutFile } from '../services/fileService';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 export interface ChatSession {
@@ -71,6 +71,8 @@ export function useDesktopShell() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [fileThreadId, setFileThreadId] = useState<string | null>(null);
+  const [fileContextName, setFileContextName] = useState<string | null>(null);
 
   // Refs for cleanup
   const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
@@ -156,6 +158,8 @@ export function useDesktopShell() {
 
   const clearPendingAttachment = () => {
     setAttachment(null);
+    setFileThreadId(null);
+    setFileContextName(null);
   };
 
   // Chat handlers
@@ -198,10 +202,35 @@ export function useDesktopShell() {
             const analysisPrompt = trimmedMessage || `Analyze ${currentAttachment.name} and summarize the key details.`;
             const analysisResult = await analyzeFile(currentAttachment, analysisPrompt);
             fullResponse = analysisResult.analysis || 'Here is what I found in that attachment.';
-            toolResults = analysisResult.metadata;
+            toolResults = {
+              file_name: analysisResult.file_name || currentAttachment.name,
+              highlights: analysisResult.highlights,
+              ...analysisResult.metadata
+            };
+            if (analysisResult.thread_id) {
+              setFileThreadId(analysisResult.thread_id);
+              setFileContextName(analysisResult.file_name || currentAttachment.name);
+            }
           } catch (error) {
             console.error('File analysis failed:', error);
             fullResponse = "I couldn't analyze that attachment right now. Please share the important details in chat or try again.";
+          }
+        } else if (fileThreadId) {
+          try {
+            const followUp = await askAboutFile(trimmedMessage, fileThreadId);
+            fullResponse = followUp.analysis;
+            toolResults = {
+              file_name: followUp.file_name || fileContextName,
+              follow_up: true,
+              ...followUp.metadata
+            };
+            setFileThreadId(followUp.thread_id);
+            if (followUp.file_name) {
+              setFileContextName(followUp.file_name);
+            }
+          } catch (error) {
+            console.error('Follow-up analysis failed:', error);
+            fullResponse = "I couldn't look back at that file just now. Please try again soon.";
           }
         } else {
           // Pass user context to backend
