@@ -362,6 +362,16 @@ function ToolCardComponent({ tool }: { tool: ToolCard }) {
       dot: 'bg-emerald-400',
       icon: '✓'
     },
+    success: {
+      color: 'border-emerald-400/20 bg-emerald-500/5',
+      dot: 'bg-emerald-400',
+      icon: '✓'
+    },
+    warning: {
+      color: 'border-amber-400/20 bg-amber-500/5',
+      dot: 'bg-amber-400',
+      icon: '⚠'
+    },
     error: {
       color: 'border-red-400/20 bg-red-500/5',
       dot: 'bg-red-400',

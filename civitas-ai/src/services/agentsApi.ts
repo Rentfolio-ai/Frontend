@@ -2,7 +2,7 @@
  * API service for Civitas AI agent endpoints
  * Provides typed functions for property search, valuation, and reports
  */
-import { apiLogger } from '@/utils/logger';
+import { apiLogger, logger } from '@/utils/logger';
 
 const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
@@ -99,19 +99,103 @@ export interface ValuationResponse {
 }
 
 export interface ReportParams {
-  valuation: any;
+  valuation?: any;
+  report_type?: 'str' | 'ltr' | 'adu' | 'flip' | 'full';
   export_format?: 'text' | 'json';
+  property_address?: string;
+  // New backend format fields
+  property_data?: {
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    price?: number | null;
+    bedrooms?: number | null;
+    bathrooms?: number | null;
+    sqft?: number | null;
+    property_type?: string;
+  };
+  financial_inputs?: {
+    purchase_price: number;
+    down_payment_amount: number;
+    interest_rate: number;
+    loan_term_years?: number;
+    closing_costs?: number;
+    renovation_budget?: number;
+    monthly_rent_ltr?: number | null;
+    nightly_rate_str?: number | null;
+    occupancy_rate_str?: number | null;
+    property_tax_monthly?: number;
+    insurance_monthly?: number;
+    utilities_monthly?: number;
+    management_fee_percent?: number;
+    maintenance_percent?: number;
+    capex_reserve_percent?: number;
+    hoa_monthly?: number;
+  };
+  metrics?: {
+    strategy: 'STR' | 'MTR' | 'LTR' | 'BRRRR' | 'FLIP';
+    gross_annual_income: number;
+    total_annual_expenses: number;
+    noi: number;
+    annual_debt_service: number;
+    cash_flow_monthly: number;
+    cash_flow_annual: number;
+    cap_rate: number;
+    cash_on_cash: number;
+    dscr: number;
+    breakeven_occupancy?: number | null;
+    operating_expense_ratio: number;
+  };
+  pros?: string[];
+  cons?: string[];
+  risk_factors?: string[];
+  recommendation?: 'Buy' | 'Pass' | 'Negotiate';
+  narrative_summary?: string;
 }
 
 export interface ReportResponse {
   success: boolean;
   report: string;
+  report_id?: string;
+  report_type?: 'str' | 'ltr' | 'adu' | 'flip' | 'full';
+  strategy?: 'STR' | 'MTR' | 'LTR' | 'BRRRR' | 'FLIP';
+  recommendation?: 'Buy' | 'Pass' | 'Negotiate';
+  generated_at?: string;
   property_details?: {
-    price: number;
-    location: string;
-    roi: number;
-    tier: string;
+    price?: number;
+    location?: string;
+    address?: string;
+    roi?: number;
+    tier?: string;
+    bedrooms?: number;
+    bathrooms?: number;
+    sqft?: number;
   };
+  metrics?: {
+    strategy: string;
+    gross_annual_income: number;
+    total_annual_expenses: number;
+    noi: number;
+    annual_debt_service: number;
+    cash_flow_monthly: number;
+    cash_flow_annual: number;
+    cap_rate: number;
+    cash_on_cash: number;
+    dscr: number;
+    breakeven_occupancy?: number | null;
+    operating_expense_ratio: number;
+  };
+  sections?: {
+    executive_summary?: string;
+    property_overview?: string;
+    financial_analysis?: string;
+    market_analysis?: string;
+    risk_assessment?: string;
+    recommendation?: string;
+  };
+  pros?: string[];
+  cons?: string[];
+  risk_factors?: string[];
   message?: string;
 }
 
@@ -123,54 +207,142 @@ export interface ReportResponse {
  * Search for STR investment properties
  */
 export async function searchProperties(params: PropertySearchParams): Promise<PropertySearchResponse> {
-  const response = await fetch(`${API_BASE}/api/agents/search`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify(params),
-  });
+  const endpoint = `${API_BASE}/api/agents/search`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify(params),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Search failed' }));
-    throw new Error(error.detail || 'Failed to search properties');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read error body');
+      logger.error('[agentsApi] ❌ searchProperties failed', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        errorBody: errorBody.substring(0, 500),
+        params: { location: params.location, max_price: params.max_price },
+      });
+      
+      const error = JSON.parse(errorBody).detail || 'Search failed';
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    logger.info('[agentsApi] ✅ searchProperties success', {
+      location: params.location,
+      totalFound: data.total_found,
+      propertiesReturned: data.properties?.length || 0,
+    });
+    return data;
+  } catch (error) {
+    const err = error as Error;
+    logger.error('[agentsApi] ❌ searchProperties exception', {
+      name: err.name,
+      message: err.message,
+      endpoint,
+      params: { location: params.location },
+    });
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
  * Calculate valuation for a property
  */
 export async function calculateValuation(params: ValuationParams): Promise<ValuationResponse> {
-  const response = await fetch(`${API_BASE}/api/agents/valuation`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify(params),
-  });
+  const endpoint = `${API_BASE}/api/agents/valuation`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify(params),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Valuation failed' }));
-    throw new Error(error.detail || 'Failed to calculate valuation');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read error body');
+      logger.error('[agentsApi] ❌ calculateValuation failed', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        errorBody: errorBody.substring(0, 500),
+        params: { city: params.property_data?.city, price: params.property_data?.price },
+      });
+      
+      const error = JSON.parse(errorBody).detail || 'Valuation failed';
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    logger.info('[agentsApi] ✅ calculateValuation success', {
+      capRate: data.valuation?.cap_rate,
+      cashOnCash: data.valuation?.cash_on_cash_roi,
+      tier: data.valuation?.property_tier,
+    });
+    return data;
+  } catch (error) {
+    const err = error as Error;
+    logger.error('[agentsApi] ❌ calculateValuation exception', {
+      name: err.name,
+      message: err.message,
+      endpoint,
+    });
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
  * Generate investment report
  */
 export async function generateReport(params: ReportParams): Promise<ReportResponse> {
-  const response = await fetch(`${API_BASE}/api/agents/report`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify(params),
-  });
+  const endpoint = `${API_BASE}/api/agents/report`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify(params),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Report generation failed' }));
-    throw new Error(error.detail || 'Failed to generate report');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read error body');
+      logger.error('[agentsApi] ❌ generateReport failed', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        errorBody: errorBody.substring(0, 500),
+        params: { 
+          reportType: params.report_type, 
+          address: params.property_address || params.property_data?.address,
+        },
+      });
+      
+      const error = JSON.parse(errorBody).detail || 'Report generation failed';
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    logger.info('[agentsApi] ✅ generateReport success', {
+      reportType: params.report_type,
+      reportId: data.report_id,
+      strategy: data.strategy,
+      recommendation: data.recommendation,
+      hasMetrics: !!data.metrics,
+    });
+    return data;
+  } catch (error) {
+    const err = error as Error;
+    logger.error('[agentsApi] ❌ generateReport exception', {
+      name: err.name,
+      message: err.message,
+      endpoint,
+      reportType: params.report_type,
+    });
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
@@ -183,52 +355,127 @@ export async function saveReport(params: {
   report_content: string;
   property_details?: any;
 }): Promise<{ success: boolean; report_id: string; report: any }> {
-  const response = await fetch(`${API_BASE}/api/agents/reports/save`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify(params),
-  });
+  const endpoint = `${API_BASE}/api/agents/reports/save`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify(params),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to save report' }));
-    throw new Error(error.detail || 'Failed to save report');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read error body');
+      logger.error('[agentsApi] ❌ saveReport failed', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        errorBody: errorBody.substring(0, 500),
+        params: { title: params.title, location: params.location },
+      });
+      
+      const error = JSON.parse(errorBody).detail || 'Failed to save report';
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    logger.info('[agentsApi] ✅ saveReport success', {
+      reportId: data.report_id,
+      title: params.title,
+    });
+    return data;
+  } catch (error) {
+    const err = error as Error;
+    logger.error('[agentsApi] ❌ saveReport exception', {
+      name: err.name,
+      message: err.message,
+      endpoint,
+    });
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
  * Get all saved reports
  */
 export async function getSavedReports(): Promise<{ success: boolean; count: number; reports: any[] }> {
-  const response = await fetch(`${API_BASE}/api/agents/reports`, {
-    method: 'GET',
-    headers: jsonHeaders,
-  });
+  const endpoint = `${API_BASE}/api/agents/reports`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: jsonHeaders,
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch reports' }));
-    throw new Error(error.detail || 'Failed to fetch reports');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read error body');
+      logger.error('[agentsApi] ❌ getSavedReports failed', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        errorBody: errorBody.substring(0, 500),
+      });
+      
+      const error = JSON.parse(errorBody).detail || 'Failed to fetch reports';
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    logger.info('[agentsApi] ✅ getSavedReports success', {
+      count: data.count,
+      reportsReturned: data.reports?.length || 0,
+    });
+    return data;
+  } catch (error) {
+    const err = error as Error;
+    logger.error('[agentsApi] ❌ getSavedReports exception', {
+      name: err.name,
+      message: err.message,
+      endpoint,
+    });
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
  * Get a specific report by ID
  */
 export async function getReportById(reportId: string): Promise<{ success: boolean; report: any }> {
-  const response = await fetch(`${API_BASE}/api/agents/reports/${reportId}`, {
-    method: 'GET',
-    headers: jsonHeaders,
-  });
+  const endpoint = `${API_BASE}/api/agents/reports/${reportId}`;
+  
+  try {
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: jsonHeaders,
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Report not found' }));
-    throw new Error(error.detail || 'Failed to fetch report');
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => 'Could not read error body');
+      logger.error('[agentsApi] ❌ getReportById failed', {
+        status: response.status,
+        statusText: response.statusText,
+        endpoint,
+        reportId,
+        errorBody: errorBody.substring(0, 500),
+      });
+      
+      const error = JSON.parse(errorBody).detail || 'Report not found';
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    logger.info('[agentsApi] ✅ getReportById success', { reportId });
+    return data;
+  } catch (error) {
+    const err = error as Error;
+    logger.error('[agentsApi] ❌ getReportById exception', {
+      name: err.name,
+      message: err.message,
+      endpoint,
+      reportId,
+    });
+    throw error;
   }
-
-  return response.json();
 }
 
 /**

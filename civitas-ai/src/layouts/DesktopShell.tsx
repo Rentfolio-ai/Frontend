@@ -13,9 +13,10 @@
  * - ChatTabView for chat interface
  * - SettingsTabView for settings page
  * - DesktopSidebarMenu for navigation
+ * - DealAnalyzerDrawer for P&L analysis
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 // PortfolioProvider removed - not needed without portfolio views
 // import { PortfolioProvider } from '../contexts/PortfolioContext';
@@ -23,9 +24,15 @@ import { useDesktopShell, type TabType } from '../hooks/useDesktopShell';
 import { useThemeState } from '../hooks/useThemeState';
 import { usePreferences } from '../hooks/usePreferences';
 import { useToast } from '../hooks/useToast';
+import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
+import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
-import { ChatTabView, SettingsTabView, DesktopSidebarMenu } from '../components/desktop-shell';
+import { ChatTabView, SettingsTabView, ReportsTabView, DesktopSidebarMenu } from '../components/desktop-shell';
 import { GradientBackground } from '../components/GradientBackground';
+import { DealAnalyzerDrawer } from '../components/analysis';
+import { ReportDrawer } from '../components/reports';
+import { PnLCalculatorPage } from '../pages/PnLCalculatorPage';
+import type { ScoutedProperty } from '../types/backendTools';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -45,6 +52,7 @@ const STATE_OPTIONS = [
 
 // Menu items - Portfolio removed (feature stickiness needs evaluation)
 const MENU_ITEMS: Array<{ id: TabType; label: string; icon: string }> = [
+  { id: 'reports', label: 'Reports', icon: '📄' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
@@ -68,7 +76,19 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     handleDeleteChat,
     handleAction,
     attachment,
-    setAttachment
+    setAttachment,
+    dealAnalyzer,
+    openDealAnalyzer,
+    closeDealAnalyzer,
+    currentThreadId,
+    toolResultsByThread,
+    isFetchingToolResults,
+    toolMemoryError,
+    refreshToolResults,
+    clearToolMemoryError,
+    reportDrawer,
+    closeReportDrawer,
+    generateReportWithType,
   } = useDesktopShell();
   
   const { selectedState, setSelectedState, currentTheme } = useThemeState();
@@ -80,11 +100,45 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     updateMarketAlerts
   } = usePreferences();
   
+  // Property bookmarks
+  const {
+    bookmarks,
+    addBookmark,
+    removeBookmark,
+    findMatchingBookmark,
+  } = usePropertyBookmarks();
+  
+  // Saved reports - now fetches from backend API
+  const {
+    refreshReports,
+  } = useSavedReports();
+  
+  // Toggle bookmark handler
+  const handleToggleBookmark = useCallback((property: ScoutedProperty) => {
+    const existingBookmark = findMatchingBookmark(property);
+    if (existingBookmark) {
+      removeBookmark(existingBookmark.id);
+    } else {
+      addBookmark(property);
+    }
+  }, [findMatchingBookmark, removeBookmark, addBookmark]);
+  
+  // Refresh reports when navigating to reports tab (reports are auto-saved on backend)
+  const handleNavigateToReportsAndRefresh = useCallback(() => {
+    setActiveTab('reports');
+    refreshReports();
+  }, [setActiveTab, refreshReports]);
+  
+
+  const toolMemoryEntries = currentThreadId ? toolResultsByThread[currentThreadId] : [];
+  
   // Listen for navigation events from chat
   useEffect(() => {
     const handleNavigate = (event: CustomEvent) => {
       const { tab } = event.detail as { tab?: string };
-      const targetTab: TabType = tab === 'settings' ? 'settings' : 'chat';
+      let targetTab: TabType = 'chat';
+      if (tab === 'settings') targetTab = 'settings';
+      else if (tab === 'reports') targetTab = 'reports';
       console.log(`🚀 Navigating to: ${targetTab}`);
       setActiveTab(targetTab);
     };
@@ -150,6 +204,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
               onAttach={file => setAttachment(file)}
               attachment={attachment}
               onClearAttachment={() => setAttachment(null)}
+              onOpenDealAnalyzer={openDealAnalyzer}
+              bookmarks={bookmarks}
+              onToggleBookmark={handleToggleBookmark}
+              onNavigateToReports={handleNavigateToReportsAndRefresh}
             />
           )}
           {activeTab === 'settings' && (
@@ -163,11 +221,36 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
               stateOptions={STATE_OPTIONS}
             />
           )}
+          {activeTab === 'reports' && (
+            <ReportsTabView />
+          )}
         </div>
       </div>
       
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={closeToast} />
+      
+      {/* Deal Analyzer Drawer */}
+      <DealAnalyzerDrawer
+        isOpen={dealAnalyzer.isOpen}
+        onClose={closeDealAnalyzer}
+        propertyId={dealAnalyzer.propertyId}
+        initialPurchasePrice={dealAnalyzer.purchasePrice}
+        initialStrategy={dealAnalyzer.strategy}
+        propertyAddress={dealAnalyzer.propertyAddress}
+      />
+
+      {/* Report Drawer */}
+      <ReportDrawer
+        isOpen={reportDrawer.isOpen}
+        onClose={closeReportDrawer}
+        report={reportDrawer.report}
+        isLoading={reportDrawer.isLoading}
+        error={reportDrawer.error}
+        onGenerateReport={generateReportWithType}
+        inferredStrategy={reportDrawer.inferredStrategy}
+        propertyAddress={reportDrawer.propertyAddress}
+      />
       
         </div>
       </div>

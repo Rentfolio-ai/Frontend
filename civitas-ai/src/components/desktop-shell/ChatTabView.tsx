@@ -4,9 +4,12 @@ import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import type { Message } from '../../types/chat';
+import type { InvestmentStrategy } from '../../types/pnl';
 import { getOnboardingMessage } from '../../services/chatApi';
 import { Sparkles, TrendingUp, Search } from 'lucide-react';
 import { checkHealth } from '../../services/agentsApi';
+import type { BookmarkedProperty } from '../../types/bookmarks';
+import type { ScoutedProperty } from '../../types/backendTools';
 
 interface ChatTabViewProps {
   messages: Message[];
@@ -18,6 +21,12 @@ interface ChatTabViewProps {
   onAttach?: (file: File) => void;
   attachment?: File | null;
   onClearAttachment?: () => void;
+  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
+  // Property bookmark support
+  bookmarks?: BookmarkedProperty[];
+  onToggleBookmark?: (property: ScoutedProperty) => void;
+  // Navigate to reports tab (reports are auto-saved on backend)
+  onNavigateToReports?: () => void;
 }
 
 interface ExamplePrompt {
@@ -36,7 +45,11 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onAction,
   onAttach,
   attachment,
-  onClearAttachment
+  onClearAttachment,
+  onOpenDealAnalyzer,
+  bookmarks,
+  onToggleBookmark,
+  onNavigateToReports,
 }) => {
   const [onboardingMessage, setOnboardingMessage] = useState<string>('');
   const [examplePrompts, setExamplePrompts] = useState<ExamplePrompt[]>([]);
@@ -126,8 +139,9 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         </div>
       </div>
 
-      {/* Message List - On Subtle Surface Panel */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent via-slate-50/30 to-slate-50/40">
+      {/* Message List + Tool Memory */}
+      <div className="flex-1 flex overflow-hidden bg-gradient-to-b from-transparent via-slate-50/30 to-slate-50/40">
+        <div className="flex-1 overflow-y-auto">
         {messages.length === 0 && !isLoading ? (
           /* Enhanced Empty State */
           <div className="max-w-6xl mx-auto px-4 md:px-8 pt-8">
@@ -220,8 +234,18 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
             </div>
           </div>
         ) : (
-          <MessageList messages={messages} isLoading={isLoading} onAction={onAction} agentStatus={agentStatus} />
+          <MessageList 
+            messages={messages} 
+            isLoading={isLoading} 
+            onAction={onAction} 
+            agentStatus={agentStatus}
+            onOpenDealAnalyzer={onOpenDealAnalyzer}
+            bookmarks={bookmarks}
+            onToggleBookmark={onToggleBookmark}
+            onNavigateToReports={onNavigateToReports}
+          />
         )}
+        </div>
       </div>
       
       {/* Composer */}

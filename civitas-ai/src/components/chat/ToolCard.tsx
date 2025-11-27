@@ -8,9 +8,11 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool }: ToolCardProps) {
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     running: 'border-warning bg-warning/5',
     completed: 'border-success bg-success/5',
+    success: 'border-success bg-success/5',
+    warning: 'border-warning bg-warning/5',
     error: 'border-danger bg-danger/5'
   }
 

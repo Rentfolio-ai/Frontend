@@ -34,13 +34,29 @@ export const ReportType = {
 export type ReportType = typeof ReportType[keyof typeof ReportType];
 
 /**
+ * Investment Report Format Types (for generate_report agent)
+ * Maps to backend report_type parameter
+ */
+export const InvestmentReportFormat = {
+  STR: 'str',
+  LTR: 'ltr',
+  ADU: 'adu',
+  Flip: 'flip',
+  Full: 'full',
+} as const;
+export type InvestmentReportFormat = typeof InvestmentReportFormat[keyof typeof InvestmentReportFormat];
+
+/**
  * Tool result kinds
  */
 export const ToolKind = {
   ROIAnalysis: 'roi_analysis',
   MarketData: 'market_data',
   PropertyComparison: 'property_comparison',
-  Alert: 'alert'
+  Alert: 'alert',
+  DealAnalyzer: 'deal_analyzer',
+  ComplianceCheck: 'compliance_check',
+  Valuation: 'valuation'
 } as const;
 export type ToolKind = typeof ToolKind[keyof typeof ToolKind];
 

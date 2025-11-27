@@ -4,14 +4,35 @@ import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { ActionButtons } from './ActionButtons';
+import { ToolMessage } from './ToolMessage';
+import { PropertyBookmarkCard, PropertyComparisonTableCard, GeneratedReportCard, VisionAnalysisCard } from './tool-cards';
 import { useAuth } from '../../contexts/AuthContext';
+import type { ComparePropertiesOutput, GenerateReportOutput } from '../../types/backendTools';
+import type { VisionAnalysisData } from './tool-cards/VisionAnalysisCard';
+import type { InvestmentStrategy } from '../../types/pnl';
+import type { BookmarkedProperty } from '../../types/bookmarks';
+import type { ScoutedProperty } from '../../types/backendTools';
 
 interface MessageBubbleProps {
   message: Message;
   onAction?: (actionValue: string, actionContext?: any) => void;
   agentStatus?: AgentStatus;
+  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
+  // Property bookmark support
+  bookmarks?: BookmarkedProperty[];
+  onToggleBookmark?: (property: ScoutedProperty) => void;
+  // Navigate to reports tab (reports are auto-saved on backend)
+  onNavigateToReports?: () => void;
 }
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onAction, agentStatus = 'online' }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ 
+  message, 
+  onAction, 
+  agentStatus = 'online', 
+  onOpenDealAnalyzer,
+  bookmarks,
+  onToggleBookmark,
+  onNavigateToReports,
+}) => {
   const isUser = message.role === 'user';
   const { user } = useAuth();
   const userInitials = (user?.name || 'You')
@@ -78,6 +99,99 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onAction,
       )}
       {!isUser && message.action && onAction && (
         <ActionButtons action={message.action} onAction={onAction} />
+      )}
+      {!isUser && message.tools && message.tools.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {message.tools.map((tool) => {
+            // Property comparison renders inline as bookmarks (no card wrapper)
+            if (tool.kind === 'property_comparison' && tool.data) {
+              return (
+                <PropertyBookmarkCard
+                  key={tool.id}
+                  data={tool.data}
+                  bookmarks={bookmarks}
+                  onToggleBookmark={onToggleBookmark}
+                />
+              );
+            }
+            
+            // Property comparison table (compare_properties tool)
+            if (tool.kind === 'property_comparison_table' && tool.data) {
+              return (
+                <PropertyComparisonTableCard
+                  key={tool.id}
+                  data={tool.data as ComparePropertiesOutput}
+                  bookmarks={bookmarks}
+                  onToggleBookmark={onToggleBookmark}
+                />
+              );
+            }
+            
+            // Generated report (generate_report tool) - reports are auto-saved on backend
+            if (tool.kind === 'generated_report' && tool.data) {
+              const reportData = tool.data as GenerateReportOutput;
+              return (
+                <GeneratedReportCard
+                  key={tool.id}
+                  data={reportData}
+                  onNavigateToReports={onNavigateToReports}
+                />
+              );
+            }
+            
+            // Vision/Renovation analysis - render costs directly without wrapper
+            if (tool.kind === 'renovation_analysis') {
+              // Only render if we have data, otherwise skip
+              if (tool.data) {
+                return (
+                  <VisionAnalysisCard
+                    key={tool.id}
+                    data={tool.data as VisionAnalysisData}
+                  />
+                );
+              }
+              // If no data, skip this tool entirely
+              return null;
+            }
+            
+            // Other tools with known kind use ToolMessage (excluding renovation_analysis which is handled above)
+            if (tool.kind && tool.kind !== 'generic' && tool.kind !== 'renovation_analysis') {
+              return (
+                <ToolMessage
+                  key={tool.id}
+                  tool={tool as any}
+                  timestamp={typeof message.timestamp === 'string' ? message.timestamp : message.timestamp.toISOString()}
+                  onOpenDealAnalyzer={onOpenDealAnalyzer}
+                  bookmarks={bookmarks}
+                  onToggleBookmark={onToggleBookmark}
+                />
+              );
+            }
+            
+            // Fallback for generic tools without kind
+            return (
+              <div 
+                key={tool.id}
+                className="p-3 rounded-lg bg-muted/50 border border-border/50"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm">{tool.title}</span>
+                  <span className={cn(
+                    'text-xs px-2 py-0.5 rounded',
+                    tool.status === 'completed' && 'bg-green-500/20 text-green-700',
+                    tool.status === 'running' && 'bg-amber-500/20 text-amber-700',
+                    tool.status === 'error' && 'bg-red-500/20 text-red-700'
+                  )}>
+                    {tool.status}
+                  </span>
+                </div>
+                {tool.description && (
+                  <p className="text-xs text-foreground/60 mt-1">{tool.description}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </>
   );

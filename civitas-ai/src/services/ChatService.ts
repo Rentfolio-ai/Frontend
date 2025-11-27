@@ -1,6 +1,8 @@
 // FILE: src/services/ChatService.ts
 import type { Message } from '../types/chat';
 import { stripMarkdown } from '../utils/stripMarkdown';
+import { logger } from '../utils/logger';
+import { logApiResponse, summarizeToolResults } from '../utils/apiValidator';
 
 const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
@@ -19,17 +21,18 @@ export class ChatService {
     userMessage: string,
     userContext?: { name?: string; onboarding_completed?: boolean },
     _conversationHistory?: Message[],
-    actionContext?: any
-  ): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any; tool_results?: any; tour?: any }> {
+    actionContext?: any,
+    threadIdOverride?: string
+  ): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any; tool_results?: any; tour?: any; threadId?: string }> {
     try {
       // Get current settings context for chat API
       const chatContext = buildChatContext();
 
-      // Read thread id established during onboarding (if any)
-      const threadId =
+      const threadId = threadIdOverride || (
         typeof window !== 'undefined'
           ? window.localStorage.getItem('civitas-thread-id') || undefined
-          : undefined;
+          : undefined
+      );
 
       // Prepare request body for backend ChatRequest schema
       const requestBody = {
@@ -54,7 +57,18 @@ export class ChatService {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('🔥 BACKEND RESPONSE:', data);
+        
+        // Log full response structure for debugging
+        console.log('[ChatService] 📥 RAW API Response:', JSON.stringify(data, null, 2));
+        logger.info('[ChatService] API Response received', {
+          hasMessage: !!data.message,
+          hasData: !!data.data,
+          hasThreadId: !!data.thread_id,
+          messageLength: data.message?.length || 0,
+        });
+        
+        // Detailed API response validation
+        logApiResponse('/api/chat', data);
 
         // Persist thread_id from backend if provided
         if (typeof window !== 'undefined' && data.thread_id) {
@@ -75,11 +89,35 @@ export class ChatService {
         const toolCalls: ToolCall[] = data.data?.toolCalls || [];
         
         if (toolCalls.length > 0) {
-          console.log('🔧 Received tool calls (no local executors configured):', toolCalls);
+          logger.info('[ChatService] Tool calls received', {
+            count: toolCalls.length,
+            tools: toolCalls.map(tc => tc.name),
+          });
         }
         
-        // Extract tool_results for conversation context (if available)
-        const toolResults = data.data?.tool_results;
+        // Extract tool_results for conversation context (always array per backend schema)
+        const toolResults = Array.isArray(data.data?.tool_results)
+          ? data.data?.tool_results
+          : [];
+        
+        if (toolResults.length > 0) {
+          logger.info('[ChatService] Tool results found', {
+            summary: summarizeToolResults(toolResults),
+            count: toolResults.length,
+          });
+          
+          // Log each tool result structure
+          toolResults.forEach((tr: any, idx: number) => {
+            logger.info(`[ChatService] Tool result [${idx}]`, {
+              tool_name: tr.tool_name || tr.kind || 'unknown',
+              hasData: !!tr.data,
+              status: tr.status,
+              dataKeys: tr.data ? Object.keys(tr.data) : [],
+            });
+          });
+        } else {
+          logger.info('[ChatService] No tool_results attached to response');
+        }
         
         // Extract tour data if present
         const tour = data.data?.tour;
@@ -90,16 +128,58 @@ export class ChatService {
           navigate, 
           toolCalls, 
           action, 
-          ...(toolResults && { tool_results: toolResults }),
-          ...(tour && { tour })
+          tool_results: toolResults,
+          ...(tour && { tour }),
+          threadId: data.thread_id || threadId
         };
       } else {
-        console.warn('Civitas API error:', response.status);
-        return this.generateFallbackSTRResponse(userMessage);
+        // Log detailed error information
+        let errorBody = '';
+        try {
+          errorBody = await response.text();
+        } catch {
+          errorBody = 'Could not read error body';
+        }
+        
+        logger.error('[ChatService] ❌ API Error Response', {
+          status: response.status,
+          statusText: response.statusText,
+          url: `${CIVITAS_API_BASE}/api/chat`,
+          errorBody: errorBody.substring(0, 500), // Limit to 500 chars
+          headers: {
+            contentType: response.headers.get('content-type'),
+            requestId: response.headers.get('x-request-id'),
+          },
+          userMessage: userMessage.substring(0, 100), // Truncate for logging
+          threadId,
+        });
+        
+        // Try to parse error details if JSON
+        try {
+          const errorJson = JSON.parse(errorBody);
+          logger.error('[ChatService] ❌ Error Details', {
+            errorType: errorJson.error || errorJson.type || 'unknown',
+            errorMessage: errorJson.message || errorJson.detail || errorBody,
+            errorCode: errorJson.code,
+          });
+        } catch {
+          // Not JSON, already logged raw body above
+        }
+        
+        return this.generateFallbackSTRResponse(userMessage, threadId);
       }
     } catch (error) {
-      console.warn('Civitas API unavailable, using fallback:', error);
-      return this.generateFallbackSTRResponse(userMessage);
+      // Network error or other exception
+      const err = error as Error;
+      logger.error('[ChatService] ❌ Network/Exception Error', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack?.split('\n').slice(0, 5).join('\n'), // First 5 lines of stack
+        userMessage: userMessage.substring(0, 100),
+        threadId: threadIdOverride,
+      });
+      
+      return this.generateFallbackSTRResponse(userMessage, threadIdOverride);
     }
   }
 
@@ -186,32 +266,32 @@ export class ChatService {
   /**
    * Fallback STR responses when Civitas API is unavailable
    */
-  static generateFallbackSTRResponse(userMessage: string): { content: string; navigate?: string } {
+  static generateFallbackSTRResponse(userMessage: string, threadId?: string): { content: string; navigate?: string; threadId?: string } {
     const lower = userMessage.toLowerCase();
     
     // Property analysis questions
     if (lower.includes('property') || lower.includes('address') || lower.includes('location')) {
-      return { content: "Great question! 🏡 For property analysis, I'd need the address or location you're considering. Once you share that, I can pull up:\n\n• Recent comparable STR listings and their revenue\n• Average occupancy rates in that area\n• Seasonal demand trends\n• Local regulations and permit requirements\n• Estimated startup costs and ROI projections\n\nJust drop the address or city you're interested in, and I'll get to work!" };
+      return { content: "Great question! 🏡 For property analysis, I'd need the address or location you're considering. Once you share that, I can pull up:\n\n• Recent comparable STR listings and their revenue\n• Average occupancy rates in that area\n• Seasonal demand trends\n• Local regulations and permit requirements\n• Estimated startup costs and ROI projections\n\nJust drop the address or city you're interested in, and I'll get to work!", threadId };
     }
     
     // Market research questions
     if (lower.includes('market') || lower.includes('city') || lower.includes('where')) {
-      return { content: "Love that you're thinking strategically! 📊 The best STR markets right now really depend on your investment goals. Are you looking for:\n\n• High cash flow with strong year-round demand?\n• Appreciation potential in emerging markets?\n• Low competition with underserved demand?\n• Specific regions or budget ranges?\n\nTell me more about your criteria, and I can recommend some markets that might be perfect for you." };
+      return { content: "Love that you're thinking strategically! 📊 The best STR markets right now really depend on your investment goals. Are you looking for:\n\n• High cash flow with strong year-round demand?\n• Appreciation potential in emerging markets?\n• Low competition with underserved demand?\n• Specific regions or budget ranges?\n\nTell me more about your criteria, and I can recommend some markets that might be perfect for you.", threadId };
     }
     
     // Revenue/ROI questions
     if (lower.includes('revenue') || lower.includes('roi') || lower.includes('money') || lower.includes('profit')) {
-      return { content: "Ah, the bottom line – my favorite topic! 💰 STR returns can vary wildly based on location, property type, and how well you manage it.\n\nTypically, I see successful STRs generating:\n• 8-15% cash-on-cash returns in good markets\n• 15-25%+ in exceptional locations with great management\n• Higher returns during peak seasons\n\nTo give you a specific analysis, I'd need to know more about the property you're considering. Want to share some details?" };
+      return { content: "Ah, the bottom line – my favorite topic! 💰 STR returns can vary wildly based on location, property type, and how well you manage it.\n\nTypically, I see successful STRs generating:\n• 8-15% cash-on-cash returns in good markets\n• 15-25%+ in exceptional locations with great management\n• Higher returns during peak seasons\n\nTo give you a specific analysis, I'd need to know more about the property you're considering. Want to share some details?", threadId };
     }
     
     // Regulations/legal questions
     if (lower.includes('regulation') || lower.includes('legal') || lower.includes('permit') || lower.includes('law')) {
-      return { content: "Smart to think about regulations upfront – this trips up a lot of new investors! 📋\n\nSTR regulations vary dramatically by location. Some cities welcome them with open arms, others have strict caps or outright bans.\n\nWhich market are you looking at? I can check:\n• Registration/licensing requirements\n• Occupancy limits and rental restrictions\n• Tax obligations (TOT, sales tax, etc.)\n• HOA restrictions if applicable\n\nThis stuff matters way more than people think!" };
+      return { content: "Smart to think about regulations upfront – this trips up a lot of new investors! 📋\n\nSTR regulations vary dramatically by location. Some cities welcome them with open arms, others have strict caps or outright bans.\n\nWhich market are you looking at? I can check:\n• Registration/licensing requirements\n• Occupancy limits and rental restrictions\n• Tax obligations (TOT, sales tax, etc.)\n• HOA restrictions if applicable\n\nThis stuff matters way more than people think!", threadId };
     }
     
     // Pricing/occupancy optimization
     if (lower.includes('price') || lower.includes('pricing') || lower.includes('occupancy') || lower.includes('optimize')) {
-      return { content: "Pricing is both an art and a science! 🎯 Get it right and you'll maximize revenue while keeping occupancy high.\n\nHere's what I typically recommend:\n• Dynamic pricing based on demand, seasonality, and local events\n• Competitive analysis against similar listings\n• Weekend vs. weekday pricing strategies\n• Minimum stay requirements for peak periods\n\nAre you managing an existing property or planning for a future one? I can give you more specific guidance based on your situation." };
+      return { content: "Pricing is both an art and a science! 🎯 Get it right and you'll maximize revenue while keeping occupancy high.\n\nHere's what I typically recommend:\n• Dynamic pricing based on demand, seasonality, and local events\n• Competitive analysis against similar listings\n• Weekend vs. weekday pricing strategies\n• Minimum stay requirements for peak periods\n\nAre you managing an existing property or planning for a future one? I can give you more specific guidance based on your situation.", threadId };
     }
     
     // Check for navigation intent - only respond if explicitly matched (not just returning null)
@@ -236,15 +316,18 @@ export class ChatService {
         'settings': 'Settings'
       };
       const tabName = navigate ? tabNames[navigate] : 'Chat';
-      return {
-        content: `Sure! Taking you to the ${tabName} view now. 🎯`,
-        navigate: navigate || undefined
-      };
+        return {
+          content: `Sure! Taking you to the ${tabName} view now. 🎯`,
+          navigate: navigate || undefined,
+          threadId
+        };
     }
     
     // General/other questions (including first message/greeting)
     return {
       content: "I'm here to help you find and evaluate short-term rental (STR) investment opportunities. Here's what I can do for you:\n\n• 🏠 **Property Analysis** - Evaluate specific properties for STR potential\n• 📊 **Market Research** - Identify the best markets for your investment goals\n• 💰 **Revenue Projections** - Estimate cash flow and ROI\n• 📋 **Regulatory Guidance** - Navigate local STR laws and requirements\n• 🎯 **Optimization Tips** - Maximize occupancy and pricing strategies\n\n*Tip: You can also ask me to navigate to different tabs, like \"Show me my properties\" or \"Take me to reports\"*\n\nWhat would you like to explore today?"
+      ,
+      threadId
     };
   }
 

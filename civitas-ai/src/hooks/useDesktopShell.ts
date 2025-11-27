@@ -1,10 +1,18 @@
 // FILE: src/hooks/useDesktopShell.ts
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Message } from '../types/chat';
+import type { InvestmentStrategy, PnLOutput } from '../types/pnl';
+import type { InvestmentReportFormat } from '../types/enums';
+import type { ReportData } from '../components/reports/ReportDrawer';
 import { generateChatTitle } from '../utils/chatTitles';
 import { ChatService } from '../services/ChatService';
 import { useAuth } from '../contexts/AuthContext';
 import { analyzeFile, askAboutFile } from '../services/fileService';
+import { fetchToolResults } from '../services/chatApi';
+import { generateReport } from '../services/agentsApi';
+import type { ToolResultRecord } from '../types/toolResults';
+import { toolResultsToRecords, toolResultsToToolCards } from '../utils/toolResults';
+import { logger } from '../utils/logger';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 export interface ChatSession {
@@ -16,9 +24,28 @@ export interface ChatSession {
   messages: Message[];
 }
 
-export type TabType = 'chat' | 'settings';
+export type TabType = 'chat' | 'settings' | 'reports';
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'settings'];
+// Deal Analyzer state
+export interface DealAnalyzerState {
+  isOpen: boolean;
+  propertyId: string | null;
+  purchasePrice: number;
+  strategy: InvestmentStrategy;
+  propertyAddress?: string;
+}
+
+// Report Drawer state
+export interface ReportDrawerState {
+  isOpen: boolean;
+  report: ReportData | null;
+  isLoading: boolean;
+  error: string | null;
+  inferredStrategy?: InvestmentStrategy;
+  propertyAddress?: string;
+}
+
+const NAVIGABLE_TABS: TabType[] = ['chat', 'settings', 'reports'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 
@@ -73,6 +100,52 @@ export function useDesktopShell() {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [fileThreadId, setFileThreadId] = useState<string | null>(null);
   const [fileContextName, setFileContextName] = useState<string | null>(null);
+  const [threadMap, setThreadMap] = useState<Record<string, string>>(() => {
+    if (typeof window === 'undefined') return {};
+    const stored = window.localStorage.getItem('civitas-thread-map');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (error) {
+        console.warn('Failed to parse thread map from storage', error);
+        return {};
+      }
+    }
+    const legacyThreadId = window.localStorage.getItem('civitas-thread-id');
+    const legacyChatId = window.localStorage.getItem('civitas-active-chat-id') || 'main';
+    if (legacyThreadId) {
+      const initial = { [legacyChatId]: legacyThreadId };
+      window.localStorage.setItem('civitas-thread-map', JSON.stringify(initial));
+      return initial;
+    }
+    return {};
+  });
+  const [toolResultsByThread, setToolResultsByThread] = useState<Record<string, ToolResultRecord[]>>({});
+  const [isFetchingToolResults, setIsFetchingToolResults] = useState(false);
+  const [toolMemoryError, setToolMemoryError] = useState<string | null>(null);
+  const currentThreadId = threadMap[activeChatId] || null;
+
+  // Deal Analyzer state
+  const [dealAnalyzer, setDealAnalyzer] = useState<DealAnalyzerState>({
+    isOpen: false,
+    propertyId: null,
+    purchasePrice: 500000,
+    strategy: 'STR',
+    propertyAddress: undefined,
+  });
+
+  // Report Drawer state
+  const [reportDrawer, setReportDrawer] = useState<ReportDrawerState>({
+    isOpen: false,
+    report: null,
+    isLoading: false,
+    error: null,
+    inferredStrategy: undefined,
+    propertyAddress: undefined,
+  });
+
+  // Track latest P&L output for report generation
+  const [latestPnlOutput, setLatestPnlOutput] = useState<PnLOutput | null>(null);
 
   // Refs for cleanup
   const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
@@ -87,6 +160,13 @@ export function useDesktopShell() {
   useEffect(() => {
     window.localStorage.setItem('civitas-active-chat-id', activeChatId);
   }, [activeChatId]);
+
+  // Persist thread map
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('civitas-thread-map', JSON.stringify(threadMap));
+    }
+  }, [threadMap]);
 
   // Persist messages and auto-save to history
   useEffect(() => {
@@ -162,6 +242,57 @@ export function useDesktopShell() {
     setFileContextName(null);
   };
 
+  const updateThreadIdForChat = useCallback((chatId: string, newThreadId: string | null) => {
+    setThreadMap(prev => {
+      const next = { ...prev };
+      if (!newThreadId) {
+        delete next[chatId];
+      } else {
+        next[chatId] = newThreadId;
+      }
+      return next;
+    });
+
+    if (typeof window !== 'undefined') {
+      if (newThreadId) {
+        window.localStorage.setItem('civitas-thread-id', newThreadId);
+      } else {
+        window.localStorage.removeItem('civitas-thread-id');
+      }
+    }
+  }, []);
+
+  const refreshToolResults = useCallback(async (options?: {
+    threadId?: string;
+  }) => {
+    const threadToFetch = options?.threadId || currentThreadId;
+    if (!threadToFetch) return;
+
+    setIsFetchingToolResults(true);
+    setToolMemoryError(null);
+
+    try {
+      const results = await fetchToolResults(threadToFetch);
+      setToolResultsByThread(prev => ({
+        ...prev,
+        [threadToFetch]: results,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch tool results', error);
+      setToolMemoryError('Unable to load recent calculations. Please try again later.');
+    } finally {
+      setIsFetchingToolResults(false);
+    }
+  }, [currentThreadId]);
+
+  useEffect(() => {
+    if (currentThreadId && !toolResultsByThread[currentThreadId]) {
+      refreshToolResults({ threadId: currentThreadId });
+    }
+  }, [currentThreadId, toolResultsByThread, refreshToolResults]);
+
+  const clearToolMemoryError = useCallback(() => setToolMemoryError(null), []);
+
   // Chat handlers
   const handleSendMessage = (message: string) => {
     if (!message.trim() && !attachment) return;
@@ -196,6 +327,7 @@ export function useDesktopShell() {
         let action: any;
         let toolResults: any;
         let tour: any;
+        let resolvedThreadId = currentThreadId;
 
         if (currentAttachment) {
           try {
@@ -238,13 +370,25 @@ export function useDesktopShell() {
             name: user?.name?.split(' ')[0] || 'there',
             onboarding_completed: false
           };
-          const response = await ChatService.generateSTRResponse(trimmedMessage, userContext, messages);
+          const response = await ChatService.generateSTRResponse(
+            trimmedMessage,
+            userContext,
+            messages,
+            undefined,
+            currentThreadId || undefined
+          );
           fullResponse = response.content;
           navigate = response.navigate;
           action = response.action;
           toolResults = response.tool_results;
           tour = response.tour;
+          if (response.threadId) {
+            updateThreadIdForChat(activeChatId, response.threadId);
+            resolvedThreadId = response.threadId;
+          }
         }
+
+        const optimisticRecords = toolResultsToRecords(toolResults);
         
         // For tour navigation, navigate IMMEDIATELY before showing message
         if (tour?.navigate_first && isNavigableTab(navigate)) {
@@ -298,8 +442,47 @@ export function useDesktopShell() {
                 action: isComplete ? action : undefined // Add action only when complete
               };
               // Include tool_results for conversation context if available
-              if (isComplete && toolResults) {
-                assistantMessage.tool_results = toolResults;
+              if (isComplete) {
+                if (toolResults) {
+                  assistantMessage.tool_results = toolResults;
+                  logger.info('[useDesktopShell] Processing tool results for message', {
+                    messageId: id,
+                    hasToolResults: !!toolResults,
+                    toolResultsType: typeof toolResults,
+                    isArray: Array.isArray(toolResults),
+                  });
+                }
+                const cards = toolResultsToToolCards(toolResults);
+                logger.info('[useDesktopShell] Tool cards generated', {
+                  messageId: id,
+                  cardCount: cards.length,
+                  cardKinds: cards.map(c => c.kind),
+                });
+                if (cards.length > 0) {
+                  assistantMessage.tools = cards;
+                  logger.info('[useDesktopShell] ✅ Attached tool cards to message', {
+                    messageId: id,
+                    cards: cards.map(c => ({ kind: c.kind, title: c.title, hasData: !!c.data })),
+                  });
+                } else if (toolResults) {
+                  logger.warn('[useDesktopShell] ⚠️ Tool results present but no cards created', {
+                    messageId: id,
+                    toolResultsSummary: Array.isArray(toolResults) 
+                      ? toolResults.map((tr: any) => tr.tool_name || tr.kind || 'unknown')
+                      : Object.keys(toolResults),
+                  });
+                }
+
+                const threadKey = resolvedThreadId || currentThreadId;
+                if (threadKey && optimisticRecords.length > 0) {
+                  setToolResultsByThread(prev => {
+                    const existing = prev[threadKey] || [];
+                    return {
+                      ...prev,
+                      [threadKey]: [...optimisticRecords, ...existing],
+                    };
+                  });
+                }
               }
               // Include tour data if available
               if (isComplete && tour) {
@@ -314,7 +497,7 @@ export function useDesktopShell() {
           () => {
             setStreamIntervalId(null);
             setIsLoading(false);
-            
+
             // Handle navigation after message is displayed
             if (isNavigableTab(navigate)) {
               // For tour navigation, navigate immediately
@@ -391,6 +574,7 @@ export function useDesktopShell() {
     
     const newId = Date.now().toString();
     setActiveChatId(newId);
+    updateThreadIdForChat(newId, null);
   };
 
   const handleLoadChat = (chatId: string) => {
@@ -407,6 +591,11 @@ export function useDesktopShell() {
     }
     setIsSidebarOpen(false);
     setActiveTab('chat');
+
+    const existingThreadId = threadMap[chatId];
+    if (existingThreadId) {
+      refreshToolResults({ threadId: existingThreadId });
+    }
   };
 
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
@@ -421,6 +610,11 @@ export function useDesktopShell() {
       setActiveChatId(nextChat.id);
       setMessages(nextChat.messages || []);
       clearPendingAttachment();
+      updateThreadIdForChat(nextChat.id, threadMap[nextChat.id] || null);
+      const nextThreadId = threadMap[nextChat.id];
+      if (nextThreadId) {
+        refreshToolResults({ threadId: nextThreadId });
+      }
     }
   };
 
@@ -436,6 +630,118 @@ export function useDesktopShell() {
     setMessages(prev => [...prev, infoMessage]);
   };
 
+  // Deal Analyzer handlers
+  const openDealAnalyzer = (
+    propertyId: string | null = null,
+    strategy: InvestmentStrategy = 'STR',
+    purchasePrice: number = 500000,
+    propertyAddress?: string
+  ) => {
+    setDealAnalyzer({
+      isOpen: true,
+      propertyId,
+      purchasePrice,
+      strategy,
+      propertyAddress,
+    });
+  };
+
+  const closeDealAnalyzer = () => {
+    setDealAnalyzer(prev => ({
+      ...prev,
+      isOpen: false,
+    }));
+  };
+
+  // Report Drawer handlers
+  const openReportDrawer = (
+    inferredStrategy?: InvestmentStrategy,
+    propertyAddress?: string
+  ) => {
+    setReportDrawer(prev => ({
+      ...prev,
+      isOpen: true,
+      inferredStrategy: inferredStrategy || prev.inferredStrategy || dealAnalyzer.strategy,
+      propertyAddress: propertyAddress || prev.propertyAddress || dealAnalyzer.propertyAddress,
+    }));
+  };
+
+  const closeReportDrawer = () => {
+    setReportDrawer(prev => ({
+      ...prev,
+      isOpen: false,
+    }));
+  };
+
+  const generateReportWithType = async (reportType: InvestmentReportFormat) => {
+    setReportDrawer(prev => ({ ...prev, isLoading: true, error: null }));
+
+    logger.info('[useDesktopShell] Generating report', { reportType, propertyAddress: reportDrawer.propertyAddress });
+
+    try {
+      // Build valuation data from latest P&L output if available
+      const valuationData = latestPnlOutput
+        ? {
+            strategy: latestPnlOutput.meta.strategy,
+            purchase_price: latestPnlOutput.financingSummary.downPayment + latestPnlOutput.financingSummary.loanAmount,
+            total_investment: latestPnlOutput.financingSummary.totalInvestment,
+            monthly_cashflow: latestPnlOutput.year1.monthlyCashflow,
+            noi: latestPnlOutput.year1.noi,
+            cap_rate: latestPnlOutput.year1.capRate,
+            cash_on_cash: latestPnlOutput.year1.cashOnCash,
+          }
+        : {};
+
+      const response = await generateReport({
+        valuation: valuationData,
+        report_type: reportType,
+        export_format: 'text',
+        property_address: reportDrawer.propertyAddress,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Report generation failed');
+      }
+
+      const reportData: ReportData = {
+        content: response.report,
+        report_type: response.report_type || reportType,
+        generated_at: response.generated_at || new Date().toISOString(),
+        property_address: response.property_details?.address || reportDrawer.propertyAddress,
+        property_details: response.property_details,
+      };
+
+      setReportDrawer(prev => ({
+        ...prev,
+        report: reportData,
+        isLoading: false,
+      }));
+
+      logger.info('[useDesktopShell] Report generated successfully', { reportType });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate report';
+      setReportDrawer(prev => ({
+        ...prev,
+        isLoading: false,
+        error: message,
+      }));
+      logger.error('[useDesktopShell] Report generation failed', { error: message });
+    }
+  };
+
+  const clearReport = () => {
+    setReportDrawer(prev => ({
+      ...prev,
+      report: null,
+      error: null,
+    }));
+  };
+
+  // Update latest P&L output when deal analyzer produces results
+  const updateLatestPnlOutput = useCallback((output: PnLOutput | null) => {
+    setLatestPnlOutput(output);
+  }, []);
+
   const handleAction = (actionValue: string, _actionContext?: any) => {
     if (actionValue === 'navigate_settings') {
       setActiveTab('settings');
@@ -443,7 +749,29 @@ export function useDesktopShell() {
       return;
     }
 
-    if (['generate_report', 'view_report', 'navigate_market_insights'].includes(actionValue)) {
+    // Handle Deal Analyzer action
+    if (actionValue === 'open_deal_analyzer') {
+      const context = _actionContext || {};
+      openDealAnalyzer(
+        context.propertyId || null,
+        context.strategy || 'STR',
+        context.purchasePrice || 500000,
+        context.propertyAddress
+      );
+      return;
+    }
+
+    // Handle Report generation action
+    if (actionValue === 'generate_report' || actionValue === 'view_report') {
+      const context = _actionContext || {};
+      openReportDrawer(
+        context.strategy || dealAnalyzer.strategy,
+        context.propertyAddress || dealAnalyzer.propertyAddress
+      );
+      return;
+    }
+
+    if (['navigate_market_insights'].includes(actionValue)) {
       notifyFeatureUnavailable();
       return;
     }
@@ -465,6 +793,12 @@ export function useDesktopShell() {
     isLoading,
     showSuggestions,
     attachment,
+    dealAnalyzer,
+    reportDrawer,
+    currentThreadId,
+    toolResultsByThread,
+    isFetchingToolResults,
+    toolMemoryError,
     
     // Setters
     setIsSidebarOpen,
@@ -479,6 +813,15 @@ export function useDesktopShell() {
     handleNewChat,
     handleLoadChat,
     handleDeleteChat,
-    handleAction
+    handleAction,
+    openDealAnalyzer,
+    closeDealAnalyzer,
+    openReportDrawer,
+    closeReportDrawer,
+    generateReportWithType,
+    clearReport,
+    updateLatestPnlOutput,
+    refreshToolResults,
+    clearToolMemoryError
   };
 }

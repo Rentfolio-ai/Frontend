@@ -1,5 +1,6 @@
 // FILE: src/services/chatApi.ts
 import { apiLogger } from '@/utils/logger';
+import type { ToolResultRecord } from '../types/toolResults';
 
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -14,6 +15,37 @@ export interface ChatResponse {
     name: string;
     parameters: Record<string, any>;
   }>;
+}
+
+export async function fetchToolResults(threadId: string, limit = 5): Promise<ToolResultRecord[]> {
+  if (!threadId) return [];
+  const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+  const url = `${BACKEND_URL}/api/chat/tool-results/${threadId}?limit=${limit}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      // Silently return empty array if endpoint doesn't exist (404)
+      // Tool results will come from chat response instead
+      if (response.status === 404) {
+        console.debug('[chatApi] Tool results endpoint not available, using chat response');
+        return [];
+      }
+      throw new Error(`Failed to fetch tool results (${response.status})`);
+    }
+
+    return response.json();
+  } catch (error) {
+    // Network error or other issue - return empty array
+    console.debug('[chatApi] fetchToolResults failed, using chat response', error);
+    return [];
+  }
 }
 
 /**

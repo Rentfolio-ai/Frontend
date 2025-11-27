@@ -4,15 +4,33 @@ import { MessageBubble } from './MessageBubble';
 import { LoadingBubble } from './LoadingBubble';
 import type { Message } from '../../data/seed';
 import type { AgentStatus } from '../common/AgentAvatar';
+import type { InvestmentStrategy } from '../../types/pnl';
+import type { BookmarkedProperty } from '../../types/bookmarks';
+import type { ScoutedProperty } from '../../types/backendTools';
 
 interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
   onAction?: (actionValue: string, actionContext?: any) => void;
   agentStatus?: AgentStatus;
+  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
+  // Property bookmark support
+  bookmarks?: BookmarkedProperty[];
+  onToggleBookmark?: (property: ScoutedProperty) => void;
+  // Navigate to reports tab (reports are auto-saved on backend)
+  onNavigateToReports?: () => void;
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onAction, agentStatus = 'online' }) => {
+export const MessageList: React.FC<MessageListProps> = ({ 
+  messages, 
+  isLoading = false, 
+  onAction, 
+  agentStatus = 'online',
+  onOpenDealAnalyzer,
+  bookmarks,
+  onToggleBookmark,
+  onNavigateToReports,
+}) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -36,7 +54,15 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     return (
       <div className="h-full overflow-y-auto">
         <div className="max-w-6xl mx-auto py-8 px-4 space-y-4">
-          <MessageBubble message={welcomeMessage} onAction={onAction} agentStatus={agentStatus} />
+          <MessageBubble 
+            message={welcomeMessage} 
+            onAction={onAction} 
+            agentStatus={agentStatus}
+            onOpenDealAnalyzer={onOpenDealAnalyzer}
+            bookmarks={bookmarks}
+            onToggleBookmark={onToggleBookmark}
+            onNavigateToReports={onNavigateToReports}
+          />
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -47,7 +73,16 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     <div className="h-full overflow-y-auto">
       <div className="max-w-6xl mx-auto py-8 px-4 space-y-4">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} onAction={onAction} agentStatus={agentStatus} />
+          <MessageBubble 
+            key={message.id} 
+            message={message} 
+            onAction={onAction} 
+            agentStatus={agentStatus}
+            onOpenDealAnalyzer={onOpenDealAnalyzer}
+            bookmarks={bookmarks}
+            onToggleBookmark={onToggleBookmark}
+            onNavigateToReports={onNavigateToReports}
+          />
         ))}
         {isLoading && <LoadingBubble />}
         <div ref={messagesEndRef} />
