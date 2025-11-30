@@ -1,49 +1,74 @@
 // FILE: src/pages/auth/SignUpPage.tsx
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '../../components/primitives/Button';
+import { FeatureShowcase } from '../../components/auth/FeatureShowcase';
+import { CivitasLogo } from '../../components/auth/CivitasLogo';
+import { authAPI } from '../../services/authApi';
 
 interface SignUpPageProps {
   onSignUp: (user: any) => void;
   onNavigateToSignIn: () => void;
 }
 
+interface PasswordRequirements {
+  minLength: boolean;
+  hasUppercase: boolean;
+  hasNumber: boolean;
+}
+
 export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSignIn }) => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    name: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateForm = () => {
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string): PasswordRequirements => {
+    return {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasNumber: /\d/.test(password),
+    };
+  };
+
+  const passwordRequirements = validatePassword(formData.password);
+  const isPasswordValid = Object.values(passwordRequirements).every((req) => req);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!isPasswordValid) {
+      newErrors.password = 'Password does not meet requirements';
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+    if (!acceptTerms) {
+      newErrors.terms = 'You must accept the terms and conditions';
     }
 
     setErrors(newErrors);
@@ -57,83 +82,102 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
 
     setIsLoading(true);
     
-    // Simulate registration
-    setTimeout(() => {
-      onSignUp({
-        id: '1',
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        avatar: formData.firstName.charAt(0) + formData.lastName.charAt(0)
+    try {
+      const response = await authAPI.signUp({
+        email: formData.email.trim(),
+        password: formData.password,
+        name: formData.name.trim() || undefined,
+        accept_terms: acceptTerms,
       });
+
+      // Transform API response to match expected user format
+      const userData = {
+        id: response.user.user_id,
+        name: response.user.name || formData.name || response.user.email.split('@')[0],
+        email: response.user.email,
+        avatar: response.user.name
+          ? response.user.name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .toUpperCase()
+          : response.user.email[0].toUpperCase(),
+      };
+
+      onSignUp(userData);
+    } catch (error) {
+      setErrors({
+        general: error instanceof Error ? error.message : 'Failed to create account. Please try again.',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
-    
-    // Simulate Google OAuth
-    setTimeout(() => {
-      onSignUp({
-        id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        avatar: 'JD',
-        provider: 'google'
+    try {
+      await authAPI.signInWithGoogle();
+      // Note: OAuth redirect will happen, so this may not complete
+    } catch (error) {
+      setErrors({
+        general: error instanceof Error ? error.message : 'Failed to sign up with Google. Please try again.',
       });
       setIsGoogleLoading(false);
-    }, 2000);
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
   return (
-    <div className="min-h-screen flex" style={{
-      background: 'linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%)'
-    }}>
-      {/* Left Panel - Sign Up Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-12">
-        <div 
-          className="w-full max-w-md mx-auto rounded-2xl p-8"
+    <main className="min-h-screen flex" style={{ backgroundColor: '#0F0E23' }}>
+      {/* Left Column - Sign-Up Form */}
+      <div className="w-full lg:w-[45%] flex flex-col justify-center px-6 py-12 lg:px-16">
+        <motion.div
+          className="w-full max-w-md mx-auto rounded-2xl p-10"
           style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.12)'
+            backgroundColor: '#1E1B4B',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.3)',
           }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          {/* Logo and Title */}
+          {/* Logo & Branding */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{
-              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)'
-            }}>
-              <svg
-                className="w-8 h-8 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Create Your Account
-            </h1>
-            <p className="text-sm text-gray-600">
-              Start your STR investment journey with Civitas
-            </p>
+            <CivitasLogo size={64} showText={true} />
+            <motion.p
+              className="text-white text-base font-medium mt-4"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              Create your account
+            </motion.p>
           </div>
 
+          {/* Error Message */}
+          {errors.general && (
+            <motion.div
+              className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {errors.general}
+            </motion.div>
+          )}
+
           <div className="space-y-6">
-          {/* Google Sign Up */}
+            {/* Google Sign Up Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
           <Button
             onClick={handleGoogleSignUp}
             isLoading={isGoogleLoading}
             variant="outline"
-            className="w-full h-12"
+                className="w-full h-12 bg-white text-gray-900 border-0 hover:bg-gray-50 transition-all duration-300"
             leftIcon={
               !isGoogleLoading && (
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -159,80 +203,52 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
           >
             Continue with Google
           </Button>
+            </motion.div>
 
+            {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-300" />
+                <span className="w-full border-t border-white/20" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+                <span
+                  className="px-2 text-white/60"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, letterSpacing: '0.05em' }}
+                >
+                  OR CONTINUE WITH EMAIL
+                </span>
             </div>
           </div>
 
           {/* Email Sign Up Form */}
-          <form className="space-y-4" onSubmit={handleEmailSignUp}>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  First name
-                </label>
+            <form className="space-y-5" onSubmit={handleEmailSignUp}>
+              {/* Name Field (Optional) */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 <input
-                  id="firstName"
-                  name="firstName"
+                  id="name"
+                  name="name"
                   type="text"
-                  autoComplete="given-name"
-                  required
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  aria-invalid={!!errors.firstName}
-                  aria-describedby={errors.firstName ? 'firstName-error' : undefined}
-                  className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
-                             placeholder:text-gray-400 focus:outline-none focus:ring-2 
-                             focus:border-transparent transition-colors ${
-                               errors.firstName 
-                                 ? 'border-red-500 focus:ring-red-500' 
-                                 : 'border-gray-300 focus:ring-blue-500'
-                             }`}
-                  placeholder="John"
+                  autoComplete="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Name (optional)"
+                  className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-400
+                    border border-white/20 transition-all duration-300 focus:outline-none focus:ring-2
+                    focus:border-purple-500 focus:ring-purple-500/20"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                 />
-                {errors.firstName && (
-                  <p id="firstName-error" className="mt-1 text-xs text-red-600" role="alert">{errors.firstName}</p>
-                )}
-              </div>
+              </motion.div>
 
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Last name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  autoComplete="family-name"
-                  required
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  aria-invalid={!!errors.lastName}
-                  aria-describedby={errors.lastName ? 'lastName-error' : undefined}
-                  className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
-                             placeholder:text-gray-400 focus:outline-none focus:ring-2 
-                             focus:border-transparent transition-colors ${
-                               errors.lastName 
-                                 ? 'border-red-500 focus:ring-red-500' 
-                                 : 'border-gray-300 focus:ring-blue-500'
-                             }`}
-                  placeholder="Doe"
-                />
-                {errors.lastName && (
-                  <p id="lastName-error" className="mt-1 text-xs text-red-600" role="alert">{errors.lastName}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
+              {/* Email Field */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
               <input
                 id="email"
                 name="email"
@@ -241,94 +257,149 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 required
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'email-error' : undefined}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
-                           placeholder:text-gray-400 focus:outline-none focus:ring-2 
-                           focus:border-transparent transition-colors ${
+                  placeholder="Email address"
+                  className={`w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-400
+                    border transition-all duration-300 focus:outline-none focus:ring-2
+                    ${
                              errors.email 
-                               ? 'border-red-500 focus:ring-red-500' 
-                               : 'border-gray-300 focus:ring-blue-500'
+                        ? 'border-red-500 focus:ring-red-500/20'
+                        : 'border-white/20 focus:border-[#8B5CF6] focus:ring-[#8B5CF6]/20'
                            }`}
-                placeholder="john@example.com"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
               />
               {errors.email && (
-                <p id="email-error" className="mt-1 text-xs text-red-600" role="alert">{errors.email}</p>
+                  <p className="mt-1 text-xs text-red-400" role="alert">
+                    {errors.email}
+                  </p>
               )}
-            </div>
+              </motion.div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
+              {/* Password Field */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="relative">
               <input
                 id="password"
                 name="password"
-                type="password"
+                    type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 required
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                aria-invalid={!!errors.password}
-                aria-describedby={errors.password ? 'password-error' : undefined}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
-                           placeholder:text-gray-400 focus:outline-none focus:ring-2 
-                           focus:border-transparent transition-colors ${
+                    placeholder="Password"
+                    className={`w-full px-4 py-3 pr-12 rounded-lg bg-white text-gray-900 placeholder:text-gray-400
+                      border transition-all duration-300 focus:outline-none focus:ring-2
+                      ${
                              errors.password 
-                               ? 'border-red-500 focus:ring-red-500' 
-                               : 'border-gray-300 focus:ring-blue-500'
+                          ? 'border-red-500 focus:ring-red-500/20'
+                          : formData.password && !isPasswordValid
+                          ? 'border-yellow-500 focus:ring-yellow-500/20'
+                          : formData.password && isPasswordValid
+                          ? 'border-[#10B981] focus:ring-[#10B981]/20'
+                          : 'border-white/20 focus:border-[#8B5CF6] focus:ring-[#8B5CF6]/20'
                            }`}
-                placeholder="Create a strong password"
-              />
+                    style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               {errors.password && (
-                <p id="password-error" className="mt-1 text-xs text-red-600" role="alert">{errors.password}</p>
+                  <p className="mt-1 text-xs text-red-400" role="alert">
+                    {errors.password}
+                  </p>
+                )}
+                {/* Password Requirements */}
+                {formData.password && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-white/60 mb-1">Password requirements:</p>
+                    <div className="space-y-0.5 text-xs">
+                      <div className={`flex items-center gap-2 ${passwordRequirements.minLength ? 'text-green-400' : 'text-white/40'}`}>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          {passwordRequirements.minLength ? (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          ) : (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               )}
-              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                        </svg>
+                        Minimum 8 characters
+                      </div>
+                      <div className={`flex items-center gap-2 ${passwordRequirements.hasUppercase ? 'text-green-400' : 'text-white/40'}`}>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          {passwordRequirements.hasUppercase ? (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          ) : (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          )}
+                        </svg>
+                        At least one uppercase letter
+                      </div>
+                      <div className={`flex items-center gap-2 ${passwordRequirements.hasNumber ? 'text-green-400' : 'text-white/40'}`}>
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          {passwordRequirements.hasNumber ? (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          ) : (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          )}
+                        </svg>
+                        At least one number
+                      </div>
+                    </div>
             </div>
+                )}
+              </motion.div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                aria-invalid={!!errors.confirmPassword}
-                aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-gray-900
-                           placeholder:text-gray-400 focus:outline-none focus:ring-2 
-                           focus:border-transparent transition-colors ${
-                             errors.confirmPassword 
-                               ? 'border-red-500 focus:ring-red-500' 
-                               : 'border-gray-300 focus:ring-blue-500'
-                           }`}
-                placeholder="Confirm your password"
-              />
-              {errors.confirmPassword && (
-                <p id="confirmPassword-error" className="mt-1 text-xs text-red-600" role="alert">{errors.confirmPassword}</p>
+              {/* Terms and Conditions */}
+              <motion.div
+                className="flex items-start gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div
+                  className="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 cursor-pointer transition-all duration-200 border-white/30"
+                  style={{
+                    backgroundColor: acceptTerms ? 'transparent' : 'transparent',
+                    background: acceptTerms ? 'linear-gradient(to right, #8B5CF6, #10B981)' : 'transparent',
+                    borderColor: acceptTerms ? 'transparent' : 'rgba(255, 255, 255, 0.3)',
+                  }}
+                  onClick={() => setAcceptTerms(!acceptTerms)}
+                >
+                  {acceptTerms && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
               )}
             </div>
-
-            <div className="flex items-start">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 mt-0.5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-600">
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-white cursor-pointer select-none"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}
+                >
                 I agree to the{' '}
                 <a 
                   href="/terms-of-service" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-blue-600 hover:text-blue-500 transition-colors"
+                    className="hover:underline transition-colors"
+                    style={{ color: '#B794F6' }}
                 >
                   Terms of Service
                 </a>{' '}
@@ -337,119 +408,79 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   href="/privacy-policy" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="text-blue-600 hover:text-blue-500 transition-colors"
+                    className="hover:underline transition-colors"
+                    style={{ color: '#B794F6' }}
                 >
                   Privacy Policy
                 </a>
               </label>
-            </div>
+              </motion.div>
+              {errors.terms && (
+                <p className="text-xs text-red-400 -mt-4" role="alert">
+                  {errors.terms}
+                </p>
+              )}
 
-            <Button
+              {/* Sign Up Button */}
+              <motion.button
               type="submit"
-              isLoading={isLoading}
-              className="w-full h-12"
-            >
-              Create account
-            </Button>
+                disabled={isLoading}
+                whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                className="relative w-full py-3.5 text-white rounded-lg font-bold overflow-hidden group transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                  fontSize: '16px',
+                  background: 'linear-gradient(to right, #8B5CF6, #10B981)',
+                }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                />
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Creating account...
+                    </>
+                  ) : (
+                    'Sign up'
+                  )}
+                </span>
+              </motion.button>
           </form>
 
-          <p className="text-center text-sm text-gray-600">
+            {/* Sign In Link */}
+            <motion.p
+              className="text-center text-sm text-white"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
             Already have an account?{' '}
             <button
               onClick={onNavigateToSignIn}
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                className="font-semibold hover:underline transition-colors"
+                style={{ fontFamily: 'Inter, system-ui, sans-serif', color: '#B794F6' }}
             >
               Sign in
             </button>
-          </p>
+            </motion.p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Right Panel - App Preview */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12">
-        <div className="max-w-lg text-white">
-          <h2 className="text-4xl font-bold mb-4">
-            Start Your Journey
-          </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Join thousands of investors using AI for smarter STR decisions
-          </p>
-          
-          <div className="space-y-6 mb-10">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <span className="text-2xl">🚀</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Free to Start</h3>
-                <p className="text-white/80 text-sm">Begin with essential features, upgrade anytime as your portfolio grows</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <span className="text-2xl">🤖</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">AI-Powered Analysis</h3>
-                <p className="text-white/80 text-sm">Get instant property valuations, ROI projections, and market insights</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <span className="text-2xl">📊</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Comprehensive Reports</h3>
-                <p className="text-white/80 text-sm">Track performance metrics, generate tax reports, and monitor occupancy rates</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <span className="text-2xl">💡</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Expert Insights</h3>
-                <p className="text-white/80 text-sm">Access market trends, investment opportunities, and data-driven recommendations</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Preview Image Placeholder */}
-          <div 
-            className="rounded-2xl overflow-hidden"
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.2)'
-            }}
-          >
-            <div className="aspect-video flex items-center justify-center">
-              <div className="text-center">
-                <svg className="w-16 h-16 mx-auto mb-4 text-white/60" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-                </svg>
-                <p className="text-white/60 text-sm">App Interface Preview</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Right Column - Feature Showcase */}
+      <div className="hidden lg:flex lg:w-[55%] items-center justify-center" style={{ backgroundColor: '#0F0E23' }}>
+        <FeatureShowcase />
       </div>
-    </div>
+    </main>
   );
 };

@@ -4,7 +4,8 @@
 
 import { logger } from '../utils/logger';
 
-const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const API_BASE = `${CIVITAS_API_BASE}/api/reports`;
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -85,16 +86,16 @@ export const reportsService = {
     const params = new URLSearchParams();
     if (threadId) params.set('thread_id', threadId);
     if (limit) params.set('limit', String(limit));
-    
+
     const url = `${API_BASE}/?${params}`;
     logger.info('[reportsApi] Listing reports', { url });
-    
+
     const res = await fetch(url, { headers: getHeaders() });
     if (!res.ok) {
       logger.error('[reportsApi] Failed to fetch reports', { status: res.status });
       throw new Error('Failed to fetch reports');
     }
-    
+
     const data = await res.json();
     logger.info('[reportsApi] Reports fetched', { total: data.total });
     return data;
@@ -105,13 +106,13 @@ export const reportsService = {
    */
   get: async (reportId: string): Promise<ReportDetail> => {
     logger.info('[reportsApi] Fetching report', { reportId });
-    
+
     const res = await fetch(`${API_BASE}/${reportId}`, { headers: getHeaders() });
     if (!res.ok) {
       logger.error('[reportsApi] Report not found', { reportId, status: res.status });
       throw new Error('Report not found');
     }
-    
+
     return res.json();
   },
 
@@ -120,7 +121,7 @@ export const reportsService = {
    * This returns the direct URL - the browser will fetch HTML content
    */
   getHtmlUrl: (reportId: string): string => {
-    return `${API_BASE}/${reportId}/html`;
+    return `${API_BASE}/${reportId}/view`;
   },
 
   /**
@@ -128,17 +129,17 @@ export const reportsService = {
    */
   delete: async (reportId: string): Promise<DeleteReportResponse> => {
     logger.info('[reportsApi] Deleting report', { reportId });
-    
-    const res = await fetch(`${API_BASE}/${reportId}`, { 
+
+    const res = await fetch(`${API_BASE}/${reportId}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    
+
     if (!res.ok) {
       logger.error('[reportsApi] Failed to delete report', { reportId, status: res.status });
       throw new Error('Failed to delete report');
     }
-    
+
     logger.info('[reportsApi] Report deleted', { reportId });
     return res.json();
   },
@@ -148,13 +149,13 @@ export const reportsService = {
    */
   getByThread: async (threadId: string): Promise<ReportListResponse> => {
     logger.info('[reportsApi] Fetching reports for thread', { threadId });
-    
+
     const res = await fetch(`${API_BASE}/thread/${threadId}`, { headers: getHeaders() });
     if (!res.ok) {
       logger.error('[reportsApi] Failed to fetch reports for thread', { threadId, status: res.status });
       throw new Error('Failed to fetch reports for thread');
     }
-    
+
     return res.json();
   },
 };
@@ -168,7 +169,7 @@ export const reportsService = {
  */
 export function extractReportFromToolResults(toolResults: Array<{ tool_name: string; data: unknown }>): GenerateReportToolResult | null {
   const reportResult = toolResults.find(t => t.tool_name === 'generate_report');
-  
+
   if (reportResult && reportResult.data) {
     return reportResult.data as GenerateReportToolResult;
   }
@@ -189,7 +190,7 @@ export async function fetchReportFromUrl(viewUrl: string): Promise<string | null
     const fullUrl = viewUrl.startsWith('http') ? viewUrl : `${CIVITAS_API_BASE}${viewUrl}`;
     const res = await fetch(fullUrl, { headers: getHeaders() });
     if (!res.ok) return null;
-    
+
     const contentType = res.headers.get('content-type') || '';
     if (contentType.includes('text/html')) {
       return await res.text();

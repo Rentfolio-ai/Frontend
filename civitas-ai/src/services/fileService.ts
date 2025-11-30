@@ -15,7 +15,8 @@ export interface AskFileResponse {
   metadata?: Record<string, unknown>;
 }
 
-const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 export const analyzeFile = async (

@@ -53,12 +53,28 @@ export interface ScoutedProperty {
   photos?: string[];
   days_on_market?: number;
   listing_url?: string;
+  // Additional listing details
+  hoa_fee?: number;          // Monthly HOA fee
+  description?: string;      // Listing description
+  listing_type?: string;     // "Standard" | "Foreclosure" | "Short Sale" | "New Construction"
+  mls_number?: string;       // MLS ID
+  lot_size?: number;         // Lot size in sqft
   // Rentcast-derived estimates
   nightly_price?: number;
   monthly_revenue_estimate?: number;
   annual_revenue_estimate?: number;
   cash_on_cash_roi?: number;
   avg_occupancy_rate?: number;
+  financial_snapshot?: {
+    estimated_monthly_cash_flow: number;
+    status: 'positive' | 'negative';
+    estimated_rent: number;
+    assumptions: {
+      rate: number;
+      down_payment: number;
+      rule: string;
+    };
+  };
 }
 
 export interface ScoutPropertiesOutput {
@@ -74,22 +90,22 @@ export interface ScoutPropertiesOutput {
     str_friendly: boolean;
     compliance_tips: string[];
   };
-  // Market context appended when zip_code is provided
+  // Market context - always included when searching by city or zip_code
   market_context?: {
     zip_code: string;
     sale_stats: {
-      median_price?: number;
-      avg_price_per_sqft?: number;
+      median_price: number;
+      avg_price_per_sqft: number;
       avg_days_on_market?: number;
       listings_count?: number;
     };
     rental_stats: {
-      avg_rent?: number;
+      avg_rent: number;
       avg_rent_per_sqft?: number;
       listings_count?: number;
     };
-    history_range: string;          // e.g., "3m", "12m"
-    summary?: string;               // Human-readable summary with rent-to-price ratio
+    history_range?: string;         // e.g., "3m", "12m"
+    summary: string;                // Human-readable summary with rent-to-price ratio
   };
   market_seasonality?: unknown;
   market_demand?: unknown;
@@ -283,11 +299,11 @@ export interface RequestPnLCalculationResult {
 
 export interface RequestPnLCalculationResponse {
   success: boolean;
-  
+
   // If success = true
   result?: RequestPnLCalculationResult;
   message?: string;
-  
+
   // If success = false
   error?: string;                    // "Missing required inputs" | "Calculation validation failed" | "Calculation error"
   missing_fields?: string[];         // List of missing required fields
@@ -305,19 +321,19 @@ export interface RequestMetricsCalculationInput {
   down_payment_amount: number;
   interest_rate: number;              // 0-1, e.g., 0.075 = 7.5%
   loan_term_years: number;            // Default: 30
-  
+
   // Optional Financing
   closing_costs?: number;             // Default: 0
   renovation_budget?: number;         // Default: 0
-  
+
   // Income (strategy-specific - REQUIRED)
   // For STR:
   nightly_rate_str?: number;          // REQUIRED if strategy is STR
   occupancy_rate_str?: number;        // REQUIRED if strategy is STR (0-1)
-  
+
   // For LTR:
   monthly_rent_ltr?: number;          // REQUIRED if strategy is LTR
-  
+
   // Expenses (Monthly - can be 0 but must be provided)
   property_tax_monthly: number;       // Default: 0
   insurance_monthly: number;          // Default: 0
@@ -345,11 +361,11 @@ export interface DealMetrics {
 
 export interface RequestMetricsCalculationResponse {
   success: boolean;
-  
+
   // If success = true
   result?: DealMetrics;
   message?: string;
-  
+
   // If success = false
   error?: string;                    // "Missing required inputs" | "Calculation validation failed" | "Calculation error"
   missing_fields?: string[];         // List of missing required fields
@@ -561,7 +577,7 @@ export interface AnalyzePropertyImageInput {
   image_url?: string;              // HTTPS URL to property photo
   image_base64?: string;           // Base64 encoded image (with or without data URL prefix)
   image_mime_type?: string;        // MIME type (required if base64, e.g., "image/jpeg")
-  
+
   // Analysis configuration
   analysis_type?: VisionAnalysisType;  // Default: "renovation"
   room_type?: VisionRoomType;          // Default: "auto"
@@ -613,7 +629,7 @@ export interface AnalyzePropertyImageOutput {
   analysis_type: string;
   room_type: string;
   timestamp: string;
-  
+
   // Condition Assessment
   condition?: {
     overall: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
@@ -621,27 +637,27 @@ export interface AnalyzePropertyImageOutput {
     cosmetic_issues: VisionCosmeticIssue[];
     safety_concerns: VisionSafetyConcern[];
   };
-  
+
   // Renovation Costs (for renovation/comprehensive analysis)
   renovation_costs?: {
     basic_refresh: VisionCostBreakdown;
     standard_rental: VisionCostBreakdown;
     premium_upgrade: VisionCostBreakdown;
   };
-  
+
   // Priorities
   priorities?: {
     critical: string[];
     high_impact: string[];
     nice_to_have: string[];
   };
-  
+
   // Recommendations
   recommendations?: VisionRecommendation[];
-  
+
   // Narrative Summary
   summary: string;
-  
+
   // Image metadata
   image_metadata?: {
     format?: string;
@@ -650,7 +666,7 @@ export interface AnalyzePropertyImageOutput {
     mode?: string;
     quality_warning?: string;
   };
-  
+
   // Error handling
   error?: string;
   validation_errors?: string[];
@@ -778,11 +794,13 @@ export interface GenerateReportOutput {
   };
   // URL to view/fetch the full HTML report
   view_url: string;
+  // Optional embedded HTML content
+  html_content?: string;
   // ISO timestamp when report was created
   created_at: string;
   // Message from the AI about the report
   message: string;
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Legacy fields for backward compatibility
   // ─────────────────────────────────────────────────────────────────────────────
@@ -832,7 +850,7 @@ export interface GetMarketStatsOutput {
   success: boolean;
   zip_code: string;
   data_type: string;
-  
+
   sale_data?: {
     average_price: number;
     median_price: number;
@@ -841,7 +859,7 @@ export interface GetMarketStatsOutput {
     total_listings: number;
     history: Record<string, MarketHistoryEntry>;  // Key: "YYYY-MM"
   };
-  
+
   rental_data?: {
     average_rent: number;
     median_rent: number;
@@ -850,7 +868,7 @@ export interface GetMarketStatsOutput {
     total_listings: number;
     history: Record<string, MarketHistoryEntry>;
   };
-  
+
   market_summary: {
     zip_code: string;
     assessment: 'seller_favored' | 'buyer_favored' | 'neutral';
@@ -861,7 +879,7 @@ export interface GetMarketStatsOutput {
     active_sale_listings?: number;
     active_rental_listings?: number;
   };
-  
+
   message?: string;
 }
 
@@ -873,7 +891,7 @@ export type GetMarketStatsToolResult = BackendToolResult<GetMarketStatsOutput>;
 
 export interface MarketContext {
   zip_code: string;
-  
+
   sale_data?: {
     average_price: number;
     median_price: number;
@@ -881,7 +899,7 @@ export interface MarketContext {
     avg_days_on_market: number;
     total_listings: number;
   };
-  
+
   rental_data?: {
     average_rent: number;
     median_rent: number;
@@ -889,7 +907,7 @@ export interface MarketContext {
     avg_days_on_market: number;
     total_listings: number;
   };
-  
+
   market_summary: {
     assessment: 'seller_favored' | 'buyer_favored' | 'neutral';
     highlights: string[];
@@ -928,6 +946,12 @@ export interface EnrichedPropertyData {
   sqft?: number;
   year_built?: number;
   property_type?: PropertyTypeBackend;
+  // Additional listing details
+  hoa_fee?: number;          // Monthly HOA fee
+  description?: string;      // Listing description
+  listing_type?: string;     // "Standard" | "Foreclosure" | "Short Sale" | "New Construction"
+  mls_number?: string;       // MLS ID
+  lot_size?: number;         // Lot size in sqft
   // Enriched fields
   _index: number;                   // Display index (1-based)
   price_per_sqft?: number;          // Calculated: price / sqft
@@ -980,24 +1004,24 @@ export interface RentCastPropertyRecord {
   state: string;
   zipCode: string;
   county: string;
-  
+
   bedrooms: number;
   bathrooms: number;
   squareFootage: number;
   lotSize: number;
   yearBuilt: number;
   propertyType: 'Single Family' | 'Condo' | 'Townhouse' | 'Manufactured' | 'Multi-Family' | 'Apartment' | 'Land';
-  
+
   assessedValue?: number;
   taxAssessedValue?: number;
   taxAnnualAmount?: number;
-  
+
   lastSalePrice?: number;
   lastSaleDate?: string;
-  
+
   latitude: number;
   longitude: number;
-  
+
   features?: {
     pool?: boolean;
     garage?: boolean;
@@ -1016,26 +1040,26 @@ export interface RentCastListing {
   state: string;
   zipCode: string;
   county: string;
-  
+
   price: number;                  // Sale price or monthly rent
   status: 'Active' | 'Inactive';
   listingType: 'Standard' | 'New Construction' | 'Foreclosure' | 'Short Sale';
   daysOnMarket: number;
-  
+
   bedrooms: number;
   bathrooms: number;
   squareFootage: number;
   lotSize: number;
   yearBuilt: number;
   propertyType: string;
-  
+
   latitude: number;
   longitude: number;
-  
+
   listedDate: string;
   removedDate?: string;
   createdDate: string;
-  
+
   listingAgentName?: string;
   listingAgentPhone?: string;
   listingAgentEmail?: string;
@@ -1046,7 +1070,7 @@ export interface RentCastValueEstimate {
   priceRangeLow: number;
   priceRangeHigh: number;
   confidence?: 'high' | 'medium' | 'low';
-  
+
   comparables?: Array<{
     id: string;
     formattedAddress: string;
@@ -1064,7 +1088,7 @@ export interface RentCastRentEstimate {
   rentRangeLow: number;
   rentRangeHigh: number;
   confidence?: 'high' | 'medium' | 'low';
-  
+
   comparables?: Array<{
     id: string;
     formattedAddress: string;

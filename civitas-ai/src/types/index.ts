@@ -1,5 +1,5 @@
 // FILE: civitas-ai/src/types/index.ts
-// Type definitions for the Civitas AI application
+// Type definitions for the ProphetAtlas application
 
 export interface Property {
   id: string;

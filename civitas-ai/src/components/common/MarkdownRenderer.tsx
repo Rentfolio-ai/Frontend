@@ -9,7 +9,7 @@ interface MarkdownRendererProps {
 }
 
 /**
- * Lightweight Markdown renderer with Civitas-friendly styles.
+ * Lightweight Markdown renderer with ProphetAtlas-friendly styles.
  */
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className }) => {
   if (!content) {

@@ -4,7 +4,8 @@ import { stripMarkdown } from '../utils/stripMarkdown';
 import { logger } from '../utils/logger';
 import { logApiResponse, summarizeToolResults } from '../utils/apiValidator';
 
-const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 interface ToolCall {
@@ -14,7 +15,7 @@ interface ToolCall {
 
 export class ChatService {
   /**
-   * Generate STR-focused responses using Civitas backend
+   * Generate STR-focused responses using ProphetAtlas backend
    * Returns both content and optional navigation action
    */
   static async generateSTRResponse(
@@ -28,11 +29,13 @@ export class ChatService {
       // Get current settings context for chat API
       const chatContext = buildChatContext();
 
-      const threadId = threadIdOverride || (
-        typeof window !== 'undefined'
-          ? window.localStorage.getItem('civitas-thread-id') || undefined
-          : undefined
-      );
+      const threadId = threadIdOverride;
+      // REMOVED localStorage fallback to prevent stuck state
+      // const threadId = threadIdOverride || (
+      //   typeof window !== 'undefined'
+      //     ? window.localStorage.getItem('civitas-thread-id') || undefined
+      //     : undefined
+      // );
 
       // Prepare request body for backend ChatRequest schema
       const requestBody = {
@@ -45,7 +48,7 @@ export class ChatService {
         },
       };
 
-      // Call new Civitas agents API for chat
+      // Call new ProphetAtlas agents API for chat
       const response = await fetch(`${CIVITAS_API_BASE}/api/chat`, {
         method: 'POST',
         headers: {
@@ -54,10 +57,10 @@ export class ChatService {
         },
         body: JSON.stringify(requestBody),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         // Log full response structure for debugging
         console.log('[ChatService] 📥 RAW API Response:', JSON.stringify(data, null, 2));
         logger.info('[ChatService] API Response received', {
@@ -66,46 +69,46 @@ export class ChatService {
           hasThreadId: !!data.thread_id,
           messageLength: data.message?.length || 0,
         });
-        
+
         // Detailed API response validation
         logApiResponse('/api/chat', data);
 
-        // Persist thread_id from backend if provided
-        if (typeof window !== 'undefined' && data.thread_id) {
-          window.localStorage.setItem('civitas-thread-id', data.thread_id);
-        }
-        
+        // Persist thread_id from backend if provided - REMOVED to prevent stuck state
+        // if (typeof window !== 'undefined' && data.thread_id) {
+        //   window.localStorage.setItem('civitas-thread-id', data.thread_id);
+        // }
+
         // Check for navigation action from backend
         const navigate = data.data?.navigate;
-        
+
         // Check for action buttons (report generation prompt, etc.)
         const action = data.data?.action;
-        
+
         // Get result and strip markdown formatting
         let content = data.message || '';
         content = stripMarkdown(content);
-        
+
         // Check for tool calls
         const toolCalls: ToolCall[] = data.data?.toolCalls || [];
-        
+
         if (toolCalls.length > 0) {
           logger.info('[ChatService] Tool calls received', {
             count: toolCalls.length,
             tools: toolCalls.map(tc => tc.name),
           });
         }
-        
+
         // Extract tool_results for conversation context (always array per backend schema)
         const toolResults = Array.isArray(data.data?.tool_results)
           ? data.data?.tool_results
           : [];
-        
+
         if (toolResults.length > 0) {
           logger.info('[ChatService] Tool results found', {
             summary: summarizeToolResults(toolResults),
             count: toolResults.length,
           });
-          
+
           // Log each tool result structure
           toolResults.forEach((tr: any, idx: number) => {
             logger.info(`[ChatService] Tool result [${idx}]`, {
@@ -118,16 +121,16 @@ export class ChatService {
         } else {
           logger.info('[ChatService] No tool_results attached to response');
         }
-        
+
         // Extract tour data if present
         const tour = data.data?.tour;
-        
+
         // Return cleaned content with navigation, actions, tool_results, and tour data
-        return { 
-          content, 
-          navigate, 
-          toolCalls, 
-          action, 
+        return {
+          content,
+          navigate,
+          toolCalls,
+          action,
           tool_results: toolResults,
           ...(tour && { tour }),
           threadId: data.thread_id || threadId
@@ -140,7 +143,7 @@ export class ChatService {
         } catch {
           errorBody = 'Could not read error body';
         }
-        
+
         logger.error('[ChatService] ❌ API Error Response', {
           status: response.status,
           statusText: response.statusText,
@@ -153,7 +156,7 @@ export class ChatService {
           userMessage: userMessage.substring(0, 100), // Truncate for logging
           threadId,
         });
-        
+
         // Try to parse error details if JSON
         try {
           const errorJson = JSON.parse(errorBody);
@@ -165,7 +168,7 @@ export class ChatService {
         } catch {
           // Not JSON, already logged raw body above
         }
-        
+
         return this.generateFallbackSTRResponse(userMessage, threadId);
       }
     } catch (error) {
@@ -178,7 +181,7 @@ export class ChatService {
         userMessage: userMessage.substring(0, 100),
         threadId: threadIdOverride,
       });
-      
+
       return this.generateFallbackSTRResponse(userMessage, threadIdOverride);
     }
   }
@@ -188,17 +191,17 @@ export class ChatService {
    */
   static detectNavigationIntent(message: string): string | null {
     const lower = message.toLowerCase();
-    
+
     // Settings tab
     if (lower.match(/\b(go to|open|show|navigate to|take me to|view)\b.*(settings|preferences|account)/)) {
       return 'settings';
     }
-    
+
     // Chat tab
     if (lower.match(/\b(go to|open|show|navigate to|take me to|back to)\b.*(chat|main|home)/)) {
       return null; // null = chat tab
     }
-    
+
     return null;
   }
 
@@ -210,37 +213,37 @@ export class ChatService {
       if (data.location && typeof data.total_properties === 'number') {
         const location = data.location;
         const totalProperties = data.total_properties;
-        
+
         let response = `📍 **Real Estate Analysis: ${location}**\n\n`;
-        
+
         response += `I found ${totalProperties} investment properties in ${location}!\n\n`;
-        
+
         if (data.reports && Array.isArray(data.reports) && data.reports.length > 0) {
           response += '**🏆 Top STR Investment Properties:**\n\n';
-          
+
           data.reports.forEach((property: any, index: number) => {
             response += `**${index + 1}. ${property.description || property.address || 'Property'}**\n`;
             if (property.address) response += `📍 ${property.address}\n`;
             if (property.price) response += `💰 Purchase: $${Number(property.price).toLocaleString()}\n`;
-            
+
             // Property details
             const beds = property.bedrooms || property.beds;
             const baths = property.bathrooms || property.baths;
             if (beds || baths) response += `🏠 ${beds || 0} bed, ${baths || 0} bath`;
             if (property.sqft) response += ` • ${property.sqft} sqft`;
             response += '\n';
-            
+
             // STR-specific metrics
             if (property.nightly_price) response += `🌙 Nightly Rate: $${property.nightly_price}\n`;
             if (property.monthly_revenue_estimate) response += `📊 Monthly Revenue: $${Number(property.monthly_revenue_estimate).toLocaleString()}\n`;
             if (property.cash_on_cash_roi) response += `📈 Cash-on-Cash ROI: ${property.cash_on_cash_roi}%\n`;
             if (property.avg_occupancy_rate) response += `🎯 Occupancy: ${Math.round(property.avg_occupancy_rate * 100)}%\n`;
-            
+
             // Amenities
             if (property.amenities && Array.isArray(property.amenities)) {
               response += `✨ Amenities: ${property.amenities.join(', ')}\n`;
             }
-            
+
             response += '\n';
           });
         } else {
@@ -250,11 +253,11 @@ export class ChatService {
           response += "- Minimum number of bedrooms/bathrooms\n";
           response += "- Properties with high ROI potential\n";
         }
-        
+
         response += "\n*What specific property details would you like to know more about?*";
         return response;
       }
-      
+
       // Fallback for other data formats
       return JSON.stringify(data, null, 2);
     } catch (error) {
@@ -264,36 +267,36 @@ export class ChatService {
   }
 
   /**
-   * Fallback STR responses when Civitas API is unavailable
+   * Fallback STR responses when ProphetAtlas API is unavailable
    */
   static generateFallbackSTRResponse(userMessage: string, threadId?: string): { content: string; navigate?: string; threadId?: string } {
     const lower = userMessage.toLowerCase();
-    
+
     // Property analysis questions
     if (lower.includes('property') || lower.includes('address') || lower.includes('location')) {
       return { content: "Great question! 🏡 For property analysis, I'd need the address or location you're considering. Once you share that, I can pull up:\n\n• Recent comparable STR listings and their revenue\n• Average occupancy rates in that area\n• Seasonal demand trends\n• Local regulations and permit requirements\n• Estimated startup costs and ROI projections\n\nJust drop the address or city you're interested in, and I'll get to work!", threadId };
     }
-    
+
     // Market research questions
     if (lower.includes('market') || lower.includes('city') || lower.includes('where')) {
       return { content: "Love that you're thinking strategically! 📊 The best STR markets right now really depend on your investment goals. Are you looking for:\n\n• High cash flow with strong year-round demand?\n• Appreciation potential in emerging markets?\n• Low competition with underserved demand?\n• Specific regions or budget ranges?\n\nTell me more about your criteria, and I can recommend some markets that might be perfect for you.", threadId };
     }
-    
+
     // Revenue/ROI questions
     if (lower.includes('revenue') || lower.includes('roi') || lower.includes('money') || lower.includes('profit')) {
       return { content: "Ah, the bottom line – my favorite topic! 💰 STR returns can vary wildly based on location, property type, and how well you manage it.\n\nTypically, I see successful STRs generating:\n• 8-15% cash-on-cash returns in good markets\n• 15-25%+ in exceptional locations with great management\n• Higher returns during peak seasons\n\nTo give you a specific analysis, I'd need to know more about the property you're considering. Want to share some details?", threadId };
     }
-    
+
     // Regulations/legal questions
     if (lower.includes('regulation') || lower.includes('legal') || lower.includes('permit') || lower.includes('law')) {
       return { content: "Smart to think about regulations upfront – this trips up a lot of new investors! 📋\n\nSTR regulations vary dramatically by location. Some cities welcome them with open arms, others have strict caps or outright bans.\n\nWhich market are you looking at? I can check:\n• Registration/licensing requirements\n• Occupancy limits and rental restrictions\n• Tax obligations (TOT, sales tax, etc.)\n• HOA restrictions if applicable\n\nThis stuff matters way more than people think!", threadId };
     }
-    
+
     // Pricing/occupancy optimization
     if (lower.includes('price') || lower.includes('pricing') || lower.includes('occupancy') || lower.includes('optimize')) {
       return { content: "Pricing is both an art and a science! 🎯 Get it right and you'll maximize revenue while keeping occupancy high.\n\nHere's what I typically recommend:\n• Dynamic pricing based on demand, seasonality, and local events\n• Competitive analysis against similar listings\n• Weekend vs. weekday pricing strategies\n• Minimum stay requirements for peak periods\n\nAre you managing an existing property or planning for a future one? I can give you more specific guidance based on your situation.", threadId };
     }
-    
+
     // Check for navigation intent - only respond if explicitly matched (not just returning null)
     const hasExplicitNavigationKeywords = /\b(go to|open|show|navigate to|take me to|view|back to)\b/.test(lower);
 
@@ -316,13 +319,13 @@ export class ChatService {
         'settings': 'Settings'
       };
       const tabName = navigate ? tabNames[navigate] : 'Chat';
-        return {
-          content: `Sure! Taking you to the ${tabName} view now. 🎯`,
-          navigate: navigate || undefined,
-          threadId
-        };
+      return {
+        content: `Sure! Taking you to the ${tabName} view now. 🎯`,
+        navigate: navigate || undefined,
+        threadId
+      };
     }
-    
+
     // General/other questions (including first message/greeting)
     return {
       content: "I'm here to help you find and evaluate short-term rental (STR) investment opportunities. Here's what I can do for you:\n\n• 🏠 **Property Analysis** - Evaluate specific properties for STR potential\n• 📊 **Market Research** - Identify the best markets for your investment goals\n• 💰 **Revenue Projections** - Estimate cash flow and ROI\n• 📋 **Regulatory Guidance** - Navigate local STR laws and requirements\n• 🎯 **Optimization Tips** - Maximize occupancy and pricing strategies\n\n*Tip: You can also ask me to navigate to different tabs, like \"Show me my properties\" or \"Take me to reports\"*\n\nWhat would you like to explore today?"
@@ -343,12 +346,12 @@ export class ChatService {
     let current = '';
     let i = 0;
     const streamId = `${Date.now() + 1}`;
-    
+
     const interval = setInterval(() => {
       i++;
       current = fullResponse.slice(0, i);
       onUpdate(current, streamId);
-      
+
       if (i >= fullResponse.length) {
         clearInterval(interval);
         onComplete();

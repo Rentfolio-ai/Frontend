@@ -32,7 +32,8 @@ interface UseDealAnalyzerReturn {
   activeScenario: ScenarioPreset | 'custom';
   aiExplanation: string | null;
   isExplaining: boolean;
-  
+  aiVerdict: 'Red' | 'Black' | null;
+
   // Actions
   setStrategy: (strategy: InvestmentStrategy) => void;
   updateAssumption: (path: string, value: number | boolean | string | null) => void;
@@ -41,7 +42,7 @@ interface UseDealAnalyzerReturn {
   recalculate: () => Promise<void>;
   askAI: (question: string) => Promise<void>;
   resetToDefaults: () => void;
-  
+
   // Helpers
   getOverriddenFields: () => string[];
   isFieldOverridden: (field: string) => boolean;
@@ -55,7 +56,7 @@ function formStateToAssumptions(
   baseAssumptions: PnLAssumptions
 ): PnLAssumptions {
   const result = { ...baseAssumptions };
-  
+
   // Map flat keys to nested structure
   const mappings: Record<string, (a: PnLAssumptions, v: any) => void> = {
     purchasePrice: (a, v) => a.purchase.purchasePrice = v,
@@ -87,13 +88,13 @@ function formStateToAssumptions(
     rentGrowthPct: (a, v) => a.projection.rentGrowthPct = v,
     expenseGrowthPct: (a, v) => a.projection.expenseGrowthPct = v,
   };
-  
+
   for (const [key, value] of Object.entries(formState)) {
     if (value !== undefined && value !== null && mappings[key]) {
       mappings[key](result, value);
     }
   }
-  
+
   return result;
 }
 
@@ -157,7 +158,9 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
   const [activeScenario, setActiveScenario] = useState<ScenarioPreset | 'custom'>('base');
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
-  
+
+  const [aiVerdict, setAiVerdict] = useState<'Red' | 'Black' | null>(null);
+
   // Refs for debouncing
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastCalculationRef = useRef<number>(0);
@@ -172,25 +175,36 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
   const recalculate = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+    setAiVerdict(null);
+
     logger.info('P&L calculation started', {
       strategy,
       purchasePrice: formState.purchasePrice,
       propertyId,
     });
-    
+
     try {
       const request = assumptionsToRequest(strategy, formState);
-      
+      // Request AI analysis automatically
+      request.includeAiAnalysis = true;
+
       // Try API first, fall back to mock
       try {
         const response = await calculatePropertyPnL(propertyId, request);
         if (response.success) {
           setPnlOutput(response.data);
+
+          // Handle AI Analysis
+          if (response.data.aiAnalysis) {
+            setAiExplanation(response.data.aiAnalysis.content);
+            setAiVerdict(response.data.aiAnalysis.verdict);
+          }
+
           logger.info('P&L calculation successful (API)', {
             strategy,
             cashflow: response.data.year1?.cashflowBeforeTaxes,
             capRate: response.data.year1?.capRate,
+            verdict: response.data.aiAnalysis?.verdict
           });
         } else {
           throw new Error(response.error || 'Calculation failed');
@@ -205,7 +219,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
           cashflow: mockResult.year1?.cashflowBeforeTaxes,
         });
       }
-      
+
       lastCalculationRef.current = Date.now();
     } catch (err) {
       console.error('P&L calculation error:', err);
@@ -220,7 +234,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    
+
     debounceTimerRef.current = setTimeout(() => {
       recalculate();
     }, debounceMs);
@@ -233,7 +247,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
       [path]: value,
     }));
     setActiveScenario('custom');
-    
+
     if (autoCalculate) {
       debouncedRecalculate();
     }
@@ -251,7 +265,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
       };
     });
     setActiveScenario('custom');
-    
+
     if (autoCalculate) {
       debouncedRecalculate();
     }
@@ -260,7 +274,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
   // Set strategy
   const setStrategy = useCallback((newStrategy: InvestmentStrategy) => {
     setStrategyState(newStrategy);
-    
+
     if (autoCalculate) {
       debouncedRecalculate();
     }
@@ -270,14 +284,14 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
   const setScenario = useCallback((scenario: ScenarioPreset) => {
     const preset = SCENARIO_PRESETS[scenario];
     if (!preset) return;
-    
+
     // Apply preset overrides
     setFormState(prev => ({
       ...prev,
       ...preset.overrides,
     }));
     setActiveScenario(scenario);
-    
+
     if (autoCalculate) {
       debouncedRecalculate();
     }
@@ -291,7 +305,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
       purchasePrice: initialPurchasePrice || defaults.purchasePrice,
     });
     setActiveScenario('base');
-    
+
     if (autoCalculate) {
       debouncedRecalculate();
     }
@@ -303,14 +317,14 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
       setAiExplanation('Please calculate P&L first before asking questions.');
       return;
     }
-    
+
     setIsExplaining(true);
     setAiExplanation(null);
-    
+
     try {
       const request = assumptionsToRequest(strategy, formState);
       const response = await explainPnL(pnlOutput, question, request);
-      
+
       if (response.success) {
         setAiExplanation(response.explanation);
       } else {
@@ -337,13 +351,13 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
   const getOverriddenFields = useCallback((): string[] => {
     const defaults = assumptionsToFormState(DEFAULT_ASSUMPTIONS);
     const overridden: string[] = [];
-    
+
     for (const [key, value] of Object.entries(formState)) {
       if (value !== defaults[key] && key !== 'purchasePrice') {
         overridden.push(key);
       }
     }
-    
+
     return overridden;
   }, [formState]);
 
@@ -380,7 +394,7 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
     activeScenario,
     aiExplanation,
     isExplaining,
-    
+
     // Actions
     setStrategy,
     updateAssumption,
@@ -389,10 +403,11 @@ export function useDealAnalyzer(options: UseDealAnalyzerOptions = {}): UseDealAn
     recalculate,
     askAI,
     resetToDefaults,
-    
+
     // Helpers
     getOverriddenFields,
     isFieldOverridden,
+    aiVerdict,
   };
 }
 

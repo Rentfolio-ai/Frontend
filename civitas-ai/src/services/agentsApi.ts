@@ -1,10 +1,11 @@
 /**
- * API service for Civitas AI agent endpoints
+ * API service for ProphetAtlas agent endpoints
  * Provides typed functions for property search, valuation, and reports
  */
 import { apiLogger, logger } from '@/utils/logger';
 
-const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 const jsonHeaders: HeadersInit = {
@@ -208,7 +209,7 @@ export interface ReportResponse {
  */
 export async function searchProperties(params: PropertySearchParams): Promise<PropertySearchResponse> {
   const endpoint = `${API_BASE}/api/agents/search`;
-  
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -225,7 +226,7 @@ export async function searchProperties(params: PropertySearchParams): Promise<Pr
         errorBody: errorBody.substring(0, 500),
         params: { location: params.location, max_price: params.max_price },
       });
-      
+
       const error = JSON.parse(errorBody).detail || 'Search failed';
       throw new Error(error);
     }
@@ -254,7 +255,7 @@ export async function searchProperties(params: PropertySearchParams): Promise<Pr
  */
 export async function calculateValuation(params: ValuationParams): Promise<ValuationResponse> {
   const endpoint = `${API_BASE}/api/agents/valuation`;
-  
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -271,7 +272,7 @@ export async function calculateValuation(params: ValuationParams): Promise<Valua
         errorBody: errorBody.substring(0, 500),
         params: { city: params.property_data?.city, price: params.property_data?.price },
       });
-      
+
       const error = JSON.parse(errorBody).detail || 'Valuation failed';
       throw new Error(error);
     }
@@ -299,7 +300,7 @@ export async function calculateValuation(params: ValuationParams): Promise<Valua
  */
 export async function generateReport(params: ReportParams): Promise<ReportResponse> {
   const endpoint = `${API_BASE}/api/agents/report`;
-  
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -314,12 +315,12 @@ export async function generateReport(params: ReportParams): Promise<ReportRespon
         statusText: response.statusText,
         endpoint,
         errorBody: errorBody.substring(0, 500),
-        params: { 
-          reportType: params.report_type, 
+        params: {
+          reportType: params.report_type,
           address: params.property_address || params.property_data?.address,
         },
       });
-      
+
       const error = JSON.parse(errorBody).detail || 'Report generation failed';
       throw new Error(error);
     }
@@ -356,7 +357,7 @@ export async function saveReport(params: {
   property_details?: any;
 }): Promise<{ success: boolean; report_id: string; report: any }> {
   const endpoint = `${API_BASE}/api/agents/reports/save`;
-  
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -373,7 +374,7 @@ export async function saveReport(params: {
         errorBody: errorBody.substring(0, 500),
         params: { title: params.title, location: params.location },
       });
-      
+
       const error = JSON.parse(errorBody).detail || 'Failed to save report';
       throw new Error(error);
     }
@@ -400,7 +401,7 @@ export async function saveReport(params: {
  */
 export async function getSavedReports(): Promise<{ success: boolean; count: number; reports: any[] }> {
   const endpoint = `${API_BASE}/api/agents/reports`;
-  
+
   try {
     const response = await fetch(endpoint, {
       method: 'GET',
@@ -415,7 +416,7 @@ export async function getSavedReports(): Promise<{ success: boolean; count: numb
         endpoint,
         errorBody: errorBody.substring(0, 500),
       });
-      
+
       const error = JSON.parse(errorBody).detail || 'Failed to fetch reports';
       throw new Error(error);
     }
@@ -442,7 +443,7 @@ export async function getSavedReports(): Promise<{ success: boolean; count: numb
  */
 export async function getReportById(reportId: string): Promise<{ success: boolean; report: any }> {
   const endpoint = `${API_BASE}/api/agents/reports/${reportId}`;
-  
+
   try {
     const response = await fetch(endpoint, {
       method: 'GET',
@@ -458,7 +459,7 @@ export async function getReportById(reportId: string): Promise<{ success: boolea
         reportId,
         errorBody: errorBody.substring(0, 500),
       });
-      
+
       const error = JSON.parse(errorBody).detail || 'Report not found';
       throw new Error(error);
     }

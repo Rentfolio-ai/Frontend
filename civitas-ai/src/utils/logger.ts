@@ -36,7 +36,7 @@ const shouldLog = (level: LogLevel) => LEVEL_PRIORITY[level] <= LEVEL_PRIORITY[A
 
 const formatMessage = (level: LogLevel, message: string) => {
   const timestamp = new Date().toISOString();
-  return `[Civitas][${level.toUpperCase()}][${timestamp}] ${message}`;
+  return `[ProphetAtlas][${level.toUpperCase()}][${timestamp}] ${message}`;
 };
 
 const emit = (level: LogLevel, message: string, meta?: LogMeta) => {

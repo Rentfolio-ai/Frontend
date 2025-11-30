@@ -216,6 +216,15 @@ export interface PnLMeta {
 }
 
 /**
+ * AI Analysis Result
+ */
+export interface PnLAiAnalysis {
+  content: string;
+  verdict: 'Red' | 'Black';
+  error?: string;
+}
+
+/**
  * Complete P&L Output from API
  */
 export interface PnLOutput {
@@ -224,6 +233,7 @@ export interface PnLOutput {
   projection: ProjectionYear[];
   financingSummary: FinancingSummary;
   presentation?: PresentationBundle;
+  aiAnalysis?: PnLAiAnalysis;
 }
 
 /**
@@ -231,6 +241,7 @@ export interface PnLOutput {
  */
 export interface PnLRequest {
   strategy: InvestmentStrategy;
+  includeAiAnalysis?: boolean;
   // Purchase overrides
   purchasePrice?: number;
   closingCostPct?: number;

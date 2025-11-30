@@ -5,8 +5,8 @@
  */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calculator, 
+import {
+  Calculator,
   RefreshCw,
   MessageSquare,
   ChevronDown,
@@ -46,6 +46,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
     activeScenario,
     aiExplanation,
     isExplaining,
+    aiVerdict,
     setStrategy,
     updateAssumption,
     setScenario,
@@ -93,7 +94,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
               )}
             </div>
           </div>
-          
+
           {/* Strategy Toggle */}
           <div className="flex items-center gap-2 p-1 rounded-lg bg-muted/50 border border-border/50">
             <button
@@ -176,6 +177,35 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
 
         {/* Results Panel */}
         <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-950/30">
+          {/* AI Verdict Banner */}
+          {aiVerdict && (
+            <div className={cn(
+              "px-6 py-4 border-b",
+              aiVerdict === 'Black'
+                ? "bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-950/20 dark:border-emerald-900/30"
+                : "bg-rose-50/50 border-rose-200/50 dark:bg-rose-950/20 dark:border-rose-900/30"
+            )}>
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  "flex-shrink-0 px-3 py-1 rounded-full text-sm font-bold shadow-sm border",
+                  aiVerdict === 'Black'
+                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800"
+                    : "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/50 dark:text-rose-300 dark:border-rose-800"
+                )}>
+                  {aiVerdict === 'Black' ? 'GOOD DEAL' : 'BAD DEAL'}
+                </div>
+                <div className="flex-1">
+                  <p className={cn(
+                    "text-sm leading-relaxed",
+                    aiVerdict === 'Black' ? "text-emerald-900 dark:text-emerald-100" : "text-rose-900 dark:text-rose-100"
+                  )}>
+                    {aiExplanation}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {error ? (
             <div className="p-6">
               <div className="p-4 rounded-lg bg-danger/10 border border-danger/30 text-danger">
@@ -209,7 +239,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
             showAIChat && 'rotate-180'
           )} />
         </button>
-        
+
         <AnimatePresence>
           {showAIChat && (
             <motion.div

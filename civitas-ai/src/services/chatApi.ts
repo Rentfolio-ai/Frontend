@@ -19,8 +19,9 @@ export interface ChatResponse {
 
 export async function fetchToolResults(threadId: string, limit = 5): Promise<ToolResultRecord[]> {
   if (!threadId) return [];
-  const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
-  const url = `${BACKEND_URL}/api/chat/tool-results/${threadId}?limit=${limit}`;
+  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+  const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+  const url = `${BACKEND_URL}/api/tool-results/${threadId}?limit=${limit}`;
 
   try {
     const response = await fetch(url, {
@@ -55,7 +56,8 @@ export const sendChatMessage = async (
   message: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<ChatResponse> => {
-  const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+  const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
   const requestUrl = `${BACKEND_URL}/api/chat`;
   const startedAt = performance.now();
 
@@ -83,7 +85,7 @@ export const sendChatMessage = async (
 
     const data = await response.json();
     apiLogger.response({ method: 'POST', url: requestUrl, service: 'chat', status: 200, durationMs: performance.now() - startedAt });
-    
+
     // Expected backend response format:
     // {
     //   message: "I've turned off email notifications for you.",
@@ -94,7 +96,7 @@ export const sendChatMessage = async (
     //     }
     //   ]
     // }
-    
+
     return data;
   } catch (error) {
     apiLogger.error({ method: 'POST', url: requestUrl, service: 'chat', error });
@@ -121,7 +123,7 @@ interface OnboardingData {
     category: string;
     placeholder?: boolean;
   }>;
-  // Backend-specific fields from Civitas /onboarding API
+  // Backend-specific fields from ProphetAtlas /onboarding API
   thread_id?: string;
   suggested_actions?: string[];
   user_name?: string;
@@ -132,8 +134,9 @@ interface OnboardingData {
  * Fetch the onboarding/welcome message from backend
  */
 export const getOnboardingMessage = async (userName?: string): Promise<OnboardingData> => {
-  const BACKEND_URL = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
-  const url = new URL(`${BACKEND_URL}/onboarding`);
+  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+  const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+  const url = new URL(`${BACKEND_URL}/api/onboarding/welcome`);
   const startedAt = performance.now();
 
   try {
@@ -168,10 +171,10 @@ export const getOnboardingMessage = async (userName?: string): Promise<Onboardin
 
     const example_prompts = Array.isArray(suggestedActions)
       ? suggestedActions.map((text: string) => ({
-          text,
-          label: text,
-          category: 'general',
-        }))
+        text,
+        label: text,
+        category: 'general',
+      }))
       : undefined;
 
     const data: OnboardingData = {
@@ -198,7 +201,7 @@ export const getOnboardingMessage = async (userName?: string): Promise<Onboardin
     // Return graceful static message if API fails
     const data: OnboardingData = {
       message:
-        "Welcome to Civitas! 🏠✨\n\nI'm your AI-powered short-term rental investment assistant. Ask me anything about STR properties!",
+        "Welcome to ProphetAtlas! 🏠✨\n\nI'm your all-knowing real estate intelligence assistant. Ask me anything about properties, markets, investments, and more!",
       example_prompts: [
         { text: 'Find properties in Austin', label: '🏠 Search', category: 'search' },
         { text: 'Analyze Miami market', label: '📊 Market', category: 'market' },

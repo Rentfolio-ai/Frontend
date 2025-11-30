@@ -4,6 +4,7 @@ import type { Message } from '../types/chat';
 import type { InvestmentStrategy, PnLOutput } from '../types/pnl';
 import type { InvestmentReportFormat } from '../types/enums';
 import type { ReportData } from '../components/reports/ReportDrawer';
+import type { ThinkingState, CompletedTool, StreamEvent } from '../types/stream';
 import { generateChatTitle } from '../utils/chatTitles';
 import { ChatService } from '../services/ChatService';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,6 +16,10 @@ import { toolResultsToRecords, toolResultsToToolCards } from '../utils/toolResul
 import { logger } from '../utils/logger';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
 export interface ChatSession {
   id: string;
   title?: string;
@@ -24,7 +29,9 @@ export interface ChatSession {
   messages: Message[];
 }
 
-export type TabType = 'chat' | 'settings' | 'reports';
+import { useToast } from './useToast';
+
+export type TabType = 'chat' | 'settings' | 'reports' | 'portfolio';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -45,13 +52,14 @@ export interface ReportDrawerState {
   propertyAddress?: string;
 }
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'settings', 'reports'];
+const NAVIGABLE_TABS: TabType[] = ['chat', 'settings', 'reports', 'portfolio'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 
 export function useDesktopShell() {
   // Get user context
   const { user } = useAuth();
+  const { showToast } = useToast();
   // Get portfolio context for tracking properties
   // const { addProperty } = usePortfolio();
   // Chat history state
@@ -72,15 +80,15 @@ export function useDesktopShell() {
   });
 
   const [activeChatId, setActiveChatId] = useState<string>(() => {
-    const saved = typeof window !== 'undefined' 
-      ? window.localStorage.getItem('civitas-active-chat-id') 
+    const saved = typeof window !== 'undefined'
+      ? window.localStorage.getItem('civitas-active-chat-id')
       : null;
     return saved || 'main';
   });
 
   const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = typeof window !== 'undefined' 
-      ? window.localStorage.getItem('civitas-chat-messages') 
+    const saved = typeof window !== 'undefined'
+      ? window.localStorage.getItem('civitas-chat-messages')
       : null;
     return saved ? JSON.parse(saved) : [];
   });
@@ -147,6 +155,13 @@ export function useDesktopShell() {
   // Track latest P&L output for report generation
   const [latestPnlOutput, setLatestPnlOutput] = useState<PnLOutput | null>(null);
 
+  // Thinking state for SSE streaming
+  const [thinking, setThinking] = useState<ThinkingState | null>(null);
+  const [completedTools, setCompletedTools] = useState<CompletedTool[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const streamContentRef = useRef<string>('');
+  const currentToolsRef = useRef<CompletedTool[]>([]);
+
   // Refs for cleanup
   const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
   const attachmentUrlsRef = useRef<string[]>([]);
@@ -171,23 +186,23 @@ export function useDesktopShell() {
   // Persist messages and auto-save to history
   useEffect(() => {
     window.localStorage.setItem('civitas-chat-messages', JSON.stringify(messages));
-    
+
     if (messages.length > 0) {
       const firstUserMessage = messages.find(msg => msg.role === 'user' || msg.type === 'user')?.content || '';
-      
+
       setChatHistory(prev => {
         const chatExists = prev.some(chat => chat.id === activeChatId);
-        
+
         if (chatExists) {
           return prev.map(chat =>
             chat.id === activeChatId
-              ? { 
-                  ...chat, 
-                  messages: [...messages],
-                  title: generateChatTitle(firstUserMessage),
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  createdAt: chat.createdAt || new Date().toISOString()
-                }
+              ? {
+                ...chat,
+                messages: [...messages],
+                title: generateChatTitle(firstUserMessage),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                createdAt: chat.createdAt || new Date().toISOString()
+              }
               : chat
           );
         }
@@ -199,8 +214,8 @@ export function useDesktopShell() {
   // Control smart suggestions display
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
-    const shouldShow = !isLoading && messages.length > 1 && 
-                       lastMessage?.role === 'assistant' && !lastMessage?.isStreaming;
+    const shouldShow = !isLoading && messages.length > 1 &&
+      lastMessage?.role === 'assistant' && !lastMessage?.isStreaming;
     if (shouldShow) {
       const timer = setTimeout(() => setShowSuggestions(true), 300);
       return () => clearTimeout(timer);
@@ -208,6 +223,40 @@ export function useDesktopShell() {
       setShowSuggestions(false);
     }
   }, [messages, isLoading]);
+
+  // Smart Error Recovery: Check for stuck error state on load
+  useEffect(() => {
+    // Only run once on mount
+    const checkForErrorState = () => {
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        const isError =
+          (lastMessage.role === 'assistant' &&
+            (lastMessage.content.includes("I'm having trouble connecting") ||
+              lastMessage.content.includes("Sorry, I encountered an error") ||
+              lastMessage.content.includes("I'm sorry, I couldn't process that request")));
+
+        if (isError) {
+          console.log('[SmartRecovery] Detected error state in last session. Archiving and resetting.');
+
+          // Archive current chat
+          handleNewChat();
+
+          // Notify user
+          showToast(
+            'Your previous chat ended in an error, so we started a fresh one. The old chat is saved in your history.',
+            'info',
+            undefined,
+            6000
+          );
+        }
+      }
+    };
+
+    // Small timeout to ensure initial state is settled
+    const timer = setTimeout(checkForErrorState, 1000);
+    return () => clearTimeout(timer);
+  }, []); // Empty dependency array = run once on mount
 
   // Cleanup stream interval
   useEffect(() => {
@@ -225,7 +274,7 @@ export function useDesktopShell() {
       attachmentUrlsRef.current = [];
     };
   }, []);
-  
+
   const toggleRail = () => {
     const newState = !isRailCollapsed;
     setIsRailCollapsed(newState);
@@ -293,6 +342,276 @@ export function useDesktopShell() {
 
   const clearToolMemoryError = useCallback(() => setToolMemoryError(null), []);
 
+  // Reset thinking state
+  const resetThinkingState = useCallback(() => {
+    setThinking({
+      status: 'Thinking...',
+      title: 'Analyzing your request',
+      explanation: 'I\'m processing your question to determine the best approach and tools to use.',
+      icon: '🤔'
+    });
+    setCompletedTools([]);
+    streamContentRef.current = '';
+    currentToolsRef.current = [];
+  }, []);
+
+  // Handle SSE stream event
+  const handleStreamEvent = useCallback((event: StreamEvent, messageId: string) => {
+    switch (event.type) {
+      case 'init':
+        if (event.thread_id) {
+          updateThreadIdForChat(activeChatId, event.thread_id);
+        }
+        break;
+
+      case 'thinking':
+        setThinking({
+          title: event.title,
+          status: event.status,
+          explanation: event.explanation,
+          source: event.source,
+          icon: event.icon,
+          tool: event.tool,
+        });
+        break;
+
+      case 'tool_start':
+        setThinking({
+          title: event.title,
+          status: event.thinking,
+          explanation: event.explanation,
+          source: event.source,
+          icon: event.icon,
+          tool: event.tool,
+        });
+        break;
+
+      case 'tool_end':
+        setThinking(null);
+        if (event.summary) {
+          const newTool: CompletedTool = {
+            tool: event.tool,
+            summary: event.summary!,
+            icon: event.icon || '✓',
+            data: event.data
+          };
+
+          setCompletedTools(prev => [...prev, newTool]);
+          currentToolsRef.current = [...currentToolsRef.current, newTool];
+
+          // Update message immediately to show tool result if needed
+          setMessages(prev => {
+            // Find if we already have a message for this stream
+            const existing = prev.find(m => m.id === messageId);
+            const baseMessage = existing || {
+              id: messageId,
+              content: streamContentRef.current, // Might be empty initially
+              role: 'assistant',
+              type: 'assistant',
+              timestamp: new Date(),
+              isStreaming: true,
+            };
+
+            const updatedMessage = {
+              ...baseMessage,
+              tools: currentToolsRef.current.map(t => ({
+                id: `${t.tool}-${Date.now()}`,
+                title: t.tool,
+                description: t.summary,
+                status: 'success',
+                kind: 'generic', // Default, logic below could refine this
+                data: t.data,
+                // Map tool names to kinds if needed
+                ...(t.tool === 'Property Search' ? { kind: 'scout_properties', name: 'scout_properties' } : {}),
+                ...(t.tool === 'Property Comparison' ? { kind: 'property_comparison_table', name: 'compare_properties' } : {}),
+                ...(t.tool === 'Deal Hunter' ? {
+                  kind: 'scout_properties',
+                  name: 'hunt_deals',
+                  data: {
+                    ...t.data,
+                    properties: t.data?.vetted_deals?.map((deal: any) => ({
+                      ...deal.details,
+                      ...deal,
+                      financial_snapshot: {
+                        estimated_monthly_cash_flow: deal.estimated_rent ? (deal.estimated_rent - (deal.list_price * 0.007)) : 0,
+                        status: (deal.estimated_rent && (deal.estimated_rent > (deal.list_price * 0.007))) ? 'positive' : 'negative',
+                        estimated_rent: deal.estimated_rent
+                      }
+                    }))
+                  }
+                } : {}),
+                ...(['Report Generation', 'Generate Report', 'generate_report'].includes(t.tool) ? { kind: 'generated_report', name: 'generate_report' } : {})
+              }))
+            };
+
+            const filtered = prev.filter(m => m.id !== messageId);
+            return [...filtered, updatedMessage as Message];
+          });
+        }
+        break;
+
+      case 'content':
+        setThinking(null);
+        streamContentRef.current += event.content;
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== messageId);
+
+          // Map completed tools to ToolCards
+          const toolCards = currentToolsRef.current.map(t => ({
+            id: `${t.tool}-${Date.now()}`,
+            title: t.tool,
+            description: t.summary,
+            status: 'success',
+            kind: 'generic',
+            data: t.data,
+            ...(t.tool === 'Property Search' ? { kind: 'scout_properties', name: 'scout_properties' } : {}),
+            ...(t.tool === 'Property Comparison' ? { kind: 'property_comparison_table', name: 'compare_properties' } : {}),
+            ...(t.tool === 'Deal Hunter' ? {
+              kind: 'scout_properties',
+              name: 'hunt_deals',
+              data: {
+                ...t.data,
+                properties: t.data?.vetted_deals?.map((deal: any) => ({
+                  ...deal.details,
+                  ...deal,
+                  financial_snapshot: {
+                    estimated_monthly_cash_flow: deal.estimated_rent ? (deal.estimated_rent - (deal.list_price * 0.007)) : 0, // Rough estimate if missing
+                    status: (deal.estimated_rent && (deal.estimated_rent > (deal.list_price * 0.007))) ? 'positive' : 'negative',
+                    estimated_rent: deal.estimated_rent
+                  }
+                }))
+              }
+            } : {}),
+            ...(['Report Generation', 'Generate Report', 'generate_report'].includes(t.tool) ? { kind: 'generated_report', name: 'generate_report' } : {})
+          }));
+
+          return [...filtered, {
+            id: messageId,
+            content: streamContentRef.current,
+            role: 'assistant',
+            type: 'assistant',
+            timestamp: new Date(),
+            isStreaming: true,
+            tools: toolCards.length > 0 ? toolCards : undefined
+          } as Message];
+        });
+        break;
+
+      case 'done':
+        setThinking(null);
+        setIsLoading(false);
+        setMessages(prev => prev.map(m =>
+          m.id === messageId ? { ...m, isStreaming: false } : m
+        ));
+        break;
+
+      case 'error':
+        setThinking(null);
+        setIsLoading(false);
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== messageId);
+          return [...filtered, {
+            id: messageId,
+            content: event.error || "I'm having trouble connecting. Please try again.",
+            role: 'assistant',
+            type: 'assistant',
+            timestamp: new Date(),
+            isStreaming: false,
+          } as Message];
+        });
+        break;
+    }
+  }, [activeChatId, updateThreadIdForChat]);
+
+  // Send message with SSE streaming
+  const sendMessageWithStream = useCallback(async (message: string) => {
+    if (!message.trim()) return;
+
+    // Cancel any existing stream
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const userMessage: Message = ChatService.createUserMessage(message.trim());
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    resetThinkingState();
+
+    const messageId = `stream_${Date.now()}`;
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const effectiveThreadId = currentThreadId || undefined;
+
+      const response = await fetch(`${CIVITAS_API_BASE}/api/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+        },
+        body: JSON.stringify({
+          message: message.trim(),
+          thread_id: effectiveThreadId,
+          temperature: 0.2,
+          context: {
+            user_context: {
+              name: user?.name?.split(' ')[0] || 'there',
+            },
+          },
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]' || jsonStr === '') continue;
+
+            try {
+              const data = JSON.parse(jsonStr) as StreamEvent;
+              handleStreamEvent(data, messageId);
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        return;
+      }
+
+      setThinking(null);
+      setIsLoading(false);
+      setMessages(prev => [...prev, {
+        id: messageId,
+        content: "I'm having trouble connecting. Please try again.",
+        role: 'assistant',
+        type: 'assistant',
+        timestamp: new Date(),
+        isStreaming: false,
+      } as Message]);
+    }
+  }, [currentThreadId, user, resetThinkingState, handleStreamEvent]);
+
   // Chat handlers
   const handleSendMessage = (message: string) => {
     if (!message.trim() && !attachment) return;
@@ -301,10 +620,10 @@ export function useDesktopShell() {
     const trimmedMessage = message.trim();
     const attachmentInfo = currentAttachment
       ? {
-          name: currentAttachment.name,
-          type: currentAttachment.type,
-          url: URL.createObjectURL(currentAttachment)
-        }
+        name: currentAttachment.name,
+        type: currentAttachment.type,
+        url: URL.createObjectURL(currentAttachment)
+      }
       : undefined;
 
     if (attachmentInfo?.url) {
@@ -317,7 +636,7 @@ export function useDesktopShell() {
     setMessages(prev => [...prev, userMessage]);
     setAttachment(null);
     setIsLoading(true);
-    
+
     // Get AI response from Civitas API
     const delay = 1000 + Math.random() * 1000;
     setTimeout(async () => {
@@ -389,13 +708,13 @@ export function useDesktopShell() {
         }
 
         const optimisticRecords = toolResultsToRecords(toolResults);
-        
+
         // For tour navigation, navigate IMMEDIATELY before showing message
         if (tour?.navigate_first && isNavigableTab(navigate)) {
           console.log(`🎯 Tour navigation: Jumping to ${navigate} FIRST`);
           setActiveTab(navigate as TabType);
         }
-        
+
         // Auto-track properties from search results (temporarily disabled)
         /*
         if (metadata?.properties && Array.isArray(metadata.properties)) {
@@ -425,7 +744,7 @@ export function useDesktopShell() {
         const extractCity = (location: string) => location?.split(',')[0]?.trim() || '';
         const extractState = (location: string) => location?.split(',')[1]?.trim() || '';
         */
-        
+
         const { intervalId } = ChatService.streamResponse(
           fullResponse,
           (content, id) => {
@@ -467,7 +786,7 @@ export function useDesktopShell() {
                 } else if (toolResults) {
                   logger.warn('[useDesktopShell] ⚠️ Tool results present but no cards created', {
                     messageId: id,
-                    toolResultsSummary: Array.isArray(toolResults) 
+                    toolResultsSummary: Array.isArray(toolResults)
                       ? toolResults.map((tr: any) => tr.tool_name || tr.kind || 'unknown')
                       : Object.keys(toolResults),
                   });
@@ -504,7 +823,7 @@ export function useDesktopShell() {
               // For other navigation, add small delay so user sees the message
               const isTour = tour && tour.active;
               const delay = isTour ? 100 : 800;
-              
+
               setTimeout(() => {
                 console.log(`📡 Navigating to: ${navigate}`);
                 setActiveTab(navigate as TabType);
@@ -512,12 +831,12 @@ export function useDesktopShell() {
             }
           }
         );
-        
+
         setStreamIntervalId(intervalId);
       } catch (error) {
         console.error('Failed to get AI response:', error);
         setIsLoading(false);
-        
+
         // Add error message
         const errorMessage: Message = {
           id: `error_${Date.now()}`,
@@ -545,7 +864,7 @@ export function useDesktopShell() {
     if (messages.length > 0) {
       const firstUserMessage = messages.find(msg => msg.role === 'user' || msg.type === 'user')?.content || '';
       const chatExists = chatHistory.some(chat => chat.id === activeChatId);
-      
+
       if (!chatExists) {
         setChatHistory(prev => [
           {
@@ -563,7 +882,7 @@ export function useDesktopShell() {
         ));
       }
     }
-    
+
     setMessages([]);
     clearPendingAttachment();
     setIsLoading(false);
@@ -571,7 +890,7 @@ export function useDesktopShell() {
       clearInterval(streamIntervalId);
       setStreamIntervalId(null);
     }
-    
+
     const newId = Date.now().toString();
     setActiveChatId(newId);
     updateThreadIdForChat(newId, null);
@@ -580,7 +899,7 @@ export function useDesktopShell() {
   const handleLoadChat = (chatId: string) => {
     const chat = chatHistory.find(c => c.id === chatId);
     if (!chat) return;
-    
+
     setActiveChatId(chatId);
     setMessages(chat.messages || []);
     clearPendingAttachment();
@@ -601,10 +920,10 @@ export function useDesktopShell() {
   const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (chatHistory.length === 1) return;
-    
+
     const updatedHistory = chatHistory.filter(c => c.id !== chatId);
     setChatHistory(updatedHistory);
-    
+
     if (chatId === activeChatId) {
       const nextChat = updatedHistory[0];
       setActiveChatId(nextChat.id);
@@ -682,14 +1001,14 @@ export function useDesktopShell() {
       // Build valuation data from latest P&L output if available
       const valuationData = latestPnlOutput
         ? {
-            strategy: latestPnlOutput.meta.strategy,
-            purchase_price: latestPnlOutput.financingSummary.downPayment + latestPnlOutput.financingSummary.loanAmount,
-            total_investment: latestPnlOutput.financingSummary.totalInvestment,
-            monthly_cashflow: latestPnlOutput.year1.monthlyCashflow,
-            noi: latestPnlOutput.year1.noi,
-            cap_rate: latestPnlOutput.year1.capRate,
-            cash_on_cash: latestPnlOutput.year1.cashOnCash,
-          }
+          strategy: latestPnlOutput.meta.strategy,
+          purchase_price: latestPnlOutput.financingSummary.downPayment + latestPnlOutput.financingSummary.loanAmount,
+          total_investment: latestPnlOutput.financingSummary.totalInvestment,
+          monthly_cashflow: latestPnlOutput.year1.monthlyCashflow,
+          noi: latestPnlOutput.year1.noi,
+          cap_rate: latestPnlOutput.year1.capRate,
+          cash_on_cash: latestPnlOutput.year1.cashOnCash,
+        }
         : {};
 
       const response = await generateReport({
@@ -799,16 +1118,20 @@ export function useDesktopShell() {
     toolResultsByThread,
     isFetchingToolResults,
     toolMemoryError,
-    
+    // Thinking state for SSE streaming
+    thinking,
+    completedTools,
+
     // Setters
     setIsSidebarOpen,
     setActiveTab,
     setAttachment,
-    
+
     // Handlers
     toggleRail,
     toggleSidebar,
     handleSendMessage,
+    sendMessageWithStream,
     handleStopStream,
     handleNewChat,
     handleLoadChat,

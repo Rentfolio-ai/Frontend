@@ -9,7 +9,8 @@ import type {
   VisionRoomType,
 } from '../types/backendTools';
 
-const CIVITAS_API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -51,43 +52,43 @@ export const visionService = {
     file: File,
     options: VisionAnalysisOptions = {}
   ): Promise<AnalyzePropertyImageOutput> => {
-    logger.info('[visionApi] Analyzing image from file', { 
+    logger.info('[visionApi] Analyzing image from file', {
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,
       options,
     });
-    
+
     const formData = new FormData();
     formData.append('file', file);
-    
+
     if (options.analysis_type) formData.append('analysis_type', options.analysis_type);
     if (options.room_type) formData.append('room_type', options.room_type);
     if (options.property_address) formData.append('property_address', options.property_address);
     if (options.context) formData.append('context', options.context);
     if (options.thread_id) formData.append('thread_id', options.thread_id);
-    
+
     const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image`, {
       method: 'POST',
       headers: getHeaders(),
       body: formData,
     });
-    
+
     if (!response.ok) {
-      logger.error('[visionApi] Image analysis failed', { 
+      logger.error('[visionApi] Image analysis failed', {
         status: response.status,
         statusText: response.statusText,
       });
       throw new Error(`Image analysis failed: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    logger.info('[visionApi] Image analysis complete', { 
+    logger.info('[visionApi] Image analysis complete', {
       success: data.success,
       analysisType: data.analysis_type,
       roomType: data.room_type,
     });
-    
+
     return data;
   },
 
@@ -98,37 +99,37 @@ export const visionService = {
     base64: string,
     options: VisionAnalysisOptions = {}
   ): Promise<AnalyzePropertyImageOutput> => {
-    logger.info('[visionApi] Analyzing image from base64', { 
+    logger.info('[visionApi] Analyzing image from base64', {
       base64Length: base64.length,
       options,
     });
-    
+
     const body: AnalyzePropertyImageInput = {
       image_base64: base64,
       ...options,
     };
-    
+
     const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image/json`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(body),
     });
-    
+
     if (!response.ok) {
-      logger.error('[visionApi] Image analysis failed', { 
+      logger.error('[visionApi] Image analysis failed', {
         status: response.status,
         statusText: response.statusText,
       });
       throw new Error(`Image analysis failed: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    logger.info('[visionApi] Image analysis complete', { 
+    logger.info('[visionApi] Image analysis complete', {
       success: data.success,
       analysisType: data.analysis_type,
       roomType: data.room_type,
     });
-    
+
     return data;
   },
 
@@ -139,41 +140,41 @@ export const visionService = {
     imageUrl: string,
     options: VisionAnalysisOptions = {}
   ): Promise<AnalyzePropertyImageOutput> => {
-    logger.info('[visionApi] Analyzing image from URL', { 
+    logger.info('[visionApi] Analyzing image from URL', {
       imageUrl,
       options,
     });
-    
+
     const formData = new FormData();
     formData.append('image_url', imageUrl);
-    
+
     if (options.analysis_type) formData.append('analysis_type', options.analysis_type);
     if (options.room_type) formData.append('room_type', options.room_type);
     if (options.property_address) formData.append('property_address', options.property_address);
     if (options.context) formData.append('context', options.context);
     if (options.thread_id) formData.append('thread_id', options.thread_id);
-    
+
     const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image`, {
       method: 'POST',
       headers: getHeaders(),
       body: formData,
     });
-    
+
     if (!response.ok) {
-      logger.error('[visionApi] Image analysis failed', { 
+      logger.error('[visionApi] Image analysis failed', {
         status: response.status,
         statusText: response.statusText,
       });
       throw new Error(`Image analysis failed: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    logger.info('[visionApi] Image analysis complete', { 
+    logger.info('[visionApi] Image analysis complete', {
       success: data.success,
       analysisType: data.analysis_type,
       roomType: data.room_type,
     });
-    
+
     return data;
   },
 
@@ -205,7 +206,7 @@ export function extractVisionAnalysisFromToolResults(
   if (enhancedResult && enhancedResult.data) {
     return enhancedResult.data as AnalyzePropertyImageOutput;
   }
-  
+
   // Check for legacy tool
   const legacyResult = toolResults.find(t => t.tool_name === 'analyze_renovation_from_image');
   if (legacyResult && legacyResult.data) {
@@ -230,7 +231,7 @@ export function extractVisionAnalysisFromToolResults(
       })),
     };
   }
-  
+
   return null;
 }
 

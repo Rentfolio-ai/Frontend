@@ -45,6 +45,7 @@ export interface GenerateReportToolResult {
   recommendation: string;
   key_metrics: ReportKeyMetrics;
   view_url: string;
+  html_content?: string; // Optional embedded HTML
   created_at: string;
   message: string;
 }

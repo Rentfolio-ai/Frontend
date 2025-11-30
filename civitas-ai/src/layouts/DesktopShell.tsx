@@ -16,7 +16,7 @@
  * - DealAnalyzerDrawer for P&L analysis
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 // PortfolioProvider removed - not needed without portfolio views
 // import { PortfolioProvider } from '../contexts/PortfolioContext';
@@ -27,11 +27,11 @@ import { useToast } from '../hooks/useToast';
 import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
-import { ChatTabView, SettingsTabView, ReportsTabView, DesktopSidebarMenu } from '../components/desktop-shell';
-import { GradientBackground } from '../components/GradientBackground';
+import { ChatTabView, SettingsTabView, ReportsTabView, PortfolioTabView, DesktopSidebarMenu } from '../components/desktop-shell';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
-import { PnLCalculatorPage } from '../pages/PnLCalculatorPage';
+import { OnboardingTour } from '../components/onboarding';
+import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
 
 interface DesktopShellProps {
@@ -50,16 +50,22 @@ const STATE_OPTIONS = [
   { name: 'Nevada', emoji: '🎰', color: '#EC4899' },
 ];
 
-// Menu items - Portfolio removed (feature stickiness needs evaluation)
+// Menu items
 const MENU_ITEMS: Array<{ id: TabType; label: string; icon: string }> = [
+  { id: 'portfolio', label: 'Portfolio', icon: '📊' },
   { id: 'reports', label: 'Reports', icon: '📄' },
   { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
+const ONBOARDING_STORAGE_KEY = 'prophetatlas-onboarding-completed';
+
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const { user } = useAuth();
   const { toasts, closeToast } = useToast();
-  
+
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   // Custom hooks for state management
   const {
     chatHistory,
@@ -71,6 +77,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     setIsSidebarOpen,
     setActiveTab,
     handleSendMessage,
+    sendMessageWithStream,
     handleNewChat,
     handleLoadChat,
     handleDeleteChat,
@@ -80,26 +87,23 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     dealAnalyzer,
     openDealAnalyzer,
     closeDealAnalyzer,
-    currentThreadId,
-    toolResultsByThread,
-    isFetchingToolResults,
-    toolMemoryError,
-    refreshToolResults,
-    clearToolMemoryError,
     reportDrawer,
     closeReportDrawer,
     generateReportWithType,
+    // Thinking state
+    thinking,
+    completedTools,
   } = useDesktopShell();
-  
+
   const { selectedState, setSelectedState, currentTheme } = useThemeState();
-  
+
   const {
     emailNotifications,
     marketAlerts,
     updateEmailNotifications,
     updateMarketAlerts
   } = usePreferences();
-  
+
   // Property bookmarks
   const {
     bookmarks,
@@ -107,31 +111,100 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     removeBookmark,
     findMatchingBookmark,
   } = usePropertyBookmarks();
-  
+
   // Saved reports - now fetches from backend API
   const {
     refreshReports,
   } = useSavedReports();
-  
+
   // Toggle bookmark handler
   const handleToggleBookmark = useCallback((property: ScoutedProperty) => {
-    const existingBookmark = findMatchingBookmark(property);
-    if (existingBookmark) {
-      removeBookmark(existingBookmark.id);
-    } else {
-      addBookmark(property);
+    console.log('[DesktopShell] handleToggleBookmark called', { property });
+    try {
+      const existingBookmark = findMatchingBookmark(property);
+      console.log('[DesktopShell] Existing bookmark found:', existingBookmark);
+      if (existingBookmark) {
+        console.log('[DesktopShell] Removing bookmark:', existingBookmark.id);
+        removeBookmark(existingBookmark.id);
+      } else {
+        console.log('[DesktopShell] Adding bookmark');
+        const newBookmark = addBookmark(property);
+        console.log('[DesktopShell] Bookmark added:', newBookmark);
+      }
+    } catch (error) {
+      console.error('[DesktopShell] Error in handleToggleBookmark:', error);
     }
   }, [findMatchingBookmark, removeBookmark, addBookmark]);
-  
+
   // Refresh reports when navigating to reports tab (reports are auto-saved on backend)
   const handleNavigateToReportsAndRefresh = useCallback(() => {
     setActiveTab('reports');
     refreshReports();
   }, [setActiveTab, refreshReports]);
-  
 
-  const toolMemoryEntries = currentThreadId ? toolResultsByThread[currentThreadId] : [];
-  
+
+
+
+  // Check if onboarding should be shown
+  useEffect(() => {
+    let isMounted = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const checkOnboardingStatus = async () => {
+      if (!user) return;
+
+      const userId = user.id || user.email || undefined;
+      const status = await hasCompletedOnboarding(userId);
+
+      if (!isMounted) return;
+
+      // Skip showing onboarding if backend is unavailable
+      if (!status.backendAvailable) {
+        console.warn('Onboarding backend unavailable; skipping tour display.');
+        return;
+      }
+
+      if (status.completed) {
+        localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+        return;
+      }
+
+      // Small delay to let the UI render first
+      timer = setTimeout(() => {
+        setShowOnboarding(true);
+      }, 500);
+    };
+
+    checkOnboardingStatus();
+
+    return () => {
+      isMounted = false;
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [user]);
+
+  // Handle onboarding completion
+  const handleOnboardingComplete = useCallback((redirectTab?: TabType) => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+    setShowOnboarding(false);
+    // Navigate to the tab specified by backend (defaults to 'chat')
+    if (redirectTab) {
+      setActiveTab(redirectTab);
+    }
+  }, [setActiveTab]);
+
+  // Handle onboarding skip
+  const handleOnboardingSkip = useCallback((redirectTab?: TabType) => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+    setShowOnboarding(false);
+    // Navigate to the tab specified by backend (defaults to 'chat')
+    if (redirectTab) {
+      setActiveTab(redirectTab);
+    }
+  }, [setActiveTab]);
+
   // Listen for navigation events from chat
   useEffect(() => {
     const handleNavigate = (event: CustomEvent) => {
@@ -142,119 +215,141 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       console.log(`🚀 Navigating to: ${targetTab}`);
       setActiveTab(targetTab);
     };
-    
+
     window.addEventListener('navigate-to-tab', handleNavigate as EventListener);
     return () => window.removeEventListener('navigate-to-tab', handleNavigate as EventListener);
   }, [setActiveTab]);
-  
+
   return (
-    <GradientBackground variant="modern">
-      <div className="h-screen flex flex-col overflow-hidden relative">
-        {/* Content layer */}
-        <div className="relative z-10 h-full flex flex-col">
-      {/* Sidebar Menu */}
-      <DesktopSidebarMenu
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        chatHistory={chatHistory}
-        activeChatId={activeChatId}
-        activeTab={activeTab}
-        currentTheme={currentTheme}
-        menuItems={MENU_ITEMS}
-        onNewChat={handleNewChat}
-        onLoadChat={handleLoadChat}
-        onDeleteChat={handleDeleteChat}
-        onTabChange={setActiveTab}
-      />
+    <div className="h-screen w-full relative overflow-hidden dark bg-background">
+      {/* Immersive gradient background */}
+      <div className="absolute inset-0 bg-gradient-animated" />
+      <div className="absolute inset-0 bg-mesh" />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Minimal Professional Header */}
-        <div className="flex-shrink-0 px-6 py-3 flex items-center justify-between">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="group px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] relative overflow-hidden backdrop-blur-xl bg-white/90 border border-blue-900/10 shadow-lg shadow-blue-900/5"
-          >
-            <svg 
-              className="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:rotate-90 text-blue-900" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+      {/* Content layer */}
+      <div className="relative z-10 h-full flex flex-col">
+        {/* Sidebar Menu (slides over) */}
+        <DesktopSidebarMenu
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          chatHistory={chatHistory}
+          activeChatId={activeChatId}
+          activeTab={activeTab}
+          currentTheme={currentTheme}
+          menuItems={MENU_ITEMS}
+          onNewChat={handleNewChat}
+          onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
+          onTabChange={setActiveTab}
+          bookmarks={bookmarks}
+          onRemoveBookmark={removeBookmark}
+          onBookmarkClick={(bookmark) => {
+            // When bookmark is clicked, start a new chat and analyze the property
+            handleNewChat();
+            const propertyAddress = bookmark.property.address;
+            const message = `Analyze this property: ${propertyAddress}`;
+            setTimeout(() => {
+              handleSendMessage(message);
+            }, 100);
+          }}
+        />
+
+        {/* Main Content Area - Full height */}
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Back to Chat Button - Shows when not on chat tab */}
+          {activeTab !== 'chat' && (
+            <button
+              onClick={() => setActiveTab('chat')}
+              className="absolute top-4 left-4 z-20 px-4 py-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group flex items-center gap-2.5"
+              aria-label="Back to chat"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span 
-              className="font-semibold text-sm relative z-10 text-blue-900"
-            >
-              Menu
-            </span>
-          </button>
+              <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
+                Back to Chat
+              </span>
+            </button>
+          )}
+
+          {/* Tab Content */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {activeTab === 'chat' && (
+              <ChatTabView
+                messages={messages}
+                isLoading={isLoading}
+                userName={user?.name?.split(' ')[0]}
+                selectedState={selectedState}
+                onSendMessage={sendMessageWithStream}
+                onAction={handleAction}
+                onAttach={file => setAttachment(file)}
+                attachment={attachment}
+                onClearAttachment={() => setAttachment(null)}
+                onOpenDealAnalyzer={openDealAnalyzer}
+                bookmarks={bookmarks}
+                onToggleBookmark={handleToggleBookmark}
+                onNavigateToReports={handleNavigateToReportsAndRefresh}
+                onOpenSidebar={() => setIsSidebarOpen(true)}
+                onNewChat={handleNewChat}
+                thinking={thinking}
+                completedTools={completedTools}
+              />
+            )}
+            {activeTab === 'settings' && (
+              <SettingsTabView
+                selectedState={selectedState}
+                setSelectedState={setSelectedState}
+                emailNotifications={emailNotifications}
+                setEmailNotifications={updateEmailNotifications}
+                marketAlerts={marketAlerts}
+                setMarketAlerts={updateMarketAlerts}
+                stateOptions={STATE_OPTIONS}
+              />
+            )}
+            {activeTab === 'reports' && (
+              <ReportsTabView />
+            )}
+            {activeTab === 'portfolio' && (
+              <PortfolioTabView />
+            )}
+          </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {activeTab === 'chat' && (
-            <ChatTabView
-              messages={messages}
-              isLoading={isLoading}
-              userName={user?.name?.split(' ')[0]}
-              selectedState={selectedState}
-              onSendMessage={handleSendMessage}
-              onAction={handleAction}
-              onAttach={file => setAttachment(file)}
-              attachment={attachment}
-              onClearAttachment={() => setAttachment(null)}
-              onOpenDealAnalyzer={openDealAnalyzer}
-              bookmarks={bookmarks}
-              onToggleBookmark={handleToggleBookmark}
-              onNavigateToReports={handleNavigateToReportsAndRefresh}
-            />
-          )}
-          {activeTab === 'settings' && (
-            <SettingsTabView
-              selectedState={selectedState}
-              setSelectedState={setSelectedState}
-              emailNotifications={emailNotifications}
-              setEmailNotifications={updateEmailNotifications}
-              marketAlerts={marketAlerts}
-              setMarketAlerts={updateMarketAlerts}
-              stateOptions={STATE_OPTIONS}
-            />
-          )}
-          {activeTab === 'reports' && (
-            <ReportsTabView />
-          )}
-        </div>
-      </div>
-      
-      {/* Toast Notifications */}
-      <ToastContainer toasts={toasts} onClose={closeToast} />
-      
-      {/* Deal Analyzer Drawer */}
-      <DealAnalyzerDrawer
-        isOpen={dealAnalyzer.isOpen}
-        onClose={closeDealAnalyzer}
-        propertyId={dealAnalyzer.propertyId}
-        initialPurchasePrice={dealAnalyzer.purchasePrice}
-        initialStrategy={dealAnalyzer.strategy}
-        propertyAddress={dealAnalyzer.propertyAddress}
-      />
+        {/* Toast Notifications */}
+        <ToastContainer toasts={toasts} onClose={closeToast} />
 
-      {/* Report Drawer */}
-      <ReportDrawer
-        isOpen={reportDrawer.isOpen}
-        onClose={closeReportDrawer}
-        report={reportDrawer.report}
-        isLoading={reportDrawer.isLoading}
-        error={reportDrawer.error}
-        onGenerateReport={generateReportWithType}
-        inferredStrategy={reportDrawer.inferredStrategy}
-        propertyAddress={reportDrawer.propertyAddress}
-      />
-      
-        </div>
+        {/* Deal Analyzer Drawer */}
+        <DealAnalyzerDrawer
+          isOpen={dealAnalyzer.isOpen}
+          onClose={closeDealAnalyzer}
+          propertyId={dealAnalyzer.propertyId}
+          initialPurchasePrice={dealAnalyzer.purchasePrice}
+          initialStrategy={dealAnalyzer.strategy}
+          propertyAddress={dealAnalyzer.propertyAddress}
+        />
+
+        {/* Report Drawer */}
+        <ReportDrawer
+          isOpen={reportDrawer.isOpen}
+          onClose={closeReportDrawer}
+          report={reportDrawer.report}
+          isLoading={reportDrawer.isLoading}
+          error={reportDrawer.error}
+          onGenerateReport={generateReportWithType}
+          inferredStrategy={reportDrawer.inferredStrategy}
+          propertyAddress={reportDrawer.propertyAddress}
+        />
+
+        {/* Onboarding Tour */}
+        <OnboardingTour
+          isOpen={showOnboarding}
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+          currentTab={activeTab}
+          onTabChange={setActiveTab}
+        />
       </div>
-    </GradientBackground>
+    </div>
   );
 };
 

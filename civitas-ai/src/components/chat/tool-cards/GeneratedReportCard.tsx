@@ -32,17 +32,7 @@ const ExternalLinkIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const TrendingUpIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-  </svg>
-);
 
-const CheckIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-  </svg>
-);
 
 const FolderIcon = ({ className }: { className?: string }) => (
   <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,48 +40,16 @@ const FolderIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
-const formatPercent = (value: number): string => {
-  return `${(value * 100).toFixed(1)}%`;
-};
 
-const formatDate = (isoString: string): string => {
-  return new Date(isoString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
-// Recommendation badge colors
-const getRecommendationStyle = (rec: string) => {
-  switch (rec) {
-    case 'Buy':
-      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
-    case 'Pass':
-      return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border-red-200 dark:border-red-800';
-    case 'Negotiate':
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-    default:
-      return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
-  }
-};
-
-// Report Modal Component - Uses iframe with backend HTML endpoint
+// Report Modal Component - Uses iframe with backend HTML endpoint or embedded content
 interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   reportId: string;
   reportType: string;
   propertyAddress: string;
+  htmlContent?: string;
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
@@ -100,32 +58,40 @@ const ReportModal: React.FC<ReportModalProps> = ({
   reportId,
   reportType,
   propertyAddress,
+  htmlContent,
 }) => {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
-  
-  // Get the HTML URL from the reports service
+
+  // Get the HTML URL from the reports service (fallback)
   const htmlUrl = reportsService.getHtmlUrl(reportId);
-  
+
   const handlePrint = () => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.print();
     }
   };
-  
+
   const handleOpenNewTab = () => {
-    window.open(htmlUrl, '_blank');
+    if (htmlContent) {
+      // Create a blob URL for the content
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } else {
+      window.open(htmlUrl, '_blank');
+    }
   };
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
@@ -165,12 +131,13 @@ const ReportModal: React.FC<ReportModalProps> = ({
             </button>
           </div>
         </div>
-        
-        {/* Report Content - iframe pointing to HTML endpoint */}
+
+        {/* Report Content - iframe pointing to HTML endpoint or embedded content */}
         <div className="flex-1 overflow-hidden">
           <iframe
             ref={iframeRef}
-            src={htmlUrl}
+            src={htmlContent ? undefined : htmlUrl}
+            srcDoc={htmlContent}
             className="w-full h-full min-h-[600px] border-0 bg-white"
             title={reportType}
           />
@@ -180,28 +147,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
   );
 };
 
-// Key Metrics Mini Card
-interface MetricCardProps {
-  label: string;
-  value: string;
-  isPositive?: boolean;
-}
 
-const MetricCard: React.FC<MetricCardProps> = ({ label, value, isPositive }) => (
-  <div className="flex flex-col items-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-    <span className={cn(
-      'text-sm font-semibold',
-      isPositive === true && 'text-emerald-600 dark:text-emerald-400',
-      isPositive === false && 'text-red-600 dark:text-red-400',
-      isPositive === undefined && 'text-slate-700 dark:text-slate-300'
-    )}>
-      {value}
-    </span>
-    <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-      {label}
-    </span>
-  </div>
-);
 
 export interface GeneratedReportCardProps {
   data: GenerateReportOutput;
@@ -212,137 +158,45 @@ export interface GeneratedReportCardProps {
   autoSave?: boolean;
 }
 
-export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({ 
-  data, 
+export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
+  data,
   onNavigateToReports,
 }) => {
   const [isReportOpen, setIsReportOpen] = useState(false);
-  
+
   const {
     report_type,
     property_address,
-    recommendation,
-    key_metrics,
     report_id,
-    created_at,
-    // Fallback to generated_at for legacy format
-    generated_at,
+    html_content, // Destructure new field
   } = data;
-  
-  // Use created_at or generated_at for timestamp
-  const timestamp = created_at || generated_at;
-  
-  // Reports are auto-saved on backend, always show as saved
-  const cashFlowPositive = key_metrics?.monthly_cash_flow && key_metrics.monthly_cash_flow > 0;
-  
+
   return (
     <>
-      <div className="mt-3 space-y-3">
-        {/* Header with Report Type & Recommendation */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <DocumentIcon className="w-5 h-5 text-blue-500" />
-            <div>
-              <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                {report_type}
-              </span>
-              <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">
-                {property_address}
-              </span>
-            </div>
-          </div>
-          
-          {/* Recommendation Badge */}
-          <span className={cn(
-            'px-2.5 py-1 rounded-full text-xs font-semibold border',
-            getRecommendationStyle(recommendation)
-          )}>
-            {recommendation}
-          </span>
-        </div>
-        
-        {/* Key Metrics Grid */}
-        {key_metrics && (
-          <div className="grid grid-cols-4 gap-2">
-            <MetricCard 
-              label="Monthly CF" 
-              value={formatCurrency(key_metrics.monthly_cash_flow)}
-              isPositive={cashFlowPositive}
-            />
-            <MetricCard 
-              label="Cap Rate" 
-              value={formatPercent(key_metrics.cap_rate)}
-              isPositive={key_metrics.cap_rate > 0.06}
-            />
-            <MetricCard 
-              label="CoC Return" 
-              value={formatPercent(key_metrics.cash_on_cash)}
-              isPositive={key_metrics.cash_on_cash > 0.08}
-            />
-            <MetricCard 
-              label="DSCR" 
-              value={key_metrics.dscr.toFixed(2)}
-              isPositive={key_metrics.dscr > 1.2}
-            />
-          </div>
-        )}
-        
-        {/* Success Message - Report is auto-saved on backend */}
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-          <CheckIcon className="w-5 h-5 text-emerald-500" />
-          <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-            ✅ Your {report_type} is ready!
-          </span>
-          {onNavigateToReports && (
-            <button
-              onClick={onNavigateToReports}
-              className="ml-auto text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
-            >
-              View in Reports Tab →
-            </button>
+      {/* Single immersed button - no box, just clean UI */}
+      {/* Primary View Button */}
+      <button
+        onClick={() => setIsReportOpen(true)}
+        className="mt-3 flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
+      >
+        <DocumentIcon className="w-4 h-4" />
+        View Full Report
+      </button>
+
+      {/* Secondary Link to Reports Tab */}
+      {onNavigateToReports && (
+        <button
+          onClick={onNavigateToReports}
+          className={cn(
+            'mt-2 flex items-center gap-2 text-xs font-medium transition-colors',
+            'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
           )}
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          {/* View Report Button */}
-          <button
-            onClick={() => setIsReportOpen(true)}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
-              'bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50',
-              'text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-            )}
-          >
-            <TrendingUpIcon className="w-4 h-4" />
-            View Report
-          </button>
-          
-          {/* Go to Reports Tab Button */}
-          {onNavigateToReports && (
-            <button
-              onClick={onNavigateToReports}
-              className={cn(
-                'flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
-                'bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800',
-                'text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-              )}
-              title="View all reports"
-            >
-              <FolderIcon className="w-4 h-4" />
-              Reports
-            </button>
-          )}
-        </div>
-        
-        {/* Generated timestamp */}
-        {timestamp && (
-          <div className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
-            Generated {formatDate(timestamp)}
-          </div>
-        )}
-      </div>
-      
+        >
+          <FolderIcon className="w-3 h-3" />
+          View all reports
+        </button>
+      )}
+
       {/* Report Modal - Uses iframe with backend HTML endpoint */}
       {report_id && (
         <ReportModal
@@ -351,6 +205,7 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
           reportId={report_id}
           reportType={report_type}
           propertyAddress={property_address}
+          htmlContent={html_content}
         />
       )}
     </>

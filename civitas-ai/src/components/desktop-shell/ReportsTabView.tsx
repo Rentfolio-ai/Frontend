@@ -123,9 +123,9 @@ const ReportViewerModal: React.FC<ReportViewerModalProps> = ({ report, onClose }
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-primary/10 dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col backdrop-blur-xl border border-primary/20">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-primary/20 dark:border-slate-700 bg-primary/8 dark:bg-slate-800/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <DocumentIcon className="w-5 h-5 text-blue-500" />
             <div>
@@ -173,7 +173,7 @@ const ReportViewerModal: React.FC<ReportViewerModalProps> = ({ report, onClose }
           <iframe
             ref={iframeRef}
             src={htmlUrl}
-            className="w-full h-full min-h-[600px] border-0 bg-white"
+            className="w-full h-full min-h-[600px] border-0 bg-primary/5"
             title={report.report_type}
           />
         </div>
@@ -197,7 +197,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, isSelected, onSelect, o
   return (
     <div 
       className={cn(
-        'group bg-white dark:bg-slate-800/50 rounded-xl border p-4 hover:shadow-lg transition-all cursor-pointer',
+        'group bg-primary/10 dark:bg-slate-800/50 rounded-xl border border-primary/20 p-4 hover:shadow-lg hover:bg-primary/15 transition-all cursor-pointer backdrop-blur-sm',
         isSelected 
           ? 'border-blue-500 ring-2 ring-blue-500/20' 
           : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'

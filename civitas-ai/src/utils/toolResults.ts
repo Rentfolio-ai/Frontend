@@ -47,6 +47,7 @@ const DEFAULT_TITLES: Record<string, string> = {
   scout_properties: 'Property Search Results',
   compare_properties: 'Property Comparison',
   request_pnl_calculation: 'P&L Analysis (Validated)',      // New validated PNL tool
+  request_flip_analysis: 'Flip Analysis',                   // New dedicated Flip tool
   calculate_pnl_tool: 'P&L Analysis',                       // Legacy PNL tool
   request_metrics_calculation: 'Deal Metrics (Validated)',  // New validated metrics tool
   compute_metrics_tool: 'Deal Metrics Summary',             // Legacy metrics tool
@@ -116,6 +117,7 @@ const deriveKind = (rawKind?: string, toolName?: string): ToolCard['kind'] | und
     case 'pnl_analysis':
     case 'pnl_calculation':
     case 'request_pnl_calculation':      // New validated PNL tool
+    case 'request_flip_analysis':        // New dedicated Flip tool
     case 'calculate_pnl_tool':           // Legacy PNL tool
     case 'request_metrics_calculation':  // New validated metrics tool
     case 'compute_metrics_tool':         // Legacy metrics tool
@@ -129,7 +131,7 @@ const deriveKind = (rawKind?: string, toolName?: string): ToolCard['kind'] | und
     case 'valuation_analysis':
     case 'str_valuation':
     case 'property_valuation':
-        return 'valuation';
+      return 'valuation';
     case 'portfolio_analyzer_tool': // Backend tool name
     case 'portfolio_analyzer':
     case 'portfolio':
@@ -253,11 +255,14 @@ const validatedPnLToCardData = (output: Record<string, unknown>, propertyAddress
   const year1 = result['year1'] as Record<string, unknown>;
   const financing = result['financing_summary'] as Record<string, unknown>;
   const insights = result['insights'] as Record<string, unknown> | undefined;
-  
+  const flipMetrics = year1['flip'] as Record<string, unknown> | undefined;
+
   // New format uses cashflow_before_taxes (annual), need to divide by 12 for monthly
   const annualCashflow = (year1['cashflow_before_taxes'] as number) ?? 0;
   const monthlyCashflow = annualCashflow / 12;
-  
+
+  const isFlip = strategy === 'Flip';
+
   return {
     strategy: strategy as 'STR' | 'LTR' | 'ADU' | 'MF' | 'Flip',
     propertyId: null,
@@ -279,6 +284,15 @@ const validatedPnLToCardData = (output: Record<string, unknown>, propertyAddress
       totalCashInvested: (financing['total_cash_invested'] as number) ?? 0,
       monthlyMortgage: (financing['monthly_mortgage'] as number) ?? 0,
     },
+    flipMetrics: isFlip && flipMetrics ? {
+      arv: (flipMetrics['arv'] as number) ?? 0,
+      totalProjectCost: ((flipMetrics['rehab_cost'] as number) ?? 0) + ((financing['purchase_price'] as number) ?? 0), // Approx total cost
+      grossProfit: (flipMetrics['projected_profit'] as number) ?? 0, // Using projected profit as gross for now
+      netProfit: (flipMetrics['projected_profit'] as number) ?? 0,
+      roiPct: (flipMetrics['hold_time_roi'] as number) ?? 0,
+      holdTimeMonths: (flipMetrics['hold_time_months'] as number) ?? 6,
+      annualizedRoi: flipMetrics['annualized_roi'] as number | undefined,
+    } : undefined,
     recommendation: insights ? {
       verdict: (insights['recommendation'] as 'BUY' | 'NEGOTIATE' | 'PASS') ?? 'NEGOTIATE',
       summary: (insights['summary'] as string) ?? '',
@@ -297,10 +311,10 @@ const backendPnLToCardData = (output: Record<string, unknown>, propertyAddress?:
   const metrics = output['metrics'] as Record<string, unknown>;
   const flipMetrics = output['flipMetrics'] as Record<string, unknown> | undefined;
   const insights = output['insights'] as Record<string, unknown> | undefined;
-  
+
   // Map to DealAnalyzerData format
   const isFlip = strategy === 'Flip';
-  
+
   return {
     strategy: strategy as 'STR' | 'LTR' | 'ADU' | 'MF' | 'Flip',
     propertyId: output['property_id'] as string | null ?? null,
@@ -379,7 +393,7 @@ const isLegacyMetricsOutput = (value: unknown): boolean => {
 const validatedMetricsToCardData = (output: Record<string, unknown>, propertyAddress?: string): DealAnalyzerData => {
   const result = output['result'] as Record<string, unknown>;
   const strategy = result['strategy'] as string;
-  
+
   return {
     strategy: strategy as 'STR' | 'LTR' | 'ADU' | 'MF' | 'Flip',
     propertyId: null,
@@ -400,7 +414,7 @@ const validatedMetricsToCardData = (output: Record<string, unknown>, propertyAdd
 // Convert legacy metrics format to DealAnalyzerData
 const legacyMetricsToCardData = (output: Record<string, unknown>, propertyAddress?: string): DealAnalyzerData => {
   const strategy = output['strategy'] as string;
-  
+
   return {
     strategy: (strategy as 'STR' | 'LTR' | 'ADU' | 'MF' | 'Flip') ?? 'LTR',
     propertyId: null,
@@ -612,7 +626,7 @@ const extractValuationData = (raw: RawToolResult): ValuationData | undefined => 
 
     return valuationResponseToCardData(payload, {
       property_address: propertyAddress,
-      strategy: typeof (payload as Record<string, unknown>)['strategy'] === 'string' 
+      strategy: typeof (payload as Record<string, unknown>)['strategy'] === 'string'
         ? ((payload as Record<string, unknown>)['strategy'] as 'STR' | 'LTR')
         : 'STR',
       flip_roi: typeof (payload as Record<string, unknown>)['flip_roi'] === 'number'
@@ -660,14 +674,14 @@ const extractValuationData = (raw: RawToolResult): ValuationData | undefined => 
 const extractVisionData = (raw: RawToolResult): Record<string, unknown> | undefined => {
   const payload = coercePayload(raw);
   if (!payload || !isObject(payload)) return undefined;
-  
+
   const payloadRecord = payload as Record<string, unknown>;
-  
+
   // Check if it's nested in a 'data' field
-  const data = isObject(payloadRecord['data']) 
-    ? payloadRecord['data'] as Record<string, unknown> 
+  const data = isObject(payloadRecord['data'])
+    ? payloadRecord['data'] as Record<string, unknown>
     : payloadRecord;
-  
+
   // New enhanced format (analyze_property_image)
   if (typeof data['analysis_type'] === 'string' || typeof data['success'] === 'boolean') {
     return {
@@ -685,7 +699,7 @@ const extractVisionData = (raw: RawToolResult): Record<string, unknown> | undefi
       validation_errors: data['validation_errors'],
     };
   }
-  
+
   // Legacy format (analyze_renovation_from_image) - convert to new format
   if (typeof data['overall_condition'] === 'string' || data['renovation_items']) {
     const totalCost = data['total_estimated_cost'] as Record<string, number> | undefined;
@@ -696,15 +710,15 @@ const extractVisionData = (raw: RawToolResult): Record<string, unknown> | undefi
       room_type: data['room_type'] ?? 'auto',
       renovation_costs: hasValidCosts ? {
         basic_refresh: totalCost.low > 0 ? { total: totalCost.low, breakdown: [] } : undefined,
-        standard_rental: (totalCost.low > 0 && totalCost.high > 0) 
-          ? { total: Math.round((totalCost.low + totalCost.high) / 2), breakdown: [] } 
+        standard_rental: (totalCost.low > 0 && totalCost.high > 0)
+          ? { total: Math.round((totalCost.low + totalCost.high) / 2), breakdown: [] }
           : undefined,
         premium_upgrade: totalCost.high > 0 ? { total: totalCost.high, breakdown: [] } : undefined,
       } : undefined,
       summary: data['message'] ?? 'Renovation analysis complete',
     };
   }
-  
+
   // Fallback - just return the payload as-is
   return payloadRecord;
 };

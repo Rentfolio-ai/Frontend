@@ -6,7 +6,8 @@
 import type { PnLOutput, PnLRequest, InvestmentStrategy } from '../types/pnl';
 import { apiLogger } from '../utils/logger';
 
-const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 const jsonHeaders: HeadersInit = {
@@ -47,22 +48,70 @@ export async function calculatePropertyPnL(
   propertyId: string | null,
   request: PnLRequest
 ): Promise<PnLApiResponse> {
-  const endpoint = propertyId 
-    ? `${API_BASE}/api/v1/properties/${propertyId}/pnl`
-    : `${API_BASE}/api/v1/pnl`;
-  
+  const endpoint = propertyId
+    ? `${API_BASE}/api/properties/${propertyId}/pnl`
+    : `${API_BASE}/api/calculate/pnl`;
+
+  // Calculate derived values if missing (Backend requires absolute values)
+  const purchasePrice = request.purchasePrice || 0;
+
+  if (!request.propertyTaxAnnual && request.propertyTaxPctOfValue && purchasePrice > 0) {
+    request.propertyTaxAnnual = (purchasePrice * request.propertyTaxPctOfValue) / 100;
+  }
+
+  // Ensure insurance has a fallback if not provided (though usually has default)
+  if (!request.insuranceAnnual && purchasePrice > 0) {
+    // Fallback estimate: 0.5% of value if absolutely nothing provided
+    request.insuranceAnnual = (purchasePrice * 0.005);
+  }
+
   // Convert camelCase to snake_case for backend
-  const payload = convertToSnakeCase(request);
-  
+  const snakeCaseRequest = convertToSnakeCase(request);
+
+  // Normalize percentages to decimals (Backend expects 0.25 for 25%)
+  const percentageFields = [
+    'closing_cost_pct',
+    'down_payment_pct',
+    'interest_rate_annual',
+    'expected_occupancy_pct',
+    'platform_fee_pct',
+    'vacancy_rate_pct',
+    'property_tax_pct_of_value',
+    'property_management_pct_of_income',
+    'maintenance_pct_of_income',
+    'capex_reserve_pct_of_income',
+    'annual_appreciation_pct',
+    'rent_growth_pct',
+    'expense_growth_pct',
+    'projected_sales_cost_pct'
+  ];
+
+  for (const field of percentageFields) {
+    if (typeof snakeCaseRequest[field] === 'number') {
+      snakeCaseRequest[field] = snakeCaseRequest[field] / 100;
+    }
+  }
+
+  // Extract top-level fields
+  const { strategy, include_ai_analysis, ...rest } = snakeCaseRequest;
+
+  // Construct payload matching PnLCalculateRequest
+  const payload = {
+    strategy,
+    include_ai_analysis: !!include_ai_analysis,
+    property_id: propertyId,
+    inputs: rest
+  };
+
   const startTime = performance.now();
-  
+
   apiLogger.request({
     method: 'POST',
     url: endpoint,
     service: 'P&L Calculator',
     payloadPreview: `strategy=${request.strategy}, price=$${request.purchasePrice || 'N/A'}`,
   });
-  
+
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: jsonHeaders,
@@ -70,7 +119,7 @@ export async function calculatePropertyPnL(
   });
 
   const duration = Math.round(performance.now() - startTime);
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'P&L calculation failed' }));
     apiLogger.error({
@@ -85,7 +134,7 @@ export async function calculatePropertyPnL(
   }
 
   const data = await response.json();
-  
+
   apiLogger.response({
     method: 'POST',
     url: endpoint,
@@ -94,7 +143,7 @@ export async function calculatePropertyPnL(
     durationMs: duration,
     payloadPreview: `cashflow=$${data.year1?.cashflow_before_taxes || 'N/A'}`,
   });
-  
+
   return data;
 }
 
@@ -115,7 +164,7 @@ export async function getMarketDefaults(
   if (propertyId) params.append('property_id', propertyId);
   if (location) params.append('location', location);
 
-  const response = await fetch(`${API_BASE}/api/v1/pnl/defaults?${params.toString()}`, {
+  const response = await fetch(`${API_BASE}/api/calculate/defaults?${params.toString()}`, {
     method: 'GET',
     headers: jsonHeaders,
   });
@@ -143,7 +192,7 @@ export async function explainPnL(
   explanation: string;
   highlights?: string[];
 }> {
-  const response = await fetch(`${API_BASE}/api/v1/pnl/explain`, {
+  const response = await fetch(`${API_BASE}/api/calculate/explain`, {
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify({
@@ -184,7 +233,7 @@ export async function compareStrategies(
   success: boolean;
   comparison: any;
 }> {
-  const response = await fetch(`${API_BASE}/api/v1/pnl/compare`, {
+  const response = await fetch(`${API_BASE}/api/calculate/compare`, {
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(convertToSnakeCase(request)),
@@ -206,7 +255,7 @@ export function assumptionsToRequest(
   formState: Record<string, number | boolean | string | null | undefined>
 ): PnLRequest {
   const request: PnLRequest = { strategy };
-  
+
   // Map form field names to API field names
   const fieldMap: Record<string, keyof PnLRequest> = {
     purchasePrice: 'purchasePrice',
@@ -257,14 +306,14 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
   const interestRate = request.interestRateAnnual || 7.5;
   const loanTermYears = request.loanTermYears || 30;
   const isFinanced = request.isFinanced !== false;
-  
+
   // Calculate financing
   const downPayment = purchasePrice * (downPaymentPct / 100);
   const closingCosts = purchasePrice * ((request.closingCostPct || 3) / 100);
   const rehabBudget = request.rehabBudget || 0;
   const totalInvestment = downPayment + closingCosts + rehabBudget;
   const loanAmount = isFinanced ? purchasePrice - downPayment : 0;
-  
+
   // Monthly mortgage payment (P&I)
   const monthlyRate = interestRate / 100 / 12;
   const numPayments = loanTermYears * 12;
@@ -276,7 +325,7 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
   // Calculate income based on strategy
   let grossIncome: number;
   let vacancyLoss: number;
-  
+
   if (request.strategy === 'STR') {
     const adr = request.adr || 200;
     const occupancy = (request.expectedOccupancyPct || 65) / 100;
@@ -285,7 +334,7 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
     const avgStayDays = 3;
     const nightsBooked = 365 * occupancy;
     const numBookings = Math.ceil(nightsBooked / avgStayDays);
-    
+
     grossIncome = (adr * nightsBooked) + (cleaningFee * numBookings);
     vacancyLoss = grossIncome * platformFeePct; // Platform fees as "vacancy" equivalent
   } else {
@@ -294,7 +343,7 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
     grossIncome = monthlyRent * 12;
     vacancyLoss = grossIncome * vacancyRate;
   }
-  
+
   const effectiveGrossIncome = grossIncome - vacancyLoss;
 
   // Calculate expenses
@@ -307,7 +356,7 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
   const maintenance = effectiveGrossIncome * ((request.maintenancePctOfIncome || 7) / 100);
   const capex = effectiveGrossIncome * ((request.capexReservePctOfIncome || 5) / 100);
   const otherOpex = (request.otherOperatingMonthly || 0) * 12;
-  
+
   // STR-specific expenses
   let cleaningCosts = 0;
   let platformFees = 0;
@@ -321,7 +370,7 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
   }
 
   const totalExpenses = propertyTax + insurance + hoa + utilities + internet + pmFee + maintenance + capex + cleaningCosts + platformFees + otherOpex;
-  
+
   // Calculate key metrics
   const noi = effectiveGrossIncome - totalExpenses;
   const cashflow = noi - annualDebtService;
@@ -340,27 +389,27 @@ export function mockCalculatePnL(request: PnLRequest): PnLOutput {
   const appreciationRate = (request.annualAppreciationPct || 3) / 100;
   const rentGrowthRate = (request.rentGrowthPct || 3) / 100;
   const expenseGrowthRate = (request.expenseGrowthPct || 2) / 100;
-  
+
   const projection: PnLOutput['projection'] = [];
   let cumulativeCashflow = 0;
   let currentPropertyValue = purchasePrice;
   let currentIncome = effectiveGrossIncome;
   let currentExpenses = totalExpenses;
-  
+
   for (let year = 1; year <= projectionYears; year++) {
     if (year > 1) {
       currentPropertyValue *= (1 + appreciationRate);
       currentIncome *= (1 + rentGrowthRate);
       currentExpenses *= (1 + expenseGrowthRate);
     }
-    
+
     const yearNoi = currentIncome - currentExpenses;
     const yearCashflow = yearNoi - annualDebtService;
     cumulativeCashflow += yearCashflow;
-    
+
     // Simple equity calculation (doesn't account for loan amortization precisely)
     const equity = currentPropertyValue - loanAmount * Math.pow(1 - (1 / loanTermYears), year);
-    
+
     projection.push({
       year,
       grossIncome: Math.round(currentIncome),

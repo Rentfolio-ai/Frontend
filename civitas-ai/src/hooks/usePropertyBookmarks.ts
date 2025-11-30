@@ -28,12 +28,30 @@ function loadBookmarks(): PropertyBookmarksState {
     if (!stored) return { bookmarks: [] };
     
     const parsed = JSON.parse(stored);
+    
+    // Validate and filter bookmarks - ensure no hardcoded/test data
+    const bookmarks = Array.isArray(parsed.bookmarks) 
+      ? parsed.bookmarks.filter((bm: any) => {
+          // Only include valid bookmarks with required fields
+          return bm && 
+                 bm.id && 
+                 bm.property && 
+                 bm.property.address &&
+                 bm.bookmarkedAt &&
+                 bm.displayName;
+        })
+      : [];
+    
     return {
-      bookmarks: Array.isArray(parsed.bookmarks) ? parsed.bookmarks : [],
+      bookmarks,
       lastSyncedAt: parsed.lastSyncedAt,
     };
   } catch (error) {
     console.error('[usePropertyBookmarks] Failed to load bookmarks:', error);
+    // Clear corrupted data
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
     return { bookmarks: [] };
   }
 }
@@ -76,6 +94,7 @@ export function usePropertyBookmarks(): UsePropertyBookmarksReturn {
   }, [state]);
   
   const addBookmark = useCallback((property: ScoutedProperty, searchQuery?: string): BookmarkedProperty => {
+    console.log('[usePropertyBookmarks] addBookmark called', { property, searchQuery });
     const now = new Date().toISOString();
     const bookmark: BookmarkedProperty = {
       id: generateBookmarkId(property),
@@ -86,21 +105,33 @@ export function usePropertyBookmarks(): UsePropertyBookmarksReturn {
       searchQuery,
     };
     
-    setState(prev => ({
-      ...prev,
-      bookmarks: [bookmark, ...prev.bookmarks],
-      lastSyncedAt: now,
-    }));
+    console.log('[usePropertyBookmarks] Created bookmark:', bookmark);
+    
+    setState(prev => {
+      const newState = {
+        ...prev,
+        bookmarks: [bookmark, ...prev.bookmarks],
+        lastSyncedAt: now,
+      };
+      console.log('[usePropertyBookmarks] New state:', newState);
+      return newState;
+    });
     
     return bookmark;
   }, []);
   
   const removeBookmark = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      bookmarks: prev.bookmarks.filter(b => b.id !== id),
-      lastSyncedAt: new Date().toISOString(),
-    }));
+    console.log('[usePropertyBookmarks] removeBookmark called', { id });
+    setState(prev => {
+      const filtered = prev.bookmarks.filter(b => b.id !== id);
+      const newState = {
+        ...prev,
+        bookmarks: filtered,
+        lastSyncedAt: new Date().toISOString(),
+      };
+      console.log('[usePropertyBookmarks] Removed bookmark, new state:', newState);
+      return newState;
+    });
   }, []);
   
   const updateBookmark = useCallback((id: string, updates: Partial<Pick<BookmarkedProperty, 'notes' | 'tags'>>) => {
