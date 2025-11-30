@@ -5,9 +5,20 @@ import { Badge } from '../primitives/Badge';
 import { 
   ROIAnalysisCard, 
   MarketDataCard, 
-  PropertyComparisonCard, 
-  AlertCard 
+  PropertyBookmarkCard, 
+  AlertCard,
+  DealAnalyzerCard,
+  ComplianceCard,
+  ValuationCard,
+  VisionAnalysisCard,
 } from './tool-cards';
+import type { DealAnalyzerData } from './tool-cards';
+import type { ValuationData } from './tool-cards';
+import type { VisionAnalysisData } from './tool-cards';
+import type { InvestmentStrategy } from '../../types/pnl';
+import type { ComplianceResult } from '../../types/compliance';
+import type { BookmarkedProperty } from '../../types/bookmarks';
+import type { ScoutedProperty } from '../../types/backendTools';
 
 interface ROIAnalysisData {
   roi: number;
@@ -72,19 +83,61 @@ type AlertToolResult = {
   status: 'success' | 'warning' | 'error';
 };
 
+type DealAnalyzerToolResult = {
+  kind: 'deal_analyzer';
+  title: string;
+  data: DealAnalyzerData;
+  status: 'success' | 'warning' | 'error';
+};
+
+type ComplianceToolResult = {
+  kind: 'compliance_check';
+  title: string;
+  data: ComplianceResult;
+  status: 'success' | 'warning' | 'error';
+};
+
+type ValuationToolResult = {
+  kind: 'valuation';
+  title: string;
+  data: ValuationData;
+  status: 'success' | 'warning' | 'error';
+};
+
+type RenovationAnalysisToolResult = {
+  kind: 'renovation_analysis';
+  title: string;
+  data: VisionAnalysisData;
+  status: 'success' | 'warning' | 'error';
+};
+
 // Create a discriminated union of all tool result types
 type ToolResult = 
   | RoiAnalysisToolResult
   | MarketDataToolResult
   | PropertyComparisonToolResult
-  | AlertToolResult;
+  | AlertToolResult
+  | DealAnalyzerToolResult
+  | ComplianceToolResult
+  | ValuationToolResult
+  | RenovationAnalysisToolResult;
 
 interface ToolMessageProps {
   tool: ToolResult;
   timestamp: string;
+  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy) => void;
+  // Property bookmark support
+  bookmarks?: BookmarkedProperty[];
+  onToggleBookmark?: (property: ScoutedProperty) => void;
 }
 
-export const ToolMessage: React.FC<ToolMessageProps> = ({ tool, timestamp }) => {
+export const ToolMessage: React.FC<ToolMessageProps> = ({ 
+  tool, 
+  timestamp, 
+  onOpenDealAnalyzer,
+  bookmarks,
+  onToggleBookmark,
+}) => {
   const getStatusBadge = () => {
     switch (tool.status) {
       case 'success':
@@ -107,11 +160,29 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ tool, timestamp }) => 
         // TypeScript now knows tool.data is MarketData
         return <MarketDataCard data={tool.data} />;
       case 'property_comparison':
-        // TypeScript now knows tool.data is PropertyComparisonData
-        return <PropertyComparisonCard data={tool.data} />;
+        // Use bookmark card instead of property cards
+        return (
+          <PropertyBookmarkCard 
+            data={tool.data} 
+            bookmarks={bookmarks}
+            onToggleBookmark={onToggleBookmark}
+          />
+        );
       case 'alert':
         // TypeScript now knows tool.data is AlertData
         return <AlertCard data={tool.data} />;
+      case 'deal_analyzer':
+        // TypeScript now knows tool.data is DealAnalyzerData
+        return <DealAnalyzerCard data={tool.data} onOpenAnalyzer={onOpenDealAnalyzer} />;
+      case 'compliance_check':
+        return <ComplianceCard data={tool.data} />;
+      case 'valuation':
+        // TypeScript now knows tool.data is ValuationData
+        return <ValuationCard data={tool.data} onOpenDealAnalyzer={onOpenDealAnalyzer} />;
+      case 'renovation_analysis':
+        // This should not reach here - renovation_analysis is handled directly in MessageBubble
+        // But we include it for TypeScript exhaustiveness checking
+        return null;
       default: {
         // This ensures exhaustiveness checking at compile time, properly scoped in a block
         const exhaustiveCheck = (x: never): never => {
@@ -124,12 +195,15 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({ tool, timestamp }) => 
 
   return (
     <div className="max-w-chat mx-auto animate-slide-in">
-      <Card variant="elevated" className="mb-4">
+      <Card
+        variant="default"
+        className="mb-4 bg-white/95 dark:bg-white/10 border border-white/40 dark:border-white/15 shadow-soft backdrop-blur"
+      >
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <svg className="w-3 h-3 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-6 h-6 bg-primary/15 text-primary rounded flex items-center justify-center">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                 </svg>
               </div>

@@ -1,10 +1,33 @@
 // FILE: src/types/chat.ts
+import type { PresentationBundle } from './pnl';
+import type { ComplianceResult } from './compliance';
+
+// Tool kinds for discriminated union pattern
+// Maps to backend tool_name values and frontend card components
+export type ToolKind = 
+  // Legacy/generic kinds
+  | 'roi_analysis' 
+  | 'market_data' 
+  | 'property_comparison' 
+  | 'property_comparison_table'  // compare_properties tool output
+  | 'alert' 
+  | 'deal_analyzer'
+  | 'compliance_check'
+  | 'valuation'
+  | 'generated_report'  // generate_report tool output
+  | 'generic'
+  // New backend tool kinds
+  | 'portfolio_analysis'
+  | 'cashflow_timeseries'
+  | 'renovation_analysis'
+  | 'report';
 
 export interface ToolCard {
   id: string;
   title: string;
   description: string;
-  status: 'running' | 'completed' | 'error';
+  status: 'running' | 'completed' | 'error' | 'success' | 'warning';
+  kind?: ToolKind;
   data?: any;
 }
 
@@ -38,4 +61,11 @@ export interface Message {
   };
   tools?: ToolCard[];
   action?: Action;
+  summary_markdown?: string;
+  data?: {
+    presentation?: PresentationBundle;
+    compliance?: ComplianceResult;
+    [key: string]: any;
+  };
+  tool_results?: any;
 }

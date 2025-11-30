@@ -4,9 +4,12 @@ import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import type { Message } from '../../types/chat';
+import type { InvestmentStrategy } from '../../types/pnl';
+import type { ThinkingState, CompletedTool } from '../../types/stream';
 import { getOnboardingMessage } from '../../services/chatApi';
-import { Sparkles, TrendingUp, Search } from 'lucide-react';
 import { checkHealth } from '../../services/agentsApi';
+import type { BookmarkedProperty } from '../../types/bookmarks';
+import type { ScoutedProperty } from '../../types/backendTools';
 
 interface ChatTabViewProps {
   messages: Message[];
@@ -18,14 +21,48 @@ interface ChatTabViewProps {
   onAttach?: (file: File) => void;
   attachment?: File | null;
   onClearAttachment?: () => void;
+  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
+  bookmarks?: BookmarkedProperty[];
+  onToggleBookmark?: (property: ScoutedProperty) => void;
+  onNavigateToReports?: () => void;
+  onOpenSidebar?: () => void;
+  onNewChat?: () => void;
+  // Thinking state
+  thinking?: ThinkingState | null;
+  completedTools?: CompletedTool[];
 }
 
-interface ExamplePrompt {
-  text: string;
-  label: string;
-  category: string;
-  placeholder?: boolean; // If true, populate input instead of sending
-}
+// Quick action chips for new users - designed to guide and help
+const QUICK_ACTIONS = [
+  {
+    id: 'search',
+    label: 'Find investment properties',
+    icon: '🏠',
+    query: 'Show me investment properties in Austin, TX under $500k with good rental potential',
+    description: 'Discover properties that match your criteria'
+  },
+  {
+    id: 'analyze',
+    label: 'Calculate ROI & cash flow',
+    icon: '💰',
+    query: 'I want to analyze a rental property. What information do you need to calculate my potential returns?',
+    description: 'Get detailed financial projections'
+  },
+  {
+    id: 'market',
+    label: 'Explore market trends',
+    icon: '📊',
+    query: 'What are the best markets for rental property investing right now? Show me data on prices, rents, and growth.',
+    description: 'See where opportunities are'
+  },
+  {
+    id: 'learn',
+    label: 'Get started guide',
+    icon: '🎯',
+    query: 'I\'m new to real estate investing. Can you walk me through the basics and what I should know?',
+    description: 'Learn the fundamentals'
+  },
+];
 
 export const ChatTabView: React.FC<ChatTabViewProps> = ({
   messages,
@@ -36,205 +73,217 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onAction,
   onAttach,
   attachment,
-  onClearAttachment
+  onClearAttachment,
+  onOpenDealAnalyzer,
+  bookmarks,
+  onToggleBookmark,
+  onNavigateToReports,
+  onOpenSidebar,
+  onNewChat,
+  thinking,
+  completedTools = [],
 }) => {
   const [onboardingMessage, setOnboardingMessage] = useState<string>('');
-  const [examplePrompts, setExamplePrompts] = useState<ExamplePrompt[]>([]);
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const composerRef = useRef<ComposerRef>(null);
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
-  const handlePopulateInput = (text: string) => {
-    composerRef.current?.setInput(text);
-  };
-
   useEffect(() => {
-    // Fetch onboarding message from backend on component mount
     const fetchOnboarding = async () => {
       const data = await getOnboardingMessage(userName);
       setOnboardingMessage(data.message);
-      if (data.example_prompts) {
-        setExamplePrompts(data.example_prompts);
-      }
     };
     fetchOnboarding();
   }, [userName]);
 
   useEffect(() => {
     let isMounted = true;
-
     const fetchHealthStatus = async () => {
       try {
         await checkHealth();
-        if (isMounted) {
-          setBackendStatus('up');
-        }
-      } catch (error) {
-        if (isMounted) {
-          setBackendStatus('down');
-        }
+        if (isMounted) setBackendStatus('up');
+      } catch {
+        if (isMounted) setBackendStatus('down');
       }
     };
-
     fetchHealthStatus();
     const intervalId = window.setInterval(fetchHealthStatus, 60000);
-
     return () => {
       isMounted = false;
       clearInterval(intervalId);
     };
   }, []);
 
+  const handleQuickAction = (query: string) => {
+    onSendMessage(query);
+  };
+
+  const showEmptyState = messages.length === 0 && !isLoading;
+
   return (
     <div className="h-full flex flex-col relative">
-      {/* Professional Hero Card - Real Estate Copilot */}
-      <div className="flex-shrink-0 px-8 pt-6 pb-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Main header card with enhanced shadow and borders */}
-          <div className="relative group">
-            {/* Stronger navy glow for elevation */}
-            <div className="absolute -inset-2 bg-gradient-to-br from-blue-900/25 via-teal-500/20 to-cyan-500/20 rounded-3xl opacity-70 group-hover:opacity-90 blur-2xl transition-opacity duration-500"></div>
-            
-            {/* Main card - professional floating panel */}
-            <div className="relative flex flex-col items-center text-center gap-4 px-8 py-6 rounded-3xl backdrop-blur-2xl bg-white/90 border-2 border-blue-900/20 shadow-[0_12px_48px_rgba(21,46,95,0.18)] hover:shadow-[0_16px_56px_rgba(21,46,95,0.24)] transition-all duration-300">
-              {/* Avatar with professional styling */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-teal-500/20 rounded-full blur-xl"></div>
-                <AgentAvatar size="lg" className="relative" status={agentStatus} />
-              </div>
-              
-              <div className="space-y-2">
-                {/* Title with professional typography */}
-                <div className="space-y-1">
-                  <h1 className="text-3xl font-bold text-blue-900">
-                    Civitas AI
+      {/* Floating Menu Button - Top Left */}
+      {onOpenSidebar && (
+        <button
+          onClick={onOpenSidebar}
+          className="absolute top-4 left-4 z-20 p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+          aria-label="Open menu"
+        >
+          <svg className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
+
+      {/* New Chat Button - Top Right */}
+      {onNewChat && !showEmptyState && (
+        <button
+          onClick={onNewChat}
+          className="absolute top-4 right-4 z-20 px-3 py-2 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group flex items-center gap-2"
+          aria-label="New chat"
+        >
+          <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">New Chat</span>
+        </button>
+      )}
+
+      {/* Messages or Empty State */}
+      <div className="flex-1 overflow-hidden">
+        {showEmptyState ? (
+          /* Premium Empty State - Centered Hero */
+          <div className="h-full flex flex-col items-center justify-center px-6">
+            <div className="max-w-2xl w-full space-y-8 animate-fade-in">
+              {/* Hero Section */}
+              <div className="text-center space-y-6">
+                {/* Glowing Avatar */}
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl scale-150 animate-pulse-glow" />
+                  <AgentAvatar size="lg" className="relative" status={agentStatus} />
+                </div>
+
+                {/* Brand & Tagline */}
+                <div className="space-y-3">
+                  <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
+                    OmniEstate
                   </h1>
-                  <p className="text-base font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                    Real Estate Rental Advisor
+                  <p className="text-lg md:text-xl text-white/60 font-medium">
+                    Your AI-powered real estate intelligence
                   </p>
                 </div>
-                
-                {/* Subtitle */}
-                <p className="text-sm font-medium text-slate-600 flex items-center justify-center gap-1.5 mt-3">
-                  <Sparkles className="w-4 h-4 text-teal-500" />
-                  <span>Your trusted copilot for smarter rental investments</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Message List - On Subtle Surface Panel */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent via-slate-50/30 to-slate-50/40">
-        {messages.length === 0 && !isLoading ? (
-          /* Enhanced Empty State */
-          <div className="max-w-6xl mx-auto px-4 md:px-8 pt-8">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="flex-shrink-0 mt-1">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/10 rounded-full blur-lg"></div>
-                  <AgentAvatar className="relative" status={agentStatus} />
+                {/* Welcome Message */}
+                <div className="max-w-lg mx-auto">
+                  <p className="text-white/50 text-sm leading-relaxed">
+                    {onboardingMessage || 'I\'m here to help you find and evaluate real estate investment opportunities. Click any option below to get started, or ask me anything about properties, markets, or investing.'}
+                  </p>
                 </div>
               </div>
-              
-              <div className="flex-1 space-y-4">
-                {/* Welcome message card with professional styling */}
-                <div className="relative group">
-                  {/* Subtle border glow */}
-                  <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-900/15 via-teal-500/10 to-transparent rounded-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-                  
-                  {/* Message content */}
-                  <div className="relative rounded-2xl rounded-tl-sm px-5 py-4 backdrop-blur-xl bg-blue-50/90 border border-blue-900/10 hover:bg-blue-50/95 hover:border-blue-900/15 transition-all duration-300 shadow-lg shadow-blue-900/5">
-                    <div className="text-slate-800 leading-relaxed text-[15px] whitespace-pre-line font-medium">
-                      {onboardingMessage || 'Loading...'}
-                    </div>
-                    
-                    {/* Enhanced Example Prompt Chips */}
-                    {examplePrompts.length > 0 && (
-                      <div className="mt-5 space-y-3">
-                        <p className="text-xs text-slate-600 font-semibold uppercase tracking-wider flex items-center gap-2">
-                          <TrendingUp className="w-3.5 h-3.5 text-teal-500" />
-                          {examplePrompts.some(p => p.placeholder) 
-                            ? 'Try asking (click to edit)' 
-                            : 'Popular queries'}
-                        </p>
-                        <div className="flex flex-wrap gap-2.5">
-                          {examplePrompts.map((prompt, index) => {
-                            const isSearch = prompt.category === 'search';
-                            const isMarket = prompt.category === 'market';
-                            
-                            return (
-                              <button
-                                key={index}
-                                onClick={() => {
-                                  if (prompt.placeholder) {
-                                    handlePopulateInput(prompt.text);
-                                  } else {
-                                    onSendMessage(prompt.text);
-                                  }
-                                }}
-                                className={`
-                                  group/chip relative px-4 py-2.5 text-sm font-medium rounded-xl
-                                  transition-all duration-300 hover-lift hover-scale active-press
-                                  backdrop-blur-sm border shadow-soft hover:shadow-medium
-                                  ${isSearch 
-                                    ? 'bg-primary/15 hover:bg-primary/25 text-primary border-primary/30 hover:border-primary/50' 
-                                    : isMarket
-                                    ? 'bg-success/15 hover:bg-success/25 text-success border-success/30 hover:border-success/50'
-                                    : 'bg-accent-from/15 hover:bg-accent-from/25 text-accent-from border-accent-from/30 hover:border-accent-from/50'
-                                  }
-                                  ${prompt.placeholder ? 'italic' : ''}
-                                `}
-                                title={prompt.placeholder ? 'Click to edit this query' : 'Click to send'}
-                              >
-                                <span className="flex items-center gap-2">
-                                  {isSearch && <Search className="w-3.5 h-3.5" />}
-                                  {isMarket && <TrendingUp className="w-3.5 h-3.5" />}
-                                  <span>{prompt.label}</span>
-                                  {prompt.placeholder && (
-                                    <span className="text-xs opacity-70">✏️</span>
-                                  )}
-                                </span>
-                                
-                                {/* Hover glow effect */}
-                                <div className={`
-                                  absolute inset-0 rounded-xl opacity-0 group-hover/chip:opacity-100 transition-opacity duration-300 blur-md -z-10
-                                  ${isSearch ? 'bg-primary/20' : isMarket ? 'bg-success/20' : 'bg-accent-from/20'}
-                                `}></div>
-                              </button>
-                            );
-                          })}
+
+              {/* Quick Action Chips - Helpful for new users */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl w-full">
+                {QUICK_ACTIONS.map((action, index) => (
+                  <button
+                    key={action.id}
+                    onClick={() => handleQuickAction(action.query)}
+                    className="group relative px-5 py-4 rounded-xl glass-card hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 animate-slide-up text-left"
+                    style={{ animationDelay: `${index * 75}ms` }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl group-hover:scale-110 transition-transform flex-shrink-0 mt-0.5">
+                        {action.icon}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors mb-1">
+                          {action.label}
                         </div>
+                        {action.description && (
+                          <div className="text-xs text-white/50 group-hover:text-white/60 transition-colors leading-relaxed">
+                            {action.description}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                      <svg
+                        className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors flex-shrink-0 mt-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex items-center justify-center gap-6 pt-4">
+                <div className="flex items-center gap-2 text-white/30 text-xs">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <span>Secure & Private</span>
                 </div>
-                
-                <div className="text-[11px] text-white/40 font-medium ml-1 flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
-                  <span>Just now</span>
+                <div className="w-px h-4 bg-white/10" />
+                <div className="flex items-center gap-2 text-white/30 text-xs">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Real-time Data</span>
+                </div>
+                <div className="w-px h-4 bg-white/10" />
+                <div className="flex items-center gap-2 text-white/30 text-xs">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  <span>AI-Powered</span>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <MessageList messages={messages} isLoading={isLoading} onAction={onAction} agentStatus={agentStatus} />
+          /* Chat Messages */
+          <div className="h-full overflow-y-auto chat-scroll">
+            <MessageList
+              messages={messages}
+              isLoading={isLoading}
+              onAction={onAction}
+              agentStatus={agentStatus}
+              onOpenDealAnalyzer={onOpenDealAnalyzer}
+              bookmarks={bookmarks}
+              onToggleBookmark={onToggleBookmark}
+              onNavigateToReports={onNavigateToReports}
+              thinking={thinking}
+              completedTools={completedTools}
+              userName={userName}
+            />
+          </div>
         )}
       </div>
-      
-      {/* Composer */}
-      <div className="flex-shrink-0 px-8 py-6">
-        <div className="w-full max-w-6xl mx-auto">
-          <Composer 
-            ref={composerRef} 
-            onSend={onSendMessage} 
-            onAttach={onAttach}
-            attachment={attachment}
-            onClearAttachment={onClearAttachment}
-            aria-label="Chat input" 
-          />
+
+      {/* Composer - Bottom with gradient fade */}
+      <div className="flex-shrink-0 relative">
+        {/* Gradient fade above composer */}
+        <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+
+        <div className="px-4 md:px-8 pb-6 pt-4">
+          <div className="w-full max-w-3xl mx-auto">
+            <Composer
+              ref={composerRef}
+              onSend={onSendMessage}
+              onAttach={onAttach}
+              attachment={attachment}
+              onClearAttachment={onClearAttachment}
+              aria-label="Chat input"
+            />
+
+            {/* Subtle disclaimer */}
+            <p className="text-center text-[11px] text-white/20 mt-3">
+              OmniEstate can make mistakes. Verify important information independently.
+            </p>
+          </div>
         </div>
       </div>
     </div>

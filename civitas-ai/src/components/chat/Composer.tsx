@@ -1,6 +1,6 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Mic, Paperclip, X, File as FileIcon } from 'lucide-react';
+import { Mic, Paperclip, X, File as FileIcon, Send, ArrowUp } from 'lucide-react';
 
 interface SuggestionChip {
   id: string;
@@ -36,12 +36,11 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Adjust textarea height whenever message changes
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
     }
   };
 
@@ -49,7 +48,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
     adjustTextareaHeight();
   }, [message]);
 
-  // Handle focus when setInput is called
   useEffect(() => {
     if (shouldFocusAfterSet && textareaRef.current) {
       textareaRef.current.focus();
@@ -76,7 +74,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
     setIsLoading(true);
     if (onSend) onSend(message);
     
-    // Reset local state
     setMessage('');
     if (onClearAttachment) onClearAttachment();
     setIsLoading(false);
@@ -99,8 +96,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-    
-    // Show/hide slash commands
     const value = e.target.value;
     setShowCommands(value.startsWith('/') && value.length > 0);
   };
@@ -123,13 +118,15 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
     }
   };
 
+  const hasContent = message.trim() || attachment;
+
   return (
-    <div className="space-y-4">
-      {/* Enhanced Slash Commands */}
+    <div className="space-y-3">
+      {/* Slash Commands Dropdown */}
       {showCommands && (
-        <div className="backdrop-blur-xl bg-white/[0.08] border border-white/[0.15] rounded-xl p-3 space-y-1 shadow-medium animate-slide-in">
-          <div className="text-xs text-white/60 font-semibold uppercase tracking-wider px-2 py-1 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+        <div className="glass-card rounded-xl p-2 space-y-1 animate-slide-up">
+          <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider px-3 py-1.5 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Commands
           </div>
           {slashCommands
@@ -138,9 +135,9 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
               <button
                 key={command.id}
                 onClick={() => handleCommandSelect(command)}
-                className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.08] transition-all duration-200 flex items-center gap-3 text-white/90 hover:text-white hover-lift group"
+                className="w-full text-left px-3 py-2.5 text-sm rounded-lg hover:bg-white/[0.06] transition-all duration-200 flex items-center gap-3 text-white/80 hover:text-white group"
               >
-                <span className="text-base group-hover:scale-110 transition-transform duration-200">{command.icon}</span>
+                <span className="text-base group-hover:scale-110 transition-transform">{command.icon}</span>
                 <span className="font-medium">{command.label}</span>
               </button>
             ))}
@@ -149,107 +146,83 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
 
       {/* Attachment Preview */}
       {attachment && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.08] border border-white/[0.1] w-fit animate-slide-in">
-          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-            <FileIcon className="w-5 h-5 text-blue-400" />
+        <div className="flex items-center gap-3 p-3 rounded-xl glass-card w-fit animate-slide-up">
+          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+            <FileIcon className="w-5 h-5 text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-white/90 truncate max-w-[200px]">{attachment.name}</span>
-            <span className="text-xs text-white/50">{(attachment.size / 1024).toFixed(1)} KB</span>
+            <span className="text-xs text-white/40">{(attachment.size / 1024).toFixed(1)} KB</span>
           </div>
           <button
             type="button"
             onClick={onClearAttachment}
             className="p-1.5 rounded-full hover:bg-white/10 transition-colors ml-2"
           >
-            <X className="w-4 h-4 text-white/60 hover:text-white" />
+            <X className="w-4 h-4 text-white/50 hover:text-white" />
           </button>
         </div>
       )}
 
-      {/* Enhanced Input Form with professional real-estate glow */}
-      <form onSubmit={handleSubmit} className="relative max-w-4xl mx-auto">
-        <div className="flex items-end gap-2">
-          {/* Hidden File Input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleFileSelect}
-            accept=".pdf,.txt,.md,.csv,.json,image/*"
-          />
+      {/* Main Input */}
+      <form onSubmit={handleSubmit} className="relative">
+        <div className="relative group">
+          {/* Glow effect on focus */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/40 via-accent-to/40 to-primary/40 rounded-2xl opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500" />
+          
+          {/* Input Container */}
+          <div className="relative flex items-end gap-2 p-2 rounded-2xl bg-white/[0.03] border border-white/[0.08] group-focus-within:border-white/[0.15] transition-all duration-300">
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleFileSelect}
+              accept=".pdf,.txt,.md,.csv,.json,image/*"
+            />
 
-          {/* Action Buttons (Left) */}
-          <div className="flex gap-1 pb-2">
+            {/* Attach Button */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2.5 rounded-xl text-slate-600 hover:text-blue-900 hover:bg-white/60 transition-all duration-200 backdrop-blur-lg"
+              className="p-2.5 rounded-xl text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all duration-200"
               title="Attach file"
             >
               <Paperclip className="w-5 h-5" />
             </button>
-          </div>
-          {/* Main Input Container with navy gradient border */}
-          <div className="flex-1 relative group/input">
-            {/* Subtle navy glow on focus */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-900/30 via-teal-500/30 to-cyan-500/30 rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-lg transition-opacity duration-300"></div>
-            
+
+            {/* Text Input */}
             <textarea
               ref={textareaRef}
               value={message}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about properties, markets, or investments..."
-              className="relative w-full resize-none rounded-2xl backdrop-blur-2xl bg-white/90 border border-blue-900/10 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 focus:outline-none focus:border-blue-900/20 focus:bg-white/95 focus:ring-2 focus:ring-blue-900/10 transition-all duration-200 min-h-[44px] max-h-32 shadow-lg shadow-blue-900/5 hover:border-blue-900/15 font-medium"
+              placeholder="Message OmniEstate..."
+              className="flex-1 bg-transparent resize-none text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none py-2.5 px-1 min-h-[44px] max-h-40"
               rows={1}
               disabled={isLoading}
               {...rest}
             />
-            
-            {/* Loading indicator - professional colors */}
-            {isLoading && (
-              <div className="absolute right-3 bottom-3">
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse animation-delay-100"></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse animation-delay-200"></div>
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* Right Side Action Button (Send) - Coral CTA */}
-          <div className="pb-1">
-            {!isLoading && (message.trim() || attachment) ? (
-              <button
-                type="submit"
-                className="p-3 rounded-xl backdrop-blur-xl transition-all duration-200 group/btn bg-gradient-to-br from-orange-500 to-coral-600 border border-orange-400/20 shadow-lg shadow-orange-400/15 hover:shadow-orange-400/25 hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #FF7A45 0%, #FF6B4A 100%)' }}
-              >
-                <svg
-                  className="w-4 h-4 text-white transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="p-3 rounded-xl text-slate-600 hover:text-blue-900 hover:bg-white/60 transition-all duration-200 backdrop-blur-lg"
-                title="Voice input (coming soon)"
-              >
-                <Mic className="w-5 h-5" />
-              </button>
-            )}
+            {/* Send Button */}
+            <button
+              type="submit"
+              disabled={!hasContent || isLoading}
+              className={`p-2.5 rounded-xl transition-all duration-300 ${
+                hasContent && !isLoading
+                  ? 'bg-white text-black hover:bg-white/90 hover:scale-105 active:scale-95'
+                  : 'bg-white/[0.06] text-white/20 cursor-not-allowed'
+              }`}
+              title="Send message"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+              ) : (
+                <ArrowUp className="w-5 h-5" strokeWidth={2.5} />
+              )}
+            </button>
           </div>
         </div>
       </form>

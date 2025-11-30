@@ -1,9 +1,10 @@
 // FILE: src/components/desktop-shell/DesktopSidebarMenu.tsx
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatSession, TabType } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatChatDateCompact } from '../../utils/dateFormatters';
+import type { BookmarkedProperty } from '../../types/bookmarks';
 
 interface DesktopSidebarMenuProps {
   isOpen: boolean;
@@ -21,6 +22,9 @@ interface DesktopSidebarMenuProps {
   onLoadChat: (chatId: string) => void;
   onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
   onTabChange: (tab: TabType) => void;
+  bookmarks?: BookmarkedProperty[];
+  onRemoveBookmark?: (bookmarkId: string) => void;
+  onBookmarkClick?: (bookmark: BookmarkedProperty) => void;
 }
 
 export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
@@ -29,317 +33,505 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
   chatHistory,
   activeChatId,
   activeTab,
-  currentTheme,
   menuItems,
   onNewChat,
   onLoadChat,
   onDeleteChat,
-  onTabChange
+  onTabChange,
+  bookmarks = [],
+  onRemoveBookmark,
+  onBookmarkClick,
 }) => {
   const { user, signOut } = useAuth();
-  
-  if (!isOpen) return null;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAllChats, setShowAllChats] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+
+  // Filter chat history based on search query
+  const filteredChatHistory = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return chatHistory;
+    }
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return chatHistory;
+    
+    return chatHistory.filter(chat => {
+      // Search in title
+      if (chat.title?.toLowerCase().includes(query)) {
+        return true;
+      }
+      
+      // Search in chat ID (sometimes useful)
+      if (chat.id?.toLowerCase().includes(query)) {
+        return true;
+      }
+      
+      // Search in messages
+      if (chat.messages && Array.isArray(chat.messages)) {
+        return chat.messages.some(msg => {
+          if (!msg) return false;
+          
+          // Handle different message formats
+          let content = '';
+          if (typeof msg === 'string') {
+            content = msg;
+          } else if (typeof msg === 'object') {
+            // Handle Message type - only use 'content' property which exists on Message type
+            content = (msg as any).content || '';
+          }
+          
+          return typeof content === 'string' && content.toLowerCase().includes(query);
+        });
+      }
+      
+      return false;
+    });
+  }, [chatHistory, searchQuery]);
+
+  // Auto-expand chats section when searching
+  useEffect(() => {
+    if (searchQuery.trim() && filteredChatHistory.length > 0) {
+      setShowAllChats(true);
+    }
+  }, [searchQuery, filteredChatHistory.length]);
+
+  // Display chats (limited or all based on showAllChats)
+  const displayedChats = showAllChats ? filteredChatHistory : filteredChatHistory.slice(0, 8);
 
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
-        onClick={onClose}
-      />
-      
-      {/* Sidebar Panel - Professional Real Estate Copilot */}
-      <div 
-        className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col shadow-2xl animate-slide-in-left backdrop-blur-2xl bg-white/95 border-r border-blue-900/10"
-      >
-        {/* New Chat Button - Coral CTA */}
-        <div className="p-4 pb-3 border-b border-blue-900/10">
-          <motion.button
-            onClick={() => {
-              onNewChat();
-              onTabChange('chat');
-              onClose();
-            }}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full px-4 py-3.5 rounded-xl flex items-center justify-center gap-2.5 group relative overflow-hidden border border-orange-400/20 shadow-lg shadow-orange-400/15"
-            style={{ background: 'linear-gradient(135deg, #FF7A45 0%, #FF6B4A 100%)' }}
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            onClick={onClose}
+          />
+          
+          {/* Sidebar Panel */}
+          <motion.div 
+            initial={{ x: -320, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -320, opacity: 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col bg-surface border-r border-white/[0.06]"
           >
-            <motion.svg 
-              className="w-5 h-5 text-white" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-              whileHover={{ rotate: 90 }}
-              transition={{ duration: 0.3 }}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </motion.svg>
-            <span 
-              className="font-bold text-sm tracking-wide relative z-10 text-white"
-            >
-              New Chat
-            </span>
-          </motion.button>
-        </div>
-
-        {/* Chat History - Professional Real Estate */}
-        {chatHistory.length > 0 && (
-          <div className="px-4 py-3 border-b border-blue-900/10">
-            <motion.h3 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xs font-bold uppercase tracking-wider mb-3 px-1 text-blue-900"
-            >
-              Recent Chats
-            </motion.h3>
-            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-              {chatHistory.slice(0, 10).map((chat, index) => (
-                <motion.button
-                  key={chat.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.05, type: 'spring', stiffness: 100 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => onLoadChat(chat.id)}
-                  className="w-full px-3 py-2.5 rounded-xl flex items-center justify-between gap-2 relative overflow-hidden group backdrop-blur-lg border transition-all"
-                  style={{
-                    background: activeChatId === chat.id 
-                      ? 'linear-gradient(135deg, rgba(26, 166, 183, 0.1) 0%, rgba(77, 182, 229, 0.08) 100%)'
-                      : 'rgba(255, 255, 255, 0.5)',
-                    borderColor: activeChatId === chat.id 
-                      ? 'rgba(26, 166, 183, 0.3)'
-                      : 'rgba(21, 46, 95, 0.08)',
-                    boxShadow: activeChatId === chat.id 
-                      ? '0 2px 12px rgba(26, 166, 183, 0.15)'
-                      : '0 1px 3px rgba(0, 0, 0, 0.05)',
-                  }}
-                >
-                  <div className="flex-1 min-w-0 text-left relative z-10">
-                    <p 
-                      className="text-sm font-semibold truncate"
-                      style={{ 
-                        color: activeChatId === chat.id ? '#0F4C5C' : '#1E3A5F'
-                      }}
-                    >
-                      {chat.title || 'Untitled Chat'}
-                    </p>
-                    <p className="text-xs truncate mt-0.5 text-slate-600">
-                      {formatChatDateCompact(chat.createdAt)}
-                    </p>
+            {/* Header with Logo and Minimize */}
+            <div className="p-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-to flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">P</span>
                   </div>
-                  {chatHistory.length > 1 && (
-                    <motion.button
-                      onClick={(e) => onDeleteChat(chat.id, e)}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-1.5 rounded-lg transition-colors flex-shrink-0 relative z-10"
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.12)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(239, 68, 68, 0.4)',
-                      }}
-                    >
-                      <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </motion.button>
-                  )}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Main Navigation */}
-        <div className="flex-1 overflow-y-auto py-6">
-          <div className="px-4 space-y-2">
-            {menuItems.map((item, index) => (
-              <motion.button
-                key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.05, type: 'spring' }}
-                whileHover={{ scale: 1.03, x: 4 }}
-                whileTap={{ scale: 0.97 }}
+                  <h2 className="text-lg font-bold text-white">ProphetAtlas</h2>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                  aria-label="Close sidebar"
+                >
+                  <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* New Chat Button */}
+              <button
                 onClick={() => {
-                  onTabChange(item.id);
+                  onNewChat();
+                  onTabChange('chat');
                   onClose();
                 }}
-                className="group w-full px-3 py-2.5 rounded-xl flex items-center gap-3 relative overflow-hidden"
-                style={{
-                  background: activeTab === item.id 
-                    ? 'linear-gradient(135deg, rgba(103, 232, 249, 0.22) 0%, rgba(96, 165, 250, 0.18) 100%)'
-                    : 'rgba(255, 255, 255, 0.12)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: activeTab === item.id 
-                    ? '1px solid rgba(103, 232, 249, 0.5)' 
-                    : '1px solid rgba(255, 255, 255, 0.18)',
-                  boxShadow: activeTab === item.id
-                    ? '0 2px 20px rgba(103, 232, 249, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                    : '0 1px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
-                }}
+                className="w-full px-4 py-3 rounded-xl flex items-center justify-center gap-2.5 font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border border-white/[0.1] bg-white/[0.03] hover:bg-white/[0.06] text-white"
               >
-                {/* Active indicator bar */}
-                {activeTab === item.id && (
-                  <motion.div 
-                    layoutId="activeNavIndicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                    style={{ 
-                      background: currentTheme.gradient,
-                      boxShadow: `0 0 8px ${currentTheme.primary}80`
-                    }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
-                )}
-                
-                {/* Hover shimmer effect */}
-                <motion.div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100"
-                  style={{
-                    background: `linear-gradient(90deg, transparent 0%, ${currentTheme.primary}08 50%, transparent 100%)`,
-                  }}
-                  animate={{ x: ['-100%', '100%'] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                />
-                
-                <motion.div 
-                  whileHover={{ rotate: 5, scale: 1.1 }}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center relative z-10"
-                  style={{
-                    background: activeTab === item.id
-                      ? 'linear-gradient(135deg, rgba(103, 232, 249, 0.3) 0%, rgba(96, 165, 250, 0.28) 100%)'
-                      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.15) 100%)',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                    border: activeTab === item.id
-                      ? '1px solid rgba(103, 232, 249, 0.5)'
-                      : '1px solid rgba(255, 255, 255, 0.25)',
-                    boxShadow: activeTab === item.id
-                      ? '0 4px 20px rgba(103, 232, 249, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                      : '0 2px 10px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                  }}
-                >
-                  <span style={{ 
-                    fontSize: '1.25rem',
-                    filter: activeTab === item.id ? 'drop-shadow(0 0 6px rgba(103, 232, 249, 0.6))' : 'none'
-                  }}>
-                    {item.icon}
-                  </span>
-                </motion.div>
-                <span 
-                  className="font-medium text-sm relative z-10"
-                  style={{ 
-                    color: activeTab === item.id ? 'rgba(103, 232, 249, 1)' : '#1D2E49',
-                    fontFamily: 'Inter, sans-serif',
-                    textShadow: activeTab === item.id ? '0 0 8px rgba(103, 232, 249, 0.5)' : '0 1px 0 rgba(255, 255, 255, 0.4)'
-                  }}
-                >
-                  {item.label}
-                </span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                New Chat
+              </button>
+            </div>
 
-        {/* User Profile & Sign Out */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="px-4 pb-4 pt-3 border-t" 
-          style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }}
-        >
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            className="rounded-xl p-3 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.12) 100%)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 2px 16px rgba(0, 0, 0, 0.08)',
-            }}
-          >
-            {/* Background gradient glow */}
-            <motion.div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100"
-              animate={{ 
-                background: [
-                  `radial-gradient(circle at 0% 0%, ${currentTheme.primary}10 0%, transparent 50%)`,
-                  `radial-gradient(circle at 100% 100%, ${currentTheme.secondary}10 0%, transparent 50%)`,
-                  `radial-gradient(circle at 0% 0%, ${currentTheme.primary}10 0%, transparent 50%)`,
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-            />
-            
-            <div className="flex items-center gap-3 mb-3 relative z-10">
-              <motion.div 
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0"
-                style={{ 
-                  background: currentTheme.gradient,
-                  boxShadow: `0 4px 12px ${currentTheme.primary}40`
-                }}
-              >
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </motion.div>
-              <div className="flex-1 min-w-0">
-                <div 
-                  className="text-sm font-semibold truncate"
-                  style={{ 
-                    color: 'rgba(248, 250, 252, 1)', 
-                    fontFamily: 'Inter, sans-serif',
-                    textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
-                  }}
-                >
-                  {user?.name || 'User'}
-                </div>
-                <div className="text-xs truncate" style={{ color: 'rgba(203, 213, 225, 0.9)' }}>
-                  {user?.email || 'user@example.com'}
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Search Chats */}
+              <div className="px-4 py-3 border-b border-white/[0.06]">
+                <div className="relative">
+                  <svg 
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search chats..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow Escape to clear search
+                      if (e.key === 'Escape') {
+                        setSearchQuery('');
+                      }
+                    }}
+                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
+                    autoComplete="off"
+                  />
                 </div>
               </div>
+
+              {/* Main Navigation */}
+              <div className="px-4 py-3 border-b border-white/[0.06]">
+                <div className="space-y-1">
+                  {menuItems.map((item, index) => (
+                    <motion.button
+                      key={item.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 + index * 0.02 }}
+                      onClick={() => {
+                        onTabChange(item.id);
+                        onClose();
+                      }}
+                      className={`w-full px-3 py-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${
+                        activeTab === item.id 
+                          ? 'bg-white/[0.08]' 
+                          : 'hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      <span className={`text-sm font-medium ${
+                        activeTab === item.id ? 'text-white' : 'text-white/70'
+                      }`}>
+                        {item.label}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bookmarks Section */}
+              {bookmarks.length > 0 && (
+                <div className="px-4 py-3 border-b border-white/[0.06]">
+                  <button
+                    onClick={() => setShowBookmarks(!showBookmarks)}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg 
+                        className="w-4 h-4 text-white/40" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      </svg>
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                        Bookmarks
+                      </h3>
+                    </div>
+                    <svg 
+                      className={`w-4 h-4 text-white/40 transition-transform ${showBookmarks ? 'rotate-90' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showBookmarks && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-2 space-y-1 max-h-96 overflow-y-auto chat-scroll"
+                      >
+                        {bookmarks.map((bookmark, index) => (
+                          <motion.button
+                            key={bookmark.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.02 }}
+                            onClick={() => {
+                              if (onBookmarkClick) {
+                                onBookmarkClick(bookmark);
+                                onTabChange('chat');
+                                onClose();
+                              }
+                            }}
+                            className="w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group hover:bg-white/[0.04] border border-transparent"
+                          >
+                            <div className="flex-1 min-w-0 text-left">
+                              <p className="text-sm font-medium truncate text-white/80">
+                                {bookmark.displayName || bookmark.property.address}
+                              </p>
+                              {bookmark.property.price && (
+                                <p className="text-[11px] text-white/40 truncate">
+                                  ${bookmark.property.price.toLocaleString()}
+                                  {bookmark.property.city && ` • ${bookmark.property.city}`}
+                                </p>
+                              )}
+                            </div>
+                            {onRemoveBookmark && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemoveBookmark(bookmark.id);
+                                }}
+                                className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] transition-all"
+                                aria-label="Remove bookmark"
+                              >
+                                <svg className="w-3.5 h-3.5 text-white/40 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Recent Bookmarks (when collapsed) */}
+                  {!showBookmarks && (
+                    <div className="mt-2 space-y-1 max-h-48 overflow-y-auto chat-scroll">
+                      {bookmarks.slice(0, 3).map((bookmark, index) => (
+                        <motion.button
+                          key={bookmark.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.02 }}
+                          onClick={() => {
+                            if (onBookmarkClick) {
+                              onBookmarkClick(bookmark);
+                              onTabChange('chat');
+                              onClose();
+                            }
+                          }}
+                          className="w-full px-3 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 group hover:bg-white/[0.04] border border-transparent"
+                        >
+                          <div className="flex-1 min-w-0 text-left">
+                            <p className="text-sm font-medium truncate text-white/80">
+                              {bookmark.displayName || bookmark.property.address}
+                            </p>
+                            {bookmark.property.price && (
+                              <p className="text-[11px] text-white/40 truncate">
+                                ${bookmark.property.price.toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </motion.button>
+                      ))}
+                      {bookmarks.length > 3 && (
+                        <button
+                          onClick={() => setShowBookmarks(true)}
+                          className="w-full px-3 py-2 text-sm text-white/60 hover:text-white/80 hover:bg-white/[0.04] rounded-lg transition-colors"
+                        >
+                          Show {bookmarks.length - 3} more
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Your Chats Section */}
+              {(chatHistory.length > 0 || searchQuery.trim()) && (
+                <div className="px-4 py-3 border-b border-white/[0.06]">
+                  <button
+                    onClick={() => setShowAllChats(!showAllChats)}
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors group"
+                  >
+                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                      Your chats
+                    </h3>
+                    {filteredChatHistory.length > 0 && (
+                      <svg 
+                        className={`w-4 h-4 text-white/40 transition-transform ${showAllChats ? 'rotate-90' : ''}`}
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showAllChats && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-2 space-y-1 max-h-96 overflow-y-auto chat-scroll"
+                      >
+                        {filteredChatHistory.length === 0 ? (
+                          <div className="py-8 text-center">
+                            <p className="text-sm text-white/40">
+                              {searchQuery.trim() ? 'No chats found' : 'No chats yet'}
+                            </p>
+                            {searchQuery.trim() && (
+                              <p className="text-xs text-white/30 mt-1">
+                                Try a different search term
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          displayedChats.map((chat, index) => (
+                          <motion.button
+                            key={chat.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.02 }}
+                            onClick={() => {
+                              onLoadChat(chat.id);
+                              onClose();
+                            }}
+                            className={`w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group ${
+                        activeChatId === chat.id 
+                          ? 'bg-primary/20 border border-primary/30' 
+                          : 'hover:bg-white/[0.04] border border-transparent'
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className={`text-sm font-medium truncate ${
+                          activeChatId === chat.id ? 'text-primary' : 'text-white/80'
+                        }`}>
+                          {chat.title || 'Untitled Chat'}
+                        </p>
+                        <p className="text-[11px] text-white/40 truncate">
+                          {formatChatDateCompact(chat.createdAt)}
+                        </p>
+                      </div>
+                        <button
+                          onClick={(e) => onDeleteChat(chat.id, e)}
+                          className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] transition-all"
+                              aria-label="Delete chat"
+                        >
+                          <svg className="w-3.5 h-3.5 text-white/40 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                    </motion.button>
+                          ))
+                        )}
+                        {filteredChatHistory.length > 8 && !showAllChats && (
+                          <button
+                            onClick={() => setShowAllChats(true)}
+                            className="w-full px-3 py-2 text-sm text-white/60 hover:text-white/80 hover:bg-white/[0.04] rounded-lg transition-colors"
+                          >
+                            Show {filteredChatHistory.length - 8} more
+                          </button>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Recent Chats (when collapsed) - Show search results if searching */}
+                  {!showAllChats && (
+                    <div className="mt-2 space-y-1 max-h-48 overflow-y-auto chat-scroll">
+                      {filteredChatHistory.length === 0 ? (
+                        <div className="py-6 text-center">
+                          <p className="text-sm text-white/40">
+                            {searchQuery.trim() ? 'No chats found' : 'No chats yet'}
+                          </p>
+                          {searchQuery.trim() && (
+                            <p className="text-xs text-white/30 mt-1">
+                              Try a different search term
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        // When searching, show all filtered results; otherwise show recent 5
+                        (searchQuery.trim() ? filteredChatHistory : displayedChats.slice(0, 5)).map((chat, index) => (
+                  <motion.button
+                          key={chat.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.02 }}
+                    onClick={() => {
+                            onLoadChat(chat.id);
+                      onClose();
+                    }}
+                          className={`w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group ${
+                            activeChatId === chat.id 
+                        ? 'bg-primary/20 border border-primary/30' 
+                        : 'hover:bg-white/[0.04] border border-transparent'
+                    }`}
+                  >
+                          <div className="flex-1 min-w-0 text-left">
+                            <p className={`text-sm font-medium truncate ${
+                              activeChatId === chat.id ? 'text-primary' : 'text-white/80'
+                            }`}>
+                              {chat.title || 'Untitled Chat'}
+                            </p>
+                            <p className="text-[11px] text-white/40 truncate">
+                              {formatChatDateCompact(chat.createdAt)}
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => onDeleteChat(chat.id, e)}
+                            className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] transition-all"
+                            aria-label="Delete chat"
+                          >
+                            <svg className="w-3.5 h-3.5 text-white/40 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </motion.button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <motion.button
-              onClick={() => {
-                signOut();
-                onClose();
-              }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full p-2.5 rounded-lg flex items-center justify-center gap-2 relative z-10 overflow-hidden group"
-              style={{
-                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.12) 100%)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
-              }}
-              title="Sign Out"
-            >
-              <motion.div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100"
-                style={{
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(239, 68, 68, 0.15) 50%, transparent 100%)',
-                }}
-                animate={{ x: ['-100%', '100%'] }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-              />
-              <svg className="w-5 h-5 text-red-600 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span className="text-sm font-medium text-red-600 relative z-10">Sign Out</span>
-            </motion.button>
+
+            {/* User Profile */}
+            <div className="p-4 border-t border-white/[0.06]">
+              <div className="rounded-xl p-3 bg-white/[0.03] border border-white/[0.06]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-to flex items-center justify-center font-bold text-white text-sm">
+                    {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-[11px] text-white/40 truncate">
+                      {user?.email || 'user@example.com'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    signOut();
+                    onClose();
+                  }}
+                  className="w-full p-2.5 rounded-lg flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-colors"
+                >
+                  <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="text-sm font-medium text-red-400">Sign Out</span>
+                </button>
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
-      </div>
-    </>
+        </>
+      )}
+    </AnimatePresence>
   );
 };

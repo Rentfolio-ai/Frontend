@@ -2,6 +2,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../../components/primitives/Button';
+import { FeatureShowcase } from '../../components/auth/FeatureShowcase';
+import { CivitasLogo } from '../../components/auth/CivitasLogo';
+import { authAPI } from '../../services/authApi';
 
 interface SignInPageProps {
   onSignIn: (user: any) => void;
@@ -13,138 +16,144 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    // Validation
+    if (!email.trim()) {
+      setErrors({ email: 'Email is required' });
+      return;
+    }
+    if (!validateEmail(email)) {
+      setErrors({ email: 'Please enter a valid email address' });
+      return;
+    }
+    if (!password) {
+      setErrors({ password: 'Password is required' });
+      return;
+    }
+
     setIsLoading(true);
     
-    // Simulate authentication
-    setTimeout(() => {
+    try {
+      const response = await authAPI.signIn({
+        email: email.trim(),
+        password,
+        remember_me: rememberMe,
+      });
+
+      // Transform API response to match expected user format
       const userData = {
-        id: '1',
-        name: 'John Doe',
-        email: email,
-        avatar: 'JD'
+        id: response.user.user_id,
+        name: response.user.name || response.user.email.split('@')[0],
+        email: response.user.email,
+        avatar: response.user.name
+          ? response.user.name
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .toUpperCase()
+          : response.user.email[0].toUpperCase(),
       };
       
       onSignIn(userData);
-      
-      // Handle rememberMe: persist session based on checkbox
-      // TODO: In production, send rememberMe to backend which should:
-      // - Set HttpOnly, Secure, SameSite cookie with long expiration if rememberMe=true
-      // - Set short-lived session cookie if rememberMe=false
-      // For now, store a flag to indicate session persistence preference
-      if (typeof window !== 'undefined') {
-        if (rememberMe) {
-          window.localStorage.setItem('civitas-remember-me', 'true');
-        } else {
-          window.sessionStorage.setItem('civitas-session-only', 'true');
-          window.localStorage.removeItem('civitas-remember-me');
-        }
-      }
-      
+    } catch (error) {
+      setErrors({
+        general: error instanceof Error ? error.message : 'Failed to sign in. Please try again.',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    
-    // Simulate Google OAuth
-    setTimeout(() => {
-      onSignIn({
-        id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        avatar: 'JD',
-        provider: 'google'
+    try {
+      await authAPI.signInWithGoogle();
+      // Note: OAuth redirect will happen, so this may not complete
+    } catch (error) {
+      setErrors({
+        general: error instanceof Error ? error.message : 'Failed to sign in with Google. Please try again.',
       });
       setIsGoogleLoading(false);
-    }, 2000);
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: undefined }));
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: undefined }));
+    }
   };
 
   return (
-    <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Deep Purple Gradient Background */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-[#1B0034] via-[#3B0A72] to-[#6E00FF]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-      />
-      
-      {/* Animated Glow Layers */}
-      <motion.div
-        className="absolute -z-10 w-[700px] h-[700px] rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(0,199,140,0.3), transparent 70%)", top: "20%", left: "10%" }}
-        animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute -z-10 w-[600px] h-[600px] rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(110,0,255,0.25), transparent 70%)", bottom: "15%", right: "10%" }}
-        animate={{ scale: [1, 0.95, 1], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      
-      {/* Content Container */}
-      <div className="relative z-10 w-full min-h-screen flex flex-col lg:flex-row">
-      {/* Left Panel - Sign In Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-12 lg:px-16">
+    <main className="min-h-screen flex" style={{ backgroundColor: '#0F0E23' }}>
+      {/* Left Column - Sign-In Form */}
+      <div className="w-full lg:w-[45%] flex flex-col justify-center px-6 py-12 lg:px-16">
         <motion.div
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          whileHover={{ y: -4, boxShadow: "0 20px 60px rgba(110,0,255,0.3)" }}
-          className="w-full max-w-md mx-auto rounded-3xl shadow-2xl backdrop-blur-lg bg-white/95 p-10 transition-all duration-500"
-        >
-          {/* Logo and Title */}
-          <motion.div 
-            className="text-center mb-8"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          className="w-full max-w-md mx-auto rounded-2xl p-10"
+          style={{
+            backgroundColor: '#1E1B4B',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.3)',
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
           >
-            <motion.div 
-              className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-600 via-teal-500 to-green-400 shadow-lg"
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
+          {/* Logo & Branding */}
+          <div className="text-center mb-8">
+            <CivitasLogo size={64} showText={true} />
+            <motion.p
+              className="text-white text-base font-medium mt-4"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
             >
-              <svg
-                className="w-8 h-8 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-              </svg>
-            </motion.div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Inter Tight, system-ui, sans-serif', letterSpacing: '-0.02em' }}>
-              Welcome Back
-            </h1>
-            <p className="text-sm text-gray-600" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500 }}>
-              Sign in to continue to Civitas
-            </p>
-          </motion.div>
+              Welcome back! Sign in to continue
+            </motion.p>
+          </div>
 
+          {/* Error Message */}
+          {errors.general && (
           <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+              className="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-sm"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
           >
-          {/* Google Sign In */}
+              {errors.general}
+            </motion.div>
+          )}
+
+          <div className="space-y-6">
+            {/* Google Sign In Button */}
           <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
           >
             <Button
               onClick={handleGoogleSignIn}
               isLoading={isGoogleLoading}
               variant="outline"
-              className="w-full h-12 bg-white text-gray-900 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 ease-in-out"
+                className="w-full h-12 bg-white text-gray-900 border-0 hover:bg-gray-50 transition-all duration-300"
             leftIcon={
               !isGoogleLoading && (
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -172,135 +181,161 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
             </Button>
           </motion.div>
 
+            {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-300" />
+                <span className="w-full border-t border-white/20" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, letterSpacing: '0.05em' }}>Or continue with email</span>
+                <span
+                  className="px-2 text-white/60"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500, letterSpacing: '0.05em' }}
+                >
+                  OR CONTINUE WITH EMAIL
+                </span>
             </div>
           </div>
 
           {/* Email Sign In Form */}
-          <form className="space-y-6" onSubmit={handleEmailSignIn}>
+            <form className="space-y-5" onSubmit={handleEmailSignIn}>
             {/* Email Field */}
             <motion.div 
-              className="relative"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <motion.label 
-                htmlFor="email" 
-                className={`absolute left-4 transition-all duration-200 pointer-events-none font-medium ${
-                  emailFocused || email 
-                    ? 'top-2 text-xs text-[#6E00FF]' 
-                    : 'top-4 text-sm text-gray-500'
-                }`}
-              >
-                Email address
-              </motion.label>
-              <motion.input
+                <input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
-                whileFocus={{ scale: 1.01 }}
-                className="w-full px-4 pt-6 pb-2 border-2 border-gray-200 rounded-xl bg-white text-gray-900
-                           focus:outline-none focus:ring-2 focus:ring-[#6E00FF]/20 focus:border-[#6E00FF]
-                           transition-all duration-300"
-              />
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  placeholder="Email address"
+                  className={`w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-400
+                    border transition-all duration-300 focus:outline-none focus:ring-2
+                    ${
+                      errors.email
+                        ? 'border-red-500 focus:ring-red-500/20'
+                        : 'border-white/20 focus:border-[#8B5CF6] focus:ring-[#8B5CF6]/20'
+                    }`}
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-400" role="alert">
+                    {errors.email}
+                  </p>
+                )}
             </motion.div>
 
             {/* Password Field */}
             <motion.div 
-              className="relative"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <motion.label 
-                htmlFor="password" 
-                className={`absolute left-4 transition-all duration-200 pointer-events-none font-medium ${
-                  passwordFocused || password 
-                    ? 'top-2 text-xs text-[#6E00FF]' 
-                    : 'top-4 text-sm text-gray-500'
-                }`}
-              >
-                Password
-              </motion.label>
-              <motion.input
+                <div className="relative">
+                  <input
                 id="password"
                 name="password"
-                type="password"
+                    type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-                whileFocus={{ scale: 1.01 }}
-                className="w-full px-4 pt-6 pb-2 border-2 border-gray-200 rounded-xl bg-white text-gray-900
-                           focus:outline-none focus:ring-2 focus:ring-[#6E00FF]/20 focus:border-[#6E00FF]
-                           transition-all duration-300"
-              />
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    placeholder="Password"
+                    className={`w-full px-4 py-3 pr-12 rounded-lg bg-white text-gray-900 placeholder:text-gray-400
+                      border transition-all duration-300 focus:outline-none focus:ring-2
+                      ${
+                        errors.password
+                          ? 'border-red-500 focus:ring-red-500/20'
+                          : 'border-white/20 focus:border-[#8B5CF6] focus:ring-[#8B5CF6]/20'
+                      }`}
+                    style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-400" role="alert">
+                    {errors.password}
+                  </p>
+                )}
             </motion.div>
 
+              {/* Remember Me & Forgot Password */}
             <motion.div 
               className="flex items-center justify-between"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <motion.div 
-                className="flex items-center gap-2 cursor-pointer"
-                whileHover={{ scale: 1.02 }}
-                onClick={() => setRememberMe(!rememberMe)}
-              >
-                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
-                  rememberMe 
-                    ? 'bg-gradient-to-r from-[#6E00FF] to-[#00C78C] border-transparent' 
-                    : 'border-gray-300 bg-white'
-                }`}>
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>
+                  <div
+                    className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 border-white/30"
+                    style={{
+                      backgroundColor: rememberMe ? 'transparent' : 'transparent',
+                      background: rememberMe ? 'linear-gradient(to right, #8B5CF6, #10B981)' : 'transparent',
+                      borderColor: rememberMe ? 'transparent' : 'rgba(255, 255, 255, 0.3)',
+                    }}
+                  >
                   {rememberMe && (
                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                 </div>
-                <label htmlFor="remember-me" className="text-sm text-gray-600 cursor-pointer select-none" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 500 }}>
+                  <label
+                    htmlFor="remember-me"
+                    className="text-sm text-white cursor-pointer select-none"
+                    style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+                  >
                   Remember me
                 </label>
-              </motion.div>
+                </div>
 
-              <motion.button 
+                <button
                 type="button"
                 onClick={() => {
-                  // TODO: Implement password reset flow
-                }}
-                whileHover={{ scale: 1.05, x: 2 }}
-                className="text-sm font-medium text-[#6E00FF] hover:text-[#00C78C] transition-colors"
-                style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600 }}
-                aria-label="Reset your password"
+                    // TODO: Implement forgot password flow
+                    console.log('Forgot password clicked');
+                  }}
+                  className="text-sm font-medium hover:underline transition-colors"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif', color: '#B794F6' }}
               >
                 Forgot password?
-              </motion.button>
+                </button>
             </motion.div>
 
+              {/* Sign In Button */}
             <motion.button
               type="submit"
               disabled={isLoading}
-              whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(0,199,140,0.6)" }}
-              whileTap={{ scale: 0.98 }}
-              className="relative w-full py-4 bg-gradient-to-r from-[#6E00FF] to-[#00C78C] text-white rounded-xl shadow-lg overflow-hidden group transition-all duration-300"
-              style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600, fontSize: '16px' }}
-            >
-              {/* Shimmer effect */}
+                whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                className="relative w-full py-3.5 text-white rounded-lg font-bold overflow-hidden group transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                  fontSize: '16px',
+                  background: 'linear-gradient(to right, #8B5CF6, #10B981)',
+                }}
+              >
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                 initial={{ x: '-100%' }}
@@ -323,133 +358,30 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
             </motion.button>
           </form>
 
+            {/* Sign Up Link */}
           <motion.p 
-            className="text-center text-sm text-gray-600"
+              className="text-center text-sm text-white"
             style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
+              transition={{ delay: 0.6 }}
           >
             Don't have an account?{' '}
-            <motion.button
+              <button
               onClick={onNavigateToSignUp}
-              whileHover={{ scale: 1.05 }}
-              className="font-semibold text-[#6E00FF] hover:text-[#00C78C] transition-colors"
-              style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 600 }}
+                className="font-semibold hover:underline transition-colors"
+                style={{ fontFamily: 'Inter, system-ui, sans-serif', color: '#B794F6' }}
             >
               Sign up
-            </motion.button>
+              </button>
           </motion.p>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
 
-      {/* Right Panel - Features */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-16">
-        <div className="max-w-lg relative z-10">
-          <motion.h2 
-            className="text-5xl font-bold mb-4 text-white"
-            style={{ fontFamily: 'Inter Tight, system-ui, sans-serif', letterSpacing: '-0.03em' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            Welcome to Civitas
-          </motion.h2>
-          <motion.p 
-            className="text-xl text-gray-300 mb-12"
-            style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400, lineHeight: '1.6' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            Your AI-Powered STR Investment Partner
-          </motion.p>
-          
-          <div className="space-y-6 mb-10">
-            <motion.div 
-              className="flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <motion.div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
-                role="img"
-                aria-label="Chat icon"
-              >
-                <span className="text-2xl" aria-hidden="true">💬</span>
-              </motion.div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Chat with Civitas AI</h3>
-                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Get instant insights and answers about STR investments, market trends, and property analysis</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              <motion.div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
-                role="img"
-                aria-label="Analytics icon"
-              >
-                <span className="text-2xl" aria-hidden="true">📊</span>
-              </motion.div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Analyze Property Performance</h3>
-                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Track revenue, occupancy rates, and ROI across your entire portfolio in real-time</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-            >
-              <motion.div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
-                role="img"
-                aria-label="Portfolio icon"
-              >
-                <span className="text-2xl" aria-hidden="true">🏠</span>
-              </motion.div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Manage Your Portfolio</h3>
-                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Keep all your properties organized in one place with detailed performance metrics</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-start gap-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <motion.div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-white/10 backdrop-blur-sm" 
-                whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,199,140,0.2)' }}
-                role="img"
-                aria-label="Market insights icon"
-              >
-                <span className="text-2xl" aria-hidden="true">📈</span>
-              </motion.div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Market Insights & Trends</h3>
-                <p className="text-gray-300 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.5' }}>Get data-driven investment recommendations based on current market conditions</p>
-              </div>
-            </motion.div>
-          </div>
-
-        </div>
-      </div>
+      {/* Right Column - Feature Showcase */}
+      <div className="hidden lg:flex lg:w-[55%] items-center justify-center" style={{ backgroundColor: '#0F0E23' }}>
+        <FeatureShowcase />
       </div>
     </main>
   );

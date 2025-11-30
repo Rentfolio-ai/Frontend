@@ -9,12 +9,14 @@ interface PropertyCardProps {
   property: Property;
   className?: string;
   compact?: boolean;
+  onAnalyze?: (property: Property) => void;
 }
 
-export const PropertyCard: React.FC<PropertyCardProps> = ({ 
-  property, 
+export const PropertyCard: React.FC<PropertyCardProps> = ({
+  property,
   className,
-  compact = false 
+  compact = false,
+  onAnalyze
 }) => {
   // Calculate annualized ROI from monthly % returns (compound over 12 months)
   const calculateAnnualROI = (monthlyRoiData: number[]): number => {
@@ -66,8 +68,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </div>
             <div className={cn(
               'text-sm font-semibold px-2 py-1 rounded',
-              isHighROI 
-                ? 'bg-success/20 text-success shadow-lg shadow-success/20 animate-pulse' 
+              isHighROI
+                ? 'bg-success/20 text-success shadow-lg shadow-success/20 animate-pulse'
                 : 'text-success'
             )}>
               {annualROI}% ROI
@@ -127,8 +129,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* ROI Highlight */}
         <div className={cn(
           'p-3 rounded-lg border',
-          isHighROI 
-            ? 'bg-success/10 border-success/30 shadow-lg shadow-success/20' 
+          isHighROI
+            ? 'bg-success/10 border-success/30 shadow-lg shadow-success/20'
             : 'bg-muted border-border'
         )}>
           <div className="flex items-center justify-between">
@@ -177,13 +179,27 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         )}
 
         {/* Property Type Badge */}
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">
-            {property.propertyType.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-          </Badge>
-          <div className="text-xs text-foreground/60">
-            Cap Rate: {property.capRate}%
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {property.propertyType.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+            </Badge>
+            <div className="text-xs text-foreground/60">
+              Cap Rate: {property.capRate}%
+            </div>
           </div>
+
+          {onAnalyze && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAnalyze(property);
+              }}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md"
+            >
+              Analyze Deal
+            </button>
+          )}
         </div>
       </CardContent>
     </Card>

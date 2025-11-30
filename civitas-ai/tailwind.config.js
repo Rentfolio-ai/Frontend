@@ -8,7 +8,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Core system colors
         border: "hsl(var(--border))",
         'border-subtle': "hsl(var(--border-subtle))",
         input: "hsl(var(--input))",
@@ -43,7 +42,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Civitas AI Design System Colors - Enhanced
+        // Design System
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         danger: "hsl(var(--danger))",
@@ -54,15 +53,16 @@ export default {
         'text-muted': "hsl(var(--text-muted))",
         'accent-from': "hsl(var(--accent-from))",
         'accent-to': "hsl(var(--accent-to))",
+        highlight: "hsl(var(--highlight))",
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        'h1': ['1.75rem', { lineHeight: '2rem', fontWeight: '700' }], // 28px
-        'h2': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '700' }], // 20px
-        'body': ['1rem', { lineHeight: '1.5rem', fontWeight: '500' }], // 16px
-        'meta': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '500' }], // 14px
+        'h1': ['2.25rem', { lineHeight: '2.5rem', fontWeight: '700', letterSpacing: '-0.025em' }],
+        'h2': ['1.5rem', { lineHeight: '2rem', fontWeight: '700', letterSpacing: '-0.025em' }],
+        'body': ['1rem', { lineHeight: '1.6', fontWeight: '500' }],
+        'meta': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '500' }],
       },
       spacing: {
         '18': '4.5rem',
@@ -76,20 +76,27 @@ export default {
       },
       maxWidth: {
         'chat': '48rem',
+        '8xl': '88rem',
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
         xl: "1rem",
-        '2xl': "1.5rem",
+        '2xl': "1.25rem",
+        '3xl': "1.5rem",
       },
       boxShadow: {
-        'soft': '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06)',
-        'medium': '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06)',
-        'hard': '0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08)',
-        'glow': '0 0 20px hsl(var(--primary) / 0.3)',
-        'glow-lg': '0 0 40px hsl(var(--primary) / 0.4)',
+        'soft': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'medium': '0 4px 20px rgba(0, 0, 0, 0.12)',
+        'hard': '0 8px 30px rgba(0, 0, 0, 0.16)',
+        'glow': '0 0 30px hsl(var(--primary) / 0.3)',
+        'glow-lg': '0 0 60px hsl(var(--primary) / 0.4)',
+        'inner-glow': 'inset 0 1px 0 hsl(var(--primary) / 0.1)',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       keyframes: {
         "accordion-down": {
@@ -108,61 +115,45 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         slideIn: {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
-        pulseSubtle: {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.8' },
-        },
-        slideInLeft: {
-          from: { transform: 'translateX(-100%)', opacity: '0' },
-          to: { transform: 'translateX(0)', opacity: '1' },
-        },
-        slideInRight: {
-          from: { transform: 'translateX(100%)', opacity: '0' },
-          to: { transform: 'translateX(0)', opacity: '1' },
-        },
-        scaleIn: {
-          from: { opacity: '0', transform: 'scale(0.96)' },
-          to: { opacity: '1', transform: 'scale(1)' },
-        },
-        gradient: {
-          '0%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-          '100%': { backgroundPosition: '0% 50%' },
+        pulseGlow: {
+          '0%, 100%': { 
+            boxShadow: '0 0 20px hsl(var(--primary) / 0.2)',
+            opacity: '1'
+          },
+          '50%': { 
+            boxShadow: '0 0 40px hsl(var(--primary) / 0.4)',
+            opacity: '0.8'
+          },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-8px)' },
         },
-        glow: {
-          '0%, 100%': { boxShadow: '0 0 20px hsl(var(--primary) / 0.2)' },
-          '50%': { boxShadow: '0 0 30px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2)' },
-        },
-        shimmerEnhanced: {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
+        gradientShift: {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "shimmer": "shimmer 2s infinite",
-        "fade-in": "fadeIn 0.2s ease-out",
+        "fade-in": "fadeIn 0.3s ease-out forwards",
+        "slide-up": "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "slide-in": "slideIn 0.3s ease-out",
-        "pulse-subtle": "pulseSubtle 2s ease-in-out infinite",
-        "slide-in-left": "slideInLeft 0.3s ease-out",
-        "slide-in-right": "slideInRight 0.3s ease-out",
-        "scale-in": "scaleIn 0.2s ease-out",
-        "gradient": "gradient 20s ease infinite",
-        "float": "float 3s ease-in-out infinite",
-        "glow": "glow 2s ease-in-out infinite",
-        "shimmer-enhanced": "shimmerEnhanced 2s ease-in-out infinite",
+        "pulse-glow": "pulseGlow 3s ease-in-out infinite",
+        "float": "float 4s ease-in-out infinite",
+        "gradient": "gradientShift 15s ease infinite",
       },
     },
   },
   plugins: [],
 }
-
