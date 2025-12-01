@@ -2,15 +2,14 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../primitives/Card';
 import { Badge } from '../primitives/Badge';
-import { 
-  ROIAnalysisCard, 
-  MarketDataCard, 
-  PropertyBookmarkCard, 
+import {
+  ROIAnalysisCard,
+  MarketDataCard,
+  PropertyBookmarkCard,
   AlertCard,
   DealAnalyzerCard,
   ComplianceCard,
   ValuationCard,
-  VisionAnalysisCard,
 } from './tool-cards';
 import type { DealAnalyzerData } from './tool-cards';
 import type { ValuationData } from './tool-cards';
@@ -112,7 +111,7 @@ type RenovationAnalysisToolResult = {
 };
 
 // Create a discriminated union of all tool result types
-type ToolResult = 
+type ToolResult =
   | RoiAnalysisToolResult
   | MarketDataToolResult
   | PropertyComparisonToolResult
@@ -131,9 +130,9 @@ interface ToolMessageProps {
   onToggleBookmark?: (property: ScoutedProperty) => void;
 }
 
-export const ToolMessage: React.FC<ToolMessageProps> = ({ 
-  tool, 
-  timestamp, 
+export const ToolMessage: React.FC<ToolMessageProps> = ({
+  tool,
+  timestamp,
   onOpenDealAnalyzer,
   bookmarks,
   onToggleBookmark,
@@ -162,8 +161,8 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
       case 'property_comparison':
         // Use bookmark card instead of property cards
         return (
-          <PropertyBookmarkCard 
-            data={tool.data} 
+          <PropertyBookmarkCard
+            data={tool.data}
             bookmarks={bookmarks}
             onToggleBookmark={onToggleBookmark}
           />
@@ -186,7 +185,7 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
       default: {
         // This ensures exhaustiveness checking at compile time, properly scoped in a block
         const exhaustiveCheck = (x: never): never => {
-          throw new Error(`Unhandled tool kind: ${(x as any).kind}`);
+          throw new Error(`Unhandled tool kind: ${(x as any).kind} `);
         };
         return exhaustiveCheck(tool);
       }

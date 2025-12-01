@@ -224,10 +224,11 @@ export function extractVisionAnalysisFromToolResults(
         safety_concerns: [],
       },
       summary: legacy['message'] as string ?? 'Legacy renovation analysis',
-      recommendations: (legacy['recommendations'] as string[] || []).map((rec, i) => ({
+      recommendations: (legacy['recommendations'] as string[] || []).map((rec, _i) => ({
         priority: 'medium' as const,
         action: rec,
         estimated_cost: 0,
+        roi_impact: 'Unknown',
       })),
     };
   }

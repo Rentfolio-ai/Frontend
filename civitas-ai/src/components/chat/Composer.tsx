@@ -1,6 +1,6 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Mic, Paperclip, X, File as FileIcon, Send, ArrowUp } from 'lucide-react';
+import { Paperclip, X, File as FileIcon, ArrowUp } from 'lucide-react';
 
 interface SuggestionChip {
   id: string;
@@ -15,12 +15,14 @@ const slashCommands = [
   { id: '/search', label: '/search - Find properties', icon: '🔍' },
 ];
 
-interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 
+interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>,
   'value' | 'onChange' | 'rows' | 'disabled' | 'onKeyDown' | 'placeholder'> {
   onSend?: (message: string) => void;
   onAttach?: (file: File) => void;
   attachment?: File | null;
   onClearAttachment?: () => void;
+  onMicClick?: () => void;
+  isListening?: boolean;
 }
 
 export interface ComposerRef {
@@ -28,7 +30,7 @@ export interface ComposerRef {
   focus: () => void;
 }
 
-export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAttach, attachment, onClearAttachment, ...rest }, ref) => {
+export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAttach, attachment, onClearAttachment, onMicClick, isListening, ...rest }, ref) => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCommands, setShowCommands] = useState(false);
@@ -73,7 +75,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
 
     setIsLoading(true);
     if (onSend) onSend(message);
-    
+
     setMessage('');
     if (onClearAttachment) onClearAttachment();
     setIsLoading(false);
@@ -84,11 +86,11 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
       e.preventDefault();
       handleSubmit(e as any);
     }
-    
+
     if (e.key === '/' && message === '') {
       setShowCommands(true);
     }
-    
+
     if (e.key === 'Escape') {
       setShowCommands(false);
     }
@@ -169,7 +171,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
         <div className="relative group">
           {/* Glow effect on focus */}
           <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/40 via-accent-to/40 to-primary/40 rounded-2xl opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity duration-500" />
-          
+
           {/* Input Container */}
           <div className="relative flex items-end gap-2 p-2 rounded-2xl bg-white/[0.03] border border-white/[0.08] group-focus-within:border-white/[0.15] transition-all duration-300">
             {/* Hidden File Input */}
@@ -197,22 +199,23 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
               value={message}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Message OmniEstate..."
+              placeholder="Message ProphetAtlas..."
               className="flex-1 bg-transparent resize-none text-[15px] text-white/90 placeholder:text-white/30 focus:outline-none py-2.5 px-1 min-h-[44px] max-h-40"
               rows={1}
               disabled={isLoading}
               {...rest}
             />
 
+
+
             {/* Send Button */}
             <button
               type="submit"
               disabled={!hasContent || isLoading}
-              className={`p-2.5 rounded-xl transition-all duration-300 ${
-                hasContent && !isLoading
-                  ? 'bg-white text-black hover:bg-white/90 hover:scale-105 active:scale-95'
-                  : 'bg-white/[0.06] text-white/20 cursor-not-allowed'
-              }`}
+              className={`p-2.5 rounded-xl transition-all duration-300 ${hasContent && !isLoading
+                ? 'bg-white text-black hover:bg-white/90 hover:scale-105 active:scale-95'
+                : 'bg-white/[0.06] text-white/20 cursor-not-allowed'
+                }`}
               title="Send message"
             >
               {isLoading ? (

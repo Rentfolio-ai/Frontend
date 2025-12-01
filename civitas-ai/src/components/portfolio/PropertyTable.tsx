@@ -2,7 +2,7 @@
 import React from 'react';
 import { Edit, Trash2, Plus } from 'lucide-react';
 import type { PortfolioProperty } from '../../types/portfolio';
-import { formatCurrency, formatPercentage, formatDate } from '../../utils/portfolioHelpers';
+import { formatCurrency, formatPercentage } from '../../utils/portfolioHelpers';
 
 interface PropertyTableProps {
   properties: PortfolioProperty[];
@@ -87,9 +87,8 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                   {formatCurrency(property.financials.monthly_rent)}
                 </td>
                 <td
-                  className={`py-4 px-4 text-right font-medium ${
-                    monthlyCashflow >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
+                  className={`py-4 px-4 text-right font-medium ${monthlyCashflow >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}
                 >
                   {formatCurrency(monthlyCashflow)}
                 </td>

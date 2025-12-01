@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldAlert, Building, Landmark, ScrollText, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
-import type { ComplianceResult, ComplianceLayer, ComplianceRule, CompliancePermitRequirement, RiskLevel } from '../../../types/compliance';
+import type { ComplianceResult, ComplianceLayer, ComplianceRule, RiskLevel } from '../../../types/compliance';
 import { cn } from '../../../lib/utils';
 import { MarkdownRenderer } from '../../common/MarkdownRenderer';
 

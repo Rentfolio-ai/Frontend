@@ -10,7 +10,7 @@ interface OnboardingTourProps {
   isOpen: boolean;
   onComplete: (redirectTab?: TabType) => void;
   onSkip: (redirectTab?: TabType) => void;
-  currentTab: TabType;
+  _currentTab: TabType; // Unused but kept for future use
   onTabChange: (tab: TabType) => void;
 }
 
@@ -18,7 +18,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   isOpen,
   onComplete,
   onSkip,
-  currentTab,
+  _currentTab, // Prefix with underscore to indicate intentionally unused
   onTabChange,
 }) => {
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
@@ -94,7 +94,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       skipped: false,
       duration_seconds: duration,
     });
-    
+
     // Navigate to the tab specified by backend
     const redirectTab = response.redirect_to_tab || 'chat';
     onComplete(redirectTab);
@@ -122,7 +122,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       skipped: true,
       duration_seconds: duration,
     });
-    
+
     // Navigate to the tab specified by backend
     const redirectTab = response.redirect_to_tab || 'chat';
     onSkip(redirectTab);
@@ -201,7 +201,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
                   {/* Content */}
                   <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-bold text-primary">
                         {currentStep.title}
                       </h3>
@@ -209,7 +209,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                         {currentStepIndex + 1} / {steps.length}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-slate-700 leading-relaxed mb-4">
                       {currentStep.description}
                     </p>
@@ -221,7 +221,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                           className="h-full bg-accent-from rounded-full"
                           initial={{ width: '100%' }}
                           animate={{ width: isPaused ? '100%' : '0%' }}
-                          transition={{ 
+                          transition={{
                             duration: timeRemaining,
                             ease: 'linear'
                           }}
@@ -249,11 +249,10 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                           <button
                             key={step.id}
                             onClick={() => setCurrentStepIndex(idx)}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              idx === currentStepIndex
-                                ? 'bg-accent-from w-6'
-                                : 'bg-primary/30 hover:bg-primary/50'
-                            }`}
+                            className={`w-2 h-2 rounded-full transition-all ${idx === currentStepIndex
+                              ? 'bg-accent-from w-6'
+                              : 'bg-primary/30 hover:bg-primary/50'
+                              }`}
                           />
                         ))}
                       </div>

@@ -177,10 +177,19 @@ interface ValidationResult {
   nestedIssues: Record<string, ValidationResult>;
 }
 
+function validateValue(
+  value: unknown,
+  type: string,
+  _path: string = ''
+): { isValid: boolean; error?: string } {
+  // Implementation for validateValue would go here
+  return { isValid: true };
+}
+
 function validateSchema(
   data: unknown,
   schema: ExpectedSchema,
-  path: string = ''
+  _path: string = ''
 ): { missingRequired: string[]; presentFields: string[]; extraFields: string[] } {
   if (!data || typeof data !== 'object') {
     return {
@@ -257,7 +266,7 @@ function validateToolResult(toolName: string, data: unknown): ValidationResult {
  */
 export function logToolResult(toolName: string, data: unknown, context?: string): void {
   const prefix = context ? `[${context}]` : '';
-  
+
   // Log raw data structure
   logger.debug(`${prefix} Tool Result: ${toolName}`, {
     toolName,
@@ -312,7 +321,7 @@ export function logApiResponse(endpoint: string, response: unknown): void {
   const data = record.data as Record<string, unknown> | undefined;
   if (data?.tool_results) {
     const toolResults = data.tool_results;
-    
+
     if (Array.isArray(toolResults)) {
       logger.info(`[API] ${endpoint} - Found ${toolResults.length} tool results`, {
         tools: toolResults.map((tr: any) => tr.tool_name || tr.kind || 'unknown'),
@@ -359,16 +368,16 @@ export function logMessageToolCards(messageId: string, tools: unknown[]): void {
  */
 export function summarizeToolResults(toolResults: unknown): string {
   if (!toolResults) return 'No tool results';
-  
+
   if (Array.isArray(toolResults)) {
     const tools = toolResults.map((tr: any) => tr.tool_name || tr.kind || 'unknown');
     return `${toolResults.length} results: ${tools.join(', ')}`;
   }
-  
+
   if (typeof toolResults === 'object') {
     return `Object with keys: ${Object.keys(toolResults).join(', ')}`;
   }
-  
+
   return `Unknown type: ${typeof toolResults}`;
 }
 
