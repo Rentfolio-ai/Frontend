@@ -22,6 +22,7 @@ interface MessageListProps {
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
   userName?: string;
+  onRefresh?: (messageId: string) => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -36,6 +37,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   thinking,
   completedTools = [],
   userName,
+  onRefresh,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +84,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               onNavigateToReports={onNavigateToReports}
               reasoningSteps={steps}
               userName={userName}
+              onRefresh={onRefresh}
             />
           );
         })}

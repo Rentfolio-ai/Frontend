@@ -16,6 +16,8 @@ import type { ScoutedProperty } from '../../types/backendTools';
 
 import type { CompletedTool } from '../../types/stream';
 
+import { Copy, RotateCcw, Check } from 'lucide-react';
+
 interface MessageBubbleProps {
   message: Message;
   onAction?: (actionValue: string, actionContext?: any) => void;
@@ -26,6 +28,7 @@ interface MessageBubbleProps {
   onNavigateToReports?: () => void;
   reasoningSteps?: CompletedTool[];
   userName?: string;
+  onRefresh?: (messageId: string) => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -38,8 +41,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onNavigateToReports,
   reasoningSteps = [],
   userName,
+  onRefresh,
 }) => {
   const isUser = message.role === 'user';
+  const [isCopied, setIsCopied] = React.useState(false);
 
   const timestampLabel = typeof message.timestamp === 'string'
     ? message.timestamp
@@ -293,9 +298,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
+
   return (
     <div className={cn(
-      'flex gap-4 animate-slide-in mb-6',
+      'flex gap-4 animate-slide-in mb-6 group',
       isUser ? 'justify-end' : 'justify-start'
     )}>
       {/* AI Avatar (Left) */}
@@ -308,15 +323,49 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       {/* Message Bubble */}
       {isUser ? (
         /* User Message - Clean text only */
-        <div className="relative max-w-[70%] group text-right">
+        <div className="relative max-w-[70%] text-right flex items-start justify-end gap-2">
+          {/* User Actions (Left of message) */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pt-1">
+            <button
+              onClick={handleCopy}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+              title="Copy message"
+            >
+              {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
           <div className="text-[15px] leading-[1.75] text-white/95 font-normal">
             {message.content}
           </div>
         </div>
       ) : (
         /* Assistant Message - Clean text only, no bubble */
-        <div className="max-w-[95%] group pl-1">
+        <div className="max-w-[95%] pl-1">
           {messageContent}
+
+          {/* Assistant Actions (Bottom) */}
+          <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={handleCopy}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
+              title="Copy response"
+            >
+              {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="text-xs">Copy</span>
+            </button>
+
+            {onRefresh && (
+              <button
+                onClick={() => onRefresh(message.id)}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
+                title="Regenerate response"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="text-xs">Regenerate</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 

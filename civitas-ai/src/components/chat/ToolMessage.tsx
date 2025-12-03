@@ -2,10 +2,10 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../primitives/Card';
 import { Badge } from '../primitives/Badge';
-import { 
-  ROIAnalysisCard, 
-  MarketDataCard, 
-  PropertyBookmarkCard, 
+import {
+  ROIAnalysisCard,
+  MarketDataCard,
+  PropertyBookmarkCard,
   AlertCard,
   DealAnalyzerCard,
   ComplianceCard,
@@ -111,8 +111,15 @@ type RenovationAnalysisToolResult = {
   status: 'success' | 'warning' | 'error';
 };
 
+type ScoutPropertiesToolResult = {
+  kind: 'scout_properties' | 'Property Scout';
+  title: string;
+  data: any; // Generic data for now
+  status: 'success' | 'warning' | 'error';
+};
+
 // Create a discriminated union of all tool result types
-type ToolResult = 
+type ToolResult =
   | RoiAnalysisToolResult
   | MarketDataToolResult
   | PropertyComparisonToolResult
@@ -120,7 +127,8 @@ type ToolResult =
   | DealAnalyzerToolResult
   | ComplianceToolResult
   | ValuationToolResult
-  | RenovationAnalysisToolResult;
+  | RenovationAnalysisToolResult
+  | ScoutPropertiesToolResult;
 
 interface ToolMessageProps {
   tool: ToolResult;
@@ -131,9 +139,9 @@ interface ToolMessageProps {
   onToggleBookmark?: (property: ScoutedProperty) => void;
 }
 
-export const ToolMessage: React.FC<ToolMessageProps> = ({ 
-  tool, 
-  timestamp, 
+export const ToolMessage: React.FC<ToolMessageProps> = ({
+  tool,
+  timestamp,
   onOpenDealAnalyzer,
   bookmarks,
   onToggleBookmark,
@@ -162,8 +170,8 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
       case 'property_comparison':
         // Use bookmark card instead of property cards
         return (
-          <PropertyBookmarkCard 
-            data={tool.data} 
+          <PropertyBookmarkCard
+            data={tool.data}
             bookmarks={bookmarks}
             onToggleBookmark={onToggleBookmark}
           />
@@ -183,6 +191,14 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         // This should not reach here - renovation_analysis is handled directly in MessageBubble
         // But we include it for TypeScript exhaustiveness checking
         return null;
+      case 'scout_properties':
+      case 'Property Scout':
+        // Scout properties tool - just show a simple message for now
+        return (
+          <div className="text-sm text-foreground/80">
+            Property search completed. Results are shown in the chat.
+          </div>
+        );
       default: {
         // This ensures exhaustiveness checking at compile time, properly scoped in a block
         const exhaustiveCheck = (x: never): never => {

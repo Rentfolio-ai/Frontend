@@ -725,9 +725,6 @@ const extractVisionData = (raw: RawToolResult): Record<string, unknown> | undefi
 
 const toolResultToCard = (raw: RawToolResult): ToolCard | null => {
   const kind = deriveKind(raw.kind, raw.tool_name || raw.name);
-  // SUPPRESSED: get_market_stats works silently
-  const toolName = raw.tool_name || raw.name;
-  if (toolName === "get_market_stats") return null;
   const status = deriveStatus(raw.status || raw.state);
   const title = raw.title || raw.headline || DEFAULT_TITLES[kind ?? ''] || toTitleCase(raw.tool_name || raw.name) || 'Tool Result';
   const description = raw.summary || raw.description || raw.headline || '';

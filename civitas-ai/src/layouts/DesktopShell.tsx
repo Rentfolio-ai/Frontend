@@ -22,12 +22,12 @@ import { useAuth } from '../contexts/AuthContext';
 // import { PortfolioProvider } from '../contexts/PortfolioContext';
 import { useDesktopShell, type TabType } from '../hooks/useDesktopShell';
 import { useThemeState } from '../hooks/useThemeState';
-import { usePreferences } from '../hooks/usePreferences';
+
 import { useToast } from '../hooks/useToast';
 import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
-import { ChatTabView, SettingsTabView, ReportsTabView, PortfolioTabView, DesktopSidebarMenu } from '../components/desktop-shell';
+import { ChatTabView, ReportsTabView, PortfolioTabView, DesktopSidebarMenu } from '../components/desktop-shell';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
 import { OnboardingTour } from '../components/onboarding';
@@ -38,23 +38,12 @@ interface DesktopShellProps {
   children?: React.ReactNode;
 }
 
-const STATE_OPTIONS = [
-  { name: 'California', emoji: '🌴', color: '#F59E0B' },
-  { name: 'Texas', emoji: '🤠', color: '#DC2626' },
-  { name: 'Florida', emoji: '🏖️', color: '#06B6D4' },
-  { name: 'New York', emoji: '🗽', color: '#6366F1' },
-  { name: 'Colorado', emoji: '⛰️', color: '#10B981' },
-  { name: 'Tennessee', emoji: '🎸', color: '#8B5CF6' },
-  { name: 'Arizona', emoji: '🌵', color: '#EF4444' },
-  { name: 'Georgia', emoji: '🍑', color: '#F97316' },
-  { name: 'Nevada', emoji: '🎰', color: '#EC4899' },
-];
+
 
 // Menu items
 const MENU_ITEMS: Array<{ id: TabType; label: string; icon: string }> = [
   { id: 'portfolio', label: 'Portfolio', icon: '📊' },
   { id: 'reports', label: 'Reports', icon: '📄' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
 const ONBOARDING_STORAGE_KEY = 'prophetatlas-onboarding-completed';
@@ -93,16 +82,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Thinking state
     thinking,
     completedTools,
+    handleRegenerate,
   } = useDesktopShell();
 
-  const { selectedState, setSelectedState, currentTheme } = useThemeState();
+  const { selectedState, currentTheme } = useThemeState();
 
-  const {
-    emailNotifications,
-    marketAlerts,
-    updateEmailNotifications,
-    updateMarketAlerts
-  } = usePreferences();
+  // Preferences hook removed as settings tab is removed
+  // const {
+  //   emailNotifications,
+  //   marketAlerts,
+  //   updateEmailNotifications,
+  //   updateMarketAlerts
+  // } = usePreferences();
 
   // Property bookmarks
   const {
@@ -210,8 +201,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     const handleNavigate = (event: CustomEvent) => {
       const { tab } = event.detail as { tab?: string };
       let targetTab: TabType = 'chat';
-      if (tab === 'settings') targetTab = 'settings';
-      else if (tab === 'reports') targetTab = 'reports';
+      if (tab === 'reports') targetTab = 'reports';
       console.log(`🚀 Navigating to: ${targetTab}`);
       setActiveTab(targetTab);
     };
@@ -293,17 +283,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 onNewChat={handleNewChat}
                 thinking={thinking}
                 completedTools={completedTools}
-              />
-            )}
-            {activeTab === 'settings' && (
-              <SettingsTabView
-                selectedState={selectedState}
-                setSelectedState={setSelectedState}
-                emailNotifications={emailNotifications}
-                setEmailNotifications={updateEmailNotifications}
-                marketAlerts={marketAlerts}
-                setMarketAlerts={updateMarketAlerts}
-                stateOptions={STATE_OPTIONS}
+                onRefresh={handleRegenerate}
               />
             )}
             {activeTab === 'reports' && (

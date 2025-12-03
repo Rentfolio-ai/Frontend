@@ -31,7 +31,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'settings' | 'reports' | 'portfolio';
+export type TabType = 'chat' | 'reports' | 'portfolio';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -52,7 +52,7 @@ export interface ReportDrawerState {
   propertyAddress?: string;
 }
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'settings', 'reports', 'portfolio'];
+const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 
@@ -612,6 +612,40 @@ export function useDesktopShell() {
     }
   }, [currentThreadId, user, resetThinkingState, handleStreamEvent]);
 
+  const handleRegenerate = useCallback((messageId: string) => {
+    setMessages(prev => {
+      const messageIndex = prev.findIndex(m => m.id === messageId);
+      if (messageIndex === -1) return prev;
+
+      const message = prev[messageIndex];
+      let userMessageContent = '';
+      let newMessages = [...prev];
+
+      if (message.role === 'assistant') {
+        // Find the preceding user message
+        const prevMessage = prev[messageIndex - 1];
+        if (prevMessage && prevMessage.role === 'user') {
+          userMessageContent = prevMessage.content;
+          // Remove this assistant message AND the user message
+          newMessages = prev.slice(0, messageIndex - 1);
+        }
+      } else if (message.role === 'user') {
+        userMessageContent = message.content;
+        // Remove this user message and everything after
+        newMessages = prev.slice(0, messageIndex);
+      }
+
+      if (userMessageContent) {
+        // We need to trigger sendMessageWithStream, but we can't do it inside the setState callback
+        // So we'll schedule it
+        setTimeout(() => sendMessageWithStream(userMessageContent), 0);
+        return newMessages;
+      }
+
+      return prev;
+    });
+  }, [sendMessageWithStream]);
+
   // Chat handlers
   const handleSendMessage = (message: string) => {
     if (!message.trim() && !attachment) return;
@@ -1063,8 +1097,7 @@ export function useDesktopShell() {
 
   const handleAction = (actionValue: string, _actionContext?: any) => {
     if (actionValue === 'navigate_settings') {
-      setActiveTab('settings');
-      setIsSidebarOpen(false);
+      console.warn('Settings page has been removed. Use the preferences modal instead.');
       return;
     }
 
@@ -1121,6 +1154,7 @@ export function useDesktopShell() {
     // Thinking state for SSE streaming
     thinking,
     completedTools,
+    handleRegenerate,
 
     // Setters
     setIsSidebarOpen,

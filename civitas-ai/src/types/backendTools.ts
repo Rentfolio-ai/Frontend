@@ -34,6 +34,10 @@ export interface ScoutPropertiesInput {
   str_legality?: STRLegality | null;
   require_adu_permission?: boolean | null;
   limit?: number; // default 20, max 100
+  query?: string | null; // Natural language query for semantic ranking
+  // ENHANCED: Smart sorting and value scoring (NEW)
+  sort_by?: 'price' | 'value' | 'potential' | 'date' | 'cash_flow'; // default: 'price'
+  include_value_score?: boolean; // default: false
 }
 
 export interface ScoutedProperty {
@@ -75,6 +79,9 @@ export interface ScoutedProperty {
       rule: string;
     };
   };
+  // ENHANCED: Value scoring (NEW)
+  value_score?: number;           // 0-100 value assessment score
+  value_grade?: 'A' | 'B' | 'C' | 'D' | 'F';  // Letter grade for quick assessment
 }
 
 export interface ScoutPropertiesOutput {
@@ -109,6 +116,9 @@ export interface ScoutPropertiesOutput {
   };
   market_seasonality?: unknown;
   market_demand?: unknown;
+  // ENHANCED: Sorting metadata (NEW)
+  sort_method?: string;           // How results were sorted
+  value_scoring_enabled?: boolean; // Whether value scores were calculated
   message?: string;
 }
 
@@ -832,9 +842,13 @@ export type GenerateReportToolResult = BackendToolResult<GenerateReportOutput>;
 // ============================================================================
 
 export interface GetMarketStatsInput {
-  zip_code: string;               // Required, 5-digit ZIP
+  zip_code?: string;                  // Optional, 5-digit ZIP
+  city?: string;                      // Optional city name
+  state?: string;                     // Optional state abbreviation  
   data_type?: 'Sale' | 'Rental' | 'All';  // Default: 'All'
-  history_range?: number;         // 1-24 months, default 12
+  history_range?: number;             // 1-24 months, default 12
+  include_trends?: boolean;           // Include trend analysis (default: true)
+  include_projections?: boolean;      // Include price projections (default: false)
 }
 
 export interface MarketHistoryEntry {
@@ -848,7 +862,8 @@ export interface MarketHistoryEntry {
 
 export interface GetMarketStatsOutput {
   success: boolean;
-  zip_code: string;
+  location?: string;                  // Location string (city, state or ZIP)
+  zip_code?: string;
   data_type: string;
 
   sale_data?: {
@@ -867,6 +882,27 @@ export interface GetMarketStatsOutput {
     avg_days_on_market: number;
     total_listings: number;
     history: Record<string, MarketHistoryEntry>;
+  };
+
+  // ENHANCED: Trend analysis (NEW)
+  trends?: {
+    price_trend_yoy?: number;         // Year-over-year price change (decimal, e.g., 0.0856 = 8.56%)
+    price_trend_mom?: number;         // Month-over-month price change  
+    rent_trend_yoy?: number;          // Year-over-year rent change
+    inventory_trend?: number;         // Inventory level change
+  };
+
+  // ENHANCED: Market temperature assessment (NEW) 
+  market_temperature?: 'hot' | 'warm' | 'neutral' | 'cool' | 'cold';
+
+  // ENHANCED: Price projections (NEW)
+  projections?: {
+    predicted_price_6m: number;       // 6-month price forecast
+    change_6m_pct: number;            // 6-month change percentage
+    predicted_price_12m: number;      // 12-month price forecast
+    change_12m_pct: number;           // 12-month change percentage
+    confidence: 'high' | 'medium' | 'low';  // Projection confidence
+    based_on_months: number;          // Number of historical months used
   };
 
   market_summary: {

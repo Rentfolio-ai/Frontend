@@ -1,12 +1,16 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { Settings, HelpCircle } from 'lucide-react';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
+import { PreferencesModal } from '../PreferencesModal';
+import { FAQModal } from '../FAQModal';
+import { Tooltip } from '../Tooltip';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
-import { getOnboardingMessage } from '../../services/chatApi';
+
 import { checkHealth } from '../../services/agentsApi';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
@@ -30,6 +34,7 @@ interface ChatTabViewProps {
   // Thinking state
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
+  onRefresh?: (messageId: string) => void;
 }
 
 // Quick action chips for new users - designed to guide and help
@@ -49,18 +54,18 @@ const QUICK_ACTIONS = [
     description: 'Get detailed financial projections'
   },
   {
-    id: 'market',
-    label: 'Explore market trends',
-    icon: '📊',
-    query: 'What are the best markets for rental property investing right now? Show me data on prices, rents, and growth.',
-    description: 'See where opportunities are'
+    id: 'preferences',
+    label: 'Configure Preferences',
+    icon: '⚙️',
+    query: 'I want to set up my investment preferences and alerts.',
+    description: 'Customize your experience'
   },
   {
-    id: 'learn',
-    label: 'Get started guide',
-    icon: '🎯',
-    query: 'I\'m new to real estate investing. Can you walk me through the basics and what I should know?',
-    description: 'Learn the fundamentals'
+    id: 'help',
+    label: 'Help & FAQ',
+    icon: '❓',
+    query: 'How do I use this platform? Show me the FAQ.',
+    description: 'Learn how to use OmniEstate'
   },
 ];
 
@@ -82,20 +87,15 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onNewChat,
   thinking,
   completedTools = [],
+  onRefresh,
 }) => {
-  const [onboardingMessage, setOnboardingMessage] = useState<string>('');
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
   const composerRef = useRef<ComposerRef>(null);
 
-  const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
-  useEffect(() => {
-    const fetchOnboarding = async () => {
-      const data = await getOnboardingMessage(userName);
-      setOnboardingMessage(data.message);
-    };
-    fetchOnboarding();
-  }, [userName]);
+  const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
   useEffect(() => {
     let isMounted = true;
@@ -115,7 +115,15 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     };
   }, []);
 
-  const handleQuickAction = (query: string) => {
+  const handleQuickAction = (actionId: string, query: string) => {
+    if (actionId === 'preferences') {
+      setShowPreferences(true);
+      return;
+    }
+    if (actionId === 'help') {
+      setShowFAQ(true);
+      return;
+    }
     onSendMessage(query);
   };
 
@@ -136,19 +144,36 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         </button>
       )}
 
-      {/* New Chat Button - Top Right */}
-      {onNewChat && !showEmptyState && (
-        <button
-          onClick={onNewChat}
-          className="absolute top-4 right-4 z-20 px-3 py-2 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group flex items-center gap-2"
-          aria-label="New chat"
-        >
-          <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">New Chat</span>
-        </button>
-      )}
+      {/* Header Buttons - Top Right */}
+      <div className="absolute top-4 right-4 z-20 flex gap-2">
+        {/* FAQ Button */}
+        <Tooltip content="FAQ & Help" shortcut="⌘/">
+          <button
+            onClick={() => setShowFAQ(true)}
+            className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+            aria-label="FAQ and Help"
+          >
+            <HelpCircle className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+          </button>
+        </Tooltip>
+
+        {/* Settings Button */}
+        <Tooltip content="Preferences" shortcut="⌘,">
+          <button
+            onClick={() => setShowPreferences(true)}
+            className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+            aria-label="Settings"
+          >
+            <Settings className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+          </button>
+        </Tooltip>
+
+
+      </div>
+
+      {/* Modals */}
+      <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
+      <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
 
       {/* Messages or Empty State */}
       <div className="flex-1 overflow-hidden">
@@ -173,13 +198,6 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                     Your AI-powered real estate intelligence
                   </p>
                 </div>
-
-                {/* Welcome Message */}
-                <div className="max-w-lg mx-auto">
-                  <p className="text-white/50 text-sm leading-relaxed">
-                    {onboardingMessage || 'I\'m here to help you find and evaluate real estate investment opportunities. Click any option below to get started, or ask me anything about properties, markets, or investing.'}
-                  </p>
-                </div>
               </div>
 
               {/* Quick Action Chips - Helpful for new users */}
@@ -187,7 +205,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 {QUICK_ACTIONS.map((action, index) => (
                   <button
                     key={action.id}
-                    onClick={() => handleQuickAction(action.query)}
+                    onClick={() => handleQuickAction(action.id, action.query)}
                     className="group relative px-5 py-4 rounded-xl glass-card hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 animate-slide-up text-left"
                     style={{ animationDelay: `${index * 75}ms` }}
                   >
@@ -258,6 +276,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               thinking={thinking}
               completedTools={completedTools}
               userName={userName}
+              onRefresh={onRefresh}
             />
           </div>
         )}

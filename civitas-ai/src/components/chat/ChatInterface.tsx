@@ -1,9 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, User, Sparkles } from 'lucide-react'
+import { User, Sparkles, Settings, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Message, ToolCard } from '@/types/chat'
 import { ActionButtons } from './ActionButtons'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { EnhancedSmartInput } from '@/components/EnhancedSmartInput'
+import { PreferencesModal } from '@/components/PreferencesModal'
+import { KeyboardHintsToggle } from '@/components/KeyboardHints'
+import { WelcomeScreen } from '@/components/WelcomeScreen'
+import { HelpModal } from '@/components/HelpModal'
+import { FAQModal } from '@/components/FAQModal'
+import { Tooltip } from '@/components/Tooltip'
+import { useContextualHelp, ContextualHelp } from '@/components/ContextualHelp'
+import { EmptyChat } from '@/components/EmptyStates'
+import { usePreferencesStore } from '@/stores/preferencesStore'
 
 interface ChatInterfaceProps {
   className?: string
@@ -50,8 +61,65 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [showPreferences, setShowPreferences] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  const [showFAQ, setShowFAQ] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const smartInputRef = useRef<{ focus: () => void }>(null)
+  const timerRef = useRef<number | null>(null)
+
+  const { showKeyboardHints, setShowKeyboardHints } = usePreferencesStore()
+  const {
+    showHelp: showContextualHelp,
+    helpConfig,
+    showFirstVisitHelp,
+    showEmptyInputHelp,
+    dismissHelp
+  } = useContextualHelp()
+
+  // Check if first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('civitas-has-visited')
+    if (!hasVisited) {
+      setShowWelcome(true)
+      localStorage.setItem('civitas-has-visited', 'true')
+    }
+  }, [])
+
+  // Show contextual help on first visit
+  useEffect(() => {
+    if (messages.length === 0) {
+      showFirstVisitHelp()
+    }
+  }, [])
+
+  // Show empty input help after 30 seconds of inactivity
+  useEffect(() => {
+    if (messages.length > 0 && inputValue === '') {
+      const timeout = setTimeout(() => {
+        showEmptyInputHelp()
+      }, 30000)
+
+      return () => clearTimeout(timeout)
+    }
+  }, [messages.length, inputValue])
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onFocusInput: () => smartInputRef.current?.focus(),
+    onOpenBookmarks: () => console.log('Open bookmarks'), // TODO: Implement
+    onSearchChats: () => console.log('Search chats'), // TODO: Implement
+    onOpenHelp: () => setShowFAQ(true),
+    onEscape: () => {
+      setShowHelp(false)
+      setShowWelcome(false)
+      setShowPreferences(false)
+      setShowFAQ(false)
+      dismissHelp()
+    }
+  })
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -61,37 +129,36 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     scrollToBottom()
   }, [messages])
 
-    // Create a ref to store the timer ID
-  const timerRef = useRef<number | null>(null);
-
   // Cleanup effect to clear the timer when component unmounts
   useEffect(() => {
     return () => {
       if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
+        clearTimeout(timerRef.current)
+        timerRef.current = null
       }
-    };
-  }, []);
+    }
+  }, [])
 
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
+  const handleSendMessage = (content?: string) => {
+    const messageContent = content || inputValue.trim()
+
+    if (messageContent) {
       const newMessage: Message = {
         id: Date.now().toString(),
         type: 'user',
-        content: inputValue.trim(),
+        content: messageContent,
         timestamp: new Date(),
       }
-      
+
       setMessages(prev => [...prev, newMessage])
       setInputValue('')
       setIsTyping(true)
-      
+
       // Clear any existing timer
       if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
+        clearTimeout(timerRef.current)
       }
-      
+
       // Simulate AI response and store the timer ID
       timerRef.current = setTimeout(() => {
         const aiResponse: Message = {
@@ -102,20 +169,15 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         }
         setMessages(prev => [...prev, aiResponse])
         setIsTyping(false)
-        
+
         // Reset the timer ref
-        timerRef.current = null;
-      }, 2000) as unknown as number;
+        timerRef.current = null
+      }, 2000) as unknown as number
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-  
+
+
   const handleAction = async (actionValue: string) => {
     if (['generate_report', 'view_report', 'navigate_market_insights'].includes(actionValue)) {
       const infoMessage: Message = {
@@ -135,19 +197,85 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
   return (
     <div className={cn("flex flex-col h-full relative", className)}>
+      {/* Welcome Screen */}
+      {showWelcome && (
+        <WelcomeScreen
+          onClose={() => setShowWelcome(false)}
+          onSelectQuery={(query) => {
+            setShowWelcome(false)
+            handleSendMessage(query)
+          }}
+        />
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <HelpModal
+          isOpen={showHelp}
+          onClose={() => setShowHelp(false)}
+        />
+      )}
+
+      {/* FAQ Modal */}
+      {showFAQ && (
+        <FAQModal
+          isOpen={showFAQ}
+          onClose={() => setShowFAQ(false)}
+        />
+      )}
+
+      {/* Preferences Modal */}
+      {showPreferences && (
+        <PreferencesModal
+          isOpen={showPreferences}
+          onClose={() => setShowPreferences(false)}
+        />
+      )}
+
+      {/* Header Buttons */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Tooltip content="FAQ & Help" shortcut="⌘/">
+          <button
+            onClick={() => setShowFAQ(true)}
+            className="p-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors"
+          >
+            <HelpCircle className="w-5 h-5 text-white/60" />
+          </button>
+        </Tooltip>
+
+        <Tooltip content="Preferences" shortcut="⌘,">
+          <button
+            onClick={() => setShowPreferences(true)}
+            className="p-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors"
+          >
+            <Settings className="w-5 h-5 text-white/60" />
+          </button>
+        </Tooltip>
+      </div>
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+        {/* Contextual Help */}
+        {showContextualHelp && helpConfig && (
+          <ContextualHelp {...helpConfig} onDismiss={dismissHelp} />
+        )}
+
+        {/* Empty State */}
+        {messages.length === 0 && !showWelcome && (
+          <EmptyChat onSuggestionClick={handleSendMessage} />
+        )}
+
         <AnimatePresence initial={false}>
           {messages.map((message, index) => (
-            <MessageBubble 
-              key={message.id} 
-              message={message} 
+            <MessageBubble
+              key={message.id}
+              message={message}
               onAction={handleAction}
               index={index}
             />
           ))}
         </AnimatePresence>
-        
+
         {isTyping && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -155,9 +283,9 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             exit={{ opacity: 0, y: -10 }}
             className="flex items-start gap-3"
           >
-            <motion.div 
+            <motion.div
               className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-400/20"
-              animate={{ 
+              animate={{
                 boxShadow: [
                   '0 0 0 0 rgba(59, 130, 246, 0.1)',
                   '0 0 0 8px rgba(59, 130, 246, 0)',
@@ -171,17 +299,17 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             <div className="flex-1 max-w-xs">
               <div className="rounded-2xl rounded-tl-sm backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] p-4">
                 <div className="flex gap-1.5">
-                  <motion.div 
+                  <motion.div
                     className="w-2 h-2 rounded-full bg-blue-400/60"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
                   />
-                  <motion.div 
+                  <motion.div
                     className="w-2 h-2 rounded-full bg-cyan-400/60"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
                   />
-                  <motion.div 
+                  <motion.div
                     className="w-2 h-2 rounded-full bg-purple-400/60"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
@@ -191,67 +319,40 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             </div>
           </motion.div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Floating translucent bar */}
+      {/* Input Area - Enhanced Smart Input */}
       <div className="p-4 sm:p-6 border-t border-white/[0.05] bg-gradient-to-b from-transparent to-black/5 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-end gap-2">
-            <div className="flex-1 relative">
-              <textarea
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about properties, markets, or investments..."
-                className={cn(
-                  "w-full resize-none rounded-2xl backdrop-blur-xl",
-                  "bg-white/[0.03] border border-white/[0.08]",
-                  "px-4 py-3 pr-14",
-                  "text-sm text-white/90 placeholder:text-white/30",
-                  "focus:outline-none focus:border-blue-400/30 focus:bg-white/[0.05]",
-                  "transition-all duration-200",
-                  "min-h-[48px] max-h-32"
-                )}
-                rows={1}
-              />
-              <motion.button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim()}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={cn(
-                  "absolute right-2 bottom-2 p-2 rounded-xl",
-                  "backdrop-blur-sm transition-all duration-200",
-                  inputValue.trim()
-                    ? "bg-gradient-to-br from-blue-500/80 to-cyan-500/80 border border-blue-400/30 shadow-lg shadow-blue-500/20"
-                    : "bg-white/[0.05] border border-white/[0.08] opacity-50 cursor-not-allowed"
-                )}
-                aria-label="Send message"
-              >
-                <Send className="w-4 h-4 text-white" />
-              </motion.button>
-            </div>
-          </div>
+          <EnhancedSmartInput
+            ref={smartInputRef}
+            onSubmit={handleSendMessage}
+            autoFocus={true}
+          />
         </div>
       </div>
+
+      {/* Keyboard Hints Toggle */}
+      {showKeyboardHints && (
+        <KeyboardHintsToggle onClick={() => setShowKeyboardHints(!showKeyboardHints)} />
+      )}
     </div>
   )
 }
 
-function MessageBubble({ 
-  message, 
+function MessageBubble({
+  message,
   onAction,
-  index 
-}: { 
-  message: Message; 
+  index
+}: {
+  message: Message;
   onAction: (action: string) => void;
   index: number;
 }) {
   const isUser = message.type === 'user'
-  const timestamp = message.timestamp instanceof Date 
+  const timestamp = message.timestamp instanceof Date
     ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
@@ -260,7 +361,7 @@ function MessageBubble({
       initial={{ opacity: 0, y: 15, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ 
+      transition={{
         duration: 0.3,
         delay: index * 0.05,
         ease: [0.4, 0, 0.2, 1]
@@ -277,8 +378,8 @@ function MessageBubble({
         transition={{ delay: index * 0.05 + 0.1, type: 'spring', stiffness: 200 }}
         className={cn(
           "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 backdrop-blur-xl border",
-          isUser 
-            ? "bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/20" 
+          isUser
+            ? "bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/20"
             : "bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-400/20"
         )}
       >
@@ -298,8 +399,8 @@ function MessageBubble({
           whileHover={{ y: -1 }}
           className={cn(
             "rounded-2xl backdrop-blur-xl border p-4 transition-all duration-200",
-            isUser 
-              ? "rounded-tr-sm bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-400/20 ml-auto shadow-lg shadow-blue-500/5" 
+            isUser
+              ? "rounded-tr-sm bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-400/20 ml-auto shadow-lg shadow-blue-500/5"
               : "rounded-tl-sm bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.05]"
           )}
         >
@@ -397,7 +498,7 @@ function ToolCardComponent({ tool }: { tool: ToolCard }) {
             <h4 className="font-medium text-sm text-white/90 truncate">{tool.title}</h4>
           </div>
           <p className="text-xs text-white/50 leading-relaxed">{tool.description}</p>
-          
+
           {tool.status === 'completed' && tool.data && (
             <div className="mt-3 grid grid-cols-3 gap-2">
               {Object.entries(tool.data).map(([key, value]) => (
@@ -411,7 +512,7 @@ function ToolCardComponent({ tool }: { tool: ToolCard }) {
             </div>
           )}
         </div>
-        
+
         <motion.div
           animate={tool.status === 'running' ? { scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] } : {}}
           transition={{ duration: 1.5, repeat: Infinity }}
