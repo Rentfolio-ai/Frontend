@@ -4,6 +4,7 @@ import { Card, CardContent } from './Card';
 import { Badge } from './Badge';
 import { cn } from '../../lib/utils';
 import type { Property } from '../../types';
+import { useAnalysisStore } from '../../stores/analysisStore';
 
 interface PropertyCardProps {
   property: Property;
@@ -25,6 +26,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     return Math.round(((factor - 1) * 100) * 10) / 10; // percent, 1 decimal
   };
 
+  const { openAnalysis } = useAnalysisStore();
   const annualROI = calculateAnnualROI(property.monthlyRoiData);
   const isHighROI = annualROI > 10;
 
@@ -189,17 +191,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </div>
           </div>
 
-          {onAnalyze && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAnalyze(property);
-              }}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md"
-            >
-              Analyze Deal
-            </button>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAnalyze ? onAnalyze(property) : openAnalysis(property);
+            }}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md"
+          >
+            Analyze Deal
+          </button>
         </div>
       </CardContent>
     </Card>

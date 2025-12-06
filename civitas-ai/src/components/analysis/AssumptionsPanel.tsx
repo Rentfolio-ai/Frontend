@@ -125,8 +125,9 @@ const InputField: React.FC<InputFieldProps> = ({
           step={step}
           disabled={disabled}
           className={cn(
-            'w-full h-10 rounded-lg border border-border bg-background text-sm',
-            'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50',
+            'w-full h-10 rounded-lg border border-border/50 bg-background/50 text-sm transition-all duration-200',
+            'focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 focus:bg-background',
+            'hover:border-border/80',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             displayPrefix ? 'pl-7' : 'pl-3',
             displaySuffix ? 'pr-12' : 'pr-3'
@@ -219,7 +220,7 @@ export const AssumptionsPanel: React.FC<AssumptionsPanelProps> = ({
           isOverridden={isFieldOverridden('closingCostPct')}
         />
         <InputField
-          label="Rehab Budget"
+          label="Renovation / Rehab"
           field="rehabBudget"
           value={assumptions.purchase.rehabBudget}
           onChange={handleChange}
@@ -228,6 +229,19 @@ export const AssumptionsPanel: React.FC<AssumptionsPanelProps> = ({
           step={1000}
           isOverridden={isFieldOverridden('rehabBudget')}
         />
+        {(strategy === 'STR' || strategy === 'ADU') && (
+          <InputField
+            label="Furnishing"
+            field="furnishingBudget"
+            value={assumptions.purchase.furnishingBudget}
+            onChange={handleChange}
+            type="currency"
+            min={0}
+            step={1000}
+            hint="Furniture & Decor"
+            isOverridden={isFieldOverridden('furnishingBudget')}
+          />
+        )}
       </Section>
 
       {/* Financing Section */}

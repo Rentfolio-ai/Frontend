@@ -9,9 +9,9 @@ import type {
   PnLAssumptions,
   InvestmentStrategy,
   ScenarioPreset,
-} from '../types/pnl';
-import { DEFAULT_ASSUMPTIONS, SCENARIO_PRESETS } from '../types/pnl';
-import { calculatePropertyPnL, explainPnL, mockCalculatePnL, assumptionsToRequest } from '../services/pnlApi';
+} from '@/types/pnl';
+import { DEFAULT_ASSUMPTIONS, SCENARIO_PRESETS } from '@/types/pnl';
+import { calculatePropertyPnL, explainPnL, mockCalculatePnL, assumptionsToRequest } from '@/services/pnlApi';
 import { logger } from '../utils/logger';
 
 interface UseDealAnalyzerOptions {
@@ -62,6 +62,7 @@ function formStateToAssumptions(
     purchasePrice: (a, v) => a.purchase.purchasePrice = v,
     closingCostPct: (a, v) => a.purchase.closingCostPct = v,
     rehabBudget: (a, v) => a.purchase.rehabBudget = v,
+    furnishingBudget: (a, v) => a.purchase.furnishingBudget = v,
     isFinanced: (a, v) => a.financing.isFinanced = v,
     downPaymentPct: (a, v) => a.financing.downPaymentPct = v,
     interestRateAnnual: (a, v) => a.financing.interestRateAnnual = v,
@@ -106,6 +107,7 @@ function assumptionsToFormState(assumptions: PnLAssumptions): Record<string, num
     purchasePrice: assumptions.purchase.purchasePrice,
     closingCostPct: assumptions.purchase.closingCostPct,
     rehabBudget: assumptions.purchase.rehabBudget,
+    furnishingBudget: assumptions.purchase.furnishingBudget,
     isFinanced: assumptions.financing.isFinanced,
     downPaymentPct: assumptions.financing.downPaymentPct,
     interestRateAnnual: assumptions.financing.interestRateAnnual,

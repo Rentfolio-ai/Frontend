@@ -58,34 +58,50 @@ const MetricCard: React.FC<MetricCardProps> = ({
     neutral: 'text-foreground',
   }[trend];
 
-  const trendBg = {
+  /* const trendBg = {
     positive: 'bg-success/10 border-success/30',
     negative: 'bg-danger/10 border-danger/30',
     neutral: 'bg-muted border-border/50',
-  }[trend];
+  }[trend]; */
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        'p-4 rounded-xl border transition-all',
-        highlight ? 'bg-primary/10 border-primary/30 shadow-lg shadow-primary/10' : trendBg
+        'p-5 rounded-xl border transition-all duration-300 relative overflow-hidden group',
+        highlight
+          ? 'bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/20 shadow-lg shadow-indigo-500/5'
+          : 'bg-white dark:bg-slate-900/50 border-border/40 hover:border-border/80 hover:shadow-md'
       )}
     >
-      <div className="flex items-start justify-between">
+      {highlight && (
+        <div className="absolute top-0 right-0 p-1.5 opacity-20 group-hover:opacity-40 transition-opacity">
+          <div className="w-16 h-16 bg-indigo-500/30 blur-2xl rounded-full" />
+        </div>
+      )}
+
+      <div className="flex items-start justify-between relative z-10">
         <div>
-          <p className="text-xs font-medium text-foreground/60 uppercase tracking-wider">{label}</p>
-          <p className={cn('text-2xl font-bold mt-1', highlight ? 'text-primary' : trendColor)}>
+          <p className="text-[11px] font-bold text-foreground/50 uppercase tracking-widest">{label}</p>
+          <p className={cn('text-3xl font-bold mt-2 tracking-tight', highlight ? 'text-indigo-600 dark:text-indigo-400' : trendColor)}>
             {value}
           </p>
           {subValue && (
-            <p className="text-xs text-foreground/50 mt-0.5">{subValue}</p>
+            <div className="flex items-center gap-1.5 mt-1.5">
+              {trend !== 'neutral' && (
+                trend === 'positive' ? <TrendingUp className="w-3 h-3 text-success" /> : <TrendingDown className="w-3 h-3 text-danger" />
+              )}
+              <p className="text-xs text-foreground/50 font-medium">{subValue}</p>
+            </div>
           )}
         </div>
         {icon && (
-          <div className={cn('p-2 rounded-lg', highlight ? 'bg-primary/20' : 'bg-muted')}>
-            {icon}
+          <div className={cn(
+            'p-2.5 rounded-xl transition-colors',
+            highlight ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'bg-muted text-foreground/60 group-hover:bg-muted/80'
+          )}>
+            {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-5 h-5" }) : icon}
           </div>
         )}
       </div>
@@ -180,7 +196,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
             value={formatCurrency(monthlyCashflow)}
             subValue={`${formatCurrency(year1.cashflowBeforeTaxes)}/year`}
             trend={isPositiveCashflow ? 'positive' : 'negative'}
-            icon={isPositiveCashflow 
+            icon={isPositiveCashflow
               ? <TrendingUp className="w-5 h-5 text-success" />
               : <TrendingDown className="w-5 h-5 text-danger" />
             }
@@ -321,7 +337,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
                 const maxCashflow = Math.max(...projection.map(p => Math.abs(p.cashflow)));
                 const barWidth = maxCashflow > 0 ? (Math.abs(year.cashflow) / maxCashflow) * 100 : 0;
                 const isPositive = year.cashflow >= 0;
-                
+
                 return (
                   <div key={year.year} className="flex items-center gap-3">
                     <span className="text-xs text-foreground/60 w-16">Year {year.year}</span>
@@ -346,7 +362,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
                 );
               })}
             </div>
-            
+
             {/* Summary row */}
             <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between">
               <span className="text-sm text-foreground/60">Cumulative Cashflow</span>

@@ -12,7 +12,9 @@ import {
   ChevronDown,
   Info,
   Building2,
-  Home
+  Home,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useDealAnalyzer } from '../../hooks/useDealAnalyzer';
@@ -20,6 +22,7 @@ import type { InvestmentStrategy, ScenarioPreset } from '../../types/pnl';
 import { SCENARIO_PRESETS } from '../../types/pnl';
 import { AssumptionsPanel } from './AssumptionsPanel';
 import { ResultsPanel } from './ResultsPanel';
+import { AIInsightsPanel } from './AIInsightsPanel';
 
 interface DealAnalyzerProps {
   propertyId?: string | null;
@@ -81,16 +84,19 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
   return (
     <div className={cn('flex flex-col h-full bg-background', className)}>
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-border/50 bg-gradient-to-r from-blue-50/50 to-teal-50/50 dark:from-blue-950/30 dark:to-teal-950/30">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Calculator className="w-5 h-5 text-primary" />
+      <div className="flex-shrink-0 px-6 py-5 border-b border-white/10 bg-slate-900 text-white relative overflow-hidden">
+        {/* Abstract Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-teal-500/10" />
+
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
+              <Calculator className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Deal Analyzer</h2>
+              <h2 className="text-xl font-bold tracking-tight">Deal Analyzer</h2>
               {propertyAddress && (
-                <p className="text-sm text-foreground/60 line-clamp-1">{propertyAddress}</p>
+                <p className="text-sm text-slate-400 font-medium line-clamp-1">{propertyAddress}</p>
               )}
             </div>
           </div>
@@ -128,36 +134,37 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
           </div>
         </div>
 
-        {/* Scenario Presets */}
-        <div className="flex items-center gap-2 mt-4">
-          <span className="text-xs font-medium text-foreground/50 uppercase tracking-wider">Scenario:</span>
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-3 mt-5 relative">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scenario</span>
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
             {(Object.keys(SCENARIO_PRESETS) as ScenarioPreset[]).map((preset) => (
               <button
                 key={preset}
                 onClick={() => setScenario(preset)}
                 className={cn(
-                  'px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200',
+                  'px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
                   activeScenario === preset
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-muted/50 text-foreground/70 hover:bg-muted hover:text-foreground border border-border/50'
+                    ? 'bg-indigo-500 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                 )}
               >
                 {SCENARIO_PRESETS[preset].name}
               </button>
             ))}
             {activeScenario === 'custom' && (
-              <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+              <span className="px-3 py-1.5 rounded-md text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 Custom
               </span>
             )}
           </div>
+          <div className="h-4 w-px bg-white/10 mx-1" />
           <button
             onClick={resetToDefaults}
-            className="ml-2 p-1.5 rounded-lg text-foreground/50 hover:text-foreground hover:bg-muted transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
             title="Reset to defaults"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Reset</span>
           </button>
         </div>
       </div>
@@ -179,28 +186,41 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
         <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-950/30">
           {/* AI Verdict Banner */}
           {aiVerdict && (
-            <div className={cn(
-              "px-6 py-4 border-b",
-              aiVerdict === 'Black'
-                ? "bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-950/20 dark:border-emerald-900/30"
-                : "bg-rose-50/50 border-rose-200/50 dark:bg-rose-950/20 dark:border-rose-900/30"
-            )}>
-              <div className="flex items-start gap-4">
-                <div className={cn(
-                  "flex-shrink-0 px-3 py-1 rounded-full text-sm font-bold shadow-sm border",
-                  aiVerdict === 'Black'
-                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:border-emerald-800"
-                    : "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/50 dark:text-rose-300 dark:border-rose-800"
-                )}>
-                  {aiVerdict === 'Black' ? 'GOOD DEAL' : 'BAD DEAL'}
-                </div>
-                <div className="flex-1">
-                  <p className={cn(
-                    "text-sm leading-relaxed",
-                    aiVerdict === 'Black' ? "text-emerald-900 dark:text-emerald-100" : "text-rose-900 dark:text-rose-100"
+            <div className="p-6 pb-0">
+              <div className={cn(
+                "relative overflow-hidden rounded-2xl border p-5 transition-all duration-500 shadow-xl",
+                aiVerdict === 'Black'
+                  ? "bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20 shadow-emerald-500/5"
+                  : "bg-gradient-to-br from-rose-500/10 to-orange-500/10 border-rose-500/20 shadow-rose-500/5"
+              )}>
+                <div className="flex items-start gap-5 relative z-10">
+                  <div className={cn(
+                    "flex-shrink-0 p-3 rounded-xl",
+                    aiVerdict === 'Black' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/20 text-rose-600 dark:text-rose-400"
                   )}>
-                    {aiExplanation}
-                  </p>
+                    {aiVerdict === 'Black' ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className={cn(
+                        "text-lg font-bold tracking-tight",
+                        aiVerdict === 'Black' ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"
+                      )}>
+                        {aiVerdict === 'Black' ? 'Excellent Investment Opportunity' : 'High Risk Investment'}
+                      </h3>
+                      <span className={cn(
+                        "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border",
+                        aiVerdict === 'Black'
+                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                          : "bg-rose-500/10 border-rose-500/20 text-rose-600"
+                      )}>
+                        {aiVerdict === 'Black' ? 'Strong Buy' : 'Caution'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/70 leading-relaxed">
+                      {aiExplanation}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -220,6 +240,13 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
               isLoading={isLoading}
               financingSummary={pnlOutput?.financingSummary}
             />
+          )}
+
+          {/* AI Insights Panel */}
+          {pnlOutput?.aiInsights && (
+            <div className="p-6 pt-0">
+              <AIInsightsPanel insights={pnlOutput.aiInsights} />
+            </div>
           )}
         </div>
       </div>

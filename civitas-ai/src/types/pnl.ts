@@ -48,6 +48,7 @@ export interface PurchaseAssumptions {
   purchasePrice: number;
   closingCostPct: number;
   rehabBudget: number;
+  furnishingBudget: number;
 }
 
 /**
@@ -184,6 +185,7 @@ export interface FinancingSummary {
   downPayment: number;
   closingCosts: number;
   rehabBudget: number;
+  furnishingBudget: number;
   loanAmount: number;
   monthlyPayment: number;
   annualDebtService: number;
@@ -215,8 +217,35 @@ export interface PnLMeta {
   assumptionsOverridden: string[];
 }
 
+export interface StrVsLtrInsight {
+  text: string;
+  advantage: 'STR' | 'LTR' | 'Neutral';
+}
+
+export interface NeighborhoodDemandInsight {
+  score: number;
+  trend: 'Up' | 'Down' | 'Stable';
+  summary: string;
+}
+
+export interface CashFlowSensitivity {
+  lowOccupancyCashflow: number;
+  highRateCashflow: number;
+  summary: string;
+}
+
+export interface AIInsights {
+  propertySummary: string;
+  strVsLtr: StrVsLtrInsight;
+  riskFactors: string[];
+  neighborhoodDemand: NeighborhoodDemandInsight;
+  expenseRedFlags: string[];
+  cashFlowSensitivity: CashFlowSensitivity;
+  verdict: 'Red' | 'Black';
+}
+
 /**
- * AI Analysis Result
+ * AI Analysis Result (Legacy)
  */
 export interface PnLAiAnalysis {
   content: string;
@@ -234,6 +263,7 @@ export interface PnLOutput {
   financingSummary: FinancingSummary;
   presentation?: PresentationBundle;
   aiAnalysis?: PnLAiAnalysis;
+  aiInsights?: AIInsights;
 }
 
 /**
@@ -246,6 +276,7 @@ export interface PnLRequest {
   purchasePrice?: number;
   closingCostPct?: number;
   rehabBudget?: number;
+  furnishingBudget?: number;
   // Financing overrides
   isFinanced?: boolean;
   downPaymentPct?: number;
@@ -332,6 +363,7 @@ export const DEFAULT_ASSUMPTIONS: PnLAssumptions = {
     purchasePrice: 0,
     closingCostPct: 3,
     rehabBudget: 0,
+    furnishingBudget: 0,
   },
   financing: {
     isFinanced: true,
