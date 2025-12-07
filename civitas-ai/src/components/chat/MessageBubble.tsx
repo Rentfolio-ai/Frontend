@@ -16,7 +16,59 @@ import type { ScoutedProperty } from '../../types/backendTools';
 
 import type { CompletedTool } from '../../types/stream';
 
-import { Copy, RotateCcw, Check } from 'lucide-react';
+import { Copy, RotateCcw, Check, ThumbsUp, ThumbsDown, Pencil, Clipboard, ClipboardCheck } from 'lucide-react';
+import { submitFeedback } from '../../services/feedbackApi';
+
+// Format relative time (e.g., "just now", "2m ago", "1h ago")
+const formatRelativeTime = (timestamp: string | Date): string => {
+  const now = new Date();
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHour < 24) return `${diffHour}h ago`;
+  if (diffDay === 1) return 'yesterday';
+  if (diffDay < 7) return `${diffDay}d ago`;
+
+  // For older messages, show the date
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+// Code block with copy button component
+const CodeBlockWithCopy: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    const text = String(children).replace(/\n$/, '');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy code:', err);
+    }
+  };
+
+  return (
+    <div className="relative group/code my-2">
+      <button
+        onClick={handleCopy}
+        className="absolute right-2 top-2 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all opacity-0 group-hover/code:opacity-100 z-10"
+        title="Copy code"
+      >
+        {copied ? <ClipboardCheck className="w-3.5 h-3.5" /> : <Clipboard className="w-3.5 h-3.5" />}
+      </button>
+      <code className={cn("block bg-black/30 rounded-lg p-3 pr-10 text-sm font-mono text-white/90 overflow-x-auto", className)}>
+        {children}
+      </code>
+    </div>
+  );
+};
 
 interface MessageBubbleProps {
   message: Message;
@@ -29,6 +81,8 @@ interface MessageBubbleProps {
   reasoningSteps?: CompletedTool[];
   userName?: string;
   onRefresh?: (messageId: string) => void;
+  onViewDetails?: (property: any) => void;
+  onEdit?: (content: string) => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -42,13 +96,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   reasoningSteps = [],
   userName,
   onRefresh,
+  onViewDetails,
+  onEdit,
 }) => {
   const isUser = message.role === 'user';
   const [isCopied, setIsCopied] = React.useState(false);
+  const [feedback, setFeedback] = React.useState<'up' | 'down' | null>(null);
 
-  const timestampLabel = typeof message.timestamp === 'string'
-    ? message.timestamp
-    : new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const handleFeedback = async (score: number) => {
+    if (feedback !== null) return; // Prevent multiple votes
+
+    // Optimistic update
+    setFeedback(score === 1 ? 'up' : 'down');
+
+    // Send to backend (fire and forget)
+    // We use a dummy threadId if missing, but ideally it should come from context
+    const threadId = 'current-thread';
+    if (message.id) {
+      submitFeedback(threadId, message.id, score);
+    }
+  };
+
+  const timestampLabel = formatRelativeTime(message.timestamp);
 
   const messageContent = (
     <>
@@ -107,9 +176,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       {children}
                     </code>
                   ) : (
-                    <code {...props} className="block bg-black/30 rounded-lg p-3 text-sm font-mono text-white/90 overflow-x-auto my-2">
+                    <CodeBlockWithCopy className={className}>
                       {children}
-                    </code>
+                    </CodeBlockWithCopy>
                   );
                 },
                 table: ({ node: _node, ...props }: any) => (
@@ -196,95 +265,106 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       {/* Tool Results */}
       {!isUser && message.tools && message.tools.length > 0 && (
         <div className="mt-4 space-y-3">
-          {message.tools.map((tool) => {
-            if (tool.kind === 'property_comparison' && tool.data) {
-              return (
-                <PropertyBookmarkCard
-                  key={tool.id}
-                  data={tool.data}
-                  bookmarks={bookmarks}
-                  onToggleBookmark={onToggleBookmark}
-                  onOpenDealAnalyzer={onOpenDealAnalyzer}
-                />
+          {message.tools
+            .filter((tool) => {
+              // Suppress search tools - they work silently
+              const suppressedTools = ['scan_market', 'hunt_deals', 'scout_properties', 'get_market_stats', 'Market Scanner'];
+              const toolTitle = tool.title?.toLowerCase() || '';
+              return !suppressedTools.some(s =>
+                toolTitle.includes(s.toLowerCase()) ||
+                tool.id?.includes(s)
               );
-            }
+            })
+            .map((tool) => {
+              if (tool.kind === 'property_comparison' && tool.data) {
+                return (
+                  <PropertyBookmarkCard
+                    key={tool.id}
+                    data={tool.data}
+                    bookmarks={bookmarks}
+                    onToggleBookmark={onToggleBookmark}
+                    onOpenDealAnalyzer={onOpenDealAnalyzer}
+                  />
+                );
+              }
 
-            if (tool.kind === 'property_comparison_table' && tool.data) {
+              if (tool.kind === 'property_comparison_table' && tool.data) {
+                return (
+                  <PropertyComparisonTableCard
+                    key={tool.id}
+                    data={tool.data as ComparePropertiesOutput}
+                    bookmarks={bookmarks}
+                    onToggleBookmark={onToggleBookmark}
+                    onOpenDealAnalyzer={onOpenDealAnalyzer}
+                  />
+                );
+              }
+
+              if (tool.kind === 'generated_report' && tool.data) {
+                return (
+                  <GeneratedReportCard
+                    key={tool.id}
+                    data={tool.data as GenerateReportOutput}
+                    onNavigateToReports={onNavigateToReports}
+                  />
+                );
+              }
+
+              if (tool.kind === 'renovation_analysis' && tool.data) {
+                return (
+                  <VisionAnalysisCard
+                    key={tool.id}
+                    data={tool.data as VisionAnalysisData}
+                  />
+                );
+              }
+
+              if (tool.data?.properties && Array.isArray(tool.data.properties) && tool.data.properties.length > 0) {
+                return (
+                  <PropertyListCard
+                    key={tool.id}
+                    properties={tool.data.properties}
+                    onOpenDealAnalyzer={onOpenDealAnalyzer}
+                    onViewDetails={onViewDetails}
+                  />
+                );
+              }
+
+              if (tool.kind && tool.kind !== 'generic' && tool.kind !== 'renovation_analysis') {
+                return (
+                  <ToolMessage
+                    key={tool.id}
+                    tool={tool as any}
+                    timestamp={typeof message.timestamp === 'string' ? message.timestamp : message.timestamp.toISOString()}
+                    onOpenDealAnalyzer={onOpenDealAnalyzer}
+                    bookmarks={bookmarks}
+                    onToggleBookmark={onToggleBookmark}
+                  />
+                );
+              }
+
               return (
-                <PropertyComparisonTableCard
+                <div
                   key={tool.id}
-                  data={tool.data as ComparePropertiesOutput}
-                  bookmarks={bookmarks}
-                  onToggleBookmark={onToggleBookmark}
-                  onOpenDealAnalyzer={onOpenDealAnalyzer}
-                />
-              );
-            }
-
-            if (tool.kind === 'generated_report' && tool.data) {
-              return (
-                <GeneratedReportCard
-                  key={tool.id}
-                  data={tool.data as GenerateReportOutput}
-                  onNavigateToReports={onNavigateToReports}
-                />
-              );
-            }
-
-            if (tool.kind === 'renovation_analysis' && tool.data) {
-              return (
-                <VisionAnalysisCard
-                  key={tool.id}
-                  data={tool.data as VisionAnalysisData}
-                />
-              );
-            }
-
-            if (tool.data?.properties && Array.isArray(tool.data.properties) && tool.data.properties.length > 0) {
-              return (
-                <PropertyListCard
-                  key={tool.id}
-                  properties={tool.data.properties}
-                  onOpenDealAnalyzer={onOpenDealAnalyzer}
-                />
-              );
-            }
-
-            if (tool.kind && tool.kind !== 'generic' && tool.kind !== 'renovation_analysis') {
-              return (
-                <ToolMessage
-                  key={tool.id}
-                  tool={tool as any}
-                  timestamp={typeof message.timestamp === 'string' ? message.timestamp : message.timestamp.toISOString()}
-                  onOpenDealAnalyzer={onOpenDealAnalyzer}
-                  bookmarks={bookmarks}
-                  onToggleBookmark={onToggleBookmark}
-                />
-              );
-            }
-
-            return (
-              <div
-                key={tool.id}
-                className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm text-white/90">{tool.title}</span>
-                  <span className={cn(
-                    'text-xs px-2 py-0.5 rounded-full',
-                    tool.status === 'completed' && 'bg-primary/20 text-primary',
-                    tool.status === 'running' && 'bg-warning/20 text-warning',
-                    tool.status === 'error' && 'bg-danger/20 text-danger'
-                  )}>
-                    {tool.status}
-                  </span>
+                  className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm text-white/90">{tool.title}</span>
+                    <span className={cn(
+                      'text-xs px-2 py-0.5 rounded-full',
+                      tool.status === 'completed' && 'bg-primary/20 text-primary',
+                      tool.status === 'running' && 'bg-warning/20 text-warning',
+                      tool.status === 'error' && 'bg-danger/20 text-danger'
+                    )}>
+                      {tool.status}
+                    </span>
+                  </div>
+                  {tool.description && (
+                    <p className="text-xs text-white/50 mt-1">{tool.description}</p>
+                  )}
                 </div>
-                {tool.description && (
-                  <p className="text-xs text-white/50 mt-1">{tool.description}</p>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       )}
     </>
@@ -326,6 +406,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div className="relative max-w-[70%] text-right flex items-start justify-end gap-2">
           {/* User Actions (Left of message) */}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pt-1">
+            {onEdit && (
+              <button
+                onClick={() => onEdit(message.content)}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                title="Edit message"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
             <button
               onClick={handleCopy}
               className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
@@ -346,6 +435,36 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
           {/* Assistant Actions (Bottom) */}
           <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Feedback Buttons */}
+            <div className="flex items-center gap-0.5 mr-2 pr-2 border-r border-white/10">
+              <button
+                onClick={() => handleFeedback(1)}
+                className={cn(
+                  "p-1.5 rounded-lg transition-colors flex items-center gap-1.5",
+                  feedback === 'up'
+                    ? "text-emerald-400 bg-emerald-400/10"
+                    : "text-white/40 hover:text-white hover:bg-white/10"
+                )}
+                title="Helpful"
+                disabled={feedback !== null}
+              >
+                <ThumbsUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => handleFeedback(-1)}
+                className={cn(
+                  "p-1.5 rounded-lg transition-colors flex items-center gap-1.5",
+                  feedback === 'down'
+                    ? "text-red-400 bg-red-400/10"
+                    : "text-white/40 hover:text-white hover:bg-white/10"
+                )}
+                title="Not helpful"
+                disabled={feedback !== null}
+              >
+                <ThumbsDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
             <button
               onClick={handleCopy}
               className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"

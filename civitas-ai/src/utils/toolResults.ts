@@ -725,9 +725,10 @@ const extractVisionData = (raw: RawToolResult): Record<string, unknown> | undefi
 
 const toolResultToCard = (raw: RawToolResult): ToolCard | null => {
   const kind = deriveKind(raw.kind, raw.tool_name || raw.name);
-  // SUPPRESSED: get_market_stats works silently
+  // SUPPRESSED: These tools work silently (no success cards shown)
   const toolName = raw.tool_name || raw.name;
-  if (toolName === "get_market_stats") return null;
+  const suppressedTools = ['get_market_stats', 'scan_market', 'hunt_deals', 'scout_properties'];
+  if (toolName && suppressedTools.includes(toolName)) return null;
   const status = deriveStatus(raw.status || raw.state);
   const title = raw.title || raw.headline || DEFAULT_TITLES[kind ?? ''] || toTitleCase(raw.tool_name || raw.name) || 'Tool Result';
   const description = raw.summary || raw.description || raw.headline || '';

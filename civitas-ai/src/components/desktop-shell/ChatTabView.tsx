@@ -1,5 +1,5 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Settings, HelpCircle } from 'lucide-react';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
@@ -10,10 +10,13 @@ import { Tooltip } from '../Tooltip';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
+import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceSuggestion } from '../chat/PreferenceSuggestionToast';
 
 import { checkHealth } from '../../services/agentsApi';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
+import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
+import { SuggestionChips } from '../chat/SuggestionChips';
 
 interface ChatTabViewProps {
   messages: Message[];
@@ -35,39 +38,44 @@ interface ChatTabViewProps {
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
   onRefresh?: (messageId: string) => void;
+  onViewDetails?: (property: any) => void;
+  // Cancel and error handling
+  onCancel?: () => void;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-// Quick action chips for new users - designed to guide and help
-const QUICK_ACTIONS = [
-  {
-    id: 'search',
-    label: 'Find investment properties',
-    icon: '🏠',
-    query: 'Show me investment properties in Austin, TX under $500k with good rental potential',
-    description: 'Discover properties that match your criteria'
-  },
-  {
-    id: 'analyze',
-    label: 'Calculate ROI & cash flow',
-    icon: '💰',
-    query: 'I want to analyze a rental property. What information do you need to calculate my potential returns?',
-    description: 'Get detailed financial projections'
-  },
-  {
-    id: 'preferences',
-    label: 'Configure Preferences',
-    icon: '⚙️',
-    query: 'I want to set up my investment preferences and alerts.',
-    description: 'Customize your experience'
-  },
-  {
-    id: 'help',
-    label: 'Help & FAQ',
-    icon: '❓',
-    query: 'How do I use this platform? Show me the FAQ.',
-    description: 'Learn how to use OmniEstate'
-  },
-];
+// Greeting variety based on time of day
+const getTimeBasedGreeting = (): { title: string; tagline: string } => {
+  const hour = new Date().getHours();
+  const greetings = [
+    { title: 'OmniEstate', tagline: 'Your AI-powered real estate intelligence' },
+    { title: 'OmniEstate', tagline: 'Ready to find your next investment?' },
+    { title: 'OmniEstate', tagline: "Let's analyze some deals today" },
+    { title: 'OmniEstate', tagline: 'What property questions can I help with?' },
+    { title: 'OmniEstate', tagline: 'Discover opportunities, backed by data' },
+  ];
+
+  // Time-based greeting
+  let timeGreeting: string;
+  if (hour < 12) {
+    timeGreeting = 'Good morning! Ready to explore?';
+  } else if (hour < 17) {
+    timeGreeting = 'Good afternoon! What can I find for you?';
+  } else {
+    timeGreeting = 'Good evening! Time to discover deals?';
+  }
+
+  // 40% chance for time-based greeting, 60% for variety
+  if (Math.random() < 0.4) {
+    return { title: 'OmniEstate', tagline: timeGreeting };
+  }
+
+  // Pick from variety pool based on session (consistent within session)
+  const sessionIndex = Math.floor(Date.now() / 3600000) % greetings.length;
+  return greetings[sessionIndex];
+};
+
 
 export const ChatTabView: React.FC<ChatTabViewProps> = ({
   messages,
@@ -84,18 +92,49 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onToggleBookmark,
   onNavigateToReports,
   onOpenSidebar,
-  onNewChat,
   thinking,
   completedTools = [],
   onRefresh,
+  onViewDetails,
+  onCancel,
+  error,
+  onRetry,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const [showPreferences, setShowPreferences] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const composerRef = useRef<ComposerRef>(null);
+  const lastProcessedMessageId = useRef<string | null>(null);
 
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
+
+  // Get greeting for this session (stable within session)
+  const greeting = useMemo(() => getTimeBasedGreeting(), []);
+
+  const suggestions = useSmartSuggestions({ messages, completedTools, isLoading });
+
+  // Detect preference suggestions from new AI responses
+  useEffect(() => {
+    if (messages.length === 0 || isLoading) return;
+
+    // Get the last assistant message
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role !== 'assistant' || lastMessage.id === lastProcessedMessageId.current) return;
+
+    lastProcessedMessageId.current = lastMessage.id;
+
+    // Find the user query that triggered this response
+    const userMessages = messages.filter(m => m.role === 'user');
+    const userQuery = userMessages.length > 0 ? userMessages[userMessages.length - 1].content : '';
+
+    // Detect any preference suggestions
+    const suggestion = detectPreferenceSuggestion(lastMessage.content, userQuery);
+    if (suggestion) {
+      setPreferenceSuggestion(suggestion);
+    }
+  }, [messages, isLoading]);
 
   useEffect(() => {
     let isMounted = true;
@@ -115,16 +154,10 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     };
   }, []);
 
-  const handleQuickAction = (actionId: string, query: string) => {
-    if (actionId === 'preferences') {
-      setShowPreferences(true);
-      return;
-    }
-    if (actionId === 'help') {
-      setShowFAQ(true);
-      return;
-    }
-    onSendMessage(query);
+  // Handle editing a user message - puts content into composer
+  const handleEdit = (content: string) => {
+    composerRef.current?.setInput(content);
+    composerRef.current?.focus();
   };
 
   const showEmptyState = messages.length === 0 && !isLoading;
@@ -192,49 +225,20 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 {/* Brand & Tagline */}
                 <div className="space-y-3">
                   <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                    OmniEstate
+                    {greeting.title}
                   </h1>
                   <p className="text-lg md:text-xl text-white/60 font-medium">
-                    Your AI-powered real estate intelligence
+                    {greeting.tagline}
                   </p>
                 </div>
               </div>
 
               {/* Quick Action Chips - Helpful for new users */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl w-full">
-                {QUICK_ACTIONS.map((action, index) => (
-                  <button
-                    key={action.id}
-                    onClick={() => handleQuickAction(action.id, action.query)}
-                    className="group relative px-5 py-4 rounded-xl glass-card hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 animate-slide-up text-left"
-                    style={{ animationDelay: `${index * 75}ms` }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl group-hover:scale-110 transition-transform flex-shrink-0 mt-0.5">
-                        {action.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors mb-1">
-                          {action.label}
-                        </div>
-                        {action.description && (
-                          <div className="text-xs text-white/50 group-hover:text-white/60 transition-colors leading-relaxed">
-                            {action.description}
-                          </div>
-                        )}
-                      </div>
-                      <svg
-                        className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors flex-shrink-0 mt-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <SuggestionChips
+                suggestions={suggestions}
+                onSelect={onSendMessage}
+                variant="grid"
+              />
 
               {/* Trust Indicators */}
               <div className="flex items-center justify-center gap-6 pt-4">
@@ -277,6 +281,12 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               completedTools={completedTools}
               userName={userName}
               onRefresh={onRefresh}
+              onViewDetails={onViewDetails}
+              onEdit={handleEdit}
+              onCancel={onCancel}
+              error={error}
+              onRetry={onRetry}
+              onOpenPreferences={() => setShowPreferences(true)}
             />
           </div>
         )}
@@ -287,7 +297,18 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         {/* Gradient fade above composer */}
         <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
-        <div className="px-4 md:px-8 pb-6 pt-4">
+        {/* Dynamic Context Chips (Floating) */}
+        {!showEmptyState && suggestions.length > 0 && (
+          <div className="w-full max-w-3xl mx-auto mb-2 relative z-10">
+            <SuggestionChips
+              suggestions={suggestions}
+              onSelect={onSendMessage}
+              variant="carousel"
+            />
+          </div>
+        )}
+
+        <div className="px-4 md:px-8 pb-6 pt-4 relative z-20">
           <div className="w-full max-w-3xl mx-auto">
             <Composer
               ref={composerRef}
@@ -295,6 +316,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               onAttach={onAttach}
               attachment={attachment}
               onClearAttachment={onClearAttachment}
+              onOpenPreferences={() => setShowPreferences(true)}
               aria-label="Chat input"
             />
 
@@ -305,6 +327,12 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Preference Suggestion Toast */}
+      <PreferenceSuggestionToast
+        suggestion={preferenceSuggestion}
+        onDismiss={() => setPreferenceSuggestion(null)}
+      />
     </div>
   );
 };

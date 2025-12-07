@@ -28,6 +28,7 @@ import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
 import { ChatTabView, ReportsTabView, PortfolioTabView, DesktopSidebarMenu } from '../components/desktop-shell';
+import { PropertyDetailsPage } from '../components/pages/PropertyDetailsPage';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
 import { OnboardingTour } from '../components/onboarding';
@@ -65,7 +66,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     isLoading,
     setIsSidebarOpen,
     setActiveTab,
-    handleSendMessage,
     sendMessageWithStream,
     handleNewChat,
     handleLoadChat,
@@ -83,7 +83,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     thinking,
     completedTools,
     handleRegenerate,
+    activeProperty,
+    handleViewPropertyDetails,
+    // Stream control
+    streamError,
+    cancelStream,
   } = useDesktopShell();
+
+  console.log('[DesktopShell] Render state:', { activeTab, hasActiveProperty: !!activeProperty });
 
   const { selectedState, currentTheme } = useThemeState();
 
@@ -210,6 +217,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     return () => window.removeEventListener('navigate-to-tab', handleNavigate as EventListener);
   }, [setActiveTab]);
 
+  // Navigation menu items - Always include Property Details
+  const sidebarMenuItems = [
+    ...MENU_ITEMS,
+    { id: 'property' as const, label: 'Property Details', icon: '🏠' }
+  ];
+
   return (
     <div className="h-screen w-full relative overflow-hidden dark bg-background">
       {/* Immersive gradient background */}
@@ -226,7 +239,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           activeChatId={activeChatId}
           activeTab={activeTab}
           currentTheme={currentTheme}
-          menuItems={MENU_ITEMS}
+          menuItems={sidebarMenuItems}
           onNewChat={handleNewChat}
           onLoadChat={handleLoadChat}
           onDeleteChat={handleDeleteChat}
@@ -234,13 +247,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           bookmarks={bookmarks}
           onRemoveBookmark={removeBookmark}
           onBookmarkClick={(bookmark) => {
-            // When bookmark is clicked, start a new chat and analyze the property
-            handleNewChat();
-            const propertyAddress = bookmark.property.address;
-            const message = `Analyze this property: ${propertyAddress}`;
-            setTimeout(() => {
-              handleSendMessage(message);
-            }, 100);
+            handleViewPropertyDetails(bookmark.property);
           }}
         />
 
@@ -284,6 +291,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 thinking={thinking}
                 completedTools={completedTools}
                 onRefresh={handleRegenerate}
+                onViewDetails={handleViewPropertyDetails}
+                onCancel={cancelStream}
+                error={streamError}
               />
             )}
             {activeTab === 'reports' && (
@@ -291,6 +301,32 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             )}
             {activeTab === 'portfolio' && (
               <PortfolioTabView />
+            )}
+            {activeTab === 'property' && (
+              activeProperty ? (
+                <PropertyDetailsPage
+                  address={activeProperty.address}
+                  initialPropertyData={activeProperty}
+                  onBack={() => setActiveTab('chat')}
+                  onAnalyze={(overrides) => openDealAnalyzer(null, 'STR', overrides.price, overrides.address, overrides)}
+                />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 text-white/50">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                    <span className="text-3xl">🏠</span>
+                  </div>
+                  <h3 className="text-xl font-medium text-white mb-2">No Property Selected</h3>
+                  <p className="max-w-md">
+                    Select a property from the chat or search specifically for an address to see details here.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className="mt-6 px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
+                  >
+                    Go to Chat
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>

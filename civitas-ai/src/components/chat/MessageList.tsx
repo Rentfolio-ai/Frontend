@@ -1,5 +1,7 @@
 // FILE: src/components/chat/MessageList.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowDown } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
@@ -23,6 +25,14 @@ interface MessageListProps {
   completedTools?: CompletedTool[];
   userName?: string;
   onRefresh?: (messageId: string) => void;
+  onViewDetails?: (property: any) => void;
+  onEdit?: (content: string) => void;
+  // Cancel and error handling
+  onCancel?: () => void;
+  error?: string | null;
+  onRetry?: () => void;
+  // Preferences
+  onOpenPreferences?: () => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -38,16 +48,33 @@ export const MessageList: React.FC<MessageListProps> = ({
   completedTools = [],
   userName,
   onRefresh,
+  onViewDetails,
+  onEdit,
+  onCancel,
+  error,
+  onRetry,
+  onOpenPreferences,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  // Track scroll position to show/hide scroll-to-bottom button
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    setShowScrollButton(distanceFromBottom > 200);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading, thinking, completedTools]);
+  }, [messages, isLoading, thinking, completedTools, scrollToBottom]);
 
   // Show thinking state whenever loading
   const showThinkingState = isLoading;
@@ -64,7 +91,11 @@ export const MessageList: React.FC<MessageListProps> = ({
     : messages;
 
   return (
-    <div className="h-full overflow-y-auto chat-scroll">
+    <div
+      ref={scrollContainerRef}
+      className="h-full overflow-y-auto chat-scroll relative"
+      onScroll={handleScroll}
+    >
       <div className="max-w-3xl mx-auto py-8 px-4 md:px-6 space-y-12">
         {visibleMessages.map((message, index) => {
           const isLast = index === visibleMessages.length - 1;
@@ -85,6 +116,8 @@ export const MessageList: React.FC<MessageListProps> = ({
               reasoningSteps={steps}
               userName={userName}
               onRefresh={onRefresh}
+              onViewDetails={onViewDetails}
+              onEdit={onEdit}
             />
           );
         })}
@@ -100,6 +133,10 @@ export const MessageList: React.FC<MessageListProps> = ({
                 thinking={thinking || { status: 'processing' }}
                 completedTools={completedTools}
                 userQuery={lastUserMessage?.content}
+                onCancel={onCancel}
+                error={error}
+                onRetry={onRetry}
+                onOpenPreferences={onOpenPreferences}
               />
             </div>
           </div>
@@ -107,6 +144,23 @@ export const MessageList: React.FC<MessageListProps> = ({
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Floating Scroll-to-Bottom Button */}
+      <AnimatePresence>
+        {showScrollButton && (
+          <motion.button
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => scrollToBottom()}
+            className="fixed bottom-28 right-8 z-20 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 hover:text-white hover:bg-white/20 shadow-lg transition-colors"
+            aria-label="Scroll to bottom"
+          >
+            <ArrowDown className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

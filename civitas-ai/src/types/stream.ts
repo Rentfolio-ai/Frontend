@@ -16,6 +16,13 @@ export interface StreamThinkingEvent {
   source?: string;
   icon?: string;
   tool?: string;
+  filters_applied?: string[];  // Filters being applied (e.g., ["Max $400k", "Excluding HOA"])
+  user_context?: {             // User preferences context
+    budget_max?: number;
+    dislikes?: string[];
+    favorite_markets?: string[];
+    strategy?: string;
+  };
 }
 
 export interface StreamToolStartEvent {
@@ -34,6 +41,8 @@ export interface StreamToolEndEvent {
   icon?: string;
   summary?: string;
   data?: any;
+  reason?: string;       // Why no results (e.g., "No properties under $400k")
+  suggestion?: string;   // What to try next (e.g., "Try increasing budget")
 }
 
 export interface StreamContentEvent {
@@ -66,6 +75,13 @@ export interface ThinkingState {
   source?: string;
   icon?: string;
   tool?: string;
+  filtersApplied?: string[];  // Filters from backend (camelCase for frontend)
+  userContext?: {              // User context from backend
+    budgetMax?: number;
+    dislikes?: string[];
+    favoriteMarkets?: string[];
+    strategy?: string;
+  };
 }
 
 export interface CompletedTool {
@@ -73,6 +89,8 @@ export interface CompletedTool {
   summary: string;
   icon: string;
   data?: any;
+  reason?: string;       // Why no results
+  suggestion?: string;   // What to try next
 }
 
 export interface StreamState {

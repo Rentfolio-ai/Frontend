@@ -20,17 +20,15 @@ import {
   Calendar,
   MapPin,
   Loader2,
-  TrendingUp,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ReportTypeSelector } from './ReportTypeSelector';
 import type { InvestmentReportFormat } from '../../types/enums';
 import type { InvestmentStrategy } from '../../types/pnl';
-import type { 
-  ReportStrategy, 
+import type {
+  ReportStrategy,
   ReportRecommendation,
   ReportDealMetrics,
-  ReportPropertyData,
 } from '../../types/backendTools';
 
 /* -------------------------------------------------------------------------- */

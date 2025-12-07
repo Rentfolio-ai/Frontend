@@ -7,6 +7,33 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Financial DNA (Underwriting Settings) - matching backend keys for easy sync
+export interface FinancialDNA {
+    down_payment_pct?: number | null;
+    interest_rate_annual?: number | null;
+    loan_term_years?: number | null;
+    property_management_pct?: number | null;
+    maintenance_pct?: number | null;
+    capex_reserve_pct?: number | null;
+    vacancy_rate_pct?: number | null;
+    closing_cost_pct?: number | null;
+}
+
+// Investment Success Criteria (Goals)
+export interface InvestmentCriteria {
+    min_cash_flow?: number | null;
+    min_coc_pct?: number | null;
+    min_cap_rate_pct?: number | null;
+    max_rehab_cost?: number | null;
+}
+
+// Interaction Memory (The Brain)
+export interface InteractionProfile {
+    dislikes?: string[];
+    liked_areas?: string[];
+    risk_profile?: string | null;
+}
+
 export interface UserPreferences {
     // Investment preferences
     defaultStrategy: 'STR' | 'LTR' | 'FLIP' | null;
@@ -16,6 +43,15 @@ export interface UserPreferences {
     } | null;
     preferredBedrooms: number | null;
 
+    // Financial DNA
+    financialDna: FinancialDNA | null;
+
+    // Investment Criteria
+    investmentCriteria: InvestmentCriteria | null;
+
+    // Interaction Memory
+    interactionProfile: InteractionProfile | null;
+
     // Favorite markets
     favoriteMarkets: string[];
 
@@ -23,26 +59,46 @@ export interface UserPreferences {
     recentSearches: string[];
     lastSearchCity: string | null;
 
+    // Location
+    clientLocation: { latitude: number; longitude: number } | null;
+
     // UI preferences
     showKeyboardHints: boolean;
     theme: 'light' | 'dark' | 'system';
 }
 
-interface PreferencesStore extends UserPreferences {
+export interface PreferencesState extends UserPreferences {
     // Actions
-    setDefaultStrategy: (strategy: UserPreferences['defaultStrategy']) => void;
+    updatePreferences: (prefs: Partial<UserPreferences>) => void;
+
+    // Specific updaters
     setBudgetRange: (min: number, max: number) => void;
+    setDefaultStrategy: (strategy: 'STR' | 'LTR' | 'FLIP') => void;
     setPreferredBedrooms: (bedrooms: number | null) => void;
+    setFinancialDna: (dna: FinancialDNA) => void;
+    setInvestmentCriteria: (criteria: InvestmentCriteria) => void;
+    setInteractionProfile: (profile: InteractionProfile) => void;
 
-    addFavoriteMarket: (market: string) => void;
-    removeFavoriteMarket: (market: string) => void;
+    // Interaction Memory Actions
+    addDislike: (dislike: string) => void;
+    removeDislike: (dislike: string) => void;
 
+    // Favorites
+    toggleFavoriteMarket: (market: string) => void;
+
+    // Search History
     addRecentSearch: (query: string) => void;
-    clearRecentSearches: () => void;
     setLastSearchCity: (city: string) => void;
+
+    // Location
+    updateClientLocation: (location: { latitude: number; longitude: number } | null) => void;
+
+    clearRecentSearches: () => void;
 
     setShowKeyboardHints: (show: boolean) => void;
     setTheme: (theme: UserPreferences['theme']) => void;
+
+    setAllPreferences: (prefs: Partial<UserPreferences>) => void;
 
     resetPreferences: () => void;
 }
@@ -51,17 +107,23 @@ const defaultPreferences: UserPreferences = {
     defaultStrategy: null,
     budgetRange: null,
     preferredBedrooms: null,
+    financialDna: null,
+    investmentCriteria: null,
+    interactionProfile: null,
     favoriteMarkets: [],
     recentSearches: [],
     lastSearchCity: null,
     showKeyboardHints: true,
-    theme: 'system'
+    theme: 'system',
+    clientLocation: null
 };
 
-export const usePreferencesStore = create<PreferencesStore>()(
+export const usePreferencesStore = create<PreferencesState>()(
     persist(
         (set) => ({
             ...defaultPreferences,
+
+            updatePreferences: (prefs) => set((state) => ({ ...state, ...prefs })),
 
             setDefaultStrategy: (strategy: UserPreferences['defaultStrategy']) => set({ defaultStrategy: strategy }),
 
@@ -69,30 +131,63 @@ export const usePreferencesStore = create<PreferencesStore>()(
 
             setPreferredBedrooms: (bedrooms: number | null) => set({ preferredBedrooms: bedrooms }),
 
-            addFavoriteMarket: (market: string) => set((state) => ({
-                favoriteMarkets: state.favoriteMarkets.includes(market)
-                    ? state.favoriteMarkets
-                    : [...state.favoriteMarkets, market]
-            })),
+            setFinancialDna: (dna: FinancialDNA) => set({ financialDna: dna }),
 
-            removeFavoriteMarket: (market: string) => set((state) => ({
-                favoriteMarkets: state.favoriteMarkets.filter((m: string) => m !== market)
-            })),
+            setInvestmentCriteria: (criteria: InvestmentCriteria) => set({ investmentCriteria: criteria }),
 
-            addRecentSearch: (query: string) => set((state) => ({
-                recentSearches: [
-                    query,
-                    ...state.recentSearches.filter((q: string) => q !== query)
-                ].slice(0, 10) // Keep last 10
-            })),
+            setInteractionProfile: (profile: InteractionProfile) => set({ interactionProfile: profile }),
+
+            addDislike: (dislike) => set((state) => {
+                const currentProfile = state.interactionProfile || { dislikes: [], liked_areas: [], risk_profile: null };
+                const currentDislikes = currentProfile.dislikes || [];
+                if (currentDislikes.includes(dislike)) return state;
+
+                return {
+                    interactionProfile: {
+                        ...currentProfile,
+                        dislikes: [...currentDislikes, dislike]
+                    }
+                };
+            }),
+
+            removeDislike: (dislike) => set((state) => {
+                if (!state.interactionProfile?.dislikes) return state;
+                return {
+                    interactionProfile: {
+                        ...state.interactionProfile,
+                        dislikes: state.interactionProfile.dislikes.filter(d => d !== dislike)
+                    }
+                };
+            }),
+
+            toggleFavoriteMarket: (market: string) => set((state) => {
+                const current = state.favoriteMarkets;
+                if (current.includes(market)) {
+                    return { favoriteMarkets: current.filter(m => m !== market) };
+                }
+                return { favoriteMarkets: [...current, market] };
+            }),
+
+            addRecentSearch: (query: string) => set((state) => {
+                const current = state.recentSearches;
+                const filtered = current.filter(s => s !== query);
+                return { recentSearches: [query, ...filtered].slice(0, 5) };
+            }),
 
             clearRecentSearches: () => set({ recentSearches: [] }),
 
             setLastSearchCity: (city: string) => set({ lastSearchCity: city }),
 
+            updateClientLocation: (location) => set({ clientLocation: location }),
+
             setShowKeyboardHints: (show: boolean) => set({ showKeyboardHints: show }),
 
             setTheme: (theme: UserPreferences['theme']) => set({ theme }),
+
+            setAllPreferences: (prefs: Partial<UserPreferences>) => set((state) => ({
+                ...state,
+                ...prefs
+            })),
 
             resetPreferences: () => set(defaultPreferences)
         }),

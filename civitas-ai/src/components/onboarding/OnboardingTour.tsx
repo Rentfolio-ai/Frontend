@@ -18,7 +18,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   isOpen,
   onComplete,
   onSkip,
-  currentTab,
+
   onTabChange,
 }) => {
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
@@ -54,7 +54,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   // Navigate to the tab for current step
   useEffect(() => {
     if (isOpen && currentStep && !isLoading) {
-      onTabChange(currentStep.tab);
+      onTabChange(currentStep.tab as TabType); // Cast to TabType to handle potential 'settings' or other non-standard TabType values
     }
   }, [isOpen, currentStepIndex, currentStep, isLoading, onTabChange]);
 
@@ -94,10 +94,12 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       skipped: false,
       duration_seconds: duration,
     });
-    
-    // Navigate to the tab specified by backend
-    const redirectTab = response.redirect_to_tab || 'chat';
-    onComplete(redirectTab);
+
+    // Navigate to the tab specified by backend (sanitize legacy 'settings' to 'chat')
+    let redirectTab = response.redirect_to_tab || 'chat';
+    if (redirectTab === 'settings') redirectTab = 'chat';
+
+    onComplete(redirectTab as TabType);
   };
 
   const handleNext = () => {
@@ -122,10 +124,12 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       skipped: true,
       duration_seconds: duration,
     });
-    
+
     // Navigate to the tab specified by backend
-    const redirectTab = response.redirect_to_tab || 'chat';
-    onSkip(redirectTab);
+    let redirectTab = response.redirect_to_tab || 'chat';
+    if (redirectTab === 'settings') redirectTab = 'chat';
+
+    onSkip(redirectTab as TabType);
   };
 
   if (!isOpen) return null;
@@ -201,7 +205,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
                   {/* Content */}
                   <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-bold text-primary">
                         {currentStep.title}
                       </h3>
@@ -209,7 +213,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                         {currentStepIndex + 1} / {steps.length}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-slate-700 leading-relaxed mb-4">
                       {currentStep.description}
                     </p>
@@ -221,7 +225,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                           className="h-full bg-accent-from rounded-full"
                           initial={{ width: '100%' }}
                           animate={{ width: isPaused ? '100%' : '0%' }}
-                          transition={{ 
+                          transition={{
                             duration: timeRemaining,
                             ease: 'linear'
                           }}
@@ -249,11 +253,10 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                           <button
                             key={step.id}
                             onClick={() => setCurrentStepIndex(idx)}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              idx === currentStepIndex
-                                ? 'bg-accent-from w-6'
-                                : 'bg-primary/30 hover:bg-primary/50'
-                            }`}
+                            className={`w-2 h-2 rounded-full transition-all ${idx === currentStepIndex
+                              ? 'bg-accent-from w-6'
+                              : 'bg-primary/30 hover:bg-primary/50'
+                              }`}
                           />
                         ))}
                       </div>

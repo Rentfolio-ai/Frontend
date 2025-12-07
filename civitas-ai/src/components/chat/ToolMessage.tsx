@@ -10,7 +10,7 @@ import {
   DealAnalyzerCard,
   ComplianceCard,
   ValuationCard,
-  VisionAnalysisCard,
+
 } from './tool-cards';
 import type { DealAnalyzerData } from './tool-cards';
 import type { ValuationData } from './tool-cards';

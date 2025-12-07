@@ -1,11 +1,11 @@
 /**
  * Preferences Modal Component
  * 
- * Allows users to configure their preferences
+ * Allows users to configure their preferences including Financial DNA and Investment Goals
  */
 
-import React, { useState } from 'react';
-import { X, Settings, Star, DollarSign, Home, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Settings, Star, DollarSign, Home, Check, TrendingUp, Target, BarChart3, Banknote, Percent } from 'lucide-react';
 import { usePreferencesStore } from '../stores/preferencesStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,36 +14,150 @@ interface PreferencesModalProps {
     onClose: () => void;
 }
 
+type Tab = 'general' | 'financial' | 'goals';
+
 export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) => {
     const {
         defaultStrategy,
         budgetRange,
         preferredBedrooms,
+        financialDna,
+        investmentCriteria,
         favoriteMarkets,
         setDefaultStrategy,
         setBudgetRange,
-        setPreferredBedrooms,
-        addFavoriteMarket,
-        removeFavoriteMarket
+        setFinancialDna,
+        setInvestmentCriteria,
+        addDislike,
+        removeDislike,
+        toggleFavoriteMarket,
+
+        // Full state for sync
+        recentSearches,
+        lastSearchCity,
+        showKeyboardHints,
+        theme
     } = usePreferencesStore();
 
+    const [activeTab, setActiveTab] = useState<Tab>('general');
+    const [isSaving, setIsSaving] = useState(false);
+
+    // --- Local State ---
+
+    // General
     const [newMarket, setNewMarket] = useState('');
     const [minBudget, setMinBudget] = useState(budgetRange?.min || 200000);
     const [maxBudget, setMaxBudget] = useState(budgetRange?.max || 400000);
+
+    // Financial DNA
+    const [downPayment, setDownPayment] = useState<string>('20');
+    const [interestRate, setInterestRate] = useState<string>('7.0');
+    const [mgmtFee, setMgmtFee] = useState<string>('10');
+    const [capex, setCapex] = useState<string>('5');
+    const [vacancy, setVacancy] = useState<string>('5');
+
+    // Investment Goals (Criteria)
+    const [minCashFlow, setMinCashFlow] = useState<string>('');
+    const [minCoc, setMinCoc] = useState<string>('');
+    const [minCapRate, setMinCapRate] = useState<string>('');
+    const [maxRehab, setMaxRehab] = useState<string>('');
+
+    // Initialize local state from store when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setMinBudget(budgetRange?.min || 200000);
+            setMaxBudget(budgetRange?.max || 400000);
+
+            if (financialDna) {
+                setDownPayment(financialDna.down_payment_pct ? (financialDna.down_payment_pct * 100).toString() : '20');
+                setInterestRate(financialDna.interest_rate_annual ? (financialDna.interest_rate_annual * 100).toString() : '7.0');
+                setMgmtFee(financialDna.property_management_pct ? (financialDna.property_management_pct * 100).toString() : '10');
+                setCapex(financialDna.capex_reserve_pct ? (financialDna.capex_reserve_pct * 100).toString() : '5');
+                setVacancy(financialDna.vacancy_rate_pct ? (financialDna.vacancy_rate_pct * 100).toString() : '5');
+            }
+
+            if (investmentCriteria) {
+                setMinCashFlow(investmentCriteria.min_cash_flow?.toString() || '');
+                setMinCoc(investmentCriteria.min_coc_pct ? (investmentCriteria.min_coc_pct * 100).toString() : '');
+                setMinCapRate(investmentCriteria.min_cap_rate_pct ? (investmentCriteria.min_cap_rate_pct * 100).toString() : '');
+                setMaxRehab(investmentCriteria.max_rehab_cost?.toString() || '');
+            }
+        }
+    }, [isOpen, budgetRange, financialDna, investmentCriteria]);
 
     if (!isOpen) return null;
 
     const handleAddMarket = () => {
         if (newMarket.trim()) {
-            addFavoriteMarket(newMarket.trim());
+            toggleFavoriteMarket(newMarket.trim());
             setNewMarket('');
         }
     };
 
-    const handleSave = () => {
-        setBudgetRange(minBudget, maxBudget);
-        onClose();
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // 1. Prepare Data
+            setBudgetRange(minBudget, maxBudget);
+
+            const newDna = {
+                down_payment_pct: parseFloat(downPayment) / 100,
+                interest_rate_annual: parseFloat(interestRate) / 100,
+                property_management_pct: parseFloat(mgmtFee) / 100,
+                capex_reserve_pct: parseFloat(capex) / 100,
+                vacancy_rate_pct: parseFloat(vacancy) / 100,
+                maintenance_pct: 0.05, // Default
+                closing_cost_pct: 0.03, // Default
+                loan_term_years: 30 // Default
+            };
+            setFinancialDna(newDna);
+
+            const newCriteria = {
+                min_cash_flow: minCashFlow ? parseFloat(minCashFlow) : null,
+                min_coc_pct: minCoc ? parseFloat(minCoc) / 100 : null,
+                min_cap_rate_pct: minCapRate ? parseFloat(minCapRate) / 100 : null,
+                max_rehab_cost: maxRehab ? parseFloat(maxRehab) : null
+            };
+            setInvestmentCriteria(newCriteria);
+
+            // 2. Save to Backend
+            // Dynamic import to avoid circular dependency if any
+            const { savePreferences } = await import('../services/preferencesApi');
+
+            await savePreferences({
+                user_id: 'default',
+                default_strategy: defaultStrategy,
+                budget_range: { min: minBudget, max: maxBudget },
+                preferred_bedrooms: preferredBedrooms,
+                favorite_markets: favoriteMarkets,
+                financial_dna: newDna,
+                investment_criteria: newCriteria,
+                recent_searches: recentSearches,
+                last_search_city: lastSearchCity,
+                show_keyboard_hints: showKeyboardHints,
+                theme: theme
+            });
+
+            onClose();
+        } catch (err) {
+            console.error("Failed to save preferences", err);
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    const TabButton = ({ id, label, icon: Icon }: { id: Tab, label: string, icon: any }) => (
+        <button
+            onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${activeTab === id
+                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-sm'
+                : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
+                }`}
+        >
+            <Icon className="w-4 h-4" />
+            {label}
+        </button>
+    );
 
     return (
         <AnimatePresence>
@@ -63,7 +177,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-2xl bg-[#0F1117] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="relative w-full max-w-3xl bg-[#0F1117] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02]">
@@ -73,194 +187,206 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-white">Preferences</h2>
-                                    <p className="text-sm text-white/50">Customize your OmniEstate experience</p>
+                                    <p className="text-sm text-white/50">Configure your Buy Box & DNA</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={onClose}
-                                className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors"
-                            >
+                            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
+                        {/* Tabs */}
+                        <div className="px-6 py-3 border-b border-white/10 bg-white/[0.01] flex gap-2">
+                            <TabButton id="general" label="General & Buy Box" icon={Home} />
+                            <TabButton id="financial" label="Financial DNA" icon={TrendingUp} />
+                            <TabButton id="goals" label="Investment Goals" icon={Target} />
+                        </div>
+
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-                            {/* Investment Strategy */}
-                            <section>
-                                <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
-                                    <Home className="w-4 h-4 text-blue-400" />
-                                    Default Investment Strategy
-                                </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {['STR', 'LTR', 'FLIP'].map((strategy) => (
-                                        <button
-                                            key={strategy}
-                                            onClick={() => setDefaultStrategy(strategy as any)}
-                                            className={`relative group p-4 rounded-xl border transition-all duration-300 text-left ${defaultStrategy === strategy
-                                                ? 'bg-blue-500/10 border-blue-500/50'
-                                                : 'bg-white/[0.02] border-white/10 hover:border-white/20 hover:bg-white/[0.04]'
-                                                }`}
-                                        >
-                                            <div className="flex justify-between items-start mb-1">
-                                                <span className={`font-semibold ${defaultStrategy === strategy ? 'text-blue-400' : 'text-white'}`}>
-                                                    {strategy}
-                                                </span>
-                                                {defaultStrategy === strategy && (
-                                                    <div className="bg-blue-500 rounded-full p-0.5">
-                                                        <Check className="w-3 h-3 text-white" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="text-xs text-white/40 group-hover:text-white/60 transition-colors">
-                                                {strategy === 'STR' && 'Short-term Rental'}
-                                                {strategy === 'LTR' && 'Long-term Rental'}
-                                                {strategy === 'FLIP' && 'Fix & Flip'}
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </section>
 
-                            {/* Budget Range */}
-                            <section>
-                                <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
-                                    <DollarSign className="w-4 h-4 text-green-400" />
-                                    Budget Range
-                                </label>
-                                <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 space-y-4">
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs text-white/40 uppercase tracking-wider">Minimum</label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">$</span>
-                                                <input
-                                                    type="number"
-                                                    value={minBudget}
-                                                    onChange={(e) => setMinBudget(Number(e.target.value))}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                                    step="10000"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs text-white/40 uppercase tracking-wider">Maximum</label>
-                                            <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">$</span>
-                                                <input
-                                                    type="number"
-                                                    value={maxBudget}
-                                                    onChange={(e) => setMaxBudget(Number(e.target.value))}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                                    step="10000"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full opacity-50"
-                                            style={{ width: '100%' }}
-                                        />
-                                    </div>
-                                    <div className="text-center text-sm text-white/50">
-                                        Targeting properties between <span className="text-white font-medium">${(minBudget / 1000).toFixed(0)}k</span> and <span className="text-white font-medium">${(maxBudget / 1000).toFixed(0)}k</span>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Preferred Bedrooms */}
-                            <section>
-                                <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
-                                    <span className="text-lg">🛏️</span>
-                                    Preferred Bedrooms
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {[1, 2, 3, 4, 5].map((num) => (
-                                        <button
-                                            key={num}
-                                            onClick={() => setPreferredBedrooms(num)}
-                                            className={`w-12 h-12 rounded-xl border transition-all duration-200 flex items-center justify-center font-medium ${preferredBedrooms === num
-                                                ? 'bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20'
-                                                : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05] hover:text-white hover:border-white/20'
-                                                }`}
-                                        >
-                                            {num}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => setPreferredBedrooms(null)}
-                                        className={`px-6 h-12 rounded-xl border transition-all duration-200 font-medium ${preferredBedrooms === null
-                                            ? 'bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/20'
-                                            : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05] hover:text-white hover:border-white/20'
-                                            }`}
-                                    >
-                                        Any
-                                    </button>
-                                </div>
-                            </section>
-
-                            {/* Favorite Markets */}
-                            <section>
-                                <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
-                                    <Star className="w-4 h-4 text-yellow-400" />
-                                    Favorite Markets
-                                </label>
-                                <div className="space-y-3">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={newMarket}
-                                            onChange={(e) => setNewMarket(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleAddMarket()}
-                                            placeholder="Add a city (e.g. Austin, TX)..."
-                                            className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-                                        />
-                                        <button
-                                            onClick={handleAddMarket}
-                                            disabled={!newMarket.trim()}
-                                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
-                                        >
-                                            Add
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {favoriteMarkets.map((market: string) => (
-                                            <div
-                                                key={market}
-                                                className="flex items-center gap-2 pl-3 pr-2 py-1.5 bg-white/[0.05] border border-white/10 text-white/90 rounded-lg group hover:border-white/20 transition-colors"
-                                            >
-                                                <Star className="w-3 h-3 text-yellow-500/50 group-hover:text-yellow-400 transition-colors" />
-                                                <span className="text-sm">{market}</span>
+                            {/* --- GENERAL TAB --- */}
+                            {activeTab === 'general' && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                                    {/* Strategy */}
+                                    <section>
+                                        <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
+                                            <Home className="w-4 h-4 text-blue-400" />
+                                            Default Strategy
+                                        </label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            {['STR', 'LTR', 'FLIP'].map((strategy) => (
                                                 <button
-                                                    onClick={() => removeFavoriteMarket(market)}
-                                                    className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-red-400 transition-colors"
+                                                    key={strategy}
+                                                    onClick={() => setDefaultStrategy(strategy as any)}
+                                                    className={`relative group p-4 rounded-xl border transition-all duration-300 text-left ${defaultStrategy === strategy
+                                                        ? 'bg-blue-500/10 border-blue-500/50'
+                                                        : 'bg-white/[0.02] border-white/10 hover:border-white/20 hover:bg-white/[0.04]'
+                                                        }`}
                                                 >
-                                                    <X className="w-3 h-3" />
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className={`font-semibold ${defaultStrategy === strategy ? 'text-blue-400' : 'text-white'}`}>{strategy}</span>
+                                                        {defaultStrategy === strategy && <div className="bg-blue-500 rounded-full p-0.5"><Check className="w-3 h-3 text-white" /></div>}
+                                                    </div>
+                                                    <div className="text-xs text-white/40">
+                                                        {strategy === 'STR' && 'Short-term Rental'}
+                                                        {strategy === 'LTR' && 'Long-term Rental'}
+                                                        {strategy === 'FLIP' && 'Fix & Flip'}
+                                                    </div>
                                                 </button>
+                                            ))}
+                                        </div>
+                                    </section>
+
+                                    {/* Budget */}
+                                    <section>
+                                        <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
+                                            <DollarSign className="w-4 h-4 text-green-400" />
+                                            Budget Range
+                                        </label>
+                                        <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 space-y-4">
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-xs text-white/40 uppercase tracking-wider">Min</label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">$</span>
+                                                        <input type="number" value={minBudget} onChange={(e) => setMinBudget(Number(e.target.value))} className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-blue-500/50" step="10000" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs text-white/40 uppercase tracking-wider">Max</label>
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">$</span>
+                                                        <input type="number" value={maxBudget} onChange={(e) => setMaxBudget(Number(e.target.value))} className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-blue-500/50" step="10000" />
+                                                    </div>
+                                                </div>
                                             </div>
-                                        ))}
-                                        {favoriteMarkets.length === 0 && (
-                                            <p className="text-sm text-white/30 italic">No favorite markets added yet.</p>
-                                        )}
+                                            <div className="text-center text-sm text-white/50">
+                                                Target: <span className="text-white">{minBudget >= 1000000 ? `$${(minBudget / 1000000).toFixed(1)}M` : `$${(minBudget / 1000).toFixed(0)}k`}</span> - <span className="text-white">{maxBudget >= 1000000 ? `$${(maxBudget / 1000000).toFixed(1)}M` : `$${(maxBudget / 1000).toFixed(0)}k`}</span>
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* Markets */}
+                                    <section>
+                                        <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-4">
+                                            <Star className="w-4 h-4 text-yellow-400" />
+                                            Favorite Markets
+                                        </label>
+                                        <div className="flex gap-2 mb-3">
+                                            <input type="text" value={newMarket} onChange={(e) => setNewMarket(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddMarket()} placeholder="Add a city..." className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50" />
+                                            <button onClick={handleAddMarket} disabled={!newMarket.trim()} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl font-medium">Add</button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {favoriteMarkets.map((market: string) => (
+                                                <div key={market} className="flex items-center gap-2 pl-3 pr-2 py-1.5 bg-white/[0.05] border border-white/10 text-white/90 rounded-lg group hover:border-white/20">
+                                                    <span className="text-sm">{market}</span>
+                                                    <button onClick={() => toggleFavoriteMarket(market)} className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                </motion.div>
+                            )}
+
+                            {/* --- FINANCIAL DNA TAB --- */}
+                            {activeTab === 'financial' && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm">
+                                        These settings ensure your deal analysis is accurate to your financial situation.
                                     </div>
-                                </div>
-                            </section>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-white/70">Down Payment %</label>
+                                            <div className="relative">
+                                                <input type="number" value={downPayment} onChange={(e) => setDownPayment(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-white/70">Interest Rate %</label>
+                                            <div className="relative">
+                                                <input type="number" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-white/70">Prop Mgmt Fee %</label>
+                                            <div className="relative">
+                                                <input type="number" value={mgmtFee} onChange={(e) => setMgmtFee(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-white/70">CapEx / Vacancy %</label>
+                                            <div className="relative">
+                                                <input type="number" value={capex} onChange={(e) => setCapex(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* --- GOALS TAB (NEW) --- */}
+                            {activeTab === 'goals' && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-200 text-sm flex items-start gap-3">
+                                        <Target className="w-5 h-5 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-semibold mb-1">Define your "Win" conditions</p>
+                                            <p className="opacity-80">Deals that meet these criteria will be highlighted with a special badge.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {/* Cash Flow */}
+                                        <div className="bg-white/[0.02] rounded-xl p-5 border border-white/10">
+                                            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+                                                <Banknote className="w-4 h-4 text-green-400" />
+                                                Min. Monthly Cash Flow
+                                            </label>
+                                            <div className="relative max-w-sm">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">$</span>
+                                                <input placeholder="e.g. 300" type="number" value={minCashFlow} onChange={(e) => setMinCashFlow(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-8 pr-4 text-white focus:outline-none focus:border-green-500/50 transition-all" />
+                                            </div>
+                                        </div>
+
+                                        {/* CoC Return */}
+                                        <div className="bg-white/[0.02] rounded-xl p-5 border border-white/10">
+                                            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+                                                <Percent className="w-4 h-4 text-blue-400" />
+                                                Min. Cash-on-Cash Return
+                                            </label>
+                                            <div className="relative max-w-sm">
+                                                <input placeholder="e.g. 10" type="number" value={minCoc} onChange={(e) => setMinCoc(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50 transition-all" />
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40">%</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Max Rehab */}
+                                        <div className="bg-white/[0.02] rounded-xl p-5 border border-white/10">
+                                            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+                                                <BarChart3 className="w-4 h-4 text-orange-400" />
+                                                Max Rehab Budget
+                                            </label>
+                                            <div className="relative max-w-sm">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">$</span>
+                                                <input placeholder="e.g. 50000" type="number" value={maxRehab} onChange={(e) => setMaxRehab(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-8 pr-4 text-white focus:outline-none focus:border-orange-500/50 transition-all" />
+                                            </div>
+                                            <p className="text-xs text-white/30 mt-2">Projects exceeding this rehab cost will be flagged.</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
                         </div>
 
                         {/* Footer */}
                         <div className="p-6 border-t border-white/10 bg-white/[0.02] flex justify-end gap-3">
-                            <button
-                                onClick={onClose}
-                                className="px-5 py-2.5 text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-colors font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                                Save Preferences
+                            <button onClick={onClose} className="px-5 py-2.5 text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-colors font-medium">Cancel</button>
+                            <button onClick={handleSave} disabled={isSaving} className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                {isSaving ? 'Saving...' : 'Save Preferences'}
                             </button>
                         </div>
                     </motion.div>

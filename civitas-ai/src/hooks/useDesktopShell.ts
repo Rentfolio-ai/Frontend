@@ -31,7 +31,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio';
+export type TabType = 'chat' | 'reports' | 'portfolio' | 'property';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -40,6 +40,7 @@ export interface DealAnalyzerState {
   purchasePrice: number;
   strategy: InvestmentStrategy;
   propertyAddress?: string;
+  initialOverrides?: any; // Allow passing overrides (tax, hoa)
 }
 
 // Report Drawer state
@@ -52,16 +53,63 @@ export interface ReportDrawerState {
   propertyAddress?: string;
 }
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio'];
+const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'property'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
+
+import { usePreferencesStore } from '../stores/preferencesStore';
 
 export function useDesktopShell() {
   // Get user context
   const { user } = useAuth();
   const { showToast } = useToast();
-  // Get portfolio context for tracking properties
-  // const { addProperty } = usePortfolio();
+  const {
+    setAllPreferences,
+    budgetRange,
+    defaultStrategy,
+    interactionProfile,
+    favoriteMarkets,
+    financialDna,
+  } = usePreferencesStore();
+
+  // ... existing code ...
+
+  // Hydrate User Preferences (Brain/DNA)
+  useEffect(() => {
+    const hydratePreferences = async () => {
+      try {
+        const { getPreferences } = await import('../services/preferencesApi');
+        const prefs = await getPreferences();
+
+        // Map backend snake_case to frontend camelCase if needed, 
+        // OR rely on direct mapping if store handles it.
+        // PreferencesApi returns keys like `default_strategy` (snake_case).
+        // Store interface expects `defaultStrategy` (camelCase).
+        // WE MUST MAP IT HERE.
+
+        const mappedPrefs: any = {
+          ...prefs,
+          defaultStrategy: prefs.default_strategy,
+          budgetRange: prefs.budget_range,
+          preferredBedrooms: prefs.preferred_bedrooms,
+          financialDna: prefs.financial_dna,
+          investmentCriteria: prefs.investment_criteria,
+          favoriteMarkets: prefs.favorite_markets,
+          recentSearches: prefs.recent_searches,
+          lastSearchCity: prefs.last_search_city,
+          showKeyboardHints: prefs.show_keyboard_hints,
+          interactionProfile: prefs.interaction_profile, // This is the new brain
+          theme: prefs.theme
+        };
+
+        setAllPreferences(mappedPrefs);
+        console.log('[Brain] Interaction Memory Loaded:', mappedPrefs.interactionProfile?.dislikes?.length || 0, 'dislikes');
+      } catch (err) {
+        console.error('Failed to hydrate preferences:', err);
+      }
+    };
+    hydratePreferences();
+  }, [setAllPreferences]);
   // Chat history state
   const [chatHistory, setChatHistory] = useState<ChatSession[]>(() => {
     const saved = typeof window !== 'undefined'
@@ -103,6 +151,8 @@ export function useDesktopShell() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('chat');
+  const [activeProperty, setActiveProperty] = useState<any | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -140,6 +190,7 @@ export function useDesktopShell() {
     purchasePrice: 500000,
     strategy: 'STR',
     propertyAddress: undefined,
+    initialOverrides: undefined,
   });
 
   // Report Drawer state
@@ -158,9 +209,21 @@ export function useDesktopShell() {
   // Thinking state for SSE streaming
   const [thinking, setThinking] = useState<ThinkingState | null>(null);
   const [completedTools, setCompletedTools] = useState<CompletedTool[]>([]);
+  const [streamError, _setStreamError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamContentRef = useRef<string>('');
   const currentToolsRef = useRef<CompletedTool[]>([]);
+
+  // Cancel active stream
+  const cancelStream = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setThinking(null);
+    setIsLoading(false);
+    // Note: _setStreamError is available for future error handling
+  }, []);
 
   // Refs for cleanup
   const [streamIntervalId, setStreamIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
@@ -257,6 +320,8 @@ export function useDesktopShell() {
     const timer = setTimeout(checkForErrorState, 1000);
     return () => clearTimeout(timer);
   }, []); // Empty dependency array = run once on mount
+
+
 
   // Cleanup stream interval
   useEffect(() => {
@@ -372,6 +437,14 @@ export function useDesktopShell() {
           source: event.source,
           icon: event.icon,
           tool: event.tool,
+          // Map snake_case SSE fields to camelCase
+          filtersApplied: event.filters_applied,
+          userContext: event.user_context ? {
+            budgetMax: event.user_context.budget_max,
+            dislikes: event.user_context.dislikes,
+            favoriteMarkets: event.user_context.favorite_markets,
+            strategy: event.user_context.strategy,
+          } : undefined,
         });
         break;
 
@@ -393,7 +466,9 @@ export function useDesktopShell() {
             tool: event.tool,
             summary: event.summary!,
             icon: event.icon || '✓',
-            data: event.data
+            data: event.data,
+            reason: event.reason,
+            suggestion: event.suggestion,
           };
 
           setCompletedTools(prev => [...prev, newTool]);
@@ -422,7 +497,12 @@ export function useDesktopShell() {
                 kind: 'generic', // Default, logic below could refine this
                 data: t.data,
                 // Map tool names to kinds if needed
-                ...(t.tool === 'Property Search' ? { kind: 'scout_properties', name: 'scout_properties' } : {}),
+                ...(t.tool === 'Property Search' || t.tool === 'scan_market' ? {
+                  kind: 'scout_properties',
+                  name: 'scout_properties',
+                  // Ensure data is passed through, python side handles structure
+                  data: t.data
+                } : {}),
                 ...(t.tool === 'Property Comparison' ? { kind: 'property_comparison_table', name: 'compare_properties' } : {}),
                 ...(t.tool === 'Deal Hunter' ? {
                   kind: 'scout_properties',
@@ -464,7 +544,7 @@ export function useDesktopShell() {
             status: 'success',
             kind: 'generic',
             data: t.data,
-            ...(t.tool === 'Property Search' ? { kind: 'scout_properties', name: 'scout_properties' } : {}),
+            ...(t.tool === 'Property Search' || t.tool === 'scan_market' ? { kind: 'scout_properties', name: 'scout_properties', data: t.data } : {}),
             ...(t.tool === 'Property Comparison' ? { kind: 'property_comparison_table', name: 'compare_properties' } : {}),
             ...(t.tool === 'Deal Hunter' ? {
               kind: 'scout_properties',
@@ -524,7 +604,7 @@ export function useDesktopShell() {
   }, [activeChatId, updateThreadIdForChat]);
 
   // Send message with SSE streaming
-  const sendMessageWithStream = useCallback(async (message: string) => {
+  const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }) => {
     if (!message.trim()) return;
 
     // Cancel any existing stream
@@ -532,8 +612,12 @@ export function useDesktopShell() {
       abortControllerRef.current.abort();
     }
 
-    const userMessage: Message = ChatService.createUserMessage(message.trim());
-    setMessages(prev => [...prev, userMessage]);
+    // Only add user message if NOT skipping (e.g. not regenerating)
+    if (!options?.skipUserMessage) {
+      const userMessage: Message = ChatService.createUserMessage(message.trim());
+      setMessages(prev => [...prev, userMessage]);
+    }
+
     setIsLoading(true);
     resetThinkingState();
 
@@ -543,26 +627,36 @@ export function useDesktopShell() {
     try {
       const effectiveThreadId = currentThreadId || undefined;
 
+      const {
+        budgetRange,
+        defaultStrategy,
+        interactionProfile,
+        favoriteMarkets,
+        financialDna,
+        clientLocation
+      } = usePreferencesStore.getState();
+
       const response = await fetch(`${CIVITAS_API_BASE}/api/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+          'Authorization': `Bearer ${CIVITAS_API_KEY}`,
+          'X-Api-Key': CIVITAS_API_KEY
         },
         body: JSON.stringify({
           message: message.trim(),
+          stream: true,
           thread_id: effectiveThreadId,
-          temperature: 0.2,
-          context: {
-            user_context: {
-              name: user?.name?.split(' ')[0] || 'there',
-            },
-          },
+          user_preferences: {
+            budget: budgetRange ? `up to $${budgetRange.max.toLocaleString()}` : undefined,
+            strategy: defaultStrategy || undefined,
+            dislikes: interactionProfile?.dislikes || [],
+            favorite_markets: favoriteMarkets || [],
+            financial_dna: financialDna || undefined,
+            client_location: clientLocation || undefined
+          }
         }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
+      }); if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -613,38 +707,36 @@ export function useDesktopShell() {
   }, [currentThreadId, user, resetThinkingState, handleStreamEvent]);
 
   const handleRegenerate = useCallback((messageId: string) => {
-    setMessages(prev => {
-      const messageIndex = prev.findIndex(m => m.id === messageId);
-      if (messageIndex === -1) return prev;
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
 
-      const message = prev[messageIndex];
-      let userMessageContent = '';
-      let newMessages = [...prev];
+    const message = messages[messageIndex];
+    let userMessageContent = '';
+    let newMessages = [...messages];
+    let skipUserMessage = false;
 
-      if (message.role === 'assistant') {
-        // Find the preceding user message
-        const prevMessage = prev[messageIndex - 1];
-        if (prevMessage && prevMessage.role === 'user') {
-          userMessageContent = prevMessage.content;
-          // Remove this assistant message AND the user message
-          newMessages = prev.slice(0, messageIndex - 1);
-        }
-      } else if (message.role === 'user') {
-        userMessageContent = message.content;
-        // Remove this user message and everything after
-        newMessages = prev.slice(0, messageIndex);
+    if (message.role === 'assistant') {
+      // Find the preceding user message
+      const prevMessage = messages[messageIndex - 1];
+      if (prevMessage && prevMessage.role === 'user') {
+        userMessageContent = prevMessage.content;
+        // Only remove THIS assistant message, keep the user message
+        newMessages = messages.slice(0, messageIndex);
+        skipUserMessage = true;
       }
+    } else if (message.role === 'user') {
+      userMessageContent = message.content;
+      // Remove this user message and everything after (standard edit behavior)
+      newMessages = messages.slice(0, messageIndex);
+      skipUserMessage = false;
+    }
 
-      if (userMessageContent) {
-        // We need to trigger sendMessageWithStream, but we can't do it inside the setState callback
-        // So we'll schedule it
-        setTimeout(() => sendMessageWithStream(userMessageContent), 0);
-        return newMessages;
-      }
-
-      return prev;
-    });
-  }, [sendMessageWithStream]);
+    if (userMessageContent) {
+      setMessages(newMessages);
+      // Trigger new stream
+      sendMessageWithStream(userMessageContent, { skipUserMessage });
+    }
+  }, [messages, sendMessageWithStream]);
 
   // Chat handlers
   const handleSendMessage = (message: string) => {
@@ -885,15 +977,6 @@ export function useDesktopShell() {
     }, delay);
   };
 
-  const handleStopStream = () => {
-    if (streamIntervalId) {
-      clearInterval(streamIntervalId);
-      setStreamIntervalId(null);
-      setIsLoading(false);
-      setMessages(prev => prev.map(m => m.isStreaming ? { ...m, isStreaming: false } : m));
-    }
-  };
-
   const handleNewChat = () => {
     if (messages.length > 0) {
       const firstUserMessage = messages.find(msg => msg.role === 'user' || msg.type === 'user')?.content || '';
@@ -988,7 +1071,8 @@ export function useDesktopShell() {
     propertyId: string | null = null,
     strategy: InvestmentStrategy = 'STR',
     purchasePrice: number = 500000,
-    propertyAddress?: string
+    propertyAddress?: string,
+    initialOverrides?: any
   ) => {
     setDealAnalyzer({
       isOpen: true,
@@ -996,6 +1080,7 @@ export function useDesktopShell() {
       purchasePrice,
       strategy,
       propertyAddress,
+      initialOverrides,
     });
   };
 
@@ -1133,6 +1218,13 @@ export function useDesktopShell() {
     }
   };
 
+  // Handle viewing property details
+  const handleViewPropertyDetails = useCallback((property: any) => {
+    console.log('[useDesktopShell] handleViewPropertyDetails called with:', property);
+    setActiveProperty(property);
+    setActiveTab('property');
+  }, []);
+
   return {
     // State
     chatHistory,
@@ -1142,43 +1234,53 @@ export function useDesktopShell() {
     isRailCollapsed,
     isSidebarOpen,
     activeTab,
+    activeProperty,
     isLoading,
     showSuggestions,
     attachment,
-    dealAnalyzer,
-    reportDrawer,
-    currentThreadId,
-    toolResultsByThread,
-    isFetchingToolResults,
-    toolMemoryError,
-    // Thinking state for SSE streaming
-    thinking,
-    completedTools,
-    handleRegenerate,
 
     // Setters
     setIsSidebarOpen,
     setActiveTab,
     setAttachment,
+    clearPendingAttachment,
 
     // Handlers
-    toggleRail,
-    toggleSidebar,
     handleSendMessage,
     sendMessageWithStream,
-    handleStopStream,
     handleNewChat,
     handleLoadChat,
     handleDeleteChat,
     handleAction,
+    toggleRail,
+    toggleSidebar,
+    handleViewPropertyDetails,
+
+    // Deal Analyzer
+    dealAnalyzer,
     openDealAnalyzer,
     closeDealAnalyzer,
+
+    // Report Drawer
+    reportDrawer,
     openReportDrawer,
     closeReportDrawer,
     generateReportWithType,
     clearReport,
     updateLatestPnlOutput,
+
+    // Thinking / Tools
+    thinking,
+    completedTools,
+    handleRegenerate,
     refreshToolResults,
-    clearToolMemoryError
+    toolResultsByThread,
+    isFetchingToolResults,
+    toolMemoryError,
+    clearToolMemoryError,
+
+    // Stream control
+    streamError,
+    cancelStream,
   };
 }

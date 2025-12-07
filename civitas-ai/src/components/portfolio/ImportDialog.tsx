@@ -17,7 +17,7 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
   onClose,
   onImport,
   onPollStatus,
-  portfolioId,
+
   onImportComplete,
 }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -169,11 +169,10 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                  dragActive
-                    ? 'border-primary bg-primary/5'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                  ? 'border-primary bg-primary/5'
+                  : 'border-gray-300 hover:border-gray-400'
+                  }`}
               >
                 <input
                   ref={fileInputRef}
@@ -261,8 +260,8 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
                       {importJob.status === 'completed'
                         ? 'Import completed'
                         : importJob.status === 'failed'
-                        ? 'Import failed'
-                        : 'Processing...'}
+                          ? 'Import failed'
+                          : 'Processing...'}
                     </span>
                     <span className="text-sm font-medium text-gray-900">
                       {importJob.processed_rows} / {importJob.total_rows} rows

@@ -59,6 +59,7 @@ export interface ScoutedProperty {
   listing_url?: string;
   // Additional listing details
   hoa_fee?: number;          // Monthly HOA fee
+  property_tax_annual?: number; // Annual property tax
   description?: string;      // Listing description
   listing_type?: string;     // "Standard" | "Foreclosure" | "Short Sale" | "New Construction"
   mls_number?: string;       // MLS ID
