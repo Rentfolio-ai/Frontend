@@ -16,8 +16,12 @@ import type { ScoutedProperty } from '../../types/backendTools';
 
 import type { CompletedTool } from '../../types/stream';
 
-import { Copy, RotateCcw, Check, ThumbsUp, ThumbsDown, Pencil, Clipboard, ClipboardCheck } from 'lucide-react';
+import { Copy, RotateCcw, Check, ThumbsUp, ThumbsDown, Pencil, Clipboard, ClipboardCheck, FileSpreadsheet, ChevronLeft, ChevronRight, Baby } from 'lucide-react';
 import { submitFeedback } from '../../services/feedbackApi';
+import { extractFirstTable, markdownTableToCsv, downloadCsv } from '../../lib/tableUtils';
+import { SuggestionChips } from './SuggestionChips';
+import { ContextBadge } from './ContextBadge';
+import { detectSmartActions } from '../../lib/smartActions';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -83,6 +87,8 @@ interface MessageBubbleProps {
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   onEdit?: (content: string) => void;
+  onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
+  onSuggestionSelect?: (suggestion: string) => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -98,10 +104,47 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onRefresh,
   onViewDetails,
   onEdit,
+  onNavigateBranch,
+  onSuggestionSelect,
 }) => {
   const isUser = message.role === 'user';
   const [isCopied, setIsCopied] = React.useState(false);
   const [feedback, setFeedback] = React.useState<'up' | 'down' | null>(null);
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editContent, setEditContent] = React.useState(message.content);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // Reset edit content if message content changes externally
+  React.useEffect(() => {
+    setEditContent(message.content);
+  }, [message.content]);
+
+  // Focus textarea when entering edit mode
+  React.useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      // Adjust height
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [isEditing]);
+
+  const handleEditSubmit = () => {
+    if (editContent.trim() && editContent !== message.content && onEdit) {
+      onEdit(editContent);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleEditSubmit();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditContent(message.content);
+    }
+  };
 
   const handleFeedback = async (score: number) => {
     if (feedback !== null) return; // Prevent multiple votes
@@ -123,6 +166,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <>
       {!isUser ? (
         <div className="relative">
+          {/* Context Attribution Badges */}
+          {message.contextSources && message.contextSources.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {message.contextSources.map((source, idx) => (
+                <ContextBadge key={idx} source={source} />
+              ))}
+            </div>
+          )}
+
           {/* Reasoning Steps */}
           {reasoningSteps.length > 0 && (
             <div className="mb-4 space-y-2 border-b border-white/5 pb-3">
@@ -215,6 +267,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               style={{ animationDuration: '1s' }}
             />
           )}
+
+          {/* Suggestion Chips */}
+          {message.suggestions && message.suggestions.length > 0 && !message.isStreaming && onSuggestionSelect && (
+            <SuggestionChips suggestions={message.suggestions} onSelect={onSuggestionSelect} />
+          )}
+
         </div>
       ) : (
         <div className="text-[15px] leading-[1.75] whitespace-pre-wrap text-white/95 font-normal">
@@ -227,6 +285,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         'flex items-center gap-2 text-[11px] font-normal mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200',
         isUser ? 'text-white/50 justify-end' : 'text-white/40'
       )}>
+        {/* Branching Navigation */}
+        {message.branching && message.branching.versions.length > 1 && onNavigateBranch && (
+          <div className="flex items-center gap-1 bg-white/5 rounded-md px-1 mr-2">
+            <button
+              onClick={() => onNavigateBranch(message.id, 'prev')}
+              disabled={message.branching.currentVersion === 0}
+              className="p-1 hover:text-white disabled:opacity-30 transition-colors"
+            >
+              <ChevronLeft className="w-3 h-3" />
+            </button>
+            <span className="font-mono text-[10px] min-w-[20px] text-center">
+              {message.branching.currentVersion + 1}/{message.branching.versions.length}
+            </span>
+            <button
+              onClick={() => onNavigateBranch(message.id, 'next')}
+              disabled={message.branching.currentVersion === message.branching.versions.length - 1}
+              className="p-1 hover:text-white disabled:opacity-30 transition-colors"
+            >
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         <span>{timestampLabel}</span>
       </div>
 
@@ -367,6 +447,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             })}
         </div>
       )}
+      {/* Smart Action Chips */}
+      {!isUser && !message.action && !message.isStreaming && onAction && detectSmartActions(message.content).length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {detectSmartActions(message.content).map((chip, idx) => (
+            <button
+              key={idx}
+              onClick={() => onAction(chip.action)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium border border-primary/20 transition-all"
+            >
+              {/* We could render icons here based on chip.icon string */}
+              <span>{chip.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 
@@ -408,7 +503,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pt-1">
             {onEdit && (
               <button
-                onClick={() => onEdit(message.content)}
+                onClick={() => setIsEditing(true)}
                 className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
                 title="Edit message"
               >
@@ -424,8 +519,43 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </button>
           </div>
 
-          <div className="text-[15px] leading-[1.75] text-white/95 font-normal">
-            {message.content}
+          <div className="text-[15px] leading-[1.75] text-white/95 font-normal w-full">
+            {isEditing ? (
+              <div className="bg-white/10 rounded-xl p-3 border border-white/20 w-full min-w-[300px]">
+                <textarea
+                  ref={textareaRef}
+                  value={editContent}
+                  onChange={(e) => {
+                    setEditContent(e.target.value);
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                  }}
+                  onKeyDown={handleKeyDown}
+                  className="w-full bg-transparent border-none focus:ring-0 text-white/95 resize-none p-0 text-[15px] leading-[1.75]"
+                  rows={1}
+                />
+                <div className="flex justify-end gap-2 mt-3">
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditContent(message.content);
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEditSubmit}
+                    disabled={!editContent.trim() || editContent === message.content}
+                    className="px-3 py-1.5 text-xs font-medium bg-primary text-white hover:bg-primary/80 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Save & Submit
+                  </button>
+                </div>
+              </div>
+            ) : (
+              message.content
+            )}
           </div>
         </div>
       ) : (
@@ -473,6 +603,60 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span className="text-xs">Copy</span>
             </button>
+
+            {/* ELI5 Button */}
+            {onAction && (
+              <button
+                onClick={() => onAction('eli5', { messageId: message.id })}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
+                title="Explain Like I'm 5"
+              >
+                <Baby className="w-3.5 h-3.5" />
+                <span className="text-xs">ELI5</span>
+              </button>
+            )}
+
+            {/* CSV Download Button */}
+            {!isUser && extractFirstTable(message.content) && (
+              <button
+                onClick={() => {
+                  const table = extractFirstTable(message.content);
+                  if (table) {
+                    const csv = markdownTableToCsv(table);
+                    downloadCsv(csv, `data_export_${new Date().toISOString().slice(0, 10)}.csv`);
+                  }
+                }}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
+                title="Download as CSV"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span className="text-xs">CSV</span>
+              </button>
+            )}
+
+            {/* Copy CSV Button */}
+            {!isUser && extractFirstTable(message.content) && (
+              <button
+                onClick={async () => {
+                  const table = extractFirstTable(message.content);
+                  if (table) {
+                    const csv = markdownTableToCsv(table);
+                    try {
+                      await navigator.clipboard.writeText(csv);
+                      // Visual feedback could be improved but reusing existing toast/state if possible
+                      // For now, rely on button reaction if we add state, or just simple action
+                    } catch (err) {
+                      console.error('Failed to copy CSV:', err);
+                    }
+                  }
+                }}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
+                title="Copy CSV to Clipboard"
+              >
+                <Clipboard className="w-3.5 h-3.5" />
+                <span className="text-xs">Copy CSV</span>
+              </button>
+            )}
 
             {onRefresh && (
               <button

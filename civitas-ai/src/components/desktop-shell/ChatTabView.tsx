@@ -1,10 +1,12 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Settings, HelpCircle } from 'lucide-react';
+import { Settings, HelpCircle, Maximize2, Minimize2 } from 'lucide-react';
+import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { PreferencesModal } from '../PreferencesModal';
+import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
 import { Tooltip } from '../Tooltip';
 import type { Message } from '../../types/chat';
@@ -43,6 +45,8 @@ interface ChatTabViewProps {
   onCancel?: () => void;
   error?: string | null;
   onRetry?: () => void;
+  onEditMessage?: (id: string, newContent: string) => void;
+  onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
 }
 
 // Greeting variety based on time of day
@@ -99,13 +103,18 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onCancel,
   error,
   onRetry,
+  onEditMessage,
+  onNavigateBranch,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const [showPreferences, setShowPreferences] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const composerRef = useRef<ComposerRef>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
+
+  const { isWideMode, setWideMode } = usePreferencesStore();
 
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
@@ -154,11 +163,44 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     };
   }, []);
 
-  // Handle editing a user message - puts content into composer
-  const handleEdit = (content: string) => {
-    composerRef.current?.setInput(content);
-    composerRef.current?.focus();
-  };
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.metaKey || e.ctrlKey;
+
+      if (isMod && e.key === 'k') {
+        e.preventDefault();
+        composerRef.current?.focus();
+      }
+
+      if (isMod && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setWideMode(!isWideMode);
+      }
+
+      if (isMod && e.key === ',') {
+        e.preventDefault();
+        setShowPreferences(true);
+      }
+
+      if (isMod && e.key === '/') {
+        e.preventDefault();
+        setShowShortcuts(true);
+      }
+
+      if (e.key === 'Escape') {
+        if (showShortcuts) setShowShortcuts(false);
+        if (showPreferences) setShowPreferences(false);
+        if (showFAQ) setShowFAQ(false);
+        onCancel?.();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isWideMode, setWideMode, showPreferences, showFAQ, showShortcuts, onCancel]);
+
+
 
   const showEmptyState = messages.length === 0 && !isLoading;
 
@@ -179,14 +221,29 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
       {/* Header Buttons - Top Right */}
       <div className="absolute top-4 right-4 z-20 flex gap-2">
-        {/* FAQ Button */}
-        <Tooltip content="FAQ & Help" shortcut="⌘/">
+        {/* Help Button - Now opens Shortcuts/Help choice? Or just FAQ? Let's keep FAQ button but map Cmd+/ to Shortcuts */}
+        <Tooltip content="FAQ & Help">
           <button
             onClick={() => setShowFAQ(true)}
             className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
             aria-label="FAQ and Help"
           >
             <HelpCircle className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+          </button>
+        </Tooltip>
+
+        {/* Wide Mode Toggle */}
+        <Tooltip content={isWideMode ? "Standard Width" : "Wide Mode"} shortcut="⌘⇧F">
+          <button
+            onClick={() => setWideMode(!isWideMode)}
+            className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+            aria-label={isWideMode ? "Standard Width" : "Wide Mode"}
+          >
+            {isWideMode ? (
+              <Minimize2 className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+            ) : (
+              <Maximize2 className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+            )}
           </button>
         </Tooltip>
 
@@ -207,6 +264,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       {/* Modals */}
       <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
       <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
+      <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
 
       {/* Messages or Empty State */}
       <div className="flex-1 overflow-hidden">
@@ -282,11 +340,14 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               userName={userName}
               onRefresh={onRefresh}
               onViewDetails={onViewDetails}
-              onEdit={handleEdit}
+              onEdit={onEditMessage}
               onCancel={onCancel}
               error={error}
               onRetry={onRetry}
               onOpenPreferences={() => setShowPreferences(true)}
+              isWideMode={isWideMode}
+              onNavigateBranch={onNavigateBranch}
+              onSuggestionSelect={onSendMessage}
             />
           </div>
         )}
@@ -299,7 +360,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
         {/* Dynamic Context Chips (Floating) */}
         {!showEmptyState && suggestions.length > 0 && (
-          <div className="w-full max-w-3xl mx-auto mb-2 relative z-10">
+          <div className={`w-full ${isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
             <SuggestionChips
               suggestions={suggestions}
               onSelect={onSendMessage}
@@ -309,10 +370,11 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         )}
 
         <div className="px-4 md:px-8 pb-6 pt-4 relative z-20">
-          <div className="w-full max-w-3xl mx-auto">
+          <div className={`w-full ${isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto transition-all duration-300`}>
             <Composer
               ref={composerRef}
               onSend={onSendMessage}
+              onStop={onCancel}
               onAttach={onAttach}
               attachment={attachment}
               onClearAttachment={onClearAttachment}

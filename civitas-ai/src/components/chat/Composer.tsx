@@ -1,25 +1,16 @@
 // FILE: src/components/chat/Composer.tsx
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Paperclip, X, File as FileIcon, ArrowUp, MapPin } from 'lucide-react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { Paperclip, X, File as FileIcon, ArrowUp, MapPin, Square } from 'lucide-react';
 import { QuickPreferencesChip } from './QuickPreferencesChip';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 
-interface SuggestionChip {
-  id: string;
-  label: string;
-  icon?: string;
-}
 
-const slashCommands = [
-  { id: '/analyze', label: '/analyze - Market analysis', icon: '📈' },
-  { id: '/compare', label: '/compare - Property comparison', icon: '⚖️' },
-  { id: '/report', label: '/report - Generate report', icon: '📄' },
-  { id: '/search', label: '/search - Find properties', icon: '🔍' },
-];
+
 
 export interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>,
   'value' | 'onChange' | 'rows' | 'disabled' | 'onKeyDown' | 'placeholder'> {
   onSend?: (message: string) => void;
+  onStop?: () => void;
   onAttach?: (file: File) => void;
   attachment?: File | null;
   onClearAttachment?: () => void;
@@ -31,7 +22,7 @@ export interface ComposerRef {
   focus: () => void;
 }
 
-export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAttach, attachment, onClearAttachment, onOpenPreferences, ...rest }, ref) => {
+export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop, onAttach, attachment, onClearAttachment, onOpenPreferences, ...rest }, ref) => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -40,7 +31,28 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { updateClientLocation, clientLocation } = usePreferencesStore();
+  const { updateClientLocation, clientLocation, promptPresets } = usePreferencesStore();
+
+  const allCommands = useMemo(() => {
+    const systemCommands = [
+      { id: '/analyze', label: '/analyze - Market analysis', icon: '📈', content: null },
+      { id: '/compare', label: '/compare - Property comparison', icon: '⚖️', content: null },
+      { id: '/report', label: '/report - Generate report', icon: '📄', content: null },
+      { id: '/search', label: '/search - Find properties', icon: '🔍', content: null },
+    ];
+
+    const userCommands = (promptPresets || []).map(p => ({
+      id: p.id,
+      label: `${p.command} - ${p.label}`,
+      icon: '✨',
+      content: p.content,
+      trigger: p.command // store the trigger to match against input
+    }));
+
+    return [...systemCommands, ...userCommands];
+  }, [promptPresets]);
+
+  const [filteredCommands, setFilteredCommands] = useState(allCommands);
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
@@ -75,14 +87,21 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!message.trim() && !attachment) || isLoading) return;
+    if (isLoading) {
+      if (onStop) onStop();
+      return;
+    }
+
+    if ((!message.trim() && !attachment)) return;
 
     setIsLoading(true);
     if (onSend) onSend(message);
 
     setMessage('');
     if (onClearAttachment) onClearAttachment();
-    setIsLoading(false);
+
+    // Reset local loading state after a delay if parent doesn't unset it (safety fallback)
+    setTimeout(() => setIsLoading(false), 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -91,23 +110,50 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
       handleSubmit(e as any);
     }
 
-    if (e.key === '/' && message === '') {
-      setShowCommands(true);
-    }
-
-    if (e.key === 'Escape') {
-      setShowCommands(false);
+    if (showCommands) {
+      if (e.key === 'Escape') {
+        setShowCommands(false);
+      }
+      // Add arrow key navigation later if needed
+    } else {
+      if (e.key === '/' && message === '') {
+        setShowCommands(true);
+        setFilteredCommands(allCommands);
+      }
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(e.target.value);
     const value = e.target.value;
-    setShowCommands(value.startsWith('/') && value.length > 0);
+    setMessage(value);
+
+    if (value.startsWith('/')) {
+      const searchTerm = value.toLowerCase();
+      const matches = allCommands.filter((cmd: { id: string; label: string; icon: string; content: string | null; trigger?: string; }) =>
+        // Match system commands by ID (e.g. /analyze)
+        (cmd.id.startsWith('/') && cmd.id.toLowerCase().startsWith(searchTerm)) ||
+        // Match user presets by trigger (e.g. /flip)
+        (cmd.trigger && cmd.trigger.toLowerCase().startsWith(searchTerm))
+      );
+      setFilteredCommands(matches);
+      setShowCommands(matches.length > 0);
+    } else {
+      setShowCommands(false);
+    }
   };
 
-  const handleCommandSelect = (cmd: string) => {
-    setMessage(cmd + ' ');
+  const handleCommandSelect = (cmdId: string) => {
+    const cmd = allCommands.find((c: any) => c.id === cmdId);
+    if (!cmd) return;
+
+    if (cmd.content) {
+      // User Preset: Replace with content
+      setMessage(cmd.content);
+    } else {
+      // System Command: Append command
+      setMessage(cmd.id + ' ');
+    }
+
     setShowCommands(false);
     textareaRef.current?.focus();
   };
@@ -144,19 +190,19 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
   return (
     <div className="relative">
       {showCommands && (
-        <div className="absolute bottom-full mb-2 w-full bg-[#1A1D24] border border-white/10 rounded-xl shadow-xl overflow-hidden z-20">
-          {slashCommands.map((cmd) => (
+        <div className="absolute bottom-full mb-2 w-full bg-[#1A1D24] border border-white/10 rounded-xl shadow-xl overflow-hidden z-20 max-h-[300px] overflow-y-auto custom-scrollbar">
+          {filteredCommands.map((cmd: any) => (
             <button
               key={cmd.id}
               onClick={() => handleCommandSelect(cmd.id)}
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors"
             >
-              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-lg">
+              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-lg shrink-0">
                 {cmd.icon}
               </div>
-              <div>
-                <div className="text-sm font-medium text-white">{cmd.label.split(' - ')[0]}</div>
-                <div className="text-xs text-white/40">{cmd.label.split(' - ')[1]}</div>
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-white truncate">{cmd.label.split(' - ')[0]}</div>
+                <div className="text-xs text-white/40 truncate">{cmd.label.split(' - ')[1]}</div>
               </div>
             </button>
           ))}
@@ -242,13 +288,19 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onAtta
 
             <button
               type="submit"
-              disabled={!message.trim() || isLoading}
-              className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 ${message.trim() && !isLoading
-                ? 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 text-white scale-100 rotate-0'
-                : 'bg-white/5 text-white/20 scale-95 rotate-0 cursor-not-allowed'
+              disabled={(!message.trim() && !attachment && !isLoading) || (isLoading && !onStop)}
+              className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 ${isLoading
+                ? 'bg-white/10 hover:bg-white/20 text-white scale-100'
+                : message.trim() || attachment
+                  ? 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 text-white scale-100'
+                  : 'bg-white/5 text-white/20 scale-95 cursor-not-allowed'
                 }`}
             >
-              <ArrowUp className="w-4 h-4" />
+              {isLoading && onStop ? (
+                <Square className="w-3 h-3 fill-current" />
+              ) : (
+                <ArrowUp className="w-4 h-4" />
+              )}
             </button>
           </div>
         </form>

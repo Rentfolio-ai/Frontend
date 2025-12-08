@@ -36,7 +36,7 @@ export const PreferenceSuggestionToast: React.FC<PreferenceSuggestionToastProps>
 }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
-    const { setBudgetRange, setDefaultStrategy, addFavoriteMarket, budgetRange } = usePreferencesStore();
+    const { setBudgetRange, setDefaultStrategy, toggleFavoriteMarket, budgetRange } = usePreferencesStore();
 
     // Auto-dismiss after save
     useEffect(() => {
@@ -63,7 +63,7 @@ export const PreferenceSuggestionToast: React.FC<PreferenceSuggestionToastProps>
                     setDefaultStrategy(suggestion.value as 'STR' | 'LTR' | 'FLIP');
                     break;
                 case 'market':
-                    addFavoriteMarket(suggestion.value.toString());
+                    toggleFavoriteMarket(suggestion.value.toString());
                     break;
             }
             setSaved(true);

@@ -32,8 +32,9 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   onRetry,
   onOpenPreferences,
 }) => {
-  const { interactionProfile, budgetRange, defaultStrategy } = usePreferencesStore();
+  const { interactionProfile, budgetRange, defaultStrategy, financialDna } = usePreferencesStore();
   const dislikes = interactionProfile?.dislikes || [];
+  const riskProfile = interactionProfile?.risk_profile;
 
   // Elapsed time tracking
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
@@ -63,6 +64,30 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   const preferencesDisplay = React.useMemo(() => {
     const parts: string[] = [];
 
+    // 1. Risk Profile (Highest Level)
+    if (riskProfile) {
+      parts.push(riskProfile);
+    }
+
+    // 2. Financial DNA (Key Constraints)
+    if (financialDna) {
+      const dnaParts: string[] = [];
+      if (financialDna.down_payment_pct != null) {
+        dnaParts.push(`${Math.round(financialDna.down_payment_pct * 100)}% Down`);
+      }
+      // Only show loan info if we have a loan
+      if (financialDna.down_payment_pct !== 1) {
+        if (financialDna.interest_rate_annual != null) {
+          dnaParts.push(`${financialDna.interest_rate_annual}% Rate`);
+        }
+      }
+
+      if (dnaParts.length > 0) {
+        parts.push(dnaParts.join(', '));
+      }
+    }
+
+    // 3. Budget
     if (budgetRange?.max) {
       const formatted = budgetRange.max >= 1000000
         ? `$${(budgetRange.max / 1000000).toFixed(1)}M`
@@ -70,17 +95,19 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
       parts.push(`Max ${formatted}`);
     }
 
+    // 4. Strategy
     if (defaultStrategy) {
       parts.push(defaultStrategy);
     }
 
+    // 5. Filters
     if (dislikes.length > 0) {
       const dislikeStr = dislikes.slice(0, 2).join(', ');
-      parts.push(`Filtering ${dislikeStr}`);
+      parts.push(`No ${dislikeStr}`);
     }
 
     return parts.length > 0 ? parts.join(' • ') : null;
-  }, [budgetRange, defaultStrategy, dislikes]);
+  }, [budgetRange, defaultStrategy, dislikes, financialDna, riskProfile]);
 
   // ... (rest of component) ...
 
@@ -149,10 +176,16 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
       }
     } else if (lowerQuery.includes('analyze') || lowerQuery.includes('roi') || lowerQuery.includes('calculator')) {
       // Context Aware: Show Financial DNA if available
-      const dnaNote = ''; // TODO: Add financialDna to store access and show here
+      let dnaNote = '';
+      if (riskProfile) {
+        dnaNote = ` (Applying ${riskProfile} Profile)`;
+      } else if (financialDna?.down_payment_pct != null) {
+        dnaNote = ` (Using ${Math.round(financialDna.down_payment_pct * 100)}% Down)`;
+      }
+
       flow = [
-        `Parsing property financial data${dnaNote}...`,
-        'Calculating cap rate and cash flow...',
+        `Parsing property financial data...`,
+        `Applying underwriting rules${dnaNote}...`,
         'Estimating rental income potential...',
         'Generating investment report...'
       ];

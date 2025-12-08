@@ -12,7 +12,10 @@ const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 interface UseStreamChatOptions {
   onContent?: (content: string) => void;
-  onComplete?: (fullContent: string, threadId: string | null) => void;
+  isComplete: boolean;
+  error: string | null;
+  threadId: string | null;
+  contextSources: string[];
   onError?: (error: string) => void;
   onToolComplete?: (tool: CompletedTool) => void;
 }
@@ -25,6 +28,7 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
     isComplete: true,
     error: null,
     threadId: null,
+    contextSources: [],
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -39,6 +43,7 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
       isComplete: false,
       error: null,
       threadId: null,
+      contextSources: [],
     });
   }, []);
 
@@ -100,6 +105,13 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
               : prev.completedTools,
           };
         });
+        break;
+
+      case 'context_attribution':
+        setStreamState(prev => ({
+          ...prev,
+          contextSources: event.sources
+        }));
         break;
 
       case 'content':

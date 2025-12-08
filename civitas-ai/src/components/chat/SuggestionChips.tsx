@@ -1,82 +1,78 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 import type { SuggestionChip } from '../../hooks/useSmartSuggestions';
-import { cn } from '../../lib/utils';
-
 
 interface SuggestionChipsProps {
-  suggestions: SuggestionChip[];
-  onSelect: (query: string) => void;
-  variant?: 'grid' | 'carousel'; // grid for empty state, carousel for chat
-  className?: string;
+  suggestions: (string | SuggestionChip)[];
+  onSelect: (suggestion: string) => void;
+  variant?: 'row' | 'grid' | 'carousel';
 }
 
 export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
   suggestions,
   onSelect,
-  variant = 'carousel',
-  className
+  variant = 'row'
 }) => {
-  if (suggestions.length === 0) return null;
+  if (!suggestions || suggestions.length === 0) return null;
 
-  if (variant === 'grid') {
-    return (
-      <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl w-full mx-auto", className)}>
-        {suggestions.map((chip, index) => (
-          <button
-            key={chip.id}
-            onClick={() => onSelect(chip.query)}
-            className="group relative px-5 py-4 rounded-xl glass-card hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 animate-slide-up text-left"
-            style={{ animationDelay: `${index * 75}ms` }}
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl group-hover:scale-110 transition-transform flex-shrink-0 mt-0.5">
-                {chip.icon}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors mb-1">
-                  {chip.label}
-                </div>
-                {/* We can hide query or show it as description if needed, for grid we usually want description but query is fine for now as a fallback or we add description to type */}
-              </div>
-              <svg
-                className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors flex-shrink-0 mt-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </button>
-        ))}
-      </div>
-    );
+  const isGrid = variant === 'grid';
+  const isCarousel = variant === 'carousel';
+
+  let containerClass = "flex flex-wrap gap-2 mt-4";
+  if (isGrid) {
+    containerClass = "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto w-full px-4";
+  } else if (isCarousel) {
+    containerClass = "flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x";
   }
 
-  // Carousel / Floating variant
   return (
-    <div className={cn("flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none mask-fade-right px-4 md:px-0", className)}>
-      <div className="flex items-center gap-2 mx-auto md:mx-0">
-        {suggestions.map((chip, index) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={containerClass}
+    >
+      {suggestions.map((suggestion, index) => {
+        const isObject = typeof suggestion !== 'string';
+        const label = isObject ? suggestion.label : suggestion;
+        const query = isObject ? suggestion.query : suggestion;
+        const icon = isObject ? suggestion.icon : null;
+        const key = isObject ? suggestion.id : index;
+
+        if (isGrid) {
+          return (
+            <button
+              key={key}
+              onClick={() => onSelect(query)}
+              className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-left transition-all hover:scale-[1.02] active:scale-[0.98] group"
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
+              <div className="flex-1">
+                <div className="font-medium text-white/90">{label}</div>
+                <div className="text-xs text-white/50 truncate max-w-[200px]">{query}</div>
+              </div>
+            </button>
+          );
+        }
+
+        return (
           <button
-            key={chip.id}
-            onClick={() => onSelect(chip.query)}
-            className={cn(
-              "flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap animate-in fade-in zoom-in slide-in-from-bottom-2",
-              // Style variants based on category
-              chip.category === 'analysis'
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/30"
-                : chip.category === 'action'
-                  ? "bg-primary/10 border-primary/20 text-primary-300 hover:bg-primary/20 hover:border-primary/30"
-                  : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20"
-            )}
-            style={{ animationDelay: `${index * 50}ms` }}
+            key={key}
+            onClick={() => onSelect(query)}
+            className={isCarousel
+              ? "flex-shrink-0 snap-start flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-sm text-white/80 transition-all hover:scale-[1.02] active:scale-[0.98] group whitespace-nowrap"
+              : "group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-sm text-white/80 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            }
           >
-            <span className="text-sm">{chip.icon}</span>
-            {chip.label}
+            {icon ? (
+              <span className="text-base">{icon}</span>
+            ) : (
+              <Sparkles className="w-3.5 h-3.5 text-blue-400 opacity-50 group-hover:opacity-100 transition-opacity" />
+            )}
+            <span>{label}</span>
           </button>
-        ))}
-      </div>
-    </div>
+        );
+      })}
+    </motion.div>
   );
 };

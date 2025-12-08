@@ -26,13 +26,16 @@ interface MessageListProps {
   userName?: string;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
-  onEdit?: (content: string) => void;
+  onEdit?: (messageId: string, content: string) => void;
   // Cancel and error handling
   onCancel?: () => void;
   error?: string | null;
   onRetry?: () => void;
   // Preferences
   onOpenPreferences?: () => void;
+  isWideMode?: boolean;
+  onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
+  onSuggestionSelect?: (suggestion: string) => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -54,6 +57,9 @@ export const MessageList: React.FC<MessageListProps> = ({
   error,
   onRetry,
   onOpenPreferences,
+  isWideMode = false,
+  onNavigateBranch,
+  onSuggestionSelect,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -96,7 +102,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       className="h-full overflow-y-auto chat-scroll relative"
       onScroll={handleScroll}
     >
-      <div className="max-w-3xl mx-auto py-8 px-4 md:px-6 space-y-12">
+      <div className={`${isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto py-8 px-4 md:px-6 space-y-12 transition-all duration-300`}>
         {visibleMessages.map((message, index) => {
           const isLast = index === visibleMessages.length - 1;
           // Pass reasoning steps only to the last message if it's from assistant
@@ -117,7 +123,9 @@ export const MessageList: React.FC<MessageListProps> = ({
               userName={userName}
               onRefresh={onRefresh}
               onViewDetails={onViewDetails}
-              onEdit={onEdit}
+              onEdit={(content) => onEdit?.(message.id, content)}
+              onNavigateBranch={onNavigateBranch}
+              onSuggestionSelect={onSuggestionSelect}
             />
           );
         })}

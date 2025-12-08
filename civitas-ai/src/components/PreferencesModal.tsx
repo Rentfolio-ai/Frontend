@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Star, DollarSign, Home, Check, TrendingUp, Target, BarChart3, Banknote, Percent } from 'lucide-react';
+import { X, Settings, Star, DollarSign, Home, Check, TrendingUp, Target, BarChart3, Banknote, Percent, User, FileText, Command } from 'lucide-react';
 import { usePreferencesStore } from '../stores/preferencesStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,7 +14,7 @@ interface PreferencesModalProps {
     onClose: () => void;
 }
 
-type Tab = 'general' | 'financial' | 'goals';
+type Tab = 'general' | 'financial' | 'goals' | 'persona' | 'prompts';
 
 export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) => {
     const {
@@ -28,15 +28,18 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
         setBudgetRange,
         setFinancialDna,
         setInvestmentCriteria,
-        addDislike,
-        removeDislike,
         toggleFavoriteMarket,
 
         // Full state for sync
         recentSearches,
         lastSearchCity,
         showKeyboardHints,
-        theme
+        theme,
+        customInstructions,
+        setCustomInstructions,
+        promptPresets,
+        addPromptPreset,
+        removePromptPreset
     } = usePreferencesStore();
 
     const [activeTab, setActiveTab] = useState<Tab>('general');
@@ -61,6 +64,14 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
     const [minCoc, setMinCoc] = useState<string>('');
     const [minCapRate, setMinCapRate] = useState<string>('');
     const [maxRehab, setMaxRehab] = useState<string>('');
+    // Custom Instructions
+    const [instructions, setInstructions] = useState('');
+
+    // Prompts
+    const [newPromptLabel, setNewPromptLabel] = useState('');
+    const [newPromptCommand, setNewPromptCommand] = useState('');
+    const [newPromptContent, setNewPromptContent] = useState('');
+
 
     // Initialize local state from store when modal opens
     useEffect(() => {
@@ -82,6 +93,8 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 setMinCapRate(investmentCriteria.min_cap_rate_pct ? (investmentCriteria.min_cap_rate_pct * 100).toString() : '');
                 setMaxRehab(investmentCriteria.max_rehab_cost?.toString() || '');
             }
+
+            setInstructions(customInstructions || '');
         }
     }, [isOpen, budgetRange, financialDna, investmentCriteria]);
 
@@ -91,6 +104,19 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
         if (newMarket.trim()) {
             toggleFavoriteMarket(newMarket.trim());
             setNewMarket('');
+        }
+    };
+
+    const handleAddPrompt = () => {
+        if (newPromptLabel.trim() && newPromptCommand.trim() && newPromptContent.trim()) {
+            addPromptPreset({
+                label: newPromptLabel.trim(),
+                command: newPromptCommand.trim().startsWith('/') ? newPromptCommand.trim() : `/${newPromptCommand.trim()}`,
+                content: newPromptContent.trim()
+            });
+            setNewPromptLabel('');
+            setNewPromptCommand('');
+            setNewPromptContent('');
         }
     };
 
@@ -120,6 +146,8 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
             };
             setInvestmentCriteria(newCriteria);
 
+            setCustomInstructions(instructions);
+
             // 2. Save to Backend
             // Dynamic import to avoid circular dependency if any
             const { savePreferences } = await import('../services/preferencesApi');
@@ -135,8 +163,9 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 recent_searches: recentSearches,
                 last_search_city: lastSearchCity,
                 show_keyboard_hints: showKeyboardHints,
-                theme: theme
-            });
+                theme: theme,
+                custom_instructions: instructions
+            } as any); // Cast to any to bypass type check for new field until backend update
 
             onClose();
         } catch (err) {
@@ -200,6 +229,8 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             <TabButton id="general" label="General & Buy Box" icon={Home} />
                             <TabButton id="financial" label="Financial DNA" icon={TrendingUp} />
                             <TabButton id="goals" label="Investment Goals" icon={Target} />
+                            <TabButton id="persona" label="Persona" icon={User} />
+                            <TabButton id="prompts" label="Prompts" icon={Command} />
                         </div>
 
                         {/* Content */}
@@ -380,6 +411,116 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                     </div>
                                 </motion.div>
                             )}
+
+                            {/* --- PERSONA TAB (NEW) --- */}
+                            {activeTab === 'persona' && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-200 text-sm flex items-start gap-3">
+                                        <FileText className="w-5 h-5 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-semibold mb-1">Custom Instructions</p>
+                                            <p className="opacity-80">These instructions will be added to the system prompt for every chat. Use this to customize the AI's personality, tone, or format.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-white/70">Global Instructions</label>
+                                        <textarea
+                                            value={instructions}
+                                            onChange={(e) => setInstructions(e.target.value)}
+                                            placeholder="e.g. Always be concise. Format output as markdown tables. Act as a skeptical investor."
+                                            className="w-full h-48 bg-white/[0.02] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-indigo-500/50 resize-none font-mono text-sm leading-relaxed"
+                                        />
+                                        <div className="flex justify-between text-xs text-white/30">
+                                            <span>Supports plain text</span>
+                                            <span>{instructions.length} characters</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* --- PROMPTS TAB (NEW) --- */}
+                            {activeTab === 'prompts' && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-sm flex items-start gap-3">
+                                        <Command className="w-5 h-5 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-semibold mb-1">Prompt Library</p>
+                                            <p className="opacity-80">Create custom slash commands to quickly insert common prompts.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Add New */}
+                                    <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Label</label>
+                                                <input
+                                                    placeholder="e.g. Analyze Flip"
+                                                    value={newPromptLabel}
+                                                    onChange={(e) => setNewPromptLabel(e.target.value)}
+                                                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Command</label>
+                                                <input
+                                                    placeholder="e.g. /flip"
+                                                    value={newPromptCommand}
+                                                    onChange={(e) => setNewPromptCommand(e.target.value)}
+                                                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Content</label>
+                                            <textarea
+                                                placeholder="The prompt text to insert..."
+                                                value={newPromptContent}
+                                                onChange={(e) => setNewPromptContent(e.target.value)}
+                                                className="w-full h-24 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500/50 resize-none"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleAddPrompt}
+                                            disabled={!newPromptLabel || !newPromptCommand || !newPromptContent}
+                                            className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors text-sm"
+                                        >
+                                            Add Preset
+                                        </button>
+                                    </div>
+
+                                    {/* List */}
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-medium text-white/70">Your Presets ({promptPresets.length})</label>
+                                        {promptPresets.length === 0 ? (
+                                            <div className="text-center py-8 text-white/30 text-sm">No presets yet. Create one above!</div>
+                                        ) : (
+                                            promptPresets.map(preset => (
+                                                <div key={preset.id} className="bg-white/[0.02] border border-white/10 rounded-xl p-4 flex items-start gap-4 group hover:border-white/20 transition-colors">
+                                                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                                        <Command className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <h4 className="font-medium text-white truncate">{preset.label}</h4>
+                                                            <span className="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-white/60">{preset.command}</span>
+                                                        </div>
+                                                        <p className="text-sm text-white/50 line-clamp-2">{preset.content}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removePromptPreset(preset.id)}
+                                                        className="p-2 rounded-lg hover:bg-white/10 text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+
                         </div>
 
                         {/* Footer */}

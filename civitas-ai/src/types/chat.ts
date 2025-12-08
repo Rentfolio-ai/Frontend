@@ -4,13 +4,13 @@ import type { ComplianceResult } from './compliance';
 
 // Tool kinds for discriminated union pattern
 // Maps to backend tool_name values and frontend card components
-export type ToolKind = 
+export type ToolKind =
   // Legacy/generic kinds
-  | 'roi_analysis' 
-  | 'market_data' 
-  | 'property_comparison' 
+  | 'roi_analysis'
+  | 'market_data'
+  | 'property_comparison'
   | 'property_comparison_table'  // compare_properties tool output
-  | 'alert' 
+  | 'alert'
   | 'deal_analyzer'
   | 'compliance_check'
   | 'valuation'
@@ -62,10 +62,19 @@ export interface Message {
   tools?: ToolCard[];
   action?: Action;
   summary_markdown?: string;
+  contextSources?: string[]; // Badges for context attribution
   data?: {
     presentation?: PresentationBundle;
     compliance?: ComplianceResult;
     [key: string]: any;
-  };
-  tool_results?: any;
-}
+    tool_results?: any;
+    suggestions?: string[];
+    branching?: {
+      currentVersion: number;
+      versions: {
+        timestamp: string | Date;
+        content: string;
+        subsequentMessages: Message[];
+      }[];
+    };
+  }

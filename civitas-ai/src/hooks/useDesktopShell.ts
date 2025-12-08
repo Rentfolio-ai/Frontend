@@ -26,6 +26,8 @@ export interface ChatSession {
   timestamp?: string;
   createdAt?: string;
   isActive?: boolean;
+  isPinned?: boolean;
+  isArchived?: boolean;
   messages: Message[];
 }
 
@@ -64,52 +66,15 @@ export function useDesktopShell() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const {
-    setAllPreferences,
-    budgetRange,
-    defaultStrategy,
-    interactionProfile,
-    favoriteMarkets,
-    financialDna,
+    sync,
   } = usePreferencesStore();
 
   // ... existing code ...
 
-  // Hydrate User Preferences (Brain/DNA)
+  // Hydrate User Preferences & Prompts
   useEffect(() => {
-    const hydratePreferences = async () => {
-      try {
-        const { getPreferences } = await import('../services/preferencesApi');
-        const prefs = await getPreferences();
-
-        // Map backend snake_case to frontend camelCase if needed, 
-        // OR rely on direct mapping if store handles it.
-        // PreferencesApi returns keys like `default_strategy` (snake_case).
-        // Store interface expects `defaultStrategy` (camelCase).
-        // WE MUST MAP IT HERE.
-
-        const mappedPrefs: any = {
-          ...prefs,
-          defaultStrategy: prefs.default_strategy,
-          budgetRange: prefs.budget_range,
-          preferredBedrooms: prefs.preferred_bedrooms,
-          financialDna: prefs.financial_dna,
-          investmentCriteria: prefs.investment_criteria,
-          favoriteMarkets: prefs.favorite_markets,
-          recentSearches: prefs.recent_searches,
-          lastSearchCity: prefs.last_search_city,
-          showKeyboardHints: prefs.show_keyboard_hints,
-          interactionProfile: prefs.interaction_profile, // This is the new brain
-          theme: prefs.theme
-        };
-
-        setAllPreferences(mappedPrefs);
-        console.log('[Brain] Interaction Memory Loaded:', mappedPrefs.interactionProfile?.dislikes?.length || 0, 'dislikes');
-      } catch (err) {
-        console.error('Failed to hydrate preferences:', err);
-      }
-    };
-    hydratePreferences();
-  }, [setAllPreferences]);
+    sync();
+  }, [sync]);
   // Chat history state
   const [chatHistory, setChatHistory] = useState<ChatSession[]>(() => {
     const saved = typeof window !== 'undefined'
@@ -123,6 +88,8 @@ export function useDesktopShell() {
       title: chat.title,
       timestamp: chat.timestamp,
       createdAt: chat.createdAt,
+      isPinned: chat.isPinned,
+      isArchived: chat.isArchived,
       messages: chat.messages || []
     }));
   });
@@ -585,6 +552,15 @@ export function useDesktopShell() {
         ));
         break;
 
+
+      case 'suggestions':
+        if (event.suggestions) {
+          setMessages(prev => prev.map(m =>
+            m.id === messageId ? { ...m, suggestions: event.suggestions } : m
+          ));
+        }
+        break;
+
       case 'error':
         setThinking(null);
         setIsLoading(false);
@@ -633,7 +609,8 @@ export function useDesktopShell() {
         interactionProfile,
         favoriteMarkets,
         financialDna,
-        clientLocation
+        clientLocation,
+        customInstructions
       } = usePreferencesStore.getState();
 
       const response = await fetch(`${CIVITAS_API_BASE}/api/stream`, {
@@ -653,7 +630,8 @@ export function useDesktopShell() {
             dislikes: interactionProfile?.dislikes || [],
             favorite_markets: favoriteMarkets || [],
             financial_dna: financialDna || undefined,
-            client_location: clientLocation || undefined
+            client_location: clientLocation || undefined,
+            custom_instructions: customInstructions || undefined
           }
         }),
       }); if (!response.ok) {
@@ -737,6 +715,102 @@ export function useDesktopShell() {
       sendMessageWithStream(userMessageContent, { skipUserMessage });
     }
   }, [messages, sendMessageWithStream]);
+
+  // Handle editing a user message
+  const handleEditMessage = useCallback((messageId: string, newContent: string) => {
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    setMessages(prev => {
+      const newMessages = [...prev];
+      const msg = { ...newMessages[messageIndex] };
+
+      // Initialize branching if not present
+      if (!msg.branching) {
+        msg.branching = {
+          currentVersion: 0,
+          versions: [{
+            timestamp: msg.timestamp,
+            content: msg.content,
+            subsequentMessages: newMessages.slice(messageIndex + 1)
+          }]
+        };
+      }
+
+      // Create new version
+      const newVersion = {
+        timestamp: new Date().toISOString(),
+        content: newContent,
+        subsequentMessages: [] // Will be populated by new response
+      };
+
+      msg.branching.versions.push(newVersion);
+      msg.branching.currentVersion = msg.branching.versions.length - 1;
+
+      // Update current message display
+      msg.content = newContent;
+      msg.timestamp = newVersion.timestamp;
+
+      newMessages[messageIndex] = msg;
+
+      // Truncate history for display (linear view)
+      return newMessages.slice(0, messageIndex + 1);
+    });
+
+    // Send the new content as a fresh message
+    sendMessageWithStream(newContent);
+  }, [messages, sendMessageWithStream]);
+
+  // Navigate between message versions
+  const handleNavigateBranch = useCallback((messageId: string, direction: 'prev' | 'next') => {
+    setMessages(prev => {
+      const index = prev.findIndex(m => m.id === messageId);
+      if (index === -1) return prev;
+
+      const newMessages = [...prev];
+      const msg = { ...newMessages[index] };
+
+      if (!msg.branching) return prev;
+
+      const newVersionIndex = direction === 'next'
+        ? Math.min(msg.branching.currentVersion + 1, msg.branching.versions.length - 1)
+        : Math.max(msg.branching.currentVersion - 1, 0);
+
+      if (newVersionIndex === msg.branching.currentVersion) return prev;
+
+      const targetVersion = msg.branching.versions[newVersionIndex];
+
+      // Update current state
+      msg.branching.currentVersion = newVersionIndex;
+      msg.content = targetVersion.content;
+      msg.timestamp = targetVersion.timestamp;
+
+      newMessages[index] = msg;
+
+      // Restore subsequent messages from history
+      return [...newMessages.slice(0, index + 1), ...targetVersion.subsequentMessages];
+    });
+  }, []);
+
+  // Chat management handlers
+  const handlePinChat = useCallback((chatId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setChatHistory(prev => prev.map(chat =>
+      chat.id === chatId ? { ...chat, isPinned: !chat.isPinned } : chat
+    ));
+  }, []);
+
+  const handleArchiveChat = useCallback((chatId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setChatHistory(prev => prev.map(chat =>
+      chat.id === chatId ? { ...chat, isArchived: !chat.isArchived } : chat
+    ));
+
+    // If archiving active chat, switch to main or new
+    if (activeChatId === chatId) {
+      handleNewChat();
+    }
+  }, [activeChatId]);
 
   // Chat handlers
   const handleSendMessage = (message: string) => {
@@ -1213,6 +1287,13 @@ export function useDesktopShell() {
       return;
     }
 
+    if (actionValue === 'eli5') {
+      const context = _actionContext || {};
+      // Send a hidden prompt or explicit prompt
+      sendMessageWithStream("Explain that to me like I'm 5 years old.");
+      return;
+    }
+
     if (actionValue === 'skip') {
       console.log('User skipped action');
     }
@@ -1228,7 +1309,6 @@ export function useDesktopShell() {
   return {
     // State
     chatHistory,
-    setChatHistory,
     activeChatId,
     messages,
     isRailCollapsed,
@@ -1252,6 +1332,8 @@ export function useDesktopShell() {
     handleLoadChat,
     handleDeleteChat,
     handleAction,
+    handleEditMessage,
+    handleNavigateBranch,
     toggleRail,
     toggleSidebar,
     handleViewPropertyDetails,
@@ -1282,5 +1364,10 @@ export function useDesktopShell() {
     // Stream control
     streamError,
     cancelStream,
+
+    // Chat management
+    handlePinChat,
+    handleArchiveChat,
   };
+
 }

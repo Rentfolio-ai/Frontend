@@ -88,9 +88,19 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Stream control
     streamError,
     cancelStream,
+    // Chat management
+    handlePinChat,
+    handleArchiveChat,
+    handleNavigateBranch,
+    handleEditMessage,
   } = useDesktopShell();
 
-  console.log('[DesktopShell] Render state:', { activeTab, hasActiveProperty: !!activeProperty });
+  console.log('[DesktopShell] Render state:', {
+    activeTab,
+    hasActiveProperty: !!activeProperty,
+    hasPinHandler: !!handlePinChat,
+    hasArchiveHandler: !!handleArchiveChat
+  });
 
   const { selectedState, currentTheme } = useThemeState();
 
@@ -249,6 +259,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           onBookmarkClick={(bookmark) => {
             handleViewPropertyDetails(bookmark.property);
           }}
+          onPinChat={handlePinChat}
+          onArchiveChat={handleArchiveChat}
         />
 
         {/* Main Content Area - Full height */}
@@ -294,6 +306,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 onViewDetails={handleViewPropertyDetails}
                 onCancel={cancelStream}
                 error={streamError}
+                onEditMessage={handleEditMessage}
+                onNavigateBranch={handleNavigateBranch}
               />
             )}
             {activeTab === 'reports' && (

@@ -209,3 +209,57 @@ export const addRecentSearch = async (userId: string, query: string): Promise<st
         return [];
     }
 };
+/**
+ * Saved Prompts API
+ */
+export interface SavedPrompt {
+    id: string;
+    title: string;
+    content: string;
+    command?: string;
+    category: 'standard' | 'custom' | 'role';
+    is_favorite: boolean;
+    usage_count: number;
+}
+
+export const getPrompts = async (userId: string = 'default'): Promise<SavedPrompt[]> => {
+    try {
+        const response = await fetch(`${API_BASE}/api/prompts?user_id=${userId}`, {
+            method: 'GET',
+            headers: defaultHeaders,
+        });
+        if (!response.ok) throw new Error('Failed to fetch prompts');
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching prompts:', error);
+        return [];
+    }
+};
+
+export const createPrompt = async (userId: string, prompt: Omit<SavedPrompt, 'id' | 'usage_count' | 'category'> & { category?: string }): Promise<SavedPrompt | null> => {
+    try {
+        const response = await fetch(`${API_BASE}/api/prompts?user_id=${userId}`, {
+            method: 'POST',
+            headers: defaultHeaders,
+            body: JSON.stringify(prompt),
+        });
+        if (!response.ok) throw new Error('Failed to create prompt');
+        return await response.json();
+    } catch (error) {
+        console.error('Error creating prompt:', error);
+        return null;
+    }
+};
+
+export const deletePrompt = async (userId: string, promptId: string): Promise<boolean> => {
+    try {
+        const response = await fetch(`${API_BASE}/api/prompts/${promptId}?user_id=${userId}`, {
+            method: 'DELETE',
+            headers: defaultHeaders,
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error deleting prompt:', error);
+        return false;
+    }
+};

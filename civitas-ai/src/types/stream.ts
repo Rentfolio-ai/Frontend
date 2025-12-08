@@ -59,6 +59,16 @@ export interface StreamErrorEvent {
   error: string;
 }
 
+export interface StreamContextAttributionEvent {
+  type: 'context_attribution';
+  sources: string[];
+}
+
+export interface StreamSuggestionsEvent {
+  type: 'suggestions';
+  suggestions: any[];
+}
+
 export type StreamEvent =
   | StreamInitEvent
   | StreamThinkingEvent
@@ -66,7 +76,9 @@ export type StreamEvent =
   | StreamToolEndEvent
   | StreamContentEvent
   | StreamDoneEvent
-  | StreamErrorEvent;
+  | StreamErrorEvent
+  | StreamSuggestionsEvent
+  | StreamContextAttributionEvent;
 
 export interface ThinkingState {
   title?: string;        // Main action title (e.g., "Searching for properties")
