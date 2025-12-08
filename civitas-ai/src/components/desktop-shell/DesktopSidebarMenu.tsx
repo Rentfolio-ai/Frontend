@@ -6,7 +6,7 @@ import type { ChatSession, TabType } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatChatDateCompact } from '../../utils/dateFormatters';
 import type { BookmarkedProperty } from '../../types/bookmarks';
-
+import { getConfigVersion } from '../../services/configApi';
 interface DesktopSidebarMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -52,6 +52,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
   const [showAllChats, setShowAllChats] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [modelVersion, setModelVersion] = useState<{ version: string, mode: string } | null>(null);
+
+  // Fetch model version on mount
+  useEffect(() => {
+    getConfigVersion().then(data => {
+      setModelVersion(data);
+    });
+  }, []);
 
   // Filter chat history based on search query
   const filteredChatHistory = useMemo(() => {
@@ -704,6 +712,17 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* Version Footer */}
+            {modelVersion && (
+              <div className="px-4 pb-4">
+                <div className="flex items-center justify-center px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                  <span className="text-[10px] font-medium text-white/60 tracking-wide uppercase">
+                    {modelVersion.version}
+                  </span>
+                </div>
+              </div>
+            )}
           </motion.div>
         </>
       )}

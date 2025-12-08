@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { User, Sparkles, Settings, HelpCircle } from 'lucide-react'
+import { User, Sparkles, Settings, HelpCircle, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Message, ToolCard } from '@/types/chat'
 import { ActionButtons } from './ActionButtons'
@@ -15,6 +15,7 @@ import { Tooltip } from '@/components/Tooltip'
 import { useContextualHelp, ContextualHelp } from '@/components/ContextualHelp'
 import { EmptyChat } from '@/components/EmptyStates'
 import { usePreferencesStore } from '@/stores/preferencesStore'
+import { getConfigVersion } from '@/services/configApi'
 
 interface ChatInterfaceProps {
   className?: string
@@ -65,6 +66,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [showHelp, setShowHelp] = useState(false)
   const [showFAQ, setShowFAQ] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [modelVersion, setModelVersion] = useState({ version: 'ProphetAtlas Deep Reasoning v1', mode: 'deep-reasoning' })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const smartInputRef = useRef<{ focus: () => void }>(null)
@@ -87,6 +89,19 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       localStorage.setItem('civitas-has-visited', 'true')
     }
   }, [])
+
+  // Fetch model version
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const config = await getConfigVersion();
+        setModelVersion({ version: config.version, mode: config.mode });
+      } catch (error) {
+        console.error('Failed to fetch model version:', error);
+      }
+    };
+    fetchVersion();
+  }, []);
 
   // Show contextual help on first visit
   useEffect(() => {
@@ -231,6 +246,14 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
           onClose={() => setShowPreferences(false)}
         />
       )}
+
+      {/* Model Selector Header */}
+      <div className="absolute top-4 left-4 z-10">
+        <button className="px-4 py-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors flex items-center gap-2 group">
+          <span className="text-sm font-medium text-white/90">{modelVersion.version}</span>
+          <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-white/70 transition-colors" />
+        </button>
+      </div>
 
       {/* Header Buttons */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">

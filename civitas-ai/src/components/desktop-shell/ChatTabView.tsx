@@ -1,6 +1,6 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Settings, HelpCircle, Maximize2, Minimize2 } from 'lucide-react';
+import { Settings, HelpCircle, Maximize2, Minimize2, ChevronDown } from 'lucide-react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
@@ -19,6 +19,7 @@ import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
 import { SuggestionChips } from '../chat/SuggestionChips';
+import { getConfigVersion } from '../../services/configApi';
 
 interface ChatTabViewProps {
   messages: Message[];
@@ -111,6 +112,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
+  const [modelVersion, setModelVersion] = useState({ version: 'ProphetAtlas Deep Reasoning v1', mode: 'deep-reasoning' });
   const composerRef = useRef<ComposerRef>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
 
@@ -144,6 +146,19 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       setPreferenceSuggestion(suggestion);
     }
   }, [messages, isLoading]);
+
+  // Fetch model version
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const config = await getConfigVersion();
+        setModelVersion({ version: config.version, mode: config.mode });
+      } catch (error) {
+        console.error('Failed to fetch model version:', error);
+      }
+    };
+    fetchVersion();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -259,6 +274,14 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         </Tooltip>
 
 
+      </div>
+
+      {/* Model Selector - Left side, after menu button */}
+      <div className="absolute top-4 left-20 z-20">
+        <button className="px-4 py-2 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 flex items-center gap-2 group">
+          <span className="text-sm font-medium text-white/90">{modelVersion.version}</span>
+          <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-white/70 transition-colors" />
+        </button>
       </div>
 
       {/* Modals */}

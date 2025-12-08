@@ -269,8 +269,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
 
           {/* Suggestion Chips */}
-          {message.suggestions && message.suggestions.length > 0 && !message.isStreaming && onSuggestionSelect && (
-            <SuggestionChips suggestions={message.suggestions} onSelect={onSuggestionSelect} />
+          {message.data?.suggestions && message.data.suggestions.length > 0 && !message.isStreaming && onSuggestionSelect && (
+            <SuggestionChips suggestions={message.data.suggestions} onSelect={onSuggestionSelect} />
           )}
 
         </div>
@@ -286,21 +286,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         isUser ? 'text-white/50 justify-end' : 'text-white/40'
       )}>
         {/* Branching Navigation */}
-        {message.branching && message.branching.versions.length > 1 && onNavigateBranch && (
+        {message.data?.branching && message.data.branching.versions.length > 1 && onNavigateBranch && (
           <div className="flex items-center gap-1 bg-white/5 rounded-md px-1 mr-2">
             <button
               onClick={() => onNavigateBranch(message.id, 'prev')}
-              disabled={message.branching.currentVersion === 0}
+              disabled={message.data.branching.currentVersion === 0}
               className="p-1 hover:text-white disabled:opacity-30 transition-colors"
             >
               <ChevronLeft className="w-3 h-3" />
             </button>
             <span className="font-mono text-[10px] min-w-[20px] text-center">
-              {message.branching.currentVersion + 1}/{message.branching.versions.length}
+              {message.data.branching.currentVersion + 1}/{message.data.branching.versions.length}
             </span>
             <button
               onClick={() => onNavigateBranch(message.id, 'next')}
-              disabled={message.branching.currentVersion === message.branching.versions.length - 1}
+              disabled={message.data.branching.currentVersion === message.data.branching.versions.length - 1}
               className="p-1 hover:text-white disabled:opacity-30 transition-colors"
             >
               <ChevronRight className="w-3 h-3" />

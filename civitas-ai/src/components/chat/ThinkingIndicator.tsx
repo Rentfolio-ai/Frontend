@@ -457,33 +457,45 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
         </div>
       )}
 
-      {/* Active Thinking State - Just Text */}
+      {/* Active Thinking State - Streaming Reasoning Text */}
       {thinking && (
-        <div className="relative min-h-[24px] py-1">
+        <div className="relative min-h-[60px] py-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={thinking.status + (thinking.explanation || '') + (thinking.source || '')}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col gap-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="flex flex-col gap-2"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent animate-pulse">
-                  {displayStatus}
-                </span>
-                <span className="flex gap-0.5 mt-1">
-                  <span className="w-1 h-1 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1 h-1 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1 h-1 rounded-full bg-purple-400/50 animate-bounce" style={{ animationDelay: '300ms' }} />
-                </span>
-              </div>
+              {/* System 2 Deep Reasoning - Streaming Text Block */}
+              {thinking.source === 'System 2 Reasoning' ? (
+                <div className="space-y-2">
+                  {/* Header */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                    <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">🧠 Deep Reasoning</span>
+                  </div>
 
-              {/* Source or Explanation - High contrast */}
-              {(thinking.source || displayExplanation) && (
+                  {/* Streaming Reasoning Text */}
+                  <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent">
+                    <motion.div
+                      initial={{ opacity: 0, y: 2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-sm font-mono text-purple-200/90 leading-relaxed whitespace-pre-wrap"
+                    >
+                      {thinking.status}
+                      <span className="inline-block w-1 h-4 ml-1 bg-purple-400 animate-pulse" />
+                    </motion.div>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Source or Explanation - Only for non-System 2 */}
+              {(thinking.source && thinking.source !== 'System 2 Reasoning' || displayExplanation) && (
                 <div className="text-xs text-white/70 font-normal leading-relaxed pl-0.5">
-                  {thinking.source ? (
+                  {thinking.source && thinking.source !== 'System 2 Reasoning' ? (
                     <span className="flex items-center gap-1.5 text-blue-300/90">
                       <span className="w-1 h-1 rounded-full bg-blue-400" />
                       {getSourceText(thinking.source)}
