@@ -68,7 +68,7 @@ export interface Message {
     compliance?: ComplianceResult;
     [key: string]: any;
     tool_results?: any;
-    suggestions?: string[];
+    suggestions?: (string | { id: string; label: string; query: string; icon?: string; category?: 'action' | 'analysis' | 'info' })[];
     branching?: {
       currentVersion: number;
       versions: {
@@ -77,4 +77,5 @@ export interface Message {
         subsequentMessages: Message[];
       }[];
     };
-  }
+  };
+}

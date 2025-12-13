@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Star, DollarSign, Home, Check, TrendingUp, Target, BarChart3, Banknote, Percent, User, FileText, Command } from 'lucide-react';
+import { X, Settings, Star, DollarSign, Home, Check, TrendingUp, Target, BarChart3, Banknote, Percent } from 'lucide-react';
 import { usePreferencesStore } from '../stores/preferencesStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,7 +14,7 @@ interface PreferencesModalProps {
     onClose: () => void;
 }
 
-type Tab = 'general' | 'financial' | 'goals' | 'persona' | 'prompts';
+type Tab = 'general' | 'financial' | 'goals';
 
 export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onClose }) => {
     const {
@@ -28,18 +28,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
         setBudgetRange,
         setFinancialDna,
         setInvestmentCriteria,
-        toggleFavoriteMarket,
-
-        // Full state for sync
-        recentSearches,
-        lastSearchCity,
-        showKeyboardHints,
-        theme,
-        customInstructions,
-        setCustomInstructions,
-        promptPresets,
-        addPromptPreset,
-        removePromptPreset
+        toggleFavoriteMarket
     } = usePreferencesStore();
 
     const [activeTab, setActiveTab] = useState<Tab>('general');
@@ -64,13 +53,6 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
     const [minCoc, setMinCoc] = useState<string>('');
     const [minCapRate, setMinCapRate] = useState<string>('');
     const [maxRehab, setMaxRehab] = useState<string>('');
-    // Custom Instructions
-    const [instructions, setInstructions] = useState('');
-
-    // Prompts
-    const [newPromptLabel, setNewPromptLabel] = useState('');
-    const [newPromptCommand, setNewPromptCommand] = useState('');
-    const [newPromptContent, setNewPromptContent] = useState('');
 
 
     // Initialize local state from store when modal opens
@@ -93,8 +75,6 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 setMinCapRate(investmentCriteria.min_cap_rate_pct ? (investmentCriteria.min_cap_rate_pct * 100).toString() : '');
                 setMaxRehab(investmentCriteria.max_rehab_cost?.toString() || '');
             }
-
-            setInstructions(customInstructions || '');
         }
     }, [isOpen, budgetRange, financialDna, investmentCriteria]);
 
@@ -107,18 +87,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
         }
     };
 
-    const handleAddPrompt = () => {
-        if (newPromptLabel.trim() && newPromptCommand.trim() && newPromptContent.trim()) {
-            addPromptPreset({
-                label: newPromptLabel.trim(),
-                command: newPromptCommand.trim().startsWith('/') ? newPromptCommand.trim() : `/${newPromptCommand.trim()}`,
-                content: newPromptContent.trim()
-            });
-            setNewPromptLabel('');
-            setNewPromptCommand('');
-            setNewPromptContent('');
-        }
-    };
+
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -146,11 +115,12 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
             };
             setInvestmentCriteria(newCriteria);
 
-            setCustomInstructions(instructions);
-
             // 2. Save to Backend
             // Dynamic import to avoid circular dependency if any
             const { savePreferences } = await import('../services/preferencesApi');
+
+            // Get additional required fields from store
+            const { recentSearches, showKeyboardHints, theme } = usePreferencesStore.getState();
 
             await savePreferences({
                 user_id: 'default',
@@ -161,11 +131,9 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 financial_dna: newDna,
                 investment_criteria: newCriteria,
                 recent_searches: recentSearches,
-                last_search_city: lastSearchCity,
                 show_keyboard_hints: showKeyboardHints,
-                theme: theme,
-                custom_instructions: instructions
-            } as any); // Cast to any to bypass type check for new field until backend update
+                theme: theme
+            });
 
             onClose();
         } catch (err) {
@@ -178,13 +146,16 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
     const TabButton = ({ id, label, icon: Icon }: { id: Tab, label: string, icon: any }) => (
         <button
             onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${activeTab === id
-                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-sm'
-                : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'
+            className={`flex items-center gap-2 px-2 py-2.5 font-medium transition-all relative ${activeTab === id
+                ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text'
+                : 'text-white/60 hover:text-white'
                 }`}
         >
-            <Icon className="w-4 h-4" />
+            <Icon className={`w-4 h-4 ${activeTab === id ? 'text-blue-400' : ''}`} />
             {label}
+            {activeTab === id && (
+                <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full" />
+            )}
         </button>
     );
 
@@ -206,12 +177,12 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-3xl bg-[#0F1117] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="relative w-full max-w-3xl bg-[#0F1117] border border-transparent rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02]">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-transparent flex items-center justify-center">
                                     <Settings className="w-5 h-5 text-blue-400" />
                                 </div>
                                 <div>
@@ -219,7 +190,10 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                     <p className="text-sm text-white/50">Configure your Buy Box & DNA</p>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors">
+                            <button
+                                onClick={onClose}
+                                className="p-2 rounded-lg text-white/40 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all"
+                            >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -229,8 +203,6 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             <TabButton id="general" label="General & Buy Box" icon={Home} />
                             <TabButton id="financial" label="Financial DNA" icon={TrendingUp} />
                             <TabButton id="goals" label="Investment Goals" icon={Target} />
-                            <TabButton id="persona" label="Persona" icon={User} />
-                            <TabButton id="prompts" label="Prompts" icon={Command} />
                         </div>
 
                         {/* Content */}
@@ -245,25 +217,28 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                             <Home className="w-4 h-4 text-blue-400" />
                                             Default Strategy
                                         </label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             {['STR', 'LTR', 'FLIP'].map((strategy) => (
                                                 <button
                                                     key={strategy}
                                                     onClick={() => setDefaultStrategy(strategy as any)}
-                                                    className={`relative group p-4 rounded-xl border transition-all duration-300 text-left ${defaultStrategy === strategy
-                                                        ? 'bg-blue-500/10 border-blue-500/50'
-                                                        : 'bg-white/[0.02] border-white/10 hover:border-white/20 hover:bg-white/[0.04]'
+                                                    className={`relative group p-4 rounded-xl transition-all duration-300 text-left ${defaultStrategy === strategy
+                                                        ? 'bg-gradient-to-br from-blue-500/10 to-purple-500/10'
+                                                        : 'hover:bg-white/[0.02]'
                                                         }`}
                                                 >
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className={`font-semibold ${defaultStrategy === strategy ? 'text-blue-400' : 'text-white'}`}>{strategy}</span>
-                                                        {defaultStrategy === strategy && <div className="bg-blue-500 rounded-full p-0.5"><Check className="w-3 h-3 text-white" /></div>}
+                                                        <span className={`font-semibold ${defaultStrategy === strategy ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text' : 'text-white/80'}`}>{strategy}</span>
+                                                        {defaultStrategy === strategy && <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-0.5"><Check className="w-3 h-3 text-white" /></div>}
                                                     </div>
                                                     <div className="text-xs text-white/40">
                                                         {strategy === 'STR' && 'Short-term Rental'}
                                                         {strategy === 'LTR' && 'Long-term Rental'}
                                                         {strategy === 'FLIP' && 'Fix & Flip'}
                                                     </div>
+                                                    {defaultStrategy === strategy && (
+                                                        <div className="absolute inset-0 rounded-xl border border-blue-500/30" />
+                                                    )}
                                                 </button>
                                             ))}
                                         </div>
@@ -275,20 +250,20 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                             <DollarSign className="w-4 h-4 text-green-400" />
                                             Budget Range
                                         </label>
-                                        <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 space-y-4">
+                                        <div className="space-y-4">
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div className="space-y-2">
                                                     <label className="text-xs text-white/40 uppercase tracking-wider">Min</label>
                                                     <div className="relative">
                                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">$</span>
-                                                        <input type="number" value={minBudget} onChange={(e) => setMinBudget(Number(e.target.value))} className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-blue-500/50" step="10000" />
+                                                        <input type="number" value={minBudget} onChange={(e) => setMinBudget(Number(e.target.value))} className="w-full bg-white/[0.03] border border-transparent rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" step="10000" />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-xs text-white/40 uppercase tracking-wider">Max</label>
                                                     <div className="relative">
                                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30">$</span>
-                                                        <input type="number" value={maxBudget} onChange={(e) => setMaxBudget(Number(e.target.value))} className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-blue-500/50" step="10000" />
+                                                        <input type="number" value={maxBudget} onChange={(e) => setMaxBudget(Number(e.target.value))} className="w-full bg-white/[0.03] border border-transparent rounded-lg py-2.5 pl-7 pr-3 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" step="10000" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -305,14 +280,14 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                             Favorite Markets
                                         </label>
                                         <div className="flex gap-2 mb-3">
-                                            <input type="text" value={newMarket} onChange={(e) => setNewMarket(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddMarket()} placeholder="Add a city..." className="flex-1 bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-blue-500/50" />
-                                            <button onClick={handleAddMarket} disabled={!newMarket.trim()} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl font-medium">Add</button>
+                                            <input type="text" value={newMarket} onChange={(e) => setNewMarket(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddMarket()} placeholder="Add a city..." className="flex-1 bg-white/[0.03] border border-transparent rounded-xl px-4 py-2.5 text-white placeholder:text-white/20 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" />
+                                            <button onClick={handleAddMarket} disabled={!newMarket.trim()} className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/20 transition-all">Add</button>
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {favoriteMarkets.map((market: string) => (
-                                                <div key={market} className="flex items-center gap-2 pl-3 pr-2 py-1.5 bg-white/[0.05] border border-white/10 text-white/90 rounded-lg group hover:border-white/20">
+                                                <div key={market} className="flex items-center gap-2 pl-3 pr-2 py-1.5 bg-white/[0.05] border border-transparent text-white/90 rounded-lg group hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.4)] transition-all">
                                                     <span className="text-sm">{market}</span>
-                                                    <button onClick={() => toggleFavoriteMarket(market)} className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                    <button onClick={() => toggleFavoriteMarket(market)} className="p-1 rounded text-white/40 hover:text-red-400 hover:drop-shadow-[0_0_6px_rgba(239,68,68,0.6)] transition-all"><X className="w-3 h-3" /></button>
                                                 </div>
                                             ))}
                                         </div>
@@ -323,7 +298,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             {/* --- FINANCIAL DNA TAB --- */}
                             {activeTab === 'financial' && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm">
+                                    <div className="p-4 rounded-xl bg-blue-500/5 text-blue-200/70 text-sm">
                                         These settings ensure your deal analysis is accurate to your financial situation.
                                     </div>
 
@@ -331,28 +306,28 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-white/70">Down Payment %</label>
                                             <div className="relative">
-                                                <input type="number" value={downPayment} onChange={(e) => setDownPayment(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <input type="number" value={downPayment} onChange={(e) => setDownPayment(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-white/70">Interest Rate %</label>
                                             <div className="relative">
-                                                <input type="number" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <input type="number" value={interestRate} onChange={(e) => setInterestRate(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-white/70">Prop Mgmt Fee %</label>
                                             <div className="relative">
-                                                <input type="number" value={mgmtFee} onChange={(e) => setMgmtFee(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <input type="number" value={mgmtFee} onChange={(e) => setMgmtFee(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-white/70">CapEx / Vacancy %</label>
                                             <div className="relative">
-                                                <input type="number" value={capex} onChange={(e) => setCapex(e.target.value)} className="w-full bg-white/[0.02] border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50" />
+                                                <input type="number" value={capex} onChange={(e) => setCapex(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">%</span>
                                             </div>
                                         </div>
@@ -363,7 +338,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             {/* --- GOALS TAB (NEW) --- */}
                             {activeTab === 'goals' && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-200 text-sm flex items-start gap-3">
+                                    <div className="p-4 rounded-xl bg-purple-500/5 text-purple-200/70 text-sm flex items-start gap-3">
                                         <Target className="w-5 h-5 shrink-0 mt-0.5" />
                                         <div>
                                             <p className="font-semibold mb-1">Define your "Win" conditions</p>
@@ -373,38 +348,38 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
 
                                     <div className="space-y-6">
                                         {/* Cash Flow */}
-                                        <div className="bg-white/[0.02] rounded-xl p-5 border border-white/10">
-                                            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+                                        <div className="space-y-3">
+                                            <label className="flex items-center gap-2 text-sm font-medium text-white/80">
                                                 <Banknote className="w-4 h-4 text-green-400" />
                                                 Min. Monthly Cash Flow
                                             </label>
                                             <div className="relative max-w-sm">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">$</span>
-                                                <input placeholder="e.g. 300" type="number" value={minCashFlow} onChange={(e) => setMinCashFlow(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-8 pr-4 text-white focus:outline-none focus:border-green-500/50 transition-all" />
+                                                <input placeholder="e.g. 300" type="number" value={minCashFlow} onChange={(e) => setMinCashFlow(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-8 pr-4 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-green-500/30 transition-all" />
                                             </div>
                                         </div>
 
                                         {/* CoC Return */}
-                                        <div className="bg-white/[0.02] rounded-xl p-5 border border-white/10">
-                                            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+                                        <div className="space-y-3">
+                                            <label className="flex items-center gap-2 text-sm font-medium text-white/80">
                                                 <Percent className="w-4 h-4 text-blue-400" />
                                                 Min. Cash-on-Cash Return
                                             </label>
                                             <div className="relative max-w-sm">
-                                                <input placeholder="e.g. 10" type="number" value={minCoc} onChange={(e) => setMinCoc(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-blue-500/50 transition-all" />
+                                                <input placeholder="e.g. 10" type="number" value={minCoc} onChange={(e) => setMinCoc(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-4 pr-10 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all" />
                                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40">%</span>
                                             </div>
                                         </div>
 
                                         {/* Max Rehab */}
-                                        <div className="bg-white/[0.02] rounded-xl p-5 border border-white/10">
-                                            <label className="flex items-center gap-2 text-sm font-medium text-white mb-2">
+                                        <div className="space-y-3">
+                                            <label className="flex items-center gap-2 text-sm font-medium text-white/80">
                                                 <BarChart3 className="w-4 h-4 text-orange-400" />
                                                 Max Rehab Budget
                                             </label>
                                             <div className="relative max-w-sm">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">$</span>
-                                                <input placeholder="e.g. 50000" type="number" value={maxRehab} onChange={(e) => setMaxRehab(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-8 pr-4 text-white focus:outline-none focus:border-orange-500/50 transition-all" />
+                                                <input placeholder="e.g. 50000" type="number" value={maxRehab} onChange={(e) => setMaxRehab(e.target.value)} className="w-full bg-white/[0.03] border border-transparent rounded-xl py-3 pl-8 pr-4 text-white focus:outline-none focus:border-transparent focus:ring-2 focus:ring-orange-500/30 transition-all" />
                                             </div>
                                             <p className="text-xs text-white/30 mt-2">Projects exceeding this rehab cost will be flagged.</p>
                                         </div>
@@ -412,122 +387,28 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 </motion.div>
                             )}
 
-                            {/* --- PERSONA TAB (NEW) --- */}
-                            {activeTab === 'persona' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                    <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-200 text-sm flex items-start gap-3">
-                                        <FileText className="w-5 h-5 shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-semibold mb-1">Custom Instructions</p>
-                                            <p className="opacity-80">These instructions will be added to the system prompt for every chat. Use this to customize the AI's personality, tone, or format.</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-white/70">Global Instructions</label>
-                                        <textarea
-                                            value={instructions}
-                                            onChange={(e) => setInstructions(e.target.value)}
-                                            placeholder="e.g. Always be concise. Format output as markdown tables. Act as a skeptical investor."
-                                            className="w-full h-48 bg-white/[0.02] border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-indigo-500/50 resize-none font-mono text-sm leading-relaxed"
-                                        />
-                                        <div className="flex justify-between text-xs text-white/30">
-                                            <span>Supports plain text</span>
-                                            <span>{instructions.length} characters</span>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* --- PROMPTS TAB (NEW) --- */}
-                            {activeTab === 'prompts' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-sm flex items-start gap-3">
-                                        <Command className="w-5 h-5 shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="font-semibold mb-1">Prompt Library</p>
-                                            <p className="opacity-80">Create custom slash commands to quickly insert common prompts.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Add New */}
-                                    <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Label</label>
-                                                <input
-                                                    placeholder="e.g. Analyze Flip"
-                                                    value={newPromptLabel}
-                                                    onChange={(e) => setNewPromptLabel(e.target.value)}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500/50"
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Command</label>
-                                                <input
-                                                    placeholder="e.g. /flip"
-                                                    value={newPromptCommand}
-                                                    onChange={(e) => setNewPromptCommand(e.target.value)}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500/50"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-medium text-white/50 uppercase tracking-wider">Content</label>
-                                            <textarea
-                                                placeholder="The prompt text to insert..."
-                                                value={newPromptContent}
-                                                onChange={(e) => setNewPromptContent(e.target.value)}
-                                                className="w-full h-24 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500/50 resize-none"
-                                            />
-                                        </div>
-                                        <button
-                                            onClick={handleAddPrompt}
-                                            disabled={!newPromptLabel || !newPromptCommand || !newPromptContent}
-                                            className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors text-sm"
-                                        >
-                                            Add Preset
-                                        </button>
-                                    </div>
-
-                                    {/* List */}
-                                    <div className="space-y-3">
-                                        <label className="text-sm font-medium text-white/70">Your Presets ({promptPresets.length})</label>
-                                        {promptPresets.length === 0 ? (
-                                            <div className="text-center py-8 text-white/30 text-sm">No presets yet. Create one above!</div>
-                                        ) : (
-                                            promptPresets.map(preset => (
-                                                <div key={preset.id} className="bg-white/[0.02] border border-white/10 rounded-xl p-4 flex items-start gap-4 group hover:border-white/20 transition-colors">
-                                                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                                                        <Command className="w-5 h-5" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <h4 className="font-medium text-white truncate">{preset.label}</h4>
-                                                            <span className="text-xs font-mono bg-white/10 px-2 py-0.5 rounded text-white/60">{preset.command}</span>
-                                                        </div>
-                                                        <p className="text-sm text-white/50 line-clamp-2">{preset.content}</p>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => removePromptPreset(preset.id)}
-                                                        className="p-2 rounded-lg hover:bg-white/10 text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </motion.div>
-                            )}
 
                         </div>
 
                         {/* Footer */}
-                        <div className="p-6 border-t border-white/10 bg-white/[0.02] flex justify-end gap-3">
-                            <button onClick={onClose} className="px-5 py-2.5 text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-colors font-medium">Cancel</button>
-                            <button onClick={handleSave} disabled={isSaving} className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-                                {isSaving ? 'Saving...' : 'Save Preferences'}
+                        <div className="p-6 border-t border-white/10 bg-white/[0.02] flex justify-end gap-6">
+                            <button
+                                onClick={onClose}
+                                className="text-white/60 hover:text-white text-sm font-medium transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 group relative overflow-hidden"
+                            >
+                                {/* Shimmer effect */}
+                                {!isSaving && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                                )}
+                                <span className="relative z-10">{isSaving ? 'Saving...' : 'Save Preferences'}</span>
                             </button>
                         </div>
                     </motion.div>

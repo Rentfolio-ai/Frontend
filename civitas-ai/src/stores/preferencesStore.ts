@@ -34,12 +34,7 @@ export interface InteractionProfile {
     risk_profile?: string | null;
 }
 
-export interface PromptPreset {
-    id: string;
-    label: string;
-    content: string;
-    command: string;
-}
+
 
 export interface InferredPreferences {
     [key: string]: string | string[] | null | undefined; // Flexible for various inferred rules
@@ -71,9 +66,7 @@ export interface UserPreferences {
     recentSearches: string[];
     lastSearchCity: string | null;
 
-    // Custom Instructions (Persona)
-    customInstructions: string | null;
-    promptPresets: PromptPreset[];
+
 
     // Inferred Learning (Implicit Feedback)
     inferredPreferences: InferredPreferences | null;
@@ -120,12 +113,7 @@ export interface PreferencesState extends UserPreferences {
     setShowKeyboardHints: (show: boolean) => void;
     setWideMode: (isWide: boolean) => void;
     setTheme: (theme: UserPreferences['theme']) => void;
-    setCustomInstructions: (instructions: string | null) => void;
 
-    // Prompt Presets
-    addPromptPreset: (preset: Omit<PromptPreset, 'id'>) => void;
-    removePromptPreset: (id: string) => void;
-    updatePromptPreset: (id: string, preset: Partial<PromptPreset>) => void;
 
     setAllPreferences: (prefs: Partial<UserPreferences>) => void;
 
@@ -148,8 +136,6 @@ const defaultPreferences: UserPreferences = {
     showKeyboardHints: true,
     isWideMode: false,
     theme: 'dark',
-    customInstructions: null,
-    promptPresets: [],
     inferredPreferences: null,
     clientLocation: null
 };
@@ -221,54 +207,8 @@ export const usePreferencesStore = create<PreferencesState>()(
             setShowKeyboardHints: (show: boolean) => set({ showKeyboardHints: show }),
             setWideMode: (isWide: boolean) => set({ isWideMode: isWide }),
             setTheme: (theme: UserPreferences['theme']) => set({ theme }),
-            setCustomInstructions: (instructions: string | null) => set({ customInstructions: instructions }),
 
-            addPromptPreset: async (preset) => {
-                const { user_id } = get();
-                // Optimistic update
-                const tempId = crypto.randomUUID();
-                set((state) => ({
-                    ...state,
-                    promptPresets: [...state.promptPresets, { ...preset, id: tempId }]
-                }));
 
-                const { createPrompt } = await import('../services/preferencesApi');
-                const newPrompt = await createPrompt(user_id, {
-                    title: preset.label,
-                    content: preset.content,
-                    command: preset.command,
-                    category: 'custom',
-                    is_favorite: false
-                });
-
-                if (newPrompt) {
-                    set((state) => ({
-                        ...state,
-                        promptPresets: state.promptPresets.map(p => p.id === tempId ? { ...p, id: newPrompt.id } : p)
-                    }));
-                }
-            },
-
-            removePromptPreset: async (id) => {
-                const { user_id } = get();
-                const { deletePrompt } = await import('../services/preferencesApi');
-
-                // Optimistic
-                set((state) => ({
-                    ...state,
-                    promptPresets: state.promptPresets.filter((p: PromptPreset) => p.id !== id)
-                }));
-
-                await deletePrompt(user_id, id);
-            },
-
-            updatePromptPreset: (id, updates) =>
-                set((state) => ({
-                    ...state,
-                    promptPresets: state.promptPresets.map((p: PromptPreset) =>
-                        p.id === id ? { ...p, ...updates } : p
-                    )
-                })),
 
             setAllPreferences: (prefs: Partial<UserPreferences>) => set((state) => ({
                 ...state,
@@ -287,34 +227,11 @@ export const usePreferencesStore = create<PreferencesState>()(
                         import('../services/preferencesApi')
                     ]);
 
-                    const [prefs, prompts] = await Promise.all([
-                        api.getPreferences(user_id),
-                        api.getPrompts(user_id)
-                    ]);
-
-                    // Map backend prompts to store presets
-                    const promptPresets: PromptPreset[] = prompts.map(p => ({
-                        id: p.id,
-                        label: p.title,
-                        content: p.content,
-                        command: p.command || ''
-                    }));
-
-                    // Logic to merge prefs...
-                    // Assuming prefs keys match or we map them.
-                    // Ideally we use a helper but for MVP direct assign if matching.
-                    // Note: API returns snake_case but store expects camelCase for some fields?
-                    // Actually we saw in useDesktopShell that it does manual mapping.
-                    // Ideally the STORE handles mapping. Let's do a basic mapping here.
+                    const prefs = await api.getPreferences(user_id);
 
                     set((state) => ({
-                        ...state,
-                        promptPresets,
-                        // Basic mappings if needed, relying on 'prefs' matching mostly
-                        // If prefs contains "default_strategy", we might need to map to defaultStrategy
-                        // But let's assume useDesktopShell handles the heavy prefs hydration for now
-                        // and we just focus on prompts here to limit scope risk.
-                        // Or we can invoke the mapped hydration.
+                        ...state
+                        // Prefs mapping handled by caller
                     }));
 
                 } catch (err) {

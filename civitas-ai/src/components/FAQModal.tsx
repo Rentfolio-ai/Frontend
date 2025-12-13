@@ -70,12 +70,12 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-3xl bg-[#0F1117] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="relative w-full max-w-3xl bg-[#0F1117] border border-transparent rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02]">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-transparent flex items-center justify-center">
                                     <HelpCircle className="w-5 h-5 text-purple-400" />
                                 </div>
                                 <div>
@@ -85,7 +85,7 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-colors"
+                                className="p-2 rounded-lg text-white/40 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -93,66 +93,74 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
 
                         {/* Search */}
                         <div className="p-6 border-b border-white/10 bg-white/[0.01]">
-                            <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-blue-400 group-focus-within:drop-shadow-[0_0_6px_rgba(59,130,246,0.6)] transition-all" />
                                 <input
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search for answers..."
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500/30 transition-all"
                                 />
                             </div>
                         </div>
 
                         {/* Categories */}
                         <div className="px-6 pt-6 pb-2">
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-4">
                                 <button
                                     onClick={() => setSelectedCategory(null)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedCategory === null
-                                        ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
-                                        : 'bg-white/[0.05] text-white/70 hover:bg-white/[0.1] hover:text-white'
+                                    className={`text-sm font-medium transition-all relative ${selectedCategory === null
+                                        ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text'
+                                        : 'text-white/60 hover:text-white'
                                         }`}
                                 >
                                     All
+                                    {selectedCategory === null && (
+                                        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full" />
+                                    )}
                                 </button>
                                 {Object.entries(categories).map(([key, category]) => (
                                     <button
                                         key={key}
                                         onClick={() => setSelectedCategory(key)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${selectedCategory === key
-                                            ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'
-                                            : 'bg-white/[0.05] text-white/70 hover:bg-white/[0.1] hover:text-white'
+                                        className={`text-sm font-medium transition-all flex items-center gap-2 relative ${selectedCategory === key
+                                            ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text'
+                                            : 'text-white/60 hover:text-white'
                                             }`}
                                     >
                                         <span>{category.icon}</span>
                                         <span>{category.name}</span>
+                                        {selectedCategory === key && (
+                                            <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full" />
+                                        )}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* FAQs */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-2 custom-scrollbar">
                             {Object.entries(faqs).map(([categoryKey, categoryFAQs]) => (
-                                <div key={categoryKey} className="space-y-3">
-                                    {categoryFAQs.map((faq) => (
+                                <div key={categoryKey} className="space-y-2">
+                                    {categoryFAQs.map((faq, index) => (
                                         <motion.div
                                             layout
                                             key={faq.id}
-                                            className="border border-white/10 rounded-xl overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                                            className="overflow-hidden hover:bg-white/[0.02] transition-colors rounded-lg"
                                         >
                                             {/* Question */}
                                             <button
                                                 onClick={() => toggleFAQ(faq.id)}
-                                                className="w-full flex items-center justify-between p-4 text-left"
+                                                className="w-full flex items-center justify-between p-4 text-left group"
                                             >
-                                                <span className="font-medium text-white/90">{faq.question}</span>
+                                                <span className="font-medium text-white/90 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-300 group-hover:to-purple-300 group-hover:bg-clip-text transition-all">
+                                                    {faq.question}
+                                                </span>
                                                 {expandedFAQs.has(faq.id) ? (
-                                                    <ChevronUp className="w-5 h-5 text-white/40 flex-shrink-0" />
+                                                    <ChevronUp className="w-5 h-5 text-white/40 flex-shrink-0 transition-transform" />
                                                 ) : (
-                                                    <ChevronDown className="w-5 h-5 text-white/40 flex-shrink-0" />
+                                                    <ChevronDown className="w-5 h-5 text-white/40 flex-shrink-0 transition-transform" />
                                                 )}
                                             </button>
 
@@ -166,27 +174,27 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                                                         transition={{ duration: 0.2 }}
                                                     >
                                                         <div className="px-4 pb-4 pt-0">
-                                                            <div className="h-px w-full bg-white/5 mb-4" />
+                                                            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-4" />
                                                             <p className="text-white/70 whitespace-pre-line mb-6 leading-relaxed">
                                                                 {faq.answer}
                                                             </p>
 
                                                             {/* Feedback */}
-                                                            <div className="flex items-center justify-between bg-white/[0.03] rounded-lg p-3">
+                                                            <div className="flex items-center justify-between bg-white/[0.02] rounded-lg p-3">
                                                                 {!feedbackGiven.has(faq.id) ? (
                                                                     <>
                                                                         <span className="text-sm text-white/50">Was this answer helpful?</span>
                                                                         <div className="flex gap-2">
                                                                             <button
                                                                                 onClick={() => handleFeedback(faq.id, true)}
-                                                                                className="p-1.5 hover:bg-green-500/20 text-white/40 hover:text-green-400 rounded transition-colors"
+                                                                                className="p-1.5 text-white/40 hover:text-green-400 hover:drop-shadow-[0_0_6px_rgba(34,197,94,0.6)] rounded transition-all"
                                                                                 title="Yes, helpful"
                                                                             >
                                                                                 <ThumbsUp className="w-4 h-4" />
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => handleFeedback(faq.id, false)}
-                                                                                className="p-1.5 hover:bg-red-500/20 text-white/40 hover:text-red-400 rounded transition-colors"
+                                                                                className="p-1.5 text-white/40 hover:text-red-400 hover:drop-shadow-[0_0_6px_rgba(239,68,68,0.6)] rounded transition-all"
                                                                                 title="No, not helpful"
                                                                             >
                                                                                 <ThumbsDown className="w-4 h-4" />
@@ -204,6 +212,11 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
+
+                                            {/* Subtle divider between FAQs */}
+                                            {index < categoryFAQs.length - 1 && (
+                                                <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent mx-4" />
+                                            )}
                                         </motion.div>
                                     ))}
                                 </div>
@@ -239,9 +252,9 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                             </p>
                         </div>
                     </motion.div>
-                </div>
+                </div >
             )}
-        </AnimatePresence>
+        </AnimatePresence >
     );
 };
 

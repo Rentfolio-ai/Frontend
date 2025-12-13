@@ -9,16 +9,20 @@
   :root {
     /* OmniEstate - Luxury Real Estate Color System */
     /* Deep charcoal base with emerald/teal accents and warm gold highlights */
-    --primary: 160 84% 39%; /* Emerald #10B981 */
-    --accent-from: 160 84% 39%; /* Emerald */
-    --accent-to: 173 80% 40%; /* Teal #14B8A6 */
-    --highlight: 45 93% 47%; /* Warm Gold #EAB308 */
+    --primary: 160 84% 39%;
+    /* Emerald #10B981 */
+    --accent-from: 160 84% 39%;
+    /* Emerald */
+    --accent-to: 173 80% 40%;
+    /* Teal #14B8A6 */
+    --highlight: 45 93% 47%;
+    /* Warm Gold #EAB308 */
     --success: 160 84% 39%;
     --warning: 45 93% 47%;
     --danger: 0 84% 60%;
     --info: 199 89% 48%;
     --neutral: 220 9% 46%;
-    
+
     /* Light mode - Clean white with subtle warmth */
     --background: 0 0% 100%;
     --surface: 0 0% 100%;
@@ -28,7 +32,7 @@
     --border-subtle: 220 14% 96%;
     --foreground: 224 71% 4%;
     --text-muted: 220 9% 46%;
-    
+
     --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
@@ -48,15 +52,17 @@
 
   .dark {
     /* Dark mode - Rich charcoal with emerald accents */
-    --background: 224 71% 4%; /* Near black with blue tint #030712 */
-    --surface: 222 47% 8%; /* Dark charcoal #0f1629 */
+    --background: 224 71% 4%;
+    /* Near black with blue tint #030712 */
+    --surface: 222 47% 8%;
+    /* Dark charcoal #0f1629 */
     --surface-elevated: 222 47% 11%;
     --muted: 222 47% 11%;
     --border: 222 47% 15%;
     --border-subtle: 222 47% 11%;
     --foreground: 210 40% 98%;
     --text-muted: 220 9% 60%;
-    
+
     --primary: 160 84% 45%;
     --accent-from: 160 84% 45%;
     --accent-to: 173 80% 45%;
@@ -65,7 +71,7 @@
     --warning: 45 93% 55%;
     --danger: 0 84% 65%;
     --info: 199 89% 55%;
-    
+
     --card: 222 47% 8%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 8%;
@@ -85,7 +91,7 @@
   * {
     border-color: hsl(var(--border));
   }
-  
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
@@ -99,42 +105,79 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 700;
   }
-  
-  h1 { font-size: 2.25rem; line-height: 2.5rem; letter-spacing: -0.025em; }
-  h2 { font-size: 1.5rem; line-height: 2rem; letter-spacing: -0.025em; }
-  
+
+  h1 {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    letter-spacing: -0.025em;
+  }
+
   *:focus-visible {
     outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
     border-radius: 4px;
   }
-  
-  h1, h2, h3, h4, h5, h6, p { margin: 0; }
-  
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    margin: 0;
+  }
+
   ::selection {
     background-color: hsl(var(--primary) / 0.3);
   }
 
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+  }
 
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
     border-radius: 4px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -143,15 +186,16 @@
 }
 
 @layer utilities {
+
   /* Premium glass effects */
   .glass {
     @apply bg-white/70 dark:bg-white/5 backdrop-blur-2xl border border-white/20 dark:border-white/10;
   }
-  
+
   .glass-dark {
     @apply bg-black/40 backdrop-blur-2xl border border-white/10;
   }
-  
+
   .glass-card {
     @apply bg-white/80 dark:bg-white/[0.03] backdrop-blur-2xl border border-black/5 dark:border-white/[0.08] shadow-xl;
   }
@@ -160,33 +204,38 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent-to to-primary;
   }
-  
+
   .text-gradient-gold {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400;
   }
 
   /* Animated gradient background */
   .bg-gradient-animated {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--background)) 0%,
-      hsl(222 47% 6%) 25%,
-      hsl(222 47% 8%) 50%,
-      hsl(220 47% 7%) 75%,
-      hsl(var(--background)) 100%
-    );
+    background: linear-gradient(135deg,
+        hsl(var(--background)) 0%,
+        hsl(222 47% 6%) 25%,
+        hsl(222 47% 8%) 50%,
+        hsl(220 47% 7%) 75%,
+        hsl(var(--background)) 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }
 
   @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
   }
 
   /* Mesh gradient overlay */
   .bg-mesh {
-    background-image: 
+    background-image:
       radial-gradient(at 0% 0%, hsl(160 84% 39% / 0.15) 0px, transparent 50%),
       radial-gradient(at 100% 0%, hsl(173 80% 40% / 0.1) 0px, transparent 50%),
       radial-gradient(at 100% 100%, hsl(45 93% 47% / 0.08) 0px, transparent 50%),
@@ -197,7 +246,7 @@
   .glow-emerald {
     box-shadow: 0 0 40px hsl(160 84% 39% / 0.3), 0 0 80px hsl(160 84% 39% / 0.15);
   }
-  
+
   .glow-gold {
     box-shadow: 0 0 30px hsl(45 93% 47% / 0.4), 0 0 60px hsl(45 93% 47% / 0.2);
   }
@@ -206,6 +255,7 @@
   .hover-lift {
     @apply transition-all duration-300;
   }
+
   .hover-lift:hover {
     transform: translateY(-2px);
   }
@@ -213,6 +263,7 @@
   .hover-glow {
     @apply transition-all duration-300;
   }
+
   .hover-glow:hover {
     box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
   }
@@ -223,8 +274,15 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-8px);
+    }
   }
 
   .animate-pulse-glow {
@@ -232,30 +290,56 @@
   }
 
   @keyframes pulseGlow {
-    0%, 100% { 
+
+    0%,
+    100% {
       box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
       opacity: 1;
     }
-    50% { 
+
+    50% {
       box-shadow: 0 0 40px hsl(var(--primary) / 0.4);
       opacity: 0.8;
     }
   }
 
   .animate-shimmer {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--muted)) 0%,
-      hsl(var(--surface-elevated)) 50%,
-      hsl(var(--muted)) 100%
-    );
+    background: linear-gradient(90deg,
+        hsl(var(--muted)) 0%,
+        hsl(var(--surface-elevated)) 50%,
+        hsl(var(--muted)) 100%);
     background-size: 200% 100%;
     animation: shimmer 2s ease-in-out infinite;
   }
 
   @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-gradient-shift {
+    animation: gradientTextShift 3s ease infinite;
+  }
+
+  .animate-gradient {
+    animation: gradientTextShift 4s ease infinite;
+  }
+
+  @keyframes gradientTextShift {
+
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
   }
 
   /* Slide in animations */
@@ -264,8 +348,15 @@
   }
 
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .animate-fade-in {
@@ -273,16 +364,35 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   /* Stagger delays */
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
 
   /* Premium button styles */
   .btn-primary {
@@ -291,10 +401,12 @@
     box-shadow: 0 4px 20px hsl(160 84% 39% / 0.3), inset 0 1px 0 hsl(160 84% 60% / 0.3);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px hsl(160 84% 39% / 0.4), inset 0 1px 0 hsl(160 84% 60% / 0.4);
   }
+
   .btn-primary:active {
     transform: translateY(0);
   }
@@ -306,6 +418,7 @@
     box-shadow: 0 4px 20px hsl(45 93% 47% / 0.3), inset 0 1px 0 hsl(45 93% 70% / 0.5);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .btn-gold:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px hsl(45 93% 47% / 0.5), inset 0 1px 0 hsl(45 93% 70% / 0.6);
@@ -316,13 +429,16 @@
 .chat-scroll::-webkit-scrollbar {
   width: 6px;
 }
+
 .chat-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .chat-scroll::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 3px;
 }
+
 .chat-scroll::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.3);
 }

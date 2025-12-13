@@ -89,7 +89,8 @@ class AuthAPI {
   private baseURL: string;
 
   constructor(baseURL: string) {
-    this.baseURL = baseURL;
+    // Ensure baseURL doesn't end with /api to avoid double prefixing
+    this.baseURL = baseURL.replace(/\/api\/?$/, '');
   }
 
   private async request<T>(
@@ -97,6 +98,7 @@ class AuthAPI {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    console.log('[AuthAPI] Making request to:', url);
     const headers: any = {
       ...defaultHeaders,
       ...options.headers,

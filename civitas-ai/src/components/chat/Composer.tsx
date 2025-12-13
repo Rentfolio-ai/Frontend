@@ -31,7 +31,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { updateClientLocation, clientLocation, promptPresets } = usePreferencesStore();
+  const { updateClientLocation, clientLocation } = usePreferencesStore();
 
   const allCommands = useMemo(() => {
     const systemCommands = [
@@ -41,16 +41,8 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
       { id: '/search', label: '/search - Find properties', icon: '🔍', content: null },
     ];
 
-    const userCommands = (promptPresets || []).map(p => ({
-      id: p.id,
-      label: `${p.command} - ${p.label}`,
-      icon: '✨',
-      content: p.content,
-      trigger: p.command // store the trigger to match against input
-    }));
-
-    return [...systemCommands, ...userCommands];
-  }, [promptPresets]);
+    return systemCommands;
+  }, []);
 
   const [filteredCommands, setFilteredCommands] = useState(allCommands);
 
@@ -209,7 +201,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
         </div>
       )}
 
-      <div className={`relative transition-all duration-300 rounded-3xl border bg-black/40 backdrop-blur-xl ${isLoading ? 'border-blue-500/30 shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)]' : 'border-white/10 hover:border-white/20'
+      <div className={`relative transition-all duration-300 rounded-3xl ${isLoading ? 'bg-black/20 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]' : 'bg-transparent'
         }`}>
 
         {attachment && (
@@ -261,27 +253,27 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 -ml-2 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition-all group"
+                className="p-2 -ml-2 rounded-xl text-white/50 hover:text-white transition-all group hover:scale-110"
                 title="Attach file"
                 disabled={isLoading}
               >
-                <Paperclip className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <Paperclip className="w-4 h-4 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]" />
               </button>
 
               {/* Location Button */}
               <button
                 type="button"
                 onClick={handleDetectLocation}
-                className={`p-2 rounded-xl transition-all group relative ${clientLocation
-                  ? 'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
-                  : 'text-white/40 hover:text-white hover:bg-white/5'
+                className={`p-2 rounded-xl transition-all group relative hover:scale-110 ${clientLocation
+                  ? 'text-blue-400'
+                  : 'text-white/50 hover:text-white'
                   }`}
                 title={clientLocation ? "Location detected" : "Detect location"}
                 disabled={isLoading || isLocating}
               >
-                <MapPin className={`w-4 h-4 transition-transform group-hover:scale-110 ${isLocating ? 'animate-pulse' : ''}`} />
+                <MapPin className={`w-4 h-4 ${isLocating ? 'animate-pulse' : ''} ${clientLocation ? 'drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]' : 'group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]'}`} />
                 {clientLocation && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-black" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-black animate-pulse" />
                 )}
               </button>
             </div>
@@ -289,17 +281,21 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             <button
               type="submit"
               disabled={(!message.trim() && !attachment && !isLoading) || (isLoading && !onStop)}
-              className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 ${isLoading
-                ? 'bg-white/10 hover:bg-white/20 text-white scale-100'
+              className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 group relative overflow-hidden ${isLoading
+                ? 'bg-white/10 hover:bg-white/15 text-white scale-100'
                 : message.trim() || attachment
-                  ? 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/20 text-white scale-100'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/30 text-white scale-100'
                   : 'bg-white/5 text-white/20 scale-95 cursor-not-allowed'
                 }`}
             >
+              {/* Shimmer effect on hover */}
+              {(message.trim() || attachment) && !isLoading && (
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              )}
               {isLoading && onStop ? (
-                <Square className="w-3 h-3 fill-current" />
+                <Square className="w-3 h-3 fill-current relative z-10" />
               ) : (
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp className="w-4 h-4 relative z-10" />
               )}
             </button>
           </div>

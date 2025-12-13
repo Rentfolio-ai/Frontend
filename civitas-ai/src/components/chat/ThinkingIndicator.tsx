@@ -472,21 +472,27 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
               {/* System 2 Deep Reasoning - Streaming Text Block */}
               {thinking.source === 'System 2 Reasoning' ? (
                 <div className="space-y-2">
-                  {/* Header */}
+                  {/* Header with animated gradient */}
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-                    <span className="text-xs font-semibold text-purple-300 uppercase tracking-wide">🧠 Deep Reasoning</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 animate-pulse shadow-lg shadow-purple-500/50" />
+                    <span className="text-xs font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent uppercase tracking-wide animate-gradient bg-[length:200%_auto]">
+                      🧠 Deep Reasoning
+                    </span>
                   </div>
 
-                  {/* Streaming Reasoning Text */}
+                  {/* Streaming Reasoning Text with enhanced gradient */}
                   <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent">
                     <motion.div
                       initial={{ opacity: 0, y: 2 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-sm font-mono text-purple-200/90 leading-relaxed whitespace-pre-wrap"
+                      className="relative text-sm font-mono leading-relaxed whitespace-pre-wrap"
                     >
-                      {thinking.status}
-                      <span className="inline-block w-1 h-4 ml-1 bg-purple-400 animate-pulse" />
+                      {/* Gradient text with shimmer animation */}
+                      <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">
+                        {thinking.status}
+                      </span>
+                      {/* Animated cursor */}
+                      <span className="inline-block w-1 h-4 ml-1 bg-gradient-to-b from-purple-400 to-pink-400 animate-pulse shadow-lg shadow-purple-500/50" />
                     </motion.div>
                   </div>
                 </div>

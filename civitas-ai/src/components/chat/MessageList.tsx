@@ -102,7 +102,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       className="h-full overflow-y-auto chat-scroll relative"
       onScroll={handleScroll}
     >
-      <div className={`${isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto py-8 px-4 md:px-6 space-y-12 transition-all duration-300`}>
+      <div className={`${isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto py-8 px-4 md:px-6 space-y-12 transition-all duration-300`}>
         {visibleMessages.map((message, index) => {
           const isLast = index === visibleMessages.length - 1;
           // Pass reasoning steps only to the last message if it's from assistant

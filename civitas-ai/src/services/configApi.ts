@@ -31,7 +31,7 @@ export const getConfigVersion = async (): Promise<ConfigVersionResponse> => {
         console.error('Failed to fetch config version:', error);
         // Fallback default
         return {
-            version: 'ProphetAtlas Deep Reasoning v1',
+            version: 'Atlas 1.0',
             mode: 'deep-reasoning',
             model: 'gemini-2.0-flash-thinking-exp',
             provider: 'google'

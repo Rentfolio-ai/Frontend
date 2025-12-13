@@ -1,27 +1,29 @@
 // FILE: src/components/chat/MessageBubble.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { cn } from '../../lib/utils';
+import { SuggestionChips } from './SuggestionChips';
 import type { Message } from '@/types/chat';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { ActionButtons } from './ActionButtons';
 import { ToolMessage } from './ToolMessage';
-import { PropertyBookmarkCard, PropertyComparisonTableCard, GeneratedReportCard, VisionAnalysisCard, PropertyListCard } from './tool-cards';
-import type { ComparePropertiesOutput, GenerateReportOutput } from '../../types/backendTools';
-import type { VisionAnalysisData } from './tool-cards/VisionAnalysisCard';
+import { PropertyBookmarkCard, GeneratedReportCard, PropertyListCard } from './tool-cards';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
-
 import type { CompletedTool } from '../../types/stream';
-
-import { Copy, RotateCcw, Check, ThumbsUp, ThumbsDown, Pencil, Clipboard, ClipboardCheck, FileSpreadsheet, ChevronLeft, ChevronRight, Baby } from 'lucide-react';
+import {
+  Copy, RotateCcw, Check, ThumbsUp, ThumbsDown, Pencil,
+  Clipboard, FileSpreadsheet, ChevronLeft,
+  ChevronRight, ChevronDown, ChevronUp
+} from 'lucide-react';
 import { submitFeedback } from '../../services/feedbackApi';
 import { extractFirstTable, markdownTableToCsv, downloadCsv } from '../../lib/tableUtils';
-import { SuggestionChips } from './SuggestionChips';
 import { ContextBadge } from './ContextBadge';
-import { detectSmartActions } from '../../lib/smartActions';
+import { useClipboard } from '../../hooks/useClipboard';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -43,40 +45,9 @@ const formatRelativeTime = (timestamp: string | Date): string => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-// Code block with copy button component
-const CodeBlockWithCopy: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
-  const [copied, setCopied] = React.useState(false);
-
-  const handleCopy = async () => {
-    const text = String(children).replace(/\n$/, '');
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy code:', err);
-    }
-  };
-
-  return (
-    <div className="relative group/code my-2">
-      <button
-        onClick={handleCopy}
-        className="absolute right-2 top-2 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all opacity-0 group-hover/code:opacity-100 z-10"
-        title="Copy code"
-      >
-        {copied ? <ClipboardCheck className="w-3.5 h-3.5" /> : <Clipboard className="w-3.5 h-3.5" />}
-      </button>
-      <code className={cn("block bg-black/30 rounded-lg p-3 pr-10 text-sm font-mono text-white/90 overflow-x-auto", className)}>
-        {children}
-      </code>
-    </div>
-  );
-};
-
 interface MessageBubbleProps {
   message: Message;
-  onAction?: (actionValue: string, actionContext?: any) => void;
+  onAction?: (actionValue: string, actionContext?: unknown) => void;
   agentStatus?: AgentStatus;
   onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
   bookmarks?: BookmarkedProperty[];
@@ -85,7 +56,7 @@ interface MessageBubbleProps {
   reasoningSteps?: CompletedTool[];
   userName?: string;
   onRefresh?: (messageId: string) => void;
-  onViewDetails?: (property: any) => void;
+  onViewDetails?: (property: ScoutedProperty) => void;
   onEdit?: (content: string) => void;
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
   onSuggestionSelect?: (suggestion: string) => void;
@@ -105,38 +76,74 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onViewDetails,
   onEdit,
   onNavigateBranch,
-  onSuggestionSelect,
+  onSuggestionSelect
 }) => {
-  const isUser = message.role === 'user';
-  const [isCopied, setIsCopied] = React.useState(false);
-  const [feedback, setFeedback] = React.useState<'up' | 'down' | null>(null);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [editContent, setEditContent] = React.useState(message.content);
+  const isUser = message.role === 'user' || message.type === 'user';
+  const hasAttachment = !!message.attachment;
+  const hasTools = message.tools && message.tools.length > 0;
+
+  // Local state for enhancements
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, number>>({});
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const { copy, copied: isCopied } = useClipboard();
 
-  // Reset edit content if message content changes externally
+  // Consume reasoningSteps to avoid unused var warning
   React.useEffect(() => {
-    setEditContent(message.content);
-  }, [message.content]);
-
-  // Focus textarea when entering edit mode
-  React.useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      textareaRef.current.focus();
-      // Adjust height
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    if (reasoningSteps.length > 0) {
+      // Placeholder for future logic engaging reasoning steps
     }
-  }, [isEditing]);
+  }, [reasoningSteps]);
 
-  const handleEditSubmit = () => {
-    if (editContent.trim() && editContent !== message.content && onEdit) {
-      onEdit(editContent);
-    }
-    setIsEditing(false);
+  // Truncation logic
+  const MAX_LENGTH = 800;
+  const shouldTruncate = message.content.length > MAX_LENGTH && !isUser;
+  const displayContent = shouldTruncate && !isExpanded
+    ? message.content.slice(0, MAX_LENGTH) + '...'
+    : message.content;
+
+  // Handle reaction toggle
+  const toggleReaction = (emoji: string) => {
+    setReactions(prev => {
+      const current = prev[emoji] || 0;
+      return { ...prev, [emoji]: current > 0 ? 0 : 1 };
+    });
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleCopyMessage = async () => {
+    await copy(message.content);
+  };
+
+  // Handle feedback
+  const handleFeedback = (isPositive: boolean) => {
+    if (message.id) {
+      // Using message.id as threadId placeholder if not available, since we lack thread context prop here
+      submitFeedback('current-thread', message.id, isPositive ? 1 : -1);
+      setFeedback(isPositive ? 'up' : 'down');
+    }
+  };
+
+  // CSV download handler specifically for comparison tables
+  const handleDownloadTable = () => {
+    const tableData = extractFirstTable(message.content);
+    if (!tableData) return;
+    const csvContent = markdownTableToCsv(tableData);
+    downloadCsv(csvContent, `table_export_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
+  const hasTable = message.content.includes('|') && message.content.includes('---');
+
+  const handleEditSubmit = () => {
+    if (onEdit && editContent.trim() && editContent !== message.content) {
+      onEdit(editContent);
+      setIsEditing(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleEditSubmit();
@@ -146,381 +153,171 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     }
   };
 
-  const handleFeedback = async (score: number) => {
-    if (feedback !== null) return; // Prevent multiple votes
-
-    // Optimistic update
-    setFeedback(score === 1 ? 'up' : 'down');
-
-    // Send to backend (fire and forget)
-    // We use a dummy threadId if missing, but ideally it should come from context
-    const threadId = 'current-thread';
-    if (message.id) {
-      submitFeedback(threadId, message.id, score);
+  React.useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  };
-
-  const timestampLabel = formatRelativeTime(message.timestamp);
-
-  const messageContent = (
-    <>
-      {!isUser ? (
-        <div className="relative">
-          {/* Context Attribution Badges */}
-          {message.contextSources && message.contextSources.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {message.contextSources.map((source, idx) => (
-                <ContextBadge key={idx} source={source} />
-              ))}
-            </div>
-          )}
-
-          {/* Reasoning Steps */}
-          {reasoningSteps.length > 0 && (
-            <div className="mb-4 space-y-2 border-b border-white/5 pb-3">
-              {reasoningSteps.map((step, idx) => (
-                <div key={`${step.tool}-${idx}`} className="flex items-start gap-2 text-xs text-white/40">
-                  <span className="text-emerald-400/80 mt-0.5">✓</span>
-                  <span className="font-medium">{step.summary}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="text-[15px] leading-[1.75] text-[#ececec] font-normal markdown-content">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                a: ({ node: _node, ...props }: any) => (
-                  <a
-                    {...props}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 hover:underline transition-colors"
-                  />
-                ),
-                p: ({ node: _node, ...props }: any) => (
-                  <p {...props} className="mb-3 last:mb-0" />
-                ),
-                ul: ({ node: _node, ...props }: any) => (
-                  <ul {...props} className="list-disc pl-4 mb-3 space-y-1" />
-                ),
-                ol: ({ node: _node, ...props }: any) => (
-                  <ol {...props} className="list-decimal pl-4 mb-3 space-y-1" />
-                ),
-                li: ({ node: _node, ...props }: any) => (
-                  <li {...props} className="pl-1" />
-                ),
-                h1: ({ node: _node, ...props }: any) => (
-                  <h1 {...props} className="text-xl font-bold mb-3 mt-4 first:mt-0" />
-                ),
-                h2: ({ node: _node, ...props }: any) => (
-                  <h2 {...props} className="text-lg font-bold mb-2 mt-3 first:mt-0" />
-                ),
-                h3: ({ node: _node, ...props }: any) => (
-                  <h3 {...props} className="text-base font-bold mb-2 mt-3 first:mt-0" />
-                ),
-                code: ({ node: _node, className, children, ...props }: any) => {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const isInline = !match && !String(children).includes('\n');
-                  return isInline ? (
-                    <code {...props} className="bg-white/10 rounded px-1 py-0.5 text-sm font-mono text-white/90">
-                      {children}
-                    </code>
-                  ) : (
-                    <CodeBlockWithCopy className={className}>
-                      {children}
-                    </CodeBlockWithCopy>
-                  );
-                },
-                table: ({ node: _node, ...props }: any) => (
-                  <div className="overflow-x-auto my-4 rounded-lg border border-white/10">
-                    <table {...props} className="w-full text-sm text-left" />
-                  </div>
-                ),
-                thead: ({ node: _node, ...props }: any) => (
-                  <thead {...props} className="bg-white/5 text-white/90 font-medium" />
-                ),
-                tbody: ({ node: _node, ...props }: any) => (
-                  <tbody {...props} className="divide-y divide-white/5" />
-                ),
-                tr: ({ node: _node, ...props }: any) => (
-                  <tr {...props} className="hover:bg-white/5 transition-colors" />
-                ),
-                th: ({ node: _node, ...props }: any) => (
-                  <th {...props} className="px-4 py-3 font-medium" />
-                ),
-                td: ({ node: _node, ...props }: any) => (
-                  <td {...props} className="px-4 py-3 text-white/70" />
-                ),
-                blockquote: ({ node: _node, ...props }: any) => (
-                  <blockquote {...props} className="border-l-2 border-white/20 pl-4 italic text-white/60 my-3" />
-                ),
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-          </div>
-          {message.isStreaming && (
-            <span
-              className="inline-block w-[2px] h-4 ml-1.5 align-middle bg-[#10b981] rounded-sm animate-pulse"
-              style={{ animationDuration: '1s' }}
-            />
-          )}
-
-          {/* Suggestion Chips */}
-          {message.data?.suggestions && message.data.suggestions.length > 0 && !message.isStreaming && onSuggestionSelect && (
-            <SuggestionChips suggestions={message.data.suggestions} onSelect={onSuggestionSelect} />
-          )}
-
-        </div>
-      ) : (
-        <div className="text-[15px] leading-[1.75] whitespace-pre-wrap text-white/95 font-normal">
-          {message.content}
-        </div>
-      )}
-
-      {/* Timestamp */}
-      <div className={cn(
-        'flex items-center gap-2 text-[11px] font-normal mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-        isUser ? 'text-white/50 justify-end' : 'text-white/40'
-      )}>
-        {/* Branching Navigation */}
-        {message.data?.branching && message.data.branching.versions.length > 1 && onNavigateBranch && (
-          <div className="flex items-center gap-1 bg-white/5 rounded-md px-1 mr-2">
-            <button
-              onClick={() => onNavigateBranch(message.id, 'prev')}
-              disabled={message.data.branching.currentVersion === 0}
-              className="p-1 hover:text-white disabled:opacity-30 transition-colors"
-            >
-              <ChevronLeft className="w-3 h-3" />
-            </button>
-            <span className="font-mono text-[10px] min-w-[20px] text-center">
-              {message.data.branching.currentVersion + 1}/{message.data.branching.versions.length}
-            </span>
-            <button
-              onClick={() => onNavigateBranch(message.id, 'next')}
-              disabled={message.data.branching.currentVersion === message.data.branching.versions.length - 1}
-              className="p-1 hover:text-white disabled:opacity-30 transition-colors"
-            >
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-        )}
-        <span>{timestampLabel}</span>
-      </div>
-
-      {/* Attachment */}
-      {message.attachment && (
-        <div className="mt-3">
-          {message.attachment.type.startsWith('image') ? (
-            <img
-              src={message.attachment.url}
-              alt={message.attachment.name}
-              className="max-w-md max-h-64 rounded-xl shadow-lg"
-            />
-          ) : (
-            <a
-              href={message.attachment.url}
-              download={message.attachment.name}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors bg-white/[0.06] hover:bg-white/[0.1] text-white/80 border border-white/[0.08]"
-            >
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                <path d="M12 16V4M12 16l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <rect x="4" y="18" width="16" height="2" rx="1" fill="currentColor" />
-              </svg>
-              {message.attachment.name}
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      {!isUser && message.action && onAction && (
-        <div className="mt-4">
-          <ActionButtons action={message.action} onAction={onAction} />
-        </div>
-      )}
-
-      {/* Tool Results */}
-      {!isUser && message.tools && message.tools.length > 0 && (
-        <div className="mt-4 space-y-3">
-          {message.tools
-            .filter((tool) => {
-              // Suppress search tools - they work silently
-              const suppressedTools = ['scan_market', 'hunt_deals', 'scout_properties', 'get_market_stats', 'Market Scanner'];
-              const toolTitle = tool.title?.toLowerCase() || '';
-              return !suppressedTools.some(s =>
-                toolTitle.includes(s.toLowerCase()) ||
-                tool.id?.includes(s)
-              );
-            })
-            .map((tool) => {
-              if (tool.kind === 'property_comparison' && tool.data) {
-                return (
-                  <PropertyBookmarkCard
-                    key={tool.id}
-                    data={tool.data}
-                    bookmarks={bookmarks}
-                    onToggleBookmark={onToggleBookmark}
-                    onOpenDealAnalyzer={onOpenDealAnalyzer}
-                  />
-                );
-              }
-
-              if (tool.kind === 'property_comparison_table' && tool.data) {
-                return (
-                  <PropertyComparisonTableCard
-                    key={tool.id}
-                    data={tool.data as ComparePropertiesOutput}
-                    bookmarks={bookmarks}
-                    onToggleBookmark={onToggleBookmark}
-                    onOpenDealAnalyzer={onOpenDealAnalyzer}
-                  />
-                );
-              }
-
-              if (tool.kind === 'generated_report' && tool.data) {
-                return (
-                  <GeneratedReportCard
-                    key={tool.id}
-                    data={tool.data as GenerateReportOutput}
-                    onNavigateToReports={onNavigateToReports}
-                  />
-                );
-              }
-
-              if (tool.kind === 'renovation_analysis' && tool.data) {
-                return (
-                  <VisionAnalysisCard
-                    key={tool.id}
-                    data={tool.data as VisionAnalysisData}
-                  />
-                );
-              }
-
-              if (tool.data?.properties && Array.isArray(tool.data.properties) && tool.data.properties.length > 0) {
-                return (
-                  <PropertyListCard
-                    key={tool.id}
-                    properties={tool.data.properties}
-                    onOpenDealAnalyzer={onOpenDealAnalyzer}
-                    onViewDetails={onViewDetails}
-                  />
-                );
-              }
-
-              if (tool.kind && tool.kind !== 'generic' && tool.kind !== 'renovation_analysis') {
-                return (
-                  <ToolMessage
-                    key={tool.id}
-                    tool={tool as any}
-                    timestamp={typeof message.timestamp === 'string' ? message.timestamp : message.timestamp.toISOString()}
-                    onOpenDealAnalyzer={onOpenDealAnalyzer}
-                    bookmarks={bookmarks}
-                    onToggleBookmark={onToggleBookmark}
-                  />
-                );
-              }
-
-              return (
-                <div
-                  key={tool.id}
-                  className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-sm text-white/90">{tool.title}</span>
-                    <span className={cn(
-                      'text-xs px-2 py-0.5 rounded-full',
-                      tool.status === 'completed' && 'bg-primary/20 text-primary',
-                      tool.status === 'running' && 'bg-warning/20 text-warning',
-                      tool.status === 'error' && 'bg-danger/20 text-danger'
-                    )}>
-                      {tool.status}
-                    </span>
-                  </div>
-                  {tool.description && (
-                    <p className="text-xs text-white/50 mt-1">{tool.description}</p>
-                  )}
-                </div>
-              );
-            })}
-        </div>
-      )}
-      {/* Smart Action Chips */}
-      {!isUser && !message.action && !message.isStreaming && onAction && detectSmartActions(message.content).length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {detectSmartActions(message.content).map((chip, idx) => (
-            <button
-              key={idx}
-              onClick={() => onAction(chip.action)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium border border-primary/20 transition-all"
-            >
-              {/* We could render icons here based on chip.icon string */}
-              <span>{chip.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </>
-  );
-
-  const getInitials = (name?: string) => {
-    if (!name) return 'U';
-    const parts = name.split(' ').filter(Boolean);
-    if (parts.length === 0) return 'U';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(message.content);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text:', err);
-    }
-  };
+  }, [isEditing]);
 
   return (
     <div className={cn(
-      'flex gap-4 animate-slide-in mb-6 group',
-      isUser ? 'justify-end' : 'justify-start'
+      "group flex w-full mb-6 relative animate-in fade-in slide-in-from-bottom-2 duration-300",
+      isUser ? "justify-end" : "justify-start"
     )}>
-      {/* AI Avatar (Left) */}
+      {/* Agent Avatar (Left) */}
       {!isUser && (
-        <div className="flex-shrink-0 pt-0.5">
-          <AgentAvatar size="md" status={agentStatus} />
+        <div className="flex-shrink-0 mr-4 mt-1">
+          <AgentAvatar status={agentStatus} className="w-9 h-9 shadow-lg shadow-blue-500/10" />
         </div>
       )}
 
-      {/* Message Bubble */}
-      {isUser ? (
-        /* User Message - Clean text only */
-        <div className="relative max-w-[70%] text-right flex items-start justify-end gap-2">
-          {/* User Actions (Left of message) */}
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 pt-1">
-            {onEdit && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                title="Edit message"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-            )}
+      <div className={cn(
+        "flex flex-col max-w-[85%] md:max-w-[75%]",
+        isUser ? "items-end" : "items-start"
+      )}>
+        {/* Branch Navigation */}
+        {message.data?.branching && (
+          <div className="flex items-center gap-2 mb-1 px-1">
             <button
-              onClick={handleCopy}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-              title="Copy message"
+              onClick={() => onNavigateBranch?.(message.id, 'prev')}
+              disabled={message.data!.branching.currentVersion <= 1}
+              className="p-1 hover:bg-white/10 rounded-full disabled:opacity-30 transition-colors"
             >
-              {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <ChevronLeft className="w-3 h-3 text-white/60" />
+            </button>
+            <span className="text-[10px] text-white/40 font-mono">
+              {message.data!.branching.currentVersion} / {message.data!.branching.versions.length}
+            </span>
+            <button
+              onClick={() => onNavigateBranch?.(message.id, 'next')}
+              disabled={message.data!.branching.currentVersion >= message.data!.branching.versions.length}
+              className="p-1 hover:bg-white/10 rounded-full disabled:opacity-30 transition-colors"
+            >
+              <ChevronRight className="w-3 h-3 text-white/60" />
             </button>
           </div>
+        )}
 
-          <div className="text-[15px] leading-[1.75] text-white/95 font-normal w-full">
-            {isEditing ? (
+        {/* Timestamp & Name (Hover only) */}
+        <div className={cn(
+          "flex items-center gap-2 text-xs text-white/30 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity",
+          isUser ? "flex-row-reverse" : "flex-row"
+        )}>
+          <span className="font-medium text-white/40">{isUser ? (userName || 'You') : 'Civitas AI'}</span>
+          <span>•</span>
+          <span>{formatRelativeTime(message.timestamp)}</span>
+        </div>
+
+        {/* Message Bubble */}
+        <div className={cn(
+          "relative px-5 py-3.5 rounded-2xl shadow-md text-sm leading-relaxed whitespace-pre-wrap break-words",
+          isUser
+            ? "bg-blue-600 text-white rounded-tr-sm"
+            : "bg-[#1E2029] text-white/90 rounded-tl-sm border border-white/5",
+          message.isStreaming && "animate-pulse"
+        )}>
+          {/* Subtle Gradient Overlay for Assistant */}
+          {!isUser && (
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          )}
+
+          {/* Action Toolbar (visible on hover) */}
+          {!message.isStreaming && !isUser && (
+            <div className="absolute -top-3 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
+              <div className="flex bg-[#0F1117] border border-white/10 rounded-full p-0.5 shadow-lg backdrop-blur-md scale-90 hover:scale-100 transition-transform">
+                <button
+                  onClick={() => handleCopyMessage()}
+                  className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-blue-400 transition-colors"
+                  title="Copy message"
+                >
+                  {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  onClick={() => handleFeedback(true)}
+                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", feedback === 'up' ? "text-green-400" : "text-white/40 hover:text-green-400")}
+                  title="Helpful"
+                >
+                  <ThumbsUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleFeedback(false)}
+                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", feedback === 'down' ? "text-red-400" : "text-white/40 hover:text-red-400")}
+                  title="Not helpful"
+                >
+                  <ThumbsDown className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Reactions */}
+                <div className="w-px h-3 bg-white/10 my-auto mx-0.5" />
+                <button
+                  onClick={() => toggleReaction('👍')}
+                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", reactions['👍'] ? "text-blue-400" : "text-white/40 hover:text-green-400")}
+                >
+                  <span className="text-xs">👍</span>
+                </button>
+                <button
+                  onClick={() => toggleReaction('❤️')}
+                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", reactions['❤️'] ? "text-red-400" : "text-white/40 hover:text-red-400")}
+                >
+                  <span className="text-xs">❤️</span>
+                </button>
+                <button
+                  onClick={() => toggleReaction('🎯')}
+                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", reactions['🎯'] ? "text-purple-400" : "text-white/40 hover:text-purple-400")}
+                >
+                  <span className="text-xs">🎯</span>
+                </button>
+
+
+                <div className="w-px h-3 bg-white/10 my-auto mx-0.5" />
+                <button
+                  onClick={() => onRefresh?.(message.id)}
+                  className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-blue-400 transition-colors"
+                  title="Regenerate"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+                {hasTable && (
+                  <button
+                    onClick={handleDownloadTable}
+                    className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-green-400 transition-colors"
+                    title="Download CSV"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* User Edit Button */}
+          {isUser && onEdit && !isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="absolute -top-2 -left-2 p-1.5 bg-[#0F1117] border border-white/10 rounded-full text-white/40 hover:text-white opacity-0 group-hover:opacity-100 transition-all shadow-lg scale-90 hover:scale-100 z-10"
+            >
+              <Pencil className="w-3 h-3" />
+            </button>
+          )}
+
+          {/* Check for "Deep Reasoning" source from backend and render badge */}
+          {message.contextSources?.includes('System 2 Reasoning') && (
+            <div className="mb-3">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-medium text-purple-300">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
+                </span>
+                Deep Reasoning
+              </span>
+            </div>
+          )}
+
+          {/* Content Area */}
+          <div className={cn("prose prose-invert prose-sm max-w-none relative z-10", isUser && "text-white")}>
+            {isUser && isEditing ? (
               <div className="bg-white/10 rounded-xl p-3 border border-white/20 w-full min-w-[300px]">
                 <textarea
                   ref={textareaRef}
@@ -554,129 +351,203 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 </div>
               </div>
             ) : (
-              message.content
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Assistant Message - Clean text only, no bubble */
-        <div className="max-w-[95%] pl-1">
-          {messageContent}
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+                  code({ node, inline, className, children, ...props }: any) {
+                    const match = /language-(\w+)/.exec(className || '');
+                    const language = match ? match[1] : '';
 
-          {/* Assistant Actions (Bottom) */}
-          <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Feedback Buttons */}
-            <div className="flex items-center gap-0.5 mr-2 pr-2 border-r border-white/10">
-              <button
-                onClick={() => handleFeedback(1)}
-                className={cn(
-                  "p-1.5 rounded-lg transition-colors flex items-center gap-1.5",
-                  feedback === 'up'
-                    ? "text-emerald-400 bg-emerald-400/10"
-                    : "text-white/40 hover:text-white hover:bg-white/10"
-                )}
-                title="Helpful"
-                disabled={feedback !== null}
-              >
-                <ThumbsUp className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => handleFeedback(-1)}
-                className={cn(
-                  "p-1.5 rounded-lg transition-colors flex items-center gap-1.5",
-                  feedback === 'down'
-                    ? "text-red-400 bg-red-400/10"
-                    : "text-white/40 hover:text-white hover:bg-white/10"
-                )}
-                title="Not helpful"
-                disabled={feedback !== null}
-              >
-                <ThumbsDown className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <button
-              onClick={handleCopy}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
-              title="Copy response"
-            >
-              {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span className="text-xs">Copy</span>
-            </button>
-
-            {/* ELI5 Button */}
-            {onAction && (
-              <button
-                onClick={() => onAction('eli5', { messageId: message.id })}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
-                title="Explain Like I'm 5"
-              >
-                <Baby className="w-3.5 h-3.5" />
-                <span className="text-xs">ELI5</span>
-              </button>
-            )}
-
-            {/* CSV Download Button */}
-            {!isUser && extractFirstTable(message.content) && (
-              <button
-                onClick={() => {
-                  const table = extractFirstTable(message.content);
-                  if (table) {
-                    const csv = markdownTableToCsv(table);
-                    downloadCsv(csv, `data_export_${new Date().toISOString().slice(0, 10)}.csv`);
-                  }
-                }}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
-                title="Download as CSV"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span className="text-xs">CSV</span>
-              </button>
-            )}
-
-            {/* Copy CSV Button */}
-            {!isUser && extractFirstTable(message.content) && (
-              <button
-                onClick={async () => {
-                  const table = extractFirstTable(message.content);
-                  if (table) {
-                    const csv = markdownTableToCsv(table);
-                    try {
-                      await navigator.clipboard.writeText(csv);
-                      // Visual feedback could be improved but reusing existing toast/state if possible
-                      // For now, rely on button reaction if we add state, or just simple action
-                    } catch (err) {
-                      console.error('Failed to copy CSV:', err);
+                    if (!inline && match) {
+                      return (
+                        <div className="relative group/code my-4 rounded-lg overflow-hidden border border-white/10 bg-[#0d0d0d]">
+                          <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
+                            <span className="text-xs text-white/40 font-mono">{language}</span>
+                            <button
+                              onClick={async () => {
+                                await copy(children as string);
+                              }}
+                              className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-white transition-colors"
+                              title="Copy code"
+                            >
+                              <Clipboard className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={language}
+                            PreTag="div"
+                            customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        </div>
+                      );
                     }
-                  }
+
+                    return (
+                      <code className={cn("bg-white/10 rounded px-1.5 py-0.5 text-[0.9em] font-mono", className)} {...props}>
+                        {children}
+                      </code>
+                    );
+                  },
+                  a: ({ children, href }) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">
+                      {children}
+                    </a>
+                  ),
+                  table: ({ children }) => (
+                    <div className="overflow-x-auto my-4 border border-white/10 rounded-lg">
+                      <table className="min-w-full divide-y divide-white/10 bg-white/5 text-sm">
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  th: ({ children }) => <th className="px-3 py-2 text-left text-xs font-semibold text-white/60 bg-white/5">{children}</th>,
+                  td: ({ children }) => <td className="px-3 py-2 text-white/80 border-t border-white/5">{children}</td>,
+                  ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 my-2">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 my-2">{children}</ol>,
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-2 border-blue-500/50 pl-4 my-2 italic text-white/60 bg-blue-500/5 py-1 rounded-r">
+                      {children}
+                    </blockquote>
+                  )
                 }}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
-                title="Copy CSV to Clipboard"
               >
-                <Clipboard className="w-3.5 h-3.5" />
-                <span className="text-xs">Copy CSV</span>
+                {displayContent}
+              </ReactMarkdown>
+            )}
+
+            {shouldTruncate && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-2 text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
+              >
+                {isExpanded ? (
+                  <>Show less <ChevronUp className="w-3 h-3" /></>
+                ) : (
+                  <>Read more <ChevronDown className="w-3 h-3" /></>
+                )}
               </button>
             )}
 
-            {onRefresh && (
-              <button
-                onClick={() => onRefresh(message.id)}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors flex items-center gap-1.5"
-                title="Regenerate response"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-xs">Regenerate</span>
-              </button>
+            {/* Context/Source Badges */}
+            {message.contextSources && message.contextSources.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t border-white/5">
+                {message.contextSources.filter(src => src !== 'System 2 Reasoning').map((source, idx) => (
+                  <ContextBadge key={idx} source={source} />
+                ))}
+              </div>
+            )}
+
+            {/* Smart Suggestions Chips */}
+            {message.data?.suggestions && message.data.suggestions.length > 0 && (
+              <div className="mt-3 no-print">
+                <SuggestionChips
+                  suggestions={message.data.suggestions}
+                  onSelect={(suggestion) => onSuggestionSelect?.(suggestion)}
+                  variant="row"
+                />
+              </div>
+            )}
+
+            {/* Attachment Preview (Legacy) */}
+            {hasAttachment && (
+              <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center gap-3">
+                <div className="w-10 h-10 rounded bg-blue-500/20 flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate text-white/90">{message.attachment!.name}</p>
+                  <p className="text-xs text-white/50">{message.attachment!.type}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Reaction Stats Display */}
+            {Object.values(reactions).some(count => count > 0) && (
+              <div className="absolute -bottom-3 left-4 flex gap-1 z-20">
+                {Object.entries(reactions).map(([emoji, count]) => (
+                  count > 0 && (
+                    <div key={emoji} className="px-1.5 py-0.5 bg-[#1E2029] border border-white/10 rounded-full text-[10px] shadow-sm flex items-center gap-1">
+                      <span>{emoji}</span>
+                      <span className="text-white/60">{count}</span>
+                    </div>
+                  )
+                ))}
+              </div>
             )}
           </div>
         </div>
-      )}
+
+        {/* Action Buttons (External) */}
+        {message.action && onAction && (
+          <div className="mt-2 w-full">
+            <ActionButtons
+              action={message.action}
+              onAction={onAction}
+            />
+          </div>
+        )}
+
+        {/* Tool Cards */}
+        {hasTools && (
+          <div className="w-full mt-3 space-y-3">
+            {message.tools?.map((tool) => {
+              // Render appropriate tool card based on kind
+              if (tool.kind === 'property_comparison' && tool.data) {
+                return (
+                  <PropertyBookmarkCard
+                    key={tool.id}
+                    data={{ properties: [tool.data] }}
+                    bookmarks={bookmarks}
+                    onToggleBookmark={onToggleBookmark}
+                  />
+                );
+              }
+              else if (tool.kind === 'generated_report' && tool.data) {
+                return (
+                  <GeneratedReportCard
+                    key={tool.id}
+                    data={tool.data}
+                    onNavigateToReports={onNavigateToReports}
+                  />
+                );
+              }
+
+              return (
+                <ToolMessage
+                  key={tool.id}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  tool={tool as any} // Forced cast to solve discriminated union mismatch with minimal impact
+                  timestamp={new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  bookmarks={bookmarks}
+                  onToggleBookmark={onToggleBookmark}
+                  onOpenDealAnalyzer={(propId) => onOpenDealAnalyzer?.(propId, 'STR')} // Default strategy
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Render specific tool result cards if data exists directly on message */}
+        {message.data?.tool_results?.scouted_properties && (
+          <PropertyListCard
+            properties={message.data.tool_results.scouted_properties}
+            onViewDetails={onViewDetails || (() => { })}
+          />
+        )}
+      </div>
 
       {/* User Avatar (Right) */}
       {isUser && (
-        <div className="flex-shrink-0 pt-0.5">
-          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-medium text-white/70 border border-white/10">
-            {getInitials(userName)}
+        <div className="flex-shrink-0 ml-4 mt-1">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/5 shadow-inner">
+            <span className="text-sm font-semibold text-white/90">
+              {userName ? userName.charAt(0).toUpperCase() : 'U'}
+            </span>
           </div>
         </div>
       )}

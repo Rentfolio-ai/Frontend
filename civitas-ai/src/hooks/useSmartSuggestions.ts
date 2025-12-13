@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { Message } from '../types/chat';
 import type { CompletedTool } from '../types/stream';
 
 export interface SuggestionChip {
     id: string;
     label: string;
-    icon: string;
+    icon?: string;
     query: string;
-    category: 'action' | 'analysis' | 'info';
+    category?: 'action' | 'analysis' | 'info';
 }
 
 interface UseSmartSuggestionsProps {
@@ -21,12 +21,43 @@ export const useSmartSuggestions = ({
     completedTools = [],
     isLoading
 }: UseSmartSuggestionsProps): SuggestionChip[] => {
+    // State for dynamic welcome chips
+    const [welcomeChips, setWelcomeChips] = useState<SuggestionChip[]>([]);
+
+    // Fetch welcome chips on mount
+    useEffect(() => {
+        const fetchWelcomeChips = async () => {
+            try {
+                // Fetch from backend
+                // In production, we'd use a typed API client and pass proper user context
+                const response = await fetch('/api/suggestions/welcome');
+                if (response.ok) {
+                    const data = await response.json();
+                    setWelcomeChips(data);
+                } else {
+                    // Fail silently effectively, just don't set chips or use valid defaults
+                    console.warn("Failed to fetch welcome chips");
+                }
+            } catch (e) {
+                console.error("Error fetching welcome suggestions:", e);
+            }
+        };
+
+        // Only fetch if we don't have them yet (dedup)
+        // Note: Real implementation might track if we've already tried to avoid continuous retries
+        fetchWelcomeChips();
+    }, []);
+
     return useMemo(() => {
         // 1. Loading State -> No suggestions? Or maybe "Stop generating"?
         if (isLoading) return [];
 
-        // 2. Empty State -> Welcome Suggestions
+        // 2. Empty State -> Welcome Suggestions (Dynamic)
         if (messages.length === 0) {
+            if (welcomeChips.length > 0) {
+                return welcomeChips;
+            }
+            // Fallback while loading or on error
             return [
                 {
                     id: 'search_start',
@@ -165,5 +196,5 @@ export const useSmartSuggestions = ({
             }
         ];
 
-    }, [messages, isLoading, completedTools]);
+    }, [messages, isLoading, completedTools, welcomeChips]);
 };

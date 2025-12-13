@@ -5,7 +5,7 @@ import type { InvestmentStrategy, PnLOutput } from '../types/pnl';
 import type { InvestmentReportFormat } from '../types/enums';
 import type { ReportData } from '../components/reports/ReportDrawer';
 import type { ThinkingState, CompletedTool, StreamEvent } from '../types/stream';
-import { generateChatTitle } from '../utils/chatTitles';
+import { generateChatTitle, sanitizeChatTitle } from '../utils/chatTitleGenerator';
 import { ChatService } from '../services/ChatService';
 import { useAuth } from '../contexts/AuthContext';
 import { analyzeFile, askAboutFile } from '../services/fileService';
@@ -33,7 +33,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio' | 'property';
+export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -55,7 +55,7 @@ export interface ReportDrawerState {
   propertyAddress?: string;
 }
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'property'];
+const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'analysis'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 
@@ -145,6 +145,18 @@ export function useDesktopShell() {
     }
     return {};
   });
+
+  // Update chat title
+  const updateChatTitle = useCallback((chatId: string, newTitle: string) => {
+    setChatHistory(prev =>
+      prev.map(chat =>
+        chat.id === chatId
+          ? { ...chat, title: sanitizeChatTitle(newTitle) }
+          : chat
+      )
+    );
+  }, []);
+
   const [toolResultsByThread, setToolResultsByThread] = useState<Record<string, ToolResultRecord[]>>({});
   const [isFetchingToolResults, setIsFetchingToolResults] = useState(false);
   const [toolMemoryError, setToolMemoryError] = useState<string | null>(null);
@@ -609,8 +621,7 @@ export function useDesktopShell() {
         interactionProfile,
         favoriteMarkets,
         financialDna,
-        clientLocation,
-        customInstructions
+        clientLocation
       } = usePreferencesStore.getState();
 
       const response = await fetch(`${CIVITAS_API_BASE}/api/stream`, {
@@ -630,8 +641,7 @@ export function useDesktopShell() {
             dislikes: interactionProfile?.dislikes || [],
             favorite_markets: favoriteMarkets || [],
             financial_dna: financialDna || undefined,
-            client_location: clientLocation || undefined,
-            custom_instructions: customInstructions || undefined
+            client_location: clientLocation || undefined
           }
         }),
       }); if (!response.ok) {
@@ -726,8 +736,11 @@ export function useDesktopShell() {
       const msg = { ...newMessages[messageIndex] };
 
       // Initialize branching if not present
-      if (!msg.branching) {
-        msg.branching = {
+      if (!msg.data) {
+        msg.data = {};
+      }
+      if (!msg.data.branching) {
+        msg.data.branching = {
           currentVersion: 0,
           versions: [{
             timestamp: msg.timestamp,
@@ -744,8 +757,8 @@ export function useDesktopShell() {
         subsequentMessages: [] // Will be populated by new response
       };
 
-      msg.branching.versions.push(newVersion);
-      msg.branching.currentVersion = msg.branching.versions.length - 1;
+      msg.data.branching.versions.push(newVersion);
+      msg.data.branching.currentVersion = msg.data.branching.versions.length - 1;
 
       // Update current message display
       msg.content = newContent;
@@ -770,18 +783,18 @@ export function useDesktopShell() {
       const newMessages = [...prev];
       const msg = { ...newMessages[index] };
 
-      if (!msg.branching) return prev;
+      if (!msg.data?.branching) return prev;
 
       const newVersionIndex = direction === 'next'
-        ? Math.min(msg.branching.currentVersion + 1, msg.branching.versions.length - 1)
-        : Math.max(msg.branching.currentVersion - 1, 0);
+        ? Math.min(msg.data.branching.currentVersion + 1, msg.data.branching.versions.length - 1)
+        : Math.max(msg.data.branching.currentVersion - 1, 0);
 
-      if (newVersionIndex === msg.branching.currentVersion) return prev;
+      if (newVersionIndex === msg.data.branching.currentVersion) return prev;
 
-      const targetVersion = msg.branching.versions[newVersionIndex];
+      const targetVersion = msg.data.branching.versions[newVersionIndex];
 
       // Update current state
-      msg.branching.currentVersion = newVersionIndex;
+      msg.data.branching.currentVersion = newVersionIndex;
       msg.content = targetVersion.content;
       msg.timestamp = targetVersion.timestamp;
 
@@ -1288,7 +1301,6 @@ export function useDesktopShell() {
     }
 
     if (actionValue === 'eli5') {
-      const context = _actionContext || {};
       // Send a hidden prompt or explicit prompt
       sendMessageWithStream("Explain that to me like I'm 5 years old.");
       return;
@@ -1303,7 +1315,7 @@ export function useDesktopShell() {
   const handleViewPropertyDetails = useCallback((property: any) => {
     console.log('[useDesktopShell] handleViewPropertyDetails called with:', property);
     setActiveProperty(property);
-    setActiveTab('property');
+    setActiveTab('analysis');
   }, []);
 
   return {
@@ -1368,6 +1380,7 @@ export function useDesktopShell() {
     // Chat management
     handlePinChat,
     handleArchiveChat,
+    updateChatTitle,
   };
 
 }

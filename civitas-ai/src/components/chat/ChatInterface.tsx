@@ -66,7 +66,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [showHelp, setShowHelp] = useState(false)
   const [showFAQ, setShowFAQ] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
-  const [modelVersion, setModelVersion] = useState({ version: 'ProphetAtlas Deep Reasoning v1', mode: 'deep-reasoning' })
+  const [modelVersion, setModelVersion] = useState({ version: 'Atlas 1.0', mode: 'deep-reasoning' })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const smartInputRef = useRef<{ focus: () => void }>(null)

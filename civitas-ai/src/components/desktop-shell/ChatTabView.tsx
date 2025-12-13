@@ -1,6 +1,6 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Settings, HelpCircle, Maximize2, Minimize2, ChevronDown } from 'lucide-react';
+import { Settings, HelpCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
@@ -50,35 +50,128 @@ interface ChatTabViewProps {
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
 }
 
-// Greeting variety based on time of day
-const getTimeBasedGreeting = (): { title: string; tagline: string } => {
+// Context-aware greeting based on user preferences and activity
+const getContextAwareGreeting = (userPreferences?: any): { title: string; tagline: string } => {
   const hour = new Date().getHours();
-  const greetings = [
-    { title: 'OmniEstate', tagline: 'Your AI-powered real estate intelligence' },
-    { title: 'OmniEstate', tagline: 'Ready to find your next investment?' },
-    { title: 'OmniEstate', tagline: "Let's analyze some deals today" },
-    { title: 'OmniEstate', tagline: 'What property questions can I help with?' },
-    { title: 'OmniEstate', tagline: 'Discover opportunities, backed by data' },
+
+  // Build context-aware pool
+  const contextAwareGreetings: { title: string; tagline: string }[] = [];
+
+  // 1. Resume-based greetings (if user has recent activity)
+  if (userPreferences?.last_search_city) {
+    const city = userPreferences.last_search_city;
+    contextAwareGreetings.push(
+      { title: '', tagline: `Ready to continue exploring ${city}?` },
+      { title: '', tagline: `Let's find more opportunities in ${city}` },
+      { title: '', tagline: `What's next for your ${city} search?` }
+    );
+  }
+
+  // 2. Strategy-based greetings
+  if (userPreferences?.default_strategy) {
+    const strategyNames: Record<string, string> = {
+      'STR': 'short-term rental',
+      'LTR': 'long-term rental',
+      'FLIP': 'fix & flip'
+    };
+    const strategy = strategyNames[userPreferences.default_strategy] || 'investment';
+    contextAwareGreetings.push(
+      { title: '', tagline: `Find your next ${strategy} opportunity` },
+      { title: '', tagline: `Analyzing ${strategy} deals just for you` }
+    );
+  }
+
+  // 3. Portfolio-based greetings (if they have properties)
+  if (userPreferences?.portfolio_count && userPreferences.portfolio_count > 0) {
+    contextAwareGreetings.push(
+      { title: '', tagline: `Grow your ${userPreferences.portfolio_count}-property portfolio` },
+      { title: '', tagline: 'Optimize your portfolio with data insights' }
+    );
+  }
+
+  // 4. Goal-based greetings
+  if (userPreferences?.goals?.includes('cash_flow')) {
+    contextAwareGreetings.push(
+      { title: '', tagline: 'Find properties that maximize cash flow' },
+      { title: '', tagline: 'Your next cash-flowing asset awaits' }
+    );
+  }
+
+  if (userPreferences?.goals?.includes('appreciation')) {
+    contextAwareGreetings.push(
+      { title: '', tagline: 'Discover high-growth market opportunities' }
+    );
+  }
+
+  // 5. Budget-aware greetings
+  if (userPreferences?.budget_max) {
+    const budget = userPreferences.budget_max;
+    if (budget < 300000) {
+      contextAwareGreetings.push(
+        { title: '', tagline: 'Smart deals await in your budget range' }
+      );
+    } else if (budget > 500000) {
+      contextAwareGreetings.push(
+        { title: '', tagline: 'Premium properties matched to your criteria' }
+      );
+    }
+  }
+
+  // 6. Market-based greetings (if they have favorite markets)
+  if (userPreferences?.favorite_markets && userPreferences.favorite_markets.length > 0) {
+    const market = userPreferences.favorite_markets[Math.floor(Math.random() * userPreferences.favorite_markets.length)];
+    contextAwareGreetings.push(
+      { title: '', tagline: `Explore new listings in ${market}` },
+      { title: '', tagline: `${market} market insights at your fingertips` }
+    );
+  }
+
+  // Generic time-based greetings (fallback/mix-in)
+  const genericGreetings = [
+    { title: '', tagline: 'Your AI-powered real estate intelligence' },
+    { title: '', tagline: 'Ready to find your next investment?' },
+    { title: '', tagline: "Let's analyze some deals today" },
+    { title: '', tagline: 'What property questions can I help with?' },
+    { title: '', tagline: 'Discover opportunities, backed by data' },
+    { title: '', tagline: 'Your investment research partner' },
+    { title: '', tagline: 'Data-driven insights for smarter investing' },
+    { title: '', tagline: 'Find hidden gems in the market' },
   ];
 
-  // Time-based greeting
+  // Time-based personal touch
   let timeGreeting: string;
   if (hour < 12) {
-    timeGreeting = 'Good morning! Ready to explore?';
+    timeGreeting = userPreferences?.last_search_city
+      ? `Good morning! New listings in ${userPreferences.last_search_city} are waiting`
+      : 'Good morning! Ready to explore?';
   } else if (hour < 17) {
     timeGreeting = 'Good afternoon! What can I find for you?';
   } else {
     timeGreeting = 'Good evening! Time to discover deals?';
   }
 
-  // 40% chance for time-based greeting, 60% for variety
-  if (Math.random() < 0.4) {
-    return { title: 'OmniEstate', tagline: timeGreeting };
+  // Combine pools: 50% context-aware (if available), 30% generic, 20% time-based
+  const allGreetings = [
+    ...contextAwareGreetings,
+    ...contextAwareGreetings, // Double weight for context-aware
+    ...genericGreetings,
+  ];
+
+  const rand = Math.random();
+
+  // 20% chance for time-based greeting with personal touch
+  if (rand < 0.2) {
+    return { title: '', tagline: timeGreeting };
   }
 
-  // Pick from variety pool based on session (consistent within session)
-  const sessionIndex = Math.floor(Date.now() / 3600000) % greetings.length;
-  return greetings[sessionIndex];
+  // 80% chance: pick from combined pool (with session-based consistency)
+  if (allGreetings.length > 0) {
+    const sessionIndex = Math.floor(Date.now() / 3600000) % allGreetings.length;
+    return allGreetings[sessionIndex];
+  }
+
+  // Ultimate fallback
+  return { title: '', tagline: 'Your AI-powered real estate intelligence' };
 };
 
 
@@ -112,17 +205,23 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
-  const [modelVersion, setModelVersion] = useState({ version: 'ProphetAtlas Deep Reasoning v1', mode: 'deep-reasoning' });
+  const [modelVersion, setModelVersion] = useState({ version: 'Atlas 1.0', mode: 'deep-reasoning' });
   const composerRef = useRef<ComposerRef>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
 
-  const { isWideMode, setWideMode } = usePreferencesStore();
+  const prefsStore = usePreferencesStore();
 
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
-  // Get greeting for this session (stable within session)
-  const greeting = useMemo(() => getTimeBasedGreeting(), []);
+  // Get context-aware greeting (updates when preferences change)
+  const greeting = useMemo(() => getContextAwareGreeting(prefsStore), [
+    prefsStore.lastSearchCity,
+    prefsStore.defaultStrategy,
+    prefsStore.favoriteMarkets,
+    prefsStore.budgetRange,
+    prefsStore.financialDna
+  ]);
 
   const suggestions = useSmartSuggestions({ messages, completedTools, isLoading });
 
@@ -190,7 +289,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
       if (isMod && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
-        setWideMode(!isWideMode);
+        prefsStore.setWideMode(!prefsStore.isWideMode);
       }
 
       if (isMod && e.key === ',') {
@@ -213,7 +312,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isWideMode, setWideMode, showPreferences, showFAQ, showShortcuts, onCancel]);
+  }, [prefsStore.isWideMode, prefsStore.setWideMode, showPreferences, showFAQ, showShortcuts, onCancel]);
 
 
 
@@ -221,15 +320,15 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   return (
     <div className="h-full flex flex-col relative">
-      {/* Floating Menu Button - Top Left */}
+      {/* Menu Button - Flashy icon without box */}
       {onOpenSidebar && (
         <button
           onClick={onOpenSidebar}
-          className="absolute top-4 left-4 z-20 p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+          className="absolute top-4 left-4 z-20 p-2 transition-all duration-300 group hover:scale-110"
           aria-label="Open menu"
         >
-          <svg className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg className="w-6 h-6 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       )}
@@ -240,24 +339,24 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         <Tooltip content="FAQ & Help">
           <button
             onClick={() => setShowFAQ(true)}
-            className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+            className="p-2 transition-all duration-300 group hover:scale-110"
             aria-label="FAQ and Help"
           >
-            <HelpCircle className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+            <HelpCircle className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
           </button>
         </Tooltip>
 
         {/* Wide Mode Toggle */}
-        <Tooltip content={isWideMode ? "Standard Width" : "Wide Mode"} shortcut="⌘⇧F">
+        <Tooltip content={prefsStore.isWideMode ? "Standard Width" : "Wide Mode"} shortcut="⌘⇧F">
           <button
-            onClick={() => setWideMode(!isWideMode)}
-            className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
-            aria-label={isWideMode ? "Standard Width" : "Wide Mode"}
+            onClick={() => prefsStore.setWideMode(!prefsStore.isWideMode)}
+            className="p-2 transition-all duration-300 group hover:scale-110"
+            aria-label={prefsStore.isWideMode ? "Standard Width" : "Wide Mode"}
           >
-            {isWideMode ? (
-              <Minimize2 className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+            {prefsStore.isWideMode ? (
+              <Minimize2 className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
             ) : (
-              <Maximize2 className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+              <Maximize2 className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
             )}
           </button>
         </Tooltip>
@@ -266,22 +365,24 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         <Tooltip content="Preferences" shortcut="⌘,">
           <button
             onClick={() => setShowPreferences(true)}
-            className="p-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group"
+            className="p-2 transition-all duration-300 group hover:scale-110"
             aria-label="Settings"
           >
-            <Settings className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+            <Settings className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
           </button>
         </Tooltip>
 
 
       </div>
 
-      {/* Model Selector - Left side, after menu button */}
+      {/* Model Name - Plain text with flair */}
       <div className="absolute top-4 left-20 z-20">
-        <button className="px-4 py-2 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 flex items-center gap-2 group">
-          <span className="text-sm font-medium text-white/90">{modelVersion.version}</span>
-          <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-white/70 transition-colors" />
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-base font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            {modelVersion.version}
+          </span>
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        </div>
       </div>
 
       {/* Modals */}
@@ -303,23 +404,43 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   <AgentAvatar size="lg" className="relative" status={agentStatus} />
                 </div>
 
-                {/* Brand & Tagline */}
+                {/* Welcome Message - Subtle and flashy */}
                 <div className="space-y-3">
-                  <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                    {greeting.title}
-                  </h1>
-                  <p className="text-lg md:text-xl text-white/60 font-medium">
+                  <p className="text-2xl md:text-3xl font-medium bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-transparent animate-gradient-shift">
                     {greeting.tagline}
                   </p>
                 </div>
               </div>
 
-              {/* Quick Action Chips - Helpful for new users */}
-              <SuggestionChips
-                suggestions={suggestions}
-                onSelect={onSendMessage}
-                variant="grid"
-              />
+              {/* Integrated Guidance - Plain text style like thinking state */}
+              <div className="space-y-4 max-w-xl mx-auto">
+                <div className="text-xs text-white/30 font-medium uppercase tracking-wider text-center mb-3">Try asking about</div>
+                <div className="space-y-2">
+                  {suggestions.map((suggestion, index) => {
+                    const isObject = typeof suggestion !== 'string';
+                    const label = isObject ? suggestion.label : suggestion;
+                    const query = isObject ? suggestion.query : suggestion;
+                    const icon = isObject ? suggestion.icon : null;
+                    const key = isObject ? suggestion.id : index;
+
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => onSendMessage(query)}
+                        className="group flex items-start gap-3 w-full text-left hover:opacity-80 transition-opacity"
+                      >
+                        <span className="text-xl flex-shrink-0 mt-0.5">{icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white/70 group-hover:text-white/90 transition-colors text-[15px] leading-relaxed">
+                            {label}
+                          </div>
+                          <div className="text-xs text-white/30 mt-0.5 line-clamp-1">{query}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               {/* Trust Indicators */}
               <div className="flex items-center justify-center gap-6 pt-4">
@@ -368,7 +489,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               error={error}
               onRetry={onRetry}
               onOpenPreferences={() => setShowPreferences(true)}
-              isWideMode={isWideMode}
+              isWideMode={prefsStore.isWideMode}
               onNavigateBranch={onNavigateBranch}
               onSuggestionSelect={onSendMessage}
             />
@@ -383,7 +504,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
         {/* Dynamic Context Chips (Floating) */}
         {!showEmptyState && suggestions.length > 0 && (
-          <div className={`w-full ${isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
+          <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
             <SuggestionChips
               suggestions={suggestions}
               onSelect={onSendMessage}
@@ -393,7 +514,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         )}
 
         <div className="px-4 md:px-8 pb-6 pt-4 relative z-20">
-          <div className={`w-full ${isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto transition-all duration-300`}>
+          <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto transition-all duration-300`}>
             <Composer
               ref={composerRef}
               onSend={onSendMessage}

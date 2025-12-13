@@ -1,7 +1,7 @@
 // FILE: src/components/desktop-shell/DesktopSidebarMenu.tsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pin, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
+import { Pin, Archive, ArchiveRestore, Trash2, MessageSquare, FileText, BarChart3, Home } from 'lucide-react';
 import type { ChatSession, TabType } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatChatDateCompact } from '../../utils/dateFormatters';
@@ -49,7 +49,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 }) => {
   const { user, signOut } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAllChats, setShowAllChats] = useState(false);
+  const [showAllChats, setShowAllChats] = useState(true);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [modelVersion, setModelVersion] = useState<{ version: string, mode: string } | null>(null);
@@ -165,45 +165,50 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             <div className="p-4 border-b border-white/[0.06]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent-to flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">P</span>
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+                    <span className="text-white text-sm font-bold">O</span>
                   </div>
-                  <h2 className="text-lg font-bold text-white">ProphetAtlas</h2>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">OmniEstate</h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                  className="p-1.5 rounded-lg hover:scale-110 transition-all duration-300"
                   aria-label="Close sidebar"
                 >
-                  <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-white/60 hover:text-white transition-all hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
-              {/* New Chat Button */}
+              {/* New Chat Button - Subtle and flashy */}
               <button
                 onClick={() => {
                   onNewChat();
                   onTabChange('chat');
                   onClose();
                 }}
-                className="w-full px-4 py-3 rounded-xl flex items-center justify-center gap-2.5 font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border border-white/[0.1] bg-white/[0.03] hover:bg-white/[0.06] text-white"
+                className="w-full px-4 py-3 rounded-xl flex items-center justify-center gap-2.5 font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 group relative overflow-hidden"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                {/* Animated glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/20 to-blue-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+
+                <svg className="w-4 h-4 relative z-10 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
-                New Chat
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent relative z-10">
+                  New Chat
+                </span>
               </button>
             </div>
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto">
-              {/* Search Chats */}
+              {/* Search Chats - Subtle and modern */}
               <div className="px-4 py-3 border-b border-white/[0.06]">
-                <div className="relative">
+                <div className="relative group">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-blue-400 transition-colors group-focus-within:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -223,7 +228,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                         setSearchQuery('');
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 transition-all"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-blue-400/50 focus:bg-white/[0.05] transition-all"
                     autoComplete="off"
                   />
                 </div>
@@ -231,29 +236,61 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
               {/* Main Navigation */}
               <div className="px-4 py-3 border-b border-white/[0.06]">
-                <div className="space-y-1">
-                  {menuItems.map((item, index) => (
-                    <motion.button
-                      key={item.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 + index * 0.02 }}
-                      onClick={() => {
-                        onTabChange(item.id);
-                        onClose();
-                      }}
-                      className={`w-full px-3 py-2 rounded-lg flex items-center gap-3 transition-all duration-200 ${activeTab === item.id
-                        ? 'bg-white/[0.08]'
-                        : 'hover:bg-white/[0.04]'
-                        }`}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      <span className={`text-sm font-medium ${activeTab === item.id ? 'text-white' : 'text-white/70'
-                        }`}>
-                        {item.label}
-                      </span>
-                    </motion.button>
-                  ))}
+                <div className="space-y-1.5">
+                  {menuItems.map((item, index) => {
+                    const isActive = activeTab === item.id;
+
+                    // Icon mapping with Lucide icons
+                    const iconMap: Record<string, any> = {
+                      'chat': MessageSquare,
+                      'reports': FileText,
+                      'portfolio': BarChart3,
+                      'analysis': Home,
+                    };
+
+                    const IconComponent = iconMap[item.id] || MessageSquare;
+
+                    return (
+                      <motion.button
+                        key={item.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.05 + index * 0.02 }}
+                        onClick={() => {
+                          onTabChange(item.id);
+                          onClose();
+                        }}
+                        className={`w-full px-3.5 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 group relative overflow-hidden ${isActive
+                          ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 shadow-lg shadow-blue-500/5'
+                          : 'hover:bg-white/[0.04]'
+                          }`}
+                      >
+                        {/* Gradient border for active state */}
+                        {isActive && (
+                          <div className="absolute inset-0 rounded-xl border border-blue-500/30" />
+                        )}
+
+                        {/* Icon with gradient background */}
+                        <div className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300 ${isActive
+                          ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20'
+                          : 'bg-white/[0.03] group-hover:bg-white/[0.06]'
+                          }`}>
+                          <IconComponent className={`w-4.5 h-4.5 transition-all duration-300 ${isActive
+                            ? 'text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.6)]'
+                            : 'text-white/60 group-hover:text-white/80'
+                            }`} />
+                        </div>
+
+                        {/* Label with gradient for active */}
+                        <span className={`text-sm font-semibold transition-all duration-300 ${isActive
+                          ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text'
+                          : 'text-white/70 group-hover:text-white'
+                          }`}>
+                          {item.label}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -456,7 +493,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                   </button>
 
                   <AnimatePresence>
-                    {(showAllChats || isSearching) && (
+                    {showAllChats && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
@@ -500,11 +537,11 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                   {formatChatDateCompact(chat.createdAt)}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                                 {onPinChat && !chat.isArchived && (
                                   <button
                                     onClick={(e) => onPinChat(chat.id, e)}
-                                    className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                                    className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
                                     title="Pin chat"
                                   >
                                     <Pin className="w-3.5 h-3.5 text-white/40 hover:text-white" />
@@ -513,7 +550,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                 {onArchiveChat && (
                                   <button
                                     onClick={(e) => onArchiveChat(chat.id, e)}
-                                    className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                                    className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
                                     title={chat.isArchived ? "Unarchive" : "Archive"}
                                   >
                                     {chat.isArchived ? (
@@ -525,10 +562,10 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                 )}
                                 <button
                                   onClick={(e) => onDeleteChat(chat.id, e)}
-                                  className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                                  className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
                                   aria-label="Delete chat"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-red-400" />
+                                  <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-red-400 transition-colors" />
                                 </button>
                               </div>
                             </motion.button>
@@ -684,40 +721,38 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
             {/* User Profile */}
             <div className="p-4 border-t border-white/[0.06]">
-              <div className="rounded-xl p-3 bg-white/[0.03] border border-white/[0.06]">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent-to flex items-center justify-center font-bold text-white text-sm">
-                    {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">
-                      {user?.name || 'User'}
-                    </p>
-                    <p className="text-[11px] text-white/40 truncate">
-                      {user?.email || 'user@example.com'}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-white text-sm shadow-lg">
+                  {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
-                <button
-                  onClick={() => {
-                    signOut();
-                    onClose();
-                  }}
-                  className="w-full p-2.5 rounded-lg flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-colors"
-                >
-                  <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span className="text-sm font-medium text-red-400">Sign Out</span>
-                </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">
+                    {user?.name || 'User'}
+                  </p>
+                  <p className="text-[11px] text-white/40 truncate">
+                    {user?.email || 'user@example.com'}
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => {
+                  signOut();
+                  onClose();
+                }}
+                className="w-full p-2.5 rounded-lg flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all hover:scale-[1.01]"
+              >
+                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="text-sm font-medium text-red-400">Sign Out</span>
+              </button>
             </div>
 
             {/* Version Footer */}
             {modelVersion && (
               <div className="px-4 pb-4">
-                <div className="flex items-center justify-center px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                  <span className="text-[10px] font-medium text-white/60 tracking-wide uppercase">
+                <div className="flex items-center justify-center">
+                  <span className="text-[10px] font-semibold text-white/40 tracking-wide uppercase">
                     {modelVersion.version}
                   </span>
                 </div>
