@@ -12,10 +12,7 @@ const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 interface UseStreamChatOptions {
   onContent?: (content: string) => void;
-  isComplete: boolean;
-  error: string | null;
-  threadId: string | null;
-  contextSources: string[];
+  onComplete?: (content: string, threadId: string | null) => void;
   onError?: (error: string) => void;
   onToolComplete?: (tool: CompletedTool) => void;
 }

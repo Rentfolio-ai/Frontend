@@ -112,4 +112,5 @@ export interface StreamState {
   isComplete: boolean;
   error: string | null;
   threadId: string | null;
+  contextSources: string[];
 }

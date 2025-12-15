@@ -1,8 +1,9 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
-import { Paperclip, X, File as FileIcon, ArrowUp, MapPin, Square } from 'lucide-react';
+import { Paperclip, ArrowUp, MapPin, Square } from 'lucide-react';
 import { QuickPreferencesChip } from './QuickPreferencesChip';
 import { usePreferencesStore } from '../../stores/preferencesStore';
+import { AttachmentPreview, generateThumbnail } from '../FileAttachment';
 
 
 
@@ -28,6 +29,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
   const [isLocating, setIsLocating] = useState(false);
   const [showCommands, setShowCommands] = useState(false);
   const [shouldFocusAfterSet, setShouldFocusAfterSet] = useState(false);
+  const [thumbnail, setThumbnail] = useState<string | undefined>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,9 +152,73 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
     textareaRef.current?.focus();
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      if (onAttach) onAttach(e.target.files[0]);
+      const file = e.target.files[0];
+
+      // Generate thumbnail for images
+      if (file.type.startsWith('image/')) {
+        try {
+          const thumb = await generateThumbnail(file);
+          setThumbnail(thumb);
+        } catch (error) {
+          console.error('Failed to generate thumbnail:', error);
+          setThumbnail(undefined);
+        }
+      } else {
+        setThumbnail(undefined);
+      }
+
+      if (onAttach) onAttach(file);
+    }
+  };
+
+  // Reverse geocode coordinates to city name
+  const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
+    try {
+      // Check cache first
+      const cacheKey = `geocode_${lat.toFixed(4)}_${lon.toFixed(4)}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const { cityName, timestamp } = JSON.parse(cached);
+        // Cache for 7 days
+        if (Date.now() - timestamp < 7 * 24 * 60 * 60 * 1000) {
+          return cityName;
+        }
+      }
+
+      // Fetch from Nominatim API
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
+        {
+          headers: {
+            'User-Agent': 'Civitas AI (contact@civitas.ai)' // Required by Nominatim
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error('Geocoding failed');
+
+      const data = await response.json();
+
+      // Extract city name (try different fields)
+      const cityName = data.address?.city ||
+        data.address?.town ||
+        data.address?.village ||
+        data.address?.county ||
+        data.name ||
+        'Unknown Location';
+
+      // Cache the result
+      localStorage.setItem(cacheKey, JSON.stringify({
+        cityName,
+        timestamp: Date.now()
+      }));
+
+      return cityName;
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      return null;
     }
   };
 
@@ -167,14 +233,50 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        updateClientLocation({ latitude, longitude });
+      async (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+
+        // First update with coordinates
+        updateClientLocation({ latitude, longitude, accuracy });
+
+        // Then fetch city name
+        const cityName = await reverseGeocode(latitude, longitude);
+
+        // Update with city name
+        if (cityName) {
+          updateClientLocation({ latitude, longitude, accuracy, cityName });
+        }
+
         setIsLocating(false);
       },
       (error) => {
-        console.error("Error detecting location:", error);
+        // Provide user-friendly error messages
+        let errorMessage = "Error detecting location";
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location permission denied. Please enable location access in your browser settings.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information unavailable. Please try again.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please try again.";
+            break;
+          default:
+            errorMessage = "An unknown error occurred while detecting location.";
+        }
+
+        console.error(errorMessage, error);
         setIsLocating(false);
+
+        // Optional: Show toast/notification to user
+        // toast.error(errorMessage);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
   };
@@ -205,22 +307,17 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
         }`}>
 
         {attachment && (
-          <div className="mx-4 mt-4 p-3 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between group">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                <FileIcon className="w-4 h-4" />
-              </div>
-              <div className="text-sm text-white/90 font-medium truncate max-w-[200px]">
-                {attachment.name}
-              </div>
+          <div className="mx-4 mt-4">
+            <div className="inline-block w-32">
+              <AttachmentPreview
+                file={attachment}
+                thumbnail={thumbnail}
+                onRemove={() => {
+                  if (onClearAttachment) onClearAttachment();
+                  setThumbnail(undefined);
+                }}
+              />
             </div>
-            <button
-              type="button"
-              onClick={onClearAttachment}
-              className="p-1 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
         )}
 
@@ -241,7 +338,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             <div className="flex items-center gap-1">
               <QuickPreferencesChip onOpenFullPreferences={onOpenPreferences || (() => { })} />
 
-              <div className="h-4 w-[1px] bg-white/10 mx-2" />
+              <div className="h-4 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2" />
 
               <input
                 type="file"
@@ -253,29 +350,45 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 -ml-2 rounded-xl text-white/50 hover:text-white transition-all group hover:scale-110"
-                title="Attach file"
+                className="p-2 -ml-2 rounded-xl text-white/50 hover:text-white transition-all duration-200 group hover:scale-[1.15] active:scale-95"
+                title="Attach file - Upload photos, reports, or docs"
                 disabled={isLoading}
               >
-                <Paperclip className="w-4 h-4 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]" />
+                <Paperclip className="w-5 h-5 group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)] transition-all" />
               </button>
 
-              {/* Location Button */}
-              <button
-                type="button"
-                onClick={handleDetectLocation}
-                className={`p-2 rounded-xl transition-all group relative hover:scale-110 ${clientLocation
-                  ? 'text-blue-400'
-                  : 'text-white/50 hover:text-white'
-                  }`}
-                title={clientLocation ? "Location detected" : "Detect location"}
-                disabled={isLoading || isLocating}
-              >
-                <MapPin className={`w-4 h-4 ${isLocating ? 'animate-pulse' : ''} ${clientLocation ? 'drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]' : 'group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]'}`} />
-                {clientLocation && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-black animate-pulse" />
-                )}
-              </button>
+              {/* Location Button or City Badge */}
+              {clientLocation?.cityName ? (
+                // Show city badge when location is detected
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={isLoading || isLocating}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 hover:bg-blue-500/20 transition-all text-[11px] font-medium group"
+                  title={`${clientLocation.cityName}\nLat: ${clientLocation.latitude.toFixed(4)}, Lon: ${clientLocation.longitude.toFixed(4)}${clientLocation.accuracy ? `\nAccuracy: ±${Math.round(clientLocation.accuracy)}m` : ''}`}
+                >
+                  <MapPin className="w-3 h-3 drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
+                  <span className="max-w-[100px] truncate">{clientLocation.cityName}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                </button>
+              ) : (
+                // Show icon button when no location
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  className={`p-2 rounded-xl transition-all duration-200 group relative hover:scale-[1.15] active:scale-95 ${clientLocation
+                    ? 'text-blue-400'
+                    : 'text-white/50 hover:text-white'
+                    }`}
+                  title={clientLocation ? "Location detected - Click to update" : "Detect location - Auto-fill your current city"}
+                  disabled={isLoading || isLocating}
+                >
+                  <MapPin className={`w-5 h-5 transition-all ${isLocating ? 'animate-pulse' : ''} ${clientLocation ? 'drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]' : 'group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)]'}`} />
+                  {clientLocation && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-black animate-pulse shadow-lg shadow-blue-500/50" />
+                  )}
+                </button>
+              )}
             </div>
 
             <button

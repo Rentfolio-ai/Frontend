@@ -12,6 +12,7 @@ import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { HelpModal } from '@/components/HelpModal'
 import { FAQModal } from '@/components/FAQModal'
 import { Tooltip } from '@/components/Tooltip'
+import { CommandPalette } from '@/components/CommandPalette'
 import { useContextualHelp, ContextualHelp } from '@/components/ContextualHelp'
 import { EmptyChat } from '@/components/EmptyStates'
 import { usePreferencesStore } from '@/stores/preferencesStore'
@@ -66,6 +67,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [showHelp, setShowHelp] = useState(false)
   const [showFAQ, setShowFAQ] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [modelVersion, setModelVersion] = useState({ version: 'Atlas 1.0', mode: 'deep-reasoning' })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -132,9 +134,23 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       setShowWelcome(false)
       setShowPreferences(false)
       setShowFAQ(false)
+      setShowCommandPalette(false)
       dismissHelp()
     }
   })
+
+  // Command Palette shortcut (⌘K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -247,6 +263,27 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         />
       )}
 
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onOpenPreferences={() => {
+          setShowCommandPalette(false);
+          setShowPreferences(true);
+        }}
+        onOpenHelp={() => {
+          setShowCommandPalette(false);
+          setShowFAQ(true);
+        }}
+        onFocusComposer={(prefix) => {
+          setShowCommandPalette(false);
+          smartInputRef.current?.focus();
+          if (prefix) {
+            setInputValue(prefix);
+          }
+        }}
+      />
+
       {/* Model Selector Header */}
       <div className="absolute top-4 left-4 z-10">
         <button className="px-4 py-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors flex items-center gap-2 group">
@@ -257,21 +294,21 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       {/* Header Buttons */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
-        <Tooltip content="FAQ & Help" shortcut="⌘/">
+        <Tooltip content="Quick Tips & Help Center" shortcut="⌘/">
           <button
             onClick={() => setShowFAQ(true)}
-            className="p-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors"
+            className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all duration-200 group hover:scale-110 active:scale-95 hover:border-blue-400/30"
           >
-            <HelpCircle className="w-5 h-5 text-white/60" />
+            <HelpCircle className="w-5 h-5 text-white/60 group-hover:text-blue-400 group-hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] transition-all" />
           </button>
         </Tooltip>
 
-        <Tooltip content="Preferences" shortcut="⌘,">
+        <Tooltip content="Preferences & Settings" shortcut="⌘,">
           <button
             onClick={() => setShowPreferences(true)}
-            className="p-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors"
+            className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all duration-200 group hover:scale-110 active:scale-95 hover:border-purple-400/30"
           >
-            <Settings className="w-5 h-5 text-white/60" />
+            <Settings className="w-5 h-5 text-white/60 group-hover:text-purple-400 group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.6)] transition-all" />
           </button>
         </Tooltip>
       </div>

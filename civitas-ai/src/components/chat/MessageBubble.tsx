@@ -214,7 +214,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div className={cn(
           "relative px-5 py-3.5 rounded-2xl shadow-md text-sm leading-relaxed whitespace-pre-wrap break-words",
           isUser
-            ? "bg-blue-600 text-white rounded-tr-sm"
+            ? "bg-white/5 text-white/95 rounded-tr-sm border border-white/10"
             : "bg-[#1E2029] text-white/90 rounded-tl-sm border border-white/5",
           message.isStreaming && "animate-pulse"
         )}>

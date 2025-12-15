@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { X, RefreshCw, AlertCircle } from 'lucide-react';
 import type { ThinkingState, CompletedTool } from '@/types/stream';
+import { SourceBadge } from './SourceBadge';
 
 interface ThinkingIndicatorProps {
   thinking: ThinkingState | null;
@@ -108,33 +109,6 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
 
     return parts.length > 0 ? parts.join(' • ') : null;
   }, [budgetRange, defaultStrategy, dislikes, financialDna, riskProfile]);
-
-  // ... (rest of component) ...
-
-  // Helper to format source text
-  const getSourceText = (source: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const match = source.match(urlRegex);
-
-    if (match) {
-      const url = match[0];
-      try {
-        const hostname = new URL(url).hostname.replace('www.', '');
-        let friendlySource = hostname.charAt(0).toUpperCase() + hostname.slice(1);
-
-        if (hostname.includes('rentcast')) friendlySource = 'Rentcast';
-        if (hostname.includes('zillow')) friendlySource = 'Zillow';
-        if (hostname.includes('google')) friendlySource = 'Google';
-        if (hostname.includes('redfin')) friendlySource = 'Redfin';
-        if (hostname.includes('realtor')) friendlySource = 'Realtor.com';
-
-        return `Checking ${friendlySource}...`;
-      } catch (e) {
-        return source;
-      }
-    }
-    return source;
-  };
 
   // Helper to generate a sequence of thinking steps based on context
   const getThinkingFlow = (query: string, location: string | null, price: string | null, dislikes: string[] = []): string[] => {
@@ -472,12 +446,17 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
               {/* System 2 Deep Reasoning - Streaming Text Block */}
               {thinking.source === 'System 2 Reasoning' ? (
                 <div className="space-y-2">
-                  {/* Header with animated gradient */}
+                  {/* Header with SourceBadge and animated dot */}
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 animate-pulse shadow-lg shadow-purple-500/50" />
-                    <span className="text-xs font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent uppercase tracking-wide animate-gradient bg-[length:200%_auto]">
-                      🧠 Deep Reasoning
-                    </span>
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.6, 1, 0.6]
+                      }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                    />
+                    <SourceBadge source={thinking.source} />
                   </div>
 
                   {/* Streaming Reasoning Text with enhanced gradient */}
@@ -485,7 +464,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
                     <motion.div
                       initial={{ opacity: 0, y: 2 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="relative text-sm font-mono leading-relaxed whitespace-pre-wrap"
+                      className="relative text-sm font-semibold leading-relaxed whitespace-pre-wrap tracking-tight"
                     >
                       {/* Gradient text with shimmer animation */}
                       <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">
@@ -500,14 +479,24 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
 
               {/* Source or Explanation - Only for non-System 2 */}
               {(thinking.source && thinking.source !== 'System 2 Reasoning' || displayExplanation) && (
-                <div className="text-xs text-white/70 font-normal leading-relaxed pl-0.5">
-                  {thinking.source && thinking.source !== 'System 2 Reasoning' ? (
-                    <span className="flex items-center gap-1.5 text-blue-300/90">
-                      <span className="w-1 h-1 rounded-full bg-blue-400" />
-                      {getSourceText(thinking.source)}
-                    </span>
-                  ) : (
-                    displayExplanation
+                <div className="flex flex-col gap-2">
+                  {thinking.source && thinking.source !== 'System 2 Reasoning' && (
+                    <div className="flex items-center gap-2">
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          opacity: [0.6, 1, 0.6]
+                        }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"
+                      />
+                      <SourceBadge source={thinking.source} />
+                    </div>
+                  )}
+                  {displayExplanation && (
+                    <div className="text-xs text-white/60 font-normal leading-relaxed pl-0.5">
+                      {displayExplanation}
+                    </div>
                   )}
                 </div>
               )}

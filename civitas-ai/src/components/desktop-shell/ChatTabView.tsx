@@ -51,8 +51,9 @@ interface ChatTabViewProps {
 }
 
 // Context-aware greeting based on user preferences and activity
-const getContextAwareGreeting = (userPreferences?: any): { title: string; tagline: string } => {
+const getContextAwareGreeting = (userPreferences?: any, userName?: string): { title: string; tagline: string } => {
   const hour = new Date().getHours();
+  const namePrefix = userName ? `${userName}, ` : '';
 
   // Build context-aware pool
   const contextAwareGreetings: { title: string; tagline: string }[] = [];
@@ -61,9 +62,9 @@ const getContextAwareGreeting = (userPreferences?: any): { title: string; taglin
   if (userPreferences?.last_search_city) {
     const city = userPreferences.last_search_city;
     contextAwareGreetings.push(
-      { title: '', tagline: `Ready to continue exploring ${city}?` },
-      { title: '', tagline: `Let's find more opportunities in ${city}` },
-      { title: '', tagline: `What's next for your ${city} search?` }
+      { title: '', tagline: `${namePrefix}ready to continue exploring ${city}?` },
+      { title: '', tagline: `${namePrefix}let's find more opportunities in ${city}` },
+      { title: '', tagline: `What's next for your ${city} search${userName ? ', ' + userName : ''}?` }
     );
   }
 
@@ -76,30 +77,30 @@ const getContextAwareGreeting = (userPreferences?: any): { title: string; taglin
     };
     const strategy = strategyNames[userPreferences.default_strategy] || 'investment';
     contextAwareGreetings.push(
-      { title: '', tagline: `Find your next ${strategy} opportunity` },
-      { title: '', tagline: `Analyzing ${strategy} deals just for you` }
+      { title: '', tagline: `${namePrefix}find your next ${strategy} opportunity` },
+      { title: '', tagline: `Analyzing ${strategy} deals just for you${userName ? ', ' + userName : ''}` }
     );
   }
 
   // 3. Portfolio-based greetings (if they have properties)
   if (userPreferences?.portfolio_count && userPreferences.portfolio_count > 0) {
     contextAwareGreetings.push(
-      { title: '', tagline: `Grow your ${userPreferences.portfolio_count}-property portfolio` },
-      { title: '', tagline: 'Optimize your portfolio with data insights' }
+      { title: '', tagline: `${namePrefix}grow your ${userPreferences.portfolio_count}-property portfolio` },
+      { title: '', tagline: `${namePrefix}optimize your portfolio with data insights` }
     );
   }
 
   // 4. Goal-based greetings
   if (userPreferences?.goals?.includes('cash_flow')) {
     contextAwareGreetings.push(
-      { title: '', tagline: 'Find properties that maximize cash flow' },
-      { title: '', tagline: 'Your next cash-flowing asset awaits' }
+      { title: '', tagline: `${namePrefix}find properties that maximize cash flow` },
+      { title: '', tagline: `Your next cash-flowing asset awaits${userName ? ', ' + userName : ''}` }
     );
   }
 
   if (userPreferences?.goals?.includes('appreciation')) {
     contextAwareGreetings.push(
-      { title: '', tagline: 'Discover high-growth market opportunities' }
+      { title: '', tagline: `${namePrefix}discover high-growth market opportunities` }
     );
   }
 
@@ -108,11 +109,11 @@ const getContextAwareGreeting = (userPreferences?: any): { title: string; taglin
     const budget = userPreferences.budget_max;
     if (budget < 300000) {
       contextAwareGreetings.push(
-        { title: '', tagline: 'Smart deals await in your budget range' }
+        { title: '', tagline: `${namePrefix}smart deals await in your budget range` }
       );
     } else if (budget > 500000) {
       contextAwareGreetings.push(
-        { title: '', tagline: 'Premium properties matched to your criteria' }
+        { title: '', tagline: `${namePrefix}premium properties matched to your criteria` }
       );
     }
   }
@@ -121,33 +122,33 @@ const getContextAwareGreeting = (userPreferences?: any): { title: string; taglin
   if (userPreferences?.favorite_markets && userPreferences.favorite_markets.length > 0) {
     const market = userPreferences.favorite_markets[Math.floor(Math.random() * userPreferences.favorite_markets.length)];
     contextAwareGreetings.push(
-      { title: '', tagline: `Explore new listings in ${market}` },
-      { title: '', tagline: `${market} market insights at your fingertips` }
+      { title: '', tagline: `${namePrefix}explore new listings in ${market}` },
+      { title: '', tagline: `${market} market insights at your fingertips${userName ? ', ' + userName : ''}` }
     );
   }
 
   // Generic time-based greetings (fallback/mix-in)
   const genericGreetings = [
-    { title: '', tagline: 'Your AI-powered real estate intelligence' },
-    { title: '', tagline: 'Ready to find your next investment?' },
-    { title: '', tagline: "Let's analyze some deals today" },
-    { title: '', tagline: 'What property questions can I help with?' },
-    { title: '', tagline: 'Discover opportunities, backed by data' },
-    { title: '', tagline: 'Your investment research partner' },
-    { title: '', tagline: 'Data-driven insights for smarter investing' },
-    { title: '', tagline: 'Find hidden gems in the market' },
+    { title: '', tagline: `${namePrefix}your AI-powered real estate intelligence` },
+    { title: '', tagline: `${namePrefix}ready to find your next investment?` },
+    { title: '', tagline: `${namePrefix}let's analyze some deals today` },
+    { title: '', tagline: `What property questions can I help with${userName ? ', ' + userName : ''}?` },
+    { title: '', tagline: `${namePrefix}discover opportunities, backed by data` },
+    { title: '', tagline: `${namePrefix}your investment research partner` },
+    { title: '', tagline: `${namePrefix}data-driven insights for smarter investing` },
+    { title: '', tagline: `${namePrefix}find hidden gems in the market` },
   ];
 
   // Time-based personal touch
   let timeGreeting: string;
   if (hour < 12) {
     timeGreeting = userPreferences?.last_search_city
-      ? `Good morning! New listings in ${userPreferences.last_search_city} are waiting`
-      : 'Good morning! Ready to explore?';
+      ? `Good morning${userName ? ', ' + userName : ''}! New listings in ${userPreferences.last_search_city} are waiting`
+      : `Good morning${userName ? ', ' + userName : ''}! Ready to explore?`;
   } else if (hour < 17) {
-    timeGreeting = 'Good afternoon! What can I find for you?';
+    timeGreeting = `Good afternoon${userName ? ', ' + userName : ''}! What can I find for you?`;
   } else {
-    timeGreeting = 'Good evening! Time to discover deals?';
+    timeGreeting = `Good evening${userName ? ', ' + userName : ''}! Time to discover deals?`;
   }
 
   // Combine pools: 50% context-aware (if available), 30% generic, 20% time-based
@@ -171,7 +172,7 @@ const getContextAwareGreeting = (userPreferences?: any): { title: string; taglin
   }
 
   // Ultimate fallback
-  return { title: '', tagline: 'Your AI-powered real estate intelligence' };
+  return { title: '', tagline: `${namePrefix}your AI-powered real estate intelligence` };
 };
 
 
@@ -215,12 +216,13 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
   // Get context-aware greeting (updates when preferences change)
-  const greeting = useMemo(() => getContextAwareGreeting(prefsStore), [
+  const greeting = useMemo(() => getContextAwareGreeting(prefsStore, userName), [
     prefsStore.lastSearchCity,
     prefsStore.defaultStrategy,
     prefsStore.favoriteMarkets,
     prefsStore.budgetRange,
-    prefsStore.financialDna
+    prefsStore.financialDna,
+    userName
   ]);
 
   const suggestions = useSmartSuggestions({ messages, completedTools, isLoading });

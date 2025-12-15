@@ -80,6 +80,41 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
 
     if (!isOpen) return null;
 
+    // Calculate overall completion percentage
+    const calculateOverallCompletion = () => {
+        let completed = 0;
+        let total = 12; // Total fields across all tabs
+
+        // General tab (3 items)
+        if (defaultStrategy) completed++;
+        if (budgetRange?.max) completed++;
+        if (favoriteMarkets.length > 0) completed++;
+
+        // Financial DNA tab (5 items)
+        if (downPayment && parseFloat(downPayment) > 0) completed++;
+        if (interestRate && parseFloat(interestRate) > 0) completed++;
+        if (mgmtFee && parseFloat(mgmtFee) > 0) completed++;
+        if (capex && parseFloat(capex) > 0) completed++;
+        if (vacancy && parseFloat(vacancy) > 0) completed++;
+
+        // Goals tab (4 items)
+        if (minCashFlow) completed++;
+        if (minCoc) completed++;
+        if (minCapRate) completed++;
+        if (maxRehab) completed++;
+
+        return Math.round((completed / total) * 100);
+    };
+
+    const overallCompletion = calculateOverallCompletion();
+
+    // Get color based on completion
+    const getProgressColor = (percent: number) => {
+        if (percent < 40) return 'from-red-500 to-red-400';
+        if (percent < 80) return 'from-yellow-500 to-yellow-400';
+        return 'from-green-500 to-green-400';
+    };
+
     const handleAddMarket = () => {
         if (newMarket.trim()) {
             toggleFavoriteMarket(newMarket.trim());
@@ -181,12 +216,19 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02]">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-transparent flex items-center justify-center">
                                     <Settings className="w-5 h-5 text-blue-400" />
                                 </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-white">Preferences</h2>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3">
+                                        <h2 className="text-xl font-bold text-white">Preferences</h2>
+                                        {/* Completion Badge */}
+                                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10">
+                                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 animate-pulse" />
+                                            <span className="text-xs font-semibold text-white/70">{overallCompletion}%</span>
+                                        </div>
+                                    </div>
                                     <p className="text-sm text-white/50">Configure your Buy Box & DNA</p>
                                 </div>
                             </div>
@@ -196,6 +238,20 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             >
                                 <X className="w-5 h-5" />
                             </button>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="px-6 pt-3">
+                            <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div
+                                    className={`absolute inset-y-0 left-0 bg-gradient-to-r ${getProgressColor(overallCompletion)} rounded-full`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${overallCompletion}%` }}
+                                    transition={{ duration: 0.5, ease: "easeOut" }}
+                                />
+                                {/* Shimmer effect */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-shimmer" />
+                            </div>
                         </div>
 
                         {/* Tabs */}

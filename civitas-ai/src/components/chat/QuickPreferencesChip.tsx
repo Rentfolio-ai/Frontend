@@ -29,9 +29,80 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
         budgetRange,
         defaultStrategy,
         favoriteMarkets,
+        financialDna,
+        investmentCriteria,
         setBudgetRange,
         setDefaultStrategy,
     } = usePreferencesStore();
+
+    // Calculate completion percentage
+    const calculateCompletion = () => {
+        let completed = 0;
+        let total = 5;
+
+        // 1. Budget Range
+        if (budgetRange?.max) completed++;
+
+        // 2. Default Strategy
+        if (defaultStrategy) completed++;
+
+        // 3. Favorite Markets
+        if (favoriteMarkets.length > 0) completed++;
+
+        // 4. Financial DNA (check if any field is set)
+        if (financialDna && Object.values(financialDna).some(v => v != null)) completed++;
+
+        // 5. Investment Criteria (check if any field is set)
+        if (investmentCriteria && Object.values(investmentCriteria).some(v => v != null)) completed++;
+
+        return Math.round((completed / total) * 100);
+    };
+
+    const completionPercent = calculateCompletion();
+
+    // Determine status level
+    const getStatusLevel = () => {
+        if (completionPercent === 0) return 'empty';
+        if (completionPercent < 40) return 'low';
+        if (completionPercent < 80) return 'medium';
+        return 'complete';
+    };
+
+    const statusLevel = getStatusLevel();
+
+    // Status configurations
+    const statusConfig = {
+        empty: {
+            color: 'text-white/50',
+            bgColor: 'bg-white/5 hover:bg-white/10',
+            borderColor: 'border-white/10',
+            ringColor: 'stroke-white/10',
+            text: 'Set preferences'
+        },
+        low: {
+            color: 'text-red-300',
+            bgColor: 'bg-red-500/10 hover:bg-red-500/20',
+            borderColor: 'border-red-500/30',
+            ringColor: 'stroke-red-500',
+            text: 'Complete your profile'
+        },
+        medium: {
+            color: 'text-yellow-300',
+            bgColor: 'bg-yellow-500/10 hover:bg-yellow-500/20',
+            borderColor: 'border-yellow-500/30',
+            ringColor: 'stroke-yellow-500',
+            text: `${Math.round(completionPercent)}% complete`
+        },
+        complete: {
+            color: 'text-green-300',
+            bgColor: 'bg-green-500/10 hover:bg-green-500/20',
+            borderColor: 'border-green-500/30',
+            ringColor: 'stroke-green-500',
+            text: null // Will show active prefs instead
+        }
+    };
+
+    const config = statusConfig[statusLevel];
 
     // Format budget display
     const formatBudget = (value: number | undefined) => {
@@ -41,15 +112,30 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
     };
 
     const budgetMax = formatBudget(budgetRange?.max);
-    const hasPreferences = budgetMax || defaultStrategy || favoriteMarkets.length > 0;
 
-    // Build display text
-    const displayParts: string[] = [];
-    if (budgetMax) displayParts.push(`Max ${budgetMax}`);
-    if (defaultStrategy) displayParts.push(strategyLabels[defaultStrategy] || defaultStrategy);
-    if (favoriteMarkets.length > 0) displayParts.push(favoriteMarkets[0]);
+    // Build compact display text for complete state
+    const buildCompactDisplay = () => {
+        const parts: string[] = [];
 
-    const displayText = displayParts.length > 0 ? displayParts.join(' • ') : 'Set preferences';
+        // Add down payment if available
+        if (financialDna?.down_payment_pct) {
+            parts.push(`${Math.round(financialDna.down_payment_pct * 100)}% down`);
+        }
+
+        // Add budget
+        if (budgetMax) {
+            parts.push(`${budgetMax} max`);
+        }
+
+        // Add strategy
+        if (defaultStrategy) {
+            parts.push(strategyLabels[defaultStrategy]);
+        }
+
+        return parts.length > 0 ? parts.join(', ') : config.text;
+    };
+
+    const displayText = statusLevel === 'complete' ? buildCompactDisplay() : config.text;
 
     // Quick budget options
     const budgetOptions = [
@@ -60,21 +146,62 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
         { label: '$2M', value: 2000000 },
     ];
 
+    // Calculate circle progress (SVG)
+    const radius = 7;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
+
     return (
         <div className={cn('relative', className)}>
             {/* Chip Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all',
-                    hasPreferences
-                        ? 'bg-primary/10 text-primary-300 hover:bg-primary/20 border border-primary/20'
-                        : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10'
+                    'flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all border group',
+                    config.bgColor,
+                    config.borderColor,
+                    config.color
                 )}
             >
-                <Settings className="w-3 h-3" />
-                <span className="truncate max-w-[180px]">{displayText}</span>
-                <ChevronDown className={cn('w-3 h-3 transition-transform', isOpen && 'rotate-180')} />
+                {/* Progress Ring */}
+                <div className="relative w-4 h-4 flex-shrink-0">
+                    <svg className="w-4 h-4 -rotate-90" viewBox="0 0 16 16">
+                        {/* Background circle */}
+                        <circle
+                            cx="8"
+                            cy="8"
+                            r={radius}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            className="opacity-10"
+                        />
+                        {/* Progress circle */}
+                        <circle
+                            cx="8"
+                            cy="8"
+                            r={radius}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={strokeDashoffset}
+                            strokeLinecap="round"
+                            className={cn('transition-all duration-500', config.ringColor)}
+                        />
+                    </svg>
+                    {/* Checkmark for complete state */}
+                    {statusLevel === 'complete' && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <svg className="w-2.5 h-2.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    )}
+                </div>
+
+                <span className="truncate max-w-[200px]">{displayText}</span>
+                <ChevronDown className={cn('w-3 h-3 transition-transform flex-shrink-0 opacity-60 group-hover:opacity-100', isOpen && 'rotate-180')} />
             </button>
 
             {/* Popover */}

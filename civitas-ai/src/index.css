@@ -23,10 +23,10 @@
     --info: 199 89% 48%;
     --neutral: 220 9% 46%;
 
-    /* Light mode - Clean white with subtle warmth */
-    --background: 0 0% 100%;
-    --surface: 0 0% 100%;
-    --surface-elevated: 0 0% 100%;
+    /* Light mode - Warm Slate: Premium paper feel */
+    --background: 30 20% 98%;
+    --surface: 30 15% 99%;
+    --surface-elevated: 30 10% 100%;
     --muted: 220 14% 96%;
     --border: 220 13% 91%;
     --border-subtle: 220 14% 96%;
@@ -51,12 +51,12 @@
   }
 
   .dark {
-    /* Dark mode - Rich charcoal with emerald accents */
-    --background: 224 71% 4%;
-    /* Near black with blue tint #030712 */
-    --surface: 222 47% 8%;
-    /* Dark charcoal #0f1629 */
-    --surface-elevated: 222 47% 11%;
+    /* Dark mode - Warm Slate: Sophisticated charcoal */
+    --background: 220 15% 8%;
+    /* Warm charcoal #121418 */
+    --surface: 220 12% 10%;
+    /* Slightly lighter #17181C */
+    --surface-elevated: 220 10% 12%;
     --muted: 222 47% 11%;
     --border: 222 47% 15%;
     --border-subtle: 222 47% 11%;
@@ -209,14 +209,25 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400;
   }
 
-  /* Animated gradient background */
+  /* Animated gradient background - Warm Slate */
   .bg-gradient-animated {
     background: linear-gradient(135deg,
-        hsl(var(--background)) 0%,
-        hsl(222 47% 6%) 25%,
-        hsl(222 47% 8%) 50%,
-        hsl(220 47% 7%) 75%,
-        hsl(var(--background)) 100%);
+        hsl(30 20% 98%) 0%,
+        hsl(30 18% 96%) 25%,
+        hsl(30 15% 94%) 50%,
+        hsl(30 18% 96%) 75%,
+        hsl(30 20% 98%) 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  .dark .bg-gradient-animated {
+    background: linear-gradient(135deg,
+        hsl(220 15% 8%) 0%,
+        hsl(220 18% 10%) 25%,
+        hsl(220 20% 12%) 50%,
+        hsl(220 18% 10%) 75%,
+        hsl(220 15% 8%) 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }

@@ -72,7 +72,7 @@ export interface UserPreferences {
     inferredPreferences: InferredPreferences | null;
 
     // Location
-    clientLocation: { latitude: number; longitude: number } | null;
+    clientLocation: { latitude: number; longitude: number; cityName?: string; accuracy?: number } | null;
 
     // UI preferences
     showKeyboardHints: boolean;
@@ -106,7 +106,7 @@ export interface PreferencesState extends UserPreferences {
     setLastSearchCity: (city: string) => void;
 
     // Location
-    updateClientLocation: (location: { latitude: number; longitude: number } | null) => void;
+    updateClientLocation: (location: { latitude: number; longitude: number; cityName?: string; accuracy?: number } | null) => void;
 
     clearRecentSearches: () => void;
 
@@ -223,15 +223,14 @@ export const usePreferencesStore = create<PreferencesState>()(
                 if (!user_id || user_id === 'default') return;
 
                 try {
-                    const [api] = await Promise.all([
-                        import('../services/preferencesApi')
-                    ]);
+                    const api = await import('../services/preferencesApi');
+                    await api.getPreferences(user_id);
 
-                    const prefs = await api.getPreferences(user_id);
-
+                    // Note: Preferences are synced to backend but state updates
+                    // are handled by the caller to avoid circular dependencies
                     set((state) => ({
                         ...state
-                        // Prefs mapping handled by caller
+                        // State mapping handled by caller
                     }));
 
                 } catch (err) {
