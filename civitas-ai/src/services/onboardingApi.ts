@@ -1,6 +1,6 @@
 // FILE: src/services/onboardingApi.ts
 /**
- * API service for ProphetAtlas onboarding tour
+ * API service for Vasthu onboarding tour
  */
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;

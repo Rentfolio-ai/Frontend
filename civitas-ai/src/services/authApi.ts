@@ -246,8 +246,9 @@ class AuthAPI {
 // ============================================================================
 
 const apiBaseUrl = API_BASE || (import.meta.env.DEV ? 'http://localhost:8001' : '');
+
 if (!apiBaseUrl && !import.meta.env.DEV) {
-  throw new Error('API URL must be configured via environment variable (VITE_CIVITAS_API_URL or VITE_API_URL)');
+  console.error('CRITICAL: API URL missing (VITE_CIVITAS_API_URL). Auth services will fail.');
 }
 
-export const authAPI = new AuthAPI(apiBaseUrl);
+export const authAPI = new AuthAPI(apiBaseUrl || '');

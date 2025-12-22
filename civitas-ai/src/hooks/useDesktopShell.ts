@@ -33,7 +33,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis';
+export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {

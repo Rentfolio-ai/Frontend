@@ -1,5 +1,5 @@
 // FILE: civitas-ai/src/types/index.ts
-// Type definitions for the ProphetAtlas application
+// Type definitions for the Vasthu application
 
 export interface Property {
   id: string;

@@ -13,6 +13,7 @@ import {
     onAuthStateChanged,
     type User
 } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration
 // Add these to your .env file:
@@ -33,8 +34,28 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+import type { FirebaseApp } from 'firebase/app';
+import type { Auth } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
+
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+
+try {
+    // Basic validation to avoid hard crash if env vars are missing
+    if (!firebaseConfig.apiKey) {
+        console.warn('Firebase configuration missing (apiKey). Firebase will not be initialized.');
+    } else {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+    }
+} catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+}
+
+export { app, auth, db };
 const googleProvider = new GoogleAuthProvider();
 
 /**
@@ -42,6 +63,7 @@ const googleProvider = new GoogleAuthProvider();
  */
 export const signInWithGoogle = async (): Promise<User> => {
     try {
+        if (!auth) throw new Error('Firebase Auth not initialized');
         const result = await signInWithPopup(auth, googleProvider);
         return result.user;
     } catch (error) {
@@ -55,6 +77,7 @@ export const signInWithGoogle = async (): Promise<User> => {
  */
 export const signOut = async (): Promise<void> => {
     try {
+        if (!auth) return;
         await firebaseSignOut(auth);
     } catch (error) {
         console.error('Error signing out:', error);
@@ -79,6 +102,11 @@ export const getIdToken = async (user: User | null): Promise<string | null> => {
  * Listen to auth state changes
  */
 export const onAuthChange = (callback: (user: User | null) => void) => {
+    if (!auth) {
+        // If auth is not initialized, we can't listen for changes.
+        // Return a no-op unsubscribe function.
+        return () => { };
+    }
     return onAuthStateChanged(auth, callback);
 };
 

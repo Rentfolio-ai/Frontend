@@ -42,4 +42,5 @@ export interface ComplianceResult {
   city_rules?: ComplianceLayer;
   hoa_guidance?: ComplianceLayer;
   permits?: CompliancePermitRequirement[];
+  sources?: string[];
 }

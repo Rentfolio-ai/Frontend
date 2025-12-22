@@ -1,5 +1,5 @@
 /**
- * API service for ProphetAtlas agent endpoints
+ * API service for Vasthu agent endpoints
  * Provides typed functions for property search, valuation, and reports
  */
 import { apiLogger, logger } from '@/utils/logger';

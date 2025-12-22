@@ -27,13 +27,16 @@ import { useToast } from '../hooks/useToast';
 import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
-import { ChatTabView, ReportsTabView, PortfolioTabView, DesktopSidebarMenu } from '../components/desktop-shell';
+import { ChatTabView, ReportsTabView, PortfolioTabView } from '../components/desktop-shell';
+import { SimpleSidebar } from '../components/desktop-shell/SimpleSidebar';
+import { ChatSearchDrawer } from '../components/desktop-shell/ChatSearchDrawer';
 import { PropertyAnalysisPage } from '../components/pages/PropertyAnalysisPage';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
 import { OnboardingTour } from '../components/onboarding';
 import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
+import { FilesLibrary } from '../components/files/FilesLibrary';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -41,27 +44,23 @@ interface DesktopShellProps {
 
 
 
-// Menu items
-const MENU_ITEMS: Array<{ id: TabType; label: string; icon: string }> = [
-  { id: 'portfolio', label: 'Portfolio', icon: '📊' },
-  { id: 'reports', label: 'Reports', icon: '📄' },
-];
 
 const ONBOARDING_STORAGE_KEY = 'prophetatlas-onboarding-completed';
 
+
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const { user } = useAuth();
-  const { toasts, closeToast } = useToast();
+  const { toasts, closeToast, success, error } = useToast();
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Custom hooks for state management
   const {
     chatHistory,
     activeChatId,
     messages,
-    isSidebarOpen,
     activeTab,
     isLoading,
     setIsSidebarOpen,
@@ -102,7 +101,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     hasArchiveHandler: !!handleArchiveChat
   });
 
-  const { selectedState, currentTheme } = useThemeState();
+  const { selectedState } = useThemeState();
 
   // Preferences hook removed as settings tab is removed
   // const {
@@ -134,15 +133,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       if (existingBookmark) {
         console.log('[DesktopShell] Removing bookmark:', existingBookmark.id);
         removeBookmark(existingBookmark.id);
+        success('Property removed from bookmarks');
       } else {
         console.log('[DesktopShell] Adding bookmark');
         const newBookmark = addBookmark(property);
         console.log('[DesktopShell] Bookmark added:', newBookmark);
+        success('Property bookmarked!');
       }
-    } catch (error) {
-      console.error('[DesktopShell] Error in handleToggleBookmark:', error);
+    } catch (err) {
+      console.error('[DesktopShell] Error in handleToggleBookmark:', err);
+      error('Failed to update bookmark');
     }
-  }, [findMatchingBookmark, removeBookmark, addBookmark]);
+  }, [findMatchingBookmark, removeBookmark, addBookmark, success, error]);
 
   // Refresh reports when navigating to reports tab (reports are auto-saved on backend)
   const handleNavigateToReportsAndRefresh = useCallback(() => {
@@ -228,59 +230,33 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   }, [setActiveTab]);
 
   // Navigation menu items - Always include Property Analysis
-  const sidebarMenuItems = [
-    ...MENU_ITEMS,
-    { id: 'analysis' as const, label: 'Property Analysis', icon: '🏠' }
-  ];
+
 
   return (
     <div className="h-screen w-full relative overflow-hidden dark bg-background">
-      {/* Immersive gradient background */}
-      <div className="absolute inset-0 bg-gradient-animated" />
-      <div className="absolute inset-0 bg-mesh" />
+      {/* Simple Left Sidebar with integrated chat history */}
+      <SimpleSidebar
+        onNewChat={() => {
+          handleNewChat();
+          setActiveTab('chat');
+        }}
+        onChatClick={() => setActiveTab('chat')}
+        onAnalyticsClick={() => setActiveTab('portfolio')}
+        onReportsClick={() => setActiveTab('reports')}
+        onSearchClick={() => setIsSearchOpen(true)}
+        onFilesClick={() => setActiveTab('files')}
+        chatHistory={chatHistory}
+        activeChatId={activeChatId}
+        onLoadChat={handleLoadChat}
+        onDeleteChat={handleDeleteChat}
+        onPinChat={handlePinChat}
+      />
 
-      {/* Content layer */}
-      <div className="relative z-10 h-full flex flex-col">
-        {/* Sidebar Menu (slides over) */}
-        <DesktopSidebarMenu
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-          chatHistory={chatHistory}
-          activeChatId={activeChatId}
-          activeTab={activeTab}
-          currentTheme={currentTheme}
-          menuItems={sidebarMenuItems}
-          onNewChat={handleNewChat}
-          onLoadChat={handleLoadChat}
-          onDeleteChat={handleDeleteChat}
-          onTabChange={setActiveTab}
-          bookmarks={bookmarks}
-          onRemoveBookmark={removeBookmark}
-          onBookmarkClick={(bookmark) => {
-            handleViewPropertyDetails(bookmark.property);
-          }}
-          onPinChat={handlePinChat}
-          onArchiveChat={handleArchiveChat}
-        />
+      {/* Content layer with left padding for sidebar */}
+      <div className="relative z-10 h-full flex flex-col pl-12">
 
         {/* Main Content Area - Full height */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          {/* Back to Chat Button - Shows when not on chat tab */}
-          {activeTab !== 'chat' && (
-            <button
-              onClick={() => setActiveTab('chat')}
-              className="absolute top-4 left-4 z-20 px-4 py-2.5 rounded-xl glass-card hover:bg-white/[0.08] transition-all duration-300 group flex items-center gap-2.5"
-              aria-label="Back to chat"
-            >
-              <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">
-                Back to Chat
-              </span>
-            </button>
-          )}
-
           {/* Tab Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {activeTab === 'chat' && (
@@ -315,6 +291,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             )}
             {activeTab === 'portfolio' && (
               <PortfolioTabView />
+            )}
+            {activeTab === 'files' && (
+              <FilesLibrary />
             )}
             {activeTab === 'analysis' && activeProperty && (
               <PropertyAnalysisPage
@@ -358,6 +337,20 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           currentTab={activeTab}
           onTabChange={setActiveTab}
         />
+
+        {/* Chat Search Drawer */}
+        <ChatSearchDrawer
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          chatHistory={chatHistory}
+          onLoadChat={(chatId) => {
+            handleLoadChat(chatId);
+            setActiveTab('chat');
+          }}
+          activeChatId={activeChatId || ''}
+        />
+
+        {/* Floating Search Button */}
       </div>
     </div>
   );

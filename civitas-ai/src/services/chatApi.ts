@@ -123,7 +123,7 @@ interface OnboardingData {
     category: string;
     placeholder?: boolean;
   }>;
-  // Backend-specific fields from ProphetAtlas /onboarding API
+  // Backend-specific fields from Vasthu /onboarding API
   thread_id?: string;
   suggested_actions?: string[];
   user_name?: string;

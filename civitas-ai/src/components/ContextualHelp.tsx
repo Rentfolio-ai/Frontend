@@ -121,7 +121,7 @@ export const useContextualHelp = () => {
         if (!hasVisited) {
             setHelpConfig({
                 trigger: 'first-visit',
-                message: 'Welcome to ProphetAtlas! Try asking about properties in your favorite city.',
+                message: 'Welcome to Vasthu! Try asking about properties in your favorite city.',
                 suggestions: [
                     'Find STR properties in Austin under $400k',
                     'What\'s the market like in Phoenix?',

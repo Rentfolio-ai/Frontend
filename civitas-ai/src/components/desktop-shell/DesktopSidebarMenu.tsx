@@ -168,7 +168,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
                     <span className="text-white text-sm font-bold">O</span>
                   </div>
-                  <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">OmniEstate</h2>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Vasthu</h2>
                 </div>
                 <button
                   onClick={onClose}

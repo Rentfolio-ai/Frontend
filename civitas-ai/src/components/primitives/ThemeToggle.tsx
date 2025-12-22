@@ -7,11 +7,10 @@ export const ThemeToggle: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Check initial theme from localStorage and system preference
+    // Default to dark mode - our premium dark theme
     const stored = localStorage.getItem('civitas-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialDark = stored === 'dark' || (!stored && prefersDark);
-    
+    const initialDark = stored === 'light' ? false : true; // Default to dark unless explicitly set to light
+
     setIsDark(initialDark);
     document.documentElement.classList.toggle('dark', initialDark);
   }, []);

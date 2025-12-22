@@ -15,7 +15,7 @@ interface ToolCall {
 
 export class ChatService {
   /**
-   * Generate STR-focused responses using ProphetAtlas backend
+   * Generate STR-focused responses using Vasthu backend
    * Returns both content and optional navigation action
    */
   static async generateSTRResponse(
@@ -48,7 +48,7 @@ export class ChatService {
         },
       };
 
-      // Call new ProphetAtlas agents API for chat
+      // Call new Vasthu agents API for chat
       const response = await fetch(`${CIVITAS_API_BASE}/api/chat`, {
         method: 'POST',
         headers: {
@@ -267,7 +267,7 @@ export class ChatService {
   }
 
   /**
-   * Fallback STR responses when ProphetAtlas API is unavailable
+   * Fallback STR responses when Vasthu API is unavailable
    */
   static generateFallbackSTRResponse(userMessage: string, threadId?: string): { content: string; navigate?: string; threadId?: string } {
     const lower = userMessage.toLowerCase();

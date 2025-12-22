@@ -210,18 +210,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <span>{formatRelativeTime(message.timestamp)}</span>
         </div>
 
-        {/* Message Bubble */}
+        {/* Message Content - Plain Text */}
         <div className={cn(
-          "relative px-5 py-3.5 rounded-2xl shadow-md text-sm leading-relaxed whitespace-pre-wrap break-words",
-          isUser
-            ? "bg-white/5 text-white/95 rounded-tr-sm border border-white/10"
-            : "bg-[#1E2029] text-white/90 rounded-tl-sm border border-white/5",
+          "relative text-[15px] leading-relaxed whitespace-pre-wrap break-words",
+          isUser ? "text-white/95" : "text-white/90",
           message.isStreaming && "animate-pulse"
         )}>
-          {/* Subtle Gradient Overlay for Assistant */}
-          {!isUser && (
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-          )}
+          {/* No gradient overlay */}
 
           {/* Action Toolbar (visible on hover) */}
           {!message.isStreaming && !isUser && (

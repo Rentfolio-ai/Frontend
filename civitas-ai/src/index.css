@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    /* OmniEstate - Luxury Real Estate Color System */
+    /* Vasthu - Luxury Real Estate Color System */
     /* Deep charcoal base with emerald/teal accents and warm gold highlights */
     --primary: 160 84% 39%;
     /* Emerald #10B981 */
@@ -51,39 +51,50 @@
   }
 
   .dark {
-    /* Dark mode - Warm Slate: Sophisticated charcoal */
-    --background: 220 15% 8%;
-    /* Warm charcoal #121418 */
-    --surface: 220 12% 10%;
-    /* Slightly lighter #17181C */
-    --surface-elevated: 220 10% 12%;
-    --muted: 222 47% 11%;
-    --border: 222 47% 15%;
-    --border-subtle: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --text-muted: 220 9% 60%;
+    /* Neutral Dark Theme - Inspired by ChatGPT/Claude/Gemini */
 
-    --primary: 160 84% 45%;
-    --accent-from: 160 84% 45%;
-    --accent-to: 173 80% 45%;
-    --highlight: 45 93% 55%;
-    --success: 160 84% 45%;
-    --warning: 45 93% 55%;
-    --danger: 0 84% 65%;
-    --info: 199 89% 55%;
+    /* Base: Pure neutral grays - no color tints */
+    --background: 0 0% 13%;
+    /* #212121 - Civitas AI Dark Gray - Clearly visible, professional */
+    --surface: 0 0% 12%;
+    /* #1F1F1F - Cards */
+    --surface-elevated: 0 0% 14%;
+    /* #242424 - Elevated UI */
+    --muted: 0 0% 15%;
+    --border: 0 0% 15%;
+    /* Hairline borders - subtle */
+    --border-subtle: 0 0% 12%;
+    /* Even more subtle */
+    --foreground: 0 0% 90%;
+    /* #E5E5E5 - Primary text */
+    --text-muted: 0 0% 65%;
+    /* Clean gray for secondary text */
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary-foreground: 224 71% 4%;
-    --secondary: 222 47% 11%;
-    --secondary-foreground: 210 40% 98%;
-    --muted-foreground: 220 9% 60%;
-    --accent: 160 84% 15%;
-    --accent-foreground: 160 84% 90%;
-    --ring: 160 84% 45%;
-    --input: 222 47% 11%;
+    /* Vibrant Accents - Keep teal branding */
+    --primary: 173 80% 50%;
+    --accent-from: 173 80% 50%;
+    --accent-to: 280 65% 60%;
+    --highlight: 45 100% 60%;
+    --success: 160 90% 50%;
+    --warning: 38 95% 58%;
+    --danger: 0 90% 65%;
+    --info: 199 89% 66%;
+    --neutral: 0 0% 50%;
+
+    /* Component colors */
+    --card: 0 0% 10%;
+    /* #1A1A1A - Matches surface */
+    --card-foreground: 0 0% 90%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 90%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 90%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 173 80% 20%;
+    --accent-foreground: 173 80% 95%;
+    --ring: 173 80% 50%;
+    --input: 0 0% 16%;
   }
 }
 
@@ -94,6 +105,7 @@
 
   body {
     background-color: hsl(var(--background));
+    /* Clean neutral dark - no gradients */
     color: hsl(var(--foreground));
     margin: 0;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -242,6 +254,22 @@
     50% {
       background-position: 100% 50%;
     }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out forwards;
   }
 
   /* Mesh gradient overlay */
@@ -452,4 +480,39 @@
 
 .chat-scroll::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Holographic Property View Animations */
+@keyframes scan {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px) translateZ(0px);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: translateY(-20px) translateZ(10px);
+    opacity: 0.8;
+  }
+}
+
+.animate-scan {
+  animation: scan 3s ease-in-out infinite;
 }

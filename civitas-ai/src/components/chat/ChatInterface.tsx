@@ -68,7 +68,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [showFAQ, setShowFAQ] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
-  const [modelVersion, setModelVersion] = useState({ version: 'Atlas 1.0', mode: 'deep-reasoning' })
+  const [modelVersion, setModelVersion] = useState({ version: 'Vasthu 1.0', mode: 'deep-reasoning' })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const smartInputRef = useRef<{ focus: () => void }>(null)

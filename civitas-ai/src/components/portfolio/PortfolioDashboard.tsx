@@ -90,10 +90,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
     }
   };
 
-  const handleBackToList = () => {
-    setSelectedPortfolio(null);
-    setViewMode('list');
-  };
+
 
   const handleViewAnalytics = () => {
     setViewMode('analytics');
@@ -118,7 +115,6 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
       <>
         <PortfolioDetail
           portfolio={selectedPortfolio}
-          onBack={handleBackToList}
           onViewAnalytics={handleViewAnalytics}
         />
         <PortfolioForm
@@ -140,13 +136,7 @@ export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
     return (
       <>
         <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={handleBackToList}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              ← Back to Portfolios
-            </button>
+          <div className="flex items-center justify-end mb-6">
             <div className="flex items-center gap-2">
               <button
                 onClick={handleViewProperties}

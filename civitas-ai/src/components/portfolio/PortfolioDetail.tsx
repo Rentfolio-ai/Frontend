@@ -1,6 +1,6 @@
 // FILE: src/components/portfolio/PortfolioDetail.tsx
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Plus, Upload, Download, BarChart3 } from 'lucide-react';
+import { Plus, Upload, Download, BarChart3 } from 'lucide-react';
 import { usePortfolioStore } from '../../stores/portfolioStore';
 import { PropertyTable } from './PropertyTable';
 import { PropertyForm } from './PropertyForm';
@@ -10,13 +10,11 @@ import { formatCurrency, formatPercentage } from '../../utils/portfolioHelpers';
 
 interface PortfolioDetailProps {
   portfolio: PortfolioWithMetrics;
-  onBack: () => void;
   onViewAnalytics?: () => void;
 }
 
 export const PortfolioDetail: React.FC<PortfolioDetailProps> = ({
   portfolio,
-  onBack,
   onViewAnalytics,
 }) => {
   const {
@@ -90,19 +88,11 @@ export const PortfolioDetail: React.FC<PortfolioDetailProps> = ({
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{portfolio.name}</h1>
-            {portfolio.description && (
-              <p className="text-sm text-gray-500 mt-1">{portfolio.description}</p>
-            )}
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{portfolio.name}</h1>
+          {portfolio.description && (
+            <p className="text-sm text-gray-500 mt-1">{portfolio.description}</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {onViewAnalytics && (
@@ -153,9 +143,8 @@ export const PortfolioDetail: React.FC<PortfolioDetailProps> = ({
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <p className="text-sm text-gray-500 mb-1">Monthly Cashflow</p>
             <p
-              className={`text-2xl font-bold ${
-                metrics.total_monthly_cashflow >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}
+              className={`text-2xl font-bold ${metrics.total_monthly_cashflow >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}
             >
               {formatCurrency(metrics.total_monthly_cashflow)}
             </p>

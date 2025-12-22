@@ -1,6 +1,5 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Settings, HelpCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
@@ -8,18 +7,19 @@ import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { PreferencesModal } from '../PreferencesModal';
 import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
-import { Tooltip } from '../Tooltip';
+
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
 import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceSuggestion } from '../chat/PreferenceSuggestionToast';
+import { uploadFile, ingestFileToBackend } from '../../services/fileStorage';
 
 import { checkHealth } from '../../services/agentsApi';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
 import { SuggestionChips } from '../chat/SuggestionChips';
-import { getConfigVersion } from '../../services/configApi';
+
 
 interface ChatTabViewProps {
   messages: Message[];
@@ -52,6 +52,7 @@ interface ChatTabViewProps {
 
 // Context-aware greeting based on user preferences and activity
 const getContextAwareGreeting = (userPreferences?: any, userName?: string): { title: string; tagline: string } => {
+  // console.log('[ChatTabView] getContextAwareGreeting called');
   const hour = new Date().getHours();
   const namePrefix = userName ? `${userName}, ` : '';
 
@@ -175,7 +176,6 @@ const getContextAwareGreeting = (userPreferences?: any, userName?: string): { ti
   return { title: '', tagline: `${namePrefix}your AI-powered real estate intelligence` };
 };
 
-
 export const ChatTabView: React.FC<ChatTabViewProps> = ({
   messages,
   isLoading,
@@ -190,7 +190,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   bookmarks,
   onToggleBookmark,
   onNavigateToReports,
-  onOpenSidebar,
+
   thinking,
   completedTools = [],
   onRefresh,
@@ -206,17 +206,60 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
-  const [modelVersion, setModelVersion] = useState({ version: 'Atlas 1.0', mode: 'deep-reasoning' });
+  const [isUploading, setIsUploading] = useState(false);
   const composerRef = useRef<ComposerRef>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
 
   const prefsStore = usePreferencesStore();
 
+  console.log('[ChatTabView] Render started', {
+    isLoading,
+    messagesCount: messages.length,
+    attachment: !!attachment,
+    isUploading
+  });
+
+  const handleSendMessage = async (text: string) => {
+    if (attachment) {
+      setIsUploading(true);
+      try {
+        // 1. Upload to Firebase
+        const uploadedFile = await uploadFile(attachment, {
+          chatId: 'current-thread', // TODO: Get actual thread ID
+          chatTitle: 'Chat Upload',
+        });
+
+        // 2. Ingest to Backend (Classify & Index)
+        await ingestFileToBackend(uploadedFile);
+
+        // 3. Send message with context
+        const messageWithContext = `${text}\n\n[Uploaded File: ${uploadedFile.fileName}]`;
+        onSendMessage(messageWithContext);
+
+        if (onClearAttachment) onClearAttachment();
+      } catch (err) {
+        console.error("Upload failed", err);
+        // Still send text if upload fails? Or show error?
+        onSendMessage(text + " (File upload failed)");
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      onSendMessage(text);
+    }
+  };
+
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
   // Get context-aware greeting (updates when preferences change)
-  const greeting = useMemo(() => getContextAwareGreeting(prefsStore, userName), [
+  const greeting = useMemo(() => {
+    console.log('[ChatTabView] Calculating greeting with prefs:', {
+      city: prefsStore.lastSearchCity,
+      strategy: prefsStore.defaultStrategy
+    });
+    return getContextAwareGreeting(prefsStore, userName);
+  }, [
     prefsStore.lastSearchCity,
     prefsStore.defaultStrategy,
     prefsStore.favoriteMarkets,
@@ -229,6 +272,12 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   // Detect preference suggestions from new AI responses
   useEffect(() => {
+    console.log('[ChatTabView] Effect: Detect Preferences', {
+      messagesLen: messages.length,
+      isLoading,
+      lastProcessed: lastProcessedMessageId.current
+    });
+
     if (messages.length === 0 || isLoading) return;
 
     // Get the last assistant message
@@ -244,21 +293,22 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     // Detect any preference suggestions
     const suggestion = detectPreferenceSuggestion(lastMessage.content, userQuery);
     if (suggestion) {
+      console.log('[ChatTabView] Preference suggestion found:', suggestion);
       setPreferenceSuggestion(suggestion);
     }
   }, [messages, isLoading]);
 
-  // Fetch model version
+  // Check backend health
   useEffect(() => {
-    const fetchVersion = async () => {
+    const checkBackend = async () => {
       try {
-        const config = await getConfigVersion();
-        setModelVersion({ version: config.version, mode: config.mode });
+        const status = await checkHealth();
+        setBackendStatus(status ? 'up' : 'down');
       } catch (error) {
-        console.error('Failed to fetch model version:', error);
+        console.error('Failed to check backend:', error);
       }
     };
-    fetchVersion();
+    checkBackend();
   }, []);
 
   useEffect(() => {
@@ -322,70 +372,9 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   return (
     <div className="h-full flex flex-col relative">
-      {/* Menu Button - Flashy icon without box */}
-      {onOpenSidebar && (
-        <button
-          onClick={onOpenSidebar}
-          className="absolute top-4 left-4 z-20 p-2 transition-all duration-300 group hover:scale-110"
-          aria-label="Open menu"
-        >
-          <svg className="w-6 h-6 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      )}
-
-      {/* Header Buttons - Top Right */}
-      <div className="absolute top-4 right-4 z-20 flex gap-2">
-        {/* Help Button - Now opens Shortcuts/Help choice? Or just FAQ? Let's keep FAQ button but map Cmd+/ to Shortcuts */}
-        <Tooltip content="FAQ & Help">
-          <button
-            onClick={() => setShowFAQ(true)}
-            className="p-2 transition-all duration-300 group hover:scale-110"
-            aria-label="FAQ and Help"
-          >
-            <HelpCircle className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-          </button>
-        </Tooltip>
-
-        {/* Wide Mode Toggle */}
-        <Tooltip content={prefsStore.isWideMode ? "Standard Width" : "Wide Mode"} shortcut="⌘⇧F">
-          <button
-            onClick={() => prefsStore.setWideMode(!prefsStore.isWideMode)}
-            className="p-2 transition-all duration-300 group hover:scale-110"
-            aria-label={prefsStore.isWideMode ? "Standard Width" : "Wide Mode"}
-          >
-            {prefsStore.isWideMode ? (
-              <Minimize2 className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-            ) : (
-              <Maximize2 className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-            )}
-          </button>
-        </Tooltip>
-
-        {/* Settings Button */}
-        <Tooltip content="Preferences" shortcut="⌘,">
-          <button
-            onClick={() => setShowPreferences(true)}
-            className="p-2 transition-all duration-300 group hover:scale-110"
-            aria-label="Settings"
-          >
-            <Settings className="w-5 h-5 text-white/60 group-hover:text-white transition-all group-hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-          </button>
-        </Tooltip>
 
 
-      </div>
-
-      {/* Model Name - Plain text with flair */}
-      <div className="absolute top-4 left-20 z-20">
-        <div className="flex items-center gap-2">
-          <span className="text-base font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            {modelVersion.version}
-          </span>
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-        </div>
-      </div>
+      {/* Header buttons removed per user request */}
 
       {/* Modals */}
       <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
@@ -428,7 +417,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                     return (
                       <button
                         key={key}
-                        onClick={() => onSendMessage(query)}
+                        onClick={() => handleSendMessage(query)}
                         className="group flex items-start gap-3 w-full text-left hover:opacity-80 transition-opacity"
                       >
                         <span className="text-xl flex-shrink-0 mt-0.5">{icon}</span>
@@ -493,7 +482,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               onOpenPreferences={() => setShowPreferences(true)}
               isWideMode={prefsStore.isWideMode}
               onNavigateBranch={onNavigateBranch}
-              onSuggestionSelect={onSendMessage}
+              onSuggestionSelect={handleSendMessage}
             />
           </div>
         )}
@@ -509,7 +498,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
             <SuggestionChips
               suggestions={suggestions}
-              onSelect={onSendMessage}
+              onSelect={handleSendMessage}
               variant="carousel"
             />
           </div>
@@ -519,7 +508,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto transition-all duration-300`}>
             <Composer
               ref={composerRef}
-              onSend={onSendMessage}
+              onSend={handleSendMessage}
               onStop={onCancel}
               onAttach={onAttach}
               attachment={attachment}
@@ -530,7 +519,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
             {/* Subtle disclaimer */}
             <p className="text-center text-[11px] text-white/20 mt-3">
-              OmniEstate can make mistakes. Verify important information independently.
+              Vasthu can make mistakes. Verify important information independently.
             </p>
           </div>
         </div>
