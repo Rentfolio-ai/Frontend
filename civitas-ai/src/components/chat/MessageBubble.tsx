@@ -24,6 +24,8 @@ import { submitFeedback } from '../../services/feedbackApi';
 import { extractFirstTable, markdownTableToCsv, downloadCsv } from '../../lib/tableUtils';
 import { ContextBadge } from './ContextBadge';
 import { useClipboard } from '../../hooks/useClipboard';
+import { highlightKeyStats } from '../../utils/messageHighlighter';
+import rehypeRaw from 'rehype-raw';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -162,10 +164,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   }, [isEditing]);
 
   return (
-    <div className={cn(
-      "group flex w-full mb-6 relative animate-in fade-in slide-in-from-bottom-2 duration-300",
-      isUser ? "justify-end" : "justify-start"
-    )}>
+    <div
+      id={`message-${message.id}`}
+      className={cn(
+        "group flex w-full mb-6 relative animate-in fade-in slide-in-from-bottom-2 duration-300",
+        isUser ? "justify-end" : "justify-start"
+      )}
+    >
       {/* Agent Avatar (Left) */}
       {!isUser && (
         <div className="flex-shrink-0 mr-4 mt-1">
@@ -332,6 +337,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             ) : (
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
                 components={{
                   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                   code({ node, inline, className, children, ...props }: any) {
@@ -395,7 +401,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   )
                 }}
               >
-                {displayContent}
+                {!isUser ? highlightKeyStats(displayContent) : displayContent}
               </ReactMarkdown>
             )}
 
@@ -477,11 +483,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {onRefresh && (
               <button
                 onClick={() => onRefresh(message.id)}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                className="flex items-center justify-center p-1.5 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
                 title="Run this query again"
               >
                 <RotateCcw className="w-3 h-3" />
-                Restart
               </button>
             )}
           </div>

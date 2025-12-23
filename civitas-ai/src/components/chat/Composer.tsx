@@ -1,9 +1,10 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
-import { Paperclip, ArrowUp, MapPin, Square } from 'lucide-react';
+import { Paperclip, ArrowUp, MapPin, Square, Smile } from 'lucide-react';
 import { QuickPreferencesChip } from './QuickPreferencesChip';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { AttachmentPreview, generateThumbnail } from '../FileAttachment';
+import { EmojiPicker } from './EmojiPicker';
 
 
 
@@ -30,6 +31,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
   const [showCommands, setShowCommands] = useState(false);
   const [shouldFocusAfterSet, setShouldFocusAfterSet] = useState(false);
   const [thumbnail, setThumbnail] = useState<string | undefined>();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +101,14 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Cmd/Ctrl + Enter to send
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSubmit(e as any);
+      return;
+    }
+
+    // Enter without shift to send
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e as any);
@@ -171,6 +181,27 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
 
       if (onAttach) onAttach(file);
     }
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setMessage(message + emoji);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const newMessage = message.slice(0, start) + emoji + message.slice(end);
+
+    setMessage(newMessage);
+    setShowEmojiPicker(false);
+
+    // Set cursor position after emoji
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
   };
 
   // Reverse geocode coordinates to city name
@@ -334,6 +365,26 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             {...rest}
           />
 
+          {/* Keyboard Shortcuts Hint */}
+          <div className="px-6 pb-2 flex items-center gap-4 text-[11px] text-white/30">
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘/</kbd>
+              <span>Shortcuts</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘F</kbd>
+              <span>Search</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘↵</kbd>
+              <span>Send</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⇧↵</kbd>
+              <span>New line</span>
+            </div>
+          </div>
+
           <div className="px-4 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-1">
               <QuickPreferencesChip onOpenFullPreferences={onOpenPreferences || (() => { })} />
@@ -356,6 +407,24 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
               >
                 <Paperclip className="w-5 h-5 group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)] transition-all" />
               </button>
+
+              {/* Emoji Picker Button */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="p-2 rounded-xl text-white/50 hover:text-white transition-all duration-200 group hover:scale-[1.15] active:scale-95"
+                  title="Add emoji"
+                  disabled={isLoading}
+                >
+                  <Smile className="w-5 h-5 group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)] transition-all" />
+                </button>
+                <EmojiPicker
+                  isOpen={showEmojiPicker}
+                  onClose={() => setShowEmojiPicker(false)}
+                  onEmojiSelect={handleEmojiSelect}
+                />
+              </div>
 
               {/* Location Button or City Badge */}
               {clientLocation?.cityName ? (

@@ -516,3 +516,127 @@
 .animate-scan {
   animation: scan 3s ease-in-out infinite;
 }
+
+/* Message Content Highlighting */
+.prose mark {
+  background-color: transparent;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.prose mark:hover {
+  transform: translateY(-1px);
+}
+
+/* Currency highlights - Green/teal for money */
+.prose .highlight-currency {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-bottom: 2px solid rgba(16, 185, 129, 0.3);
+}
+
+.prose .highlight-currency:hover {
+  background-color: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+}
+
+/* Percentage highlights - Blue for percentages */
+.prose .highlight-percentage {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.prose .highlight-percentage:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+}
+
+/* Property metrics - Purple for specs */
+.prose .highlight-metric {
+  color: #a78bfa;
+  background-color: rgba(167, 139, 250, 0.1);
+  border-bottom: 2px solid rgba(167, 139, 250, 0.3);
+}
+
+.prose .highlight-metric:hover {
+  background-color: rgba(167, 139, 250, 0.2);
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.2);
+}
+
+/* Financial metrics - Amber/gold for ROI, cap rate, etc. */
+.prose .highlight-financial {
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+}
+
+.prose .highlight-financial:hover {
+  background-color: rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+}
+
+/* Address highlights - Cyan for locations */
+.prose .highlight-address {
+  color: #06b6d4;
+  background-color: rgba(6, 182, 212, 0.1);
+  border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+}
+
+.prose .highlight-address:hover {
+  background-color: rgba(6, 182, 212, 0.2);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+}
+
+/* ZIP code highlights */
+.prose .highlight-zip {
+  color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.1);
+  border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+/* Location highlights */
+.prose .highlight-location {
+  color: #14b8a6;
+  background-color: rgba(20, 184, 166, 0.1);
+  border-bottom: 2px solid rgba(20, 184, 166, 0.3);
+}
+
+/* MLS number highlights */
+.prose .highlight-mls {
+  color: #ec4899;
+  background-color: rgba(236, 72, 153, 0.1);
+  border-bottom: 2px solid rgba(236, 72, 153, 0.3);
+}
+
+/* Year built highlights */
+.prose .highlight-year {
+  color: #64748b;
+  background-color: rgba(100, 116, 139, 0.1);
+  border-bottom: 2px solid rgba(100, 116, 139, 0.3);
+}
+
+/* Message jump highlight animation */
+@keyframes messageJumpHighlight {
+  0% {
+    background-color: rgba(59, 130, 246, 0.3);
+    transform: scale(1);
+  }
+
+  50% {
+    background-color: rgba(59, 130, 246, 0.15);
+    transform: scale(1.02);
+  }
+
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.message-jump-highlight {
+  animation: messageJumpHighlight 2s ease-out;
+  scroll-margin-top: 100px;
+}

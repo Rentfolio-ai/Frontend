@@ -240,12 +240,39 @@ export const usePreferencesStore = create<PreferencesState>()(
         }),
         {
             name: 'civitas-preferences',
-            // Only persist critical UI state locally if needed, or rely on backend
+            // Persist all preferences to localStorage
+            // This ensures preferences survive page refreshes
             partialize: (state) => ({
+                // User preferences
+                user_id: state.user_id,
+                defaultStrategy: state.defaultStrategy,
+                budgetRange: state.budgetRange,
+                preferredBedrooms: state.preferredBedrooms,
+
+                // Financial DNA
+                financialDna: state.financialDna,
+
+                // Investment Criteria
+                investmentCriteria: state.investmentCriteria,
+
+                // Interaction Profile
+                interactionProfile: state.interactionProfile,
+
+                // Favorites & History
+                favoriteMarkets: state.favoriteMarkets,
+                recentSearches: state.recentSearches,
+                lastSearchCity: state.lastSearchCity,
+
+                // Inferred Preferences
+                inferredPreferences: state.inferredPreferences,
+
+                // Location
+                clientLocation: state.clientLocation,
+
+                // UI Preferences
                 theme: state.theme,
                 isWideMode: state.isWideMode,
-                showKeyboardHints: state.showKeyboardHints
-                // Don't persist sensitive data if backend is truth
+                showKeyboardHints: state.showKeyboardHints,
             })
         }
     )

@@ -19,6 +19,9 @@ import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
 import { SuggestionChips } from '../chat/SuggestionChips';
+import { ScrollToBottomButton } from '../chat/ScrollToBottomButton';
+import { InConversationSearch } from '../chat/InConversationSearch';
+import { KeyboardShortcutsModal } from '../chat/KeyboardShortcutsModal';
 
 
 interface ChatTabViewProps {
@@ -205,9 +208,12 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showPreferences, setShowPreferences] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showInConvoSearch, setShowInConvoSearch] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const composerRef = useRef<ComposerRef>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
 
   const prefsStore = usePreferencesStore();
@@ -334,27 +340,40 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMod = e.metaKey || e.ctrlKey;
 
+      // Cmd+K - Focus composer
       if (isMod && e.key === 'k') {
         e.preventDefault();
         composerRef.current?.focus();
       }
 
+      // Cmd+F - Search in conversation
+      if (isMod && e.key === 'f') {
+        e.preventDefault();
+        setShowInConvoSearch(true);
+      }
+
+      // Cmd+Shift+F - Toggle wide mode
       if (isMod && e.shiftKey && e.key.toLowerCase() === 'f') {
         e.preventDefault();
         prefsStore.setWideMode(!prefsStore.isWideMode);
       }
 
+      // Cmd+, - Open preferences
       if (isMod && e.key === ',') {
         e.preventDefault();
         setShowPreferences(true);
       }
 
+      // Cmd+/ - Show keyboard shortcuts
       if (isMod && e.key === '/') {
         e.preventDefault();
-        setShowShortcuts(true);
+        setShowKeyboardShortcuts(true);
       }
 
+      // Escape - Close modals
       if (e.key === 'Escape') {
+        if (showKeyboardShortcuts) setShowKeyboardShortcuts(false);
+        if (showInConvoSearch) setShowInConvoSearch(false);
         if (showShortcuts) setShowShortcuts(false);
         if (showPreferences) setShowPreferences(false);
         if (showFAQ) setShowFAQ(false);
@@ -364,9 +383,22 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [prefsStore.isWideMode, prefsStore.setWideMode, showPreferences, showFAQ, showShortcuts, onCancel]);
+  }, [prefsStore.isWideMode, prefsStore.setWideMode, showPreferences, showFAQ, showShortcuts, showKeyboardShortcuts, showInConvoSearch, onCancel]);
 
 
+
+
+  // Handler for search navigation
+  const handleNavigateToSearchMatch = (messageId: string) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      messageElement.classList.add('message-jump-highlight');
+      setTimeout(() => {
+        messageElement.classList.remove('message-jump-highlight');
+      }, 2000);
+    }
+  };
 
   const showEmptyState = messages.length === 0 && !isLoading;
 
@@ -380,6 +412,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
       <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
       <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+      <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
       {/* Messages or Empty State */}
       <div className="flex-1 overflow-hidden">
@@ -460,7 +493,15 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           </div>
         ) : (
           /* Chat Messages */
-          <div className="h-full overflow-y-auto chat-scroll">
+          <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
+            {/* In-Conversation Search */}
+            <InConversationSearch
+              isOpen={showInConvoSearch}
+              onClose={() => setShowInConvoSearch(false)}
+              messages={messages}
+              onNavigateToMatch={handleNavigateToSearchMatch}
+            />
+
             <MessageList
               messages={messages}
               isLoading={isLoading}
@@ -484,6 +525,9 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               onNavigateBranch={onNavigateBranch}
               onSuggestionSelect={handleSendMessage}
             />
+
+            {/* Scroll to Bottom Button */}
+            <ScrollToBottomButton containerRef={messageContainerRef} />
           </div>
         )}
       </div>
