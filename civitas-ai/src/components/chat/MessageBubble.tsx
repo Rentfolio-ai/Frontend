@@ -265,36 +265,20 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   <span className="text-xs">🎯</span>
                 </button>
 
-
-                <div className="w-px h-3 bg-white/10 my-auto mx-0.5" />
-                <button
-                  onClick={() => onRefresh?.(message.id)}
-                  className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-blue-400 transition-colors"
-                  title="Regenerate"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                </button>
                 {hasTable && (
-                  <button
-                    onClick={handleDownloadTable}
-                    className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-green-400 transition-colors"
-                    title="Download CSV"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" />
-                  </button>
+                  <>
+                    <div className="w-px h-3 bg-white/10 my-auto mx-0.5" />
+                    <button
+                      onClick={handleDownloadTable}
+                      className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-green-400 transition-colors"
+                      title="Download CSV"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
-          )}
-
-          {/* User Edit Button */}
-          {isUser && onEdit && !isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="absolute -top-2 -left-2 p-1.5 bg-[#0F1117] border border-white/10 rounded-full text-white/40 hover:text-white opacity-0 group-hover:opacity-100 transition-all shadow-lg scale-90 hover:scale-100 z-10"
-            >
-              <Pencil className="w-3 h-3" />
-            </button>
           )}
 
           {/* Check for "Deep Reasoning" source from backend and render badge */}
@@ -476,6 +460,32 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             )}
           </div>
         </div>
+
+        {/* User Message Action Buttons (Edit & Restart) */}
+        {isUser && !isEditing && (onEdit || onRefresh) && (
+          <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {onEdit && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                title="Edit message"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
+            )}
+            {onRefresh && (
+              <button
+                onClick={() => onRefresh(message.id)}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                title="Run this query again"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Restart
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons (External) */}
         {message.action && onAction && (
