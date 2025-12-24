@@ -49,6 +49,7 @@ export interface UserPreferences {
         max: number;
     } | null;
     preferredBedrooms: number | null;
+    preferredPropertyTypes: string[]; // e.g., ['Single Family', 'Multi-Family', 'Condo', 'Townhouse']
 
     // Financial DNA
     financialDna: FinancialDNA | null;
@@ -100,6 +101,7 @@ export interface PreferencesState extends UserPreferences {
 
     // Favorites
     toggleFavoriteMarket: (market: string) => void;
+    togglePropertyType: (propertyType: string) => void;
 
     // Search History
     addRecentSearch: (query: string) => void;
@@ -127,6 +129,7 @@ const defaultPreferences: UserPreferences = {
     defaultStrategy: null,
     budgetRange: null,
     preferredBedrooms: null,
+    preferredPropertyTypes: [],
     financialDna: null,
     investmentCriteria: null,
     interactionProfile: null,
@@ -192,6 +195,14 @@ export const usePreferencesStore = create<PreferencesState>()(
                 return { favoriteMarkets: [...current, market] };
             }),
 
+            togglePropertyType: (propertyType: string) => set((state) => {
+                const current = state.preferredPropertyTypes;
+                if (current.includes(propertyType)) {
+                    return { preferredPropertyTypes: current.filter(t => t !== propertyType) };
+                }
+                return { preferredPropertyTypes: [...current, propertyType] };
+            }),
+
             addRecentSearch: (query: string) => set((state) => {
                 const current = state.recentSearches;
                 const filtered = current.filter(s => s !== query);
@@ -248,6 +259,7 @@ export const usePreferencesStore = create<PreferencesState>()(
                 defaultStrategy: state.defaultStrategy,
                 budgetRange: state.budgetRange,
                 preferredBedrooms: state.preferredBedrooms,
+                preferredPropertyTypes: state.preferredPropertyTypes,
 
                 // Financial DNA
                 financialDna: state.financialDna,
