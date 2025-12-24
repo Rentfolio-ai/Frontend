@@ -223,69 +223,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         )}>
           {/* No gradient overlay */}
 
-          {/* Action Toolbar (visible on hover) */}
-          {!message.isStreaming && !isUser && (
-            <div className="absolute -top-3 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
-              <div className="flex bg-[#0F1117] border border-white/10 rounded-full p-0.5 shadow-lg backdrop-blur-md scale-90 hover:scale-100 transition-transform">
-                <button
-                  onClick={() => handleCopyMessage()}
-                  className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-blue-400 transition-colors"
-                  title="Copy message"
-                >
-                  {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-                <button
-                  onClick={() => handleFeedback(true)}
-                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", feedback === 'up' ? "text-green-400" : "text-white/40 hover:text-green-400")}
-                  title="Helpful"
-                >
-                  <ThumbsUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => handleFeedback(false)}
-                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", feedback === 'down' ? "text-red-400" : "text-white/40 hover:text-red-400")}
-                  title="Not helpful"
-                >
-                  <ThumbsDown className="w-3.5 h-3.5" />
-                </button>
-
-                {/* Reactions */}
-                <div className="w-px h-3 bg-white/10 my-auto mx-0.5" />
-                <button
-                  onClick={() => toggleReaction('👍')}
-                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", reactions['👍'] ? "text-blue-400" : "text-white/40 hover:text-green-400")}
-                >
-                  <span className="text-xs">👍</span>
-                </button>
-                <button
-                  onClick={() => toggleReaction('❤️')}
-                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", reactions['❤️'] ? "text-red-400" : "text-white/40 hover:text-red-400")}
-                >
-                  <span className="text-xs">❤️</span>
-                </button>
-                <button
-                  onClick={() => toggleReaction('🎯')}
-                  className={cn("p-1.5 hover:bg-white/10 rounded-full transition-colors", reactions['🎯'] ? "text-purple-400" : "text-white/40 hover:text-purple-400")}
-                >
-                  <span className="text-xs">🎯</span>
-                </button>
-
-                {hasTable && (
-                  <>
-                    <div className="w-px h-3 bg-white/10 my-auto mx-0.5" />
-                    <button
-                      onClick={handleDownloadTable}
-                      className="p-1.5 hover:bg-white/10 rounded-full text-white/40 hover:text-green-400 transition-colors"
-                      title="Download CSV"
-                    >
-                      <FileSpreadsheet className="w-3.5 h-3.5" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Check for "Deep Reasoning" source from backend and render badge */}
           {message.contextSources?.includes('System 2 Reasoning') && (
             <div className="mb-3">
@@ -453,15 +390,78 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {/* Reaction Stats Display */}
             {Object.values(reactions).some(count => count > 0) && (
-              <div className="absolute -bottom-3 left-4 flex gap-1 z-20">
+              <div className="flex gap-1 mt-2">
                 {Object.entries(reactions).map(([emoji, count]) => (
                   count > 0 && (
-                    <div key={emoji} className="px-1.5 py-0.5 bg-[#1E2029] border border-white/10 rounded-full text-[10px] shadow-sm flex items-center gap-1">
+                    <div key={emoji} className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full text-[10px] flex items-center gap-1">
                       <span>{emoji}</span>
-                      <span className="text-white/60">{count}</span>
+                      <span className="text-white/40">{count}</span>
                     </div>
                   )
                 ))}
+              </div>
+            )}
+
+            {/* Action Toolbar (visible on hover) - Ingrained style, at bottom */}
+            {!message.isStreaming && !isUser && (
+              <div className="flex items-center gap-3 mt-4 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  onClick={() => handleCopyMessage()}
+                  className="text-white/20 hover:text-white/50 transition-colors"
+                  title="Copy message"
+                >
+                  {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+                <button
+                  onClick={() => handleFeedback(true)}
+                  className={cn("transition-colors", feedback === 'up' ? "text-green-400" : "text-white/20 hover:text-green-400/60")}
+                  title="Helpful"
+                >
+                  <ThumbsUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleFeedback(false)}
+                  className={cn("transition-colors", feedback === 'down' ? "text-red-400" : "text-white/20 hover:text-red-400/60")}
+                  title="Not helpful"
+                >
+                  <ThumbsDown className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Subtle divider */}
+                <div className="w-px h-3 bg-white/10" />
+
+                {/* Reactions - minimal */}
+                <button
+                  onClick={() => toggleReaction('👍')}
+                  className={cn("text-xs transition-colors", reactions['👍'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
+                >
+                  👍
+                </button>
+                <button
+                  onClick={() => toggleReaction('❤️')}
+                  className={cn("text-xs transition-colors", reactions['❤️'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
+                >
+                  ❤️
+                </button>
+                <button
+                  onClick={() => toggleReaction('🎯')}
+                  className={cn("text-xs transition-colors", reactions['🎯'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
+                >
+                  🎯
+                </button>
+
+                {hasTable && (
+                  <>
+                    <div className="w-px h-3 bg-white/10" />
+                    <button
+                      onClick={handleDownloadTable}
+                      className="text-white/20 hover:text-green-400/60 transition-colors"
+                      title="Download CSV"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

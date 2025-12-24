@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { X, RefreshCw, AlertCircle } from 'lucide-react';
+import { X, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import type { ThinkingState, CompletedTool } from '@/types/stream';
 import { SourceBadge } from './SourceBadge';
 
@@ -40,6 +40,42 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   // Elapsed time tracking
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
   const startTimeRef = React.useRef<number | null>(null);
+
+  // Expandable details section
+  const [isDetailsExpanded, setIsDetailsExpanded] = React.useState(false);
+
+  // Helper to extract meaningful preview from tool data
+  const getToolDataPreview = React.useCallback((tool: CompletedTool): string | null => {
+    if (!tool.data) return null;
+
+    // Handle different data structures
+    if (Array.isArray(tool.data)) {
+      const count = tool.data.length;
+      if (count === 0) return null;
+
+      // Try to identify what kind of items
+      if (tool.tool?.toLowerCase().includes('property') ||
+        tool.tool?.toLowerCase().includes('scout') ||
+        tool.tool?.toLowerCase().includes('hunt') ||
+        tool.tool?.toLowerCase().includes('search')) {
+        return `${count} ${count === 1 ? 'property' : 'properties'}`;
+      }
+      if (tool.tool?.toLowerCase().includes('market')) {
+        return `${count} ${count === 1 ? 'market' : 'markets'}`;
+      }
+      return `${count} ${count === 1 ? 'result' : 'results'}`;
+    }
+
+    // Handle object with count/total
+    if (typeof tool.data === 'object') {
+      if (tool.data.count !== undefined) return `${tool.data.count} found`;
+      if (tool.data.total !== undefined) return `${tool.data.total} total`;
+      if (tool.data.properties?.length) return `${tool.data.properties.length} properties`;
+      if (tool.data.results?.length) return `${tool.data.results.length} results`;
+    }
+
+    return null;
+  }, []);
 
   React.useEffect(() => {
     if (thinking && !startTimeRef.current) {
@@ -414,20 +450,110 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
         </motion.button>
       )}
 
-      {/* Completed Tools - Minimal text lines (below pipeline) */}
+      {/* Completed Tools - Enhanced with data preview and suggestions */}
       {completedTools.length > 0 && (
-        <div className="space-y-0.5">
-          {completedTools.slice(-2).map((tool, index) => (
+        <div className="space-y-1.5">
+          {/* Main tool summaries */}
+          {completedTools.slice(-3).map((tool, index) => {
+            const dataPreview = getToolDataPreview(tool);
+            const hasNoResults = tool.reason || (tool.summary?.toLowerCase().includes('no ') && tool.summary?.toLowerCase().includes('found'));
+
+            return (
+              <motion.div
+                key={`${tool.tool}-${index}`}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="space-y-1"
+              >
+                {/* Tool completion line */}
+                <div className="flex items-center gap-2 text-xs font-medium">
+                  <span className={hasNoResults ? 'text-amber-400/60' : 'text-green-400/60'}>
+                    {hasNoResults ? '○' : '✓'}
+                  </span>
+                  <span className={cn(
+                    'truncate',
+                    hasNoResults ? 'text-amber-300/50' : 'text-white/40'
+                  )}>
+                    {tool.summary}
+                  </span>
+
+                  {/* Data preview badge */}
+                  {dataPreview && !hasNoResults && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400/80 bg-emerald-500/10 rounded">
+                      {dataPreview}
+                    </span>
+                  )}
+                </div>
+
+                {/* No results reason + suggestion */}
+                {hasNoResults && (tool.reason || tool.suggestion) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="ml-4 space-y-1"
+                  >
+                    {tool.reason && (
+                      <div className="text-[11px] text-amber-400/60 italic">
+                        {tool.reason}
+                      </div>
+                    )}
+                    {tool.suggestion && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-blue-400/70">
+                        <Lightbulb className="w-3 h-3" />
+                        <span>{tool.suggestion}</span>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </motion.div>
+            );
+          })}
+
+          {/* "What's happening" expandable section */}
+          {completedTools.length > 0 && (
             <motion.div
-              key={`${tool.tool}-${index}`}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-xs text-white/30 font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="pt-1"
             >
-              <span className="text-green-400/60">✓</span>
-              <span className="truncate">{tool.summary}</span>
+              <button
+                onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+                className="flex items-center gap-1 text-[10px] text-white/20 hover:text-white/40 transition-colors"
+              >
+                {isDetailsExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                {isDetailsExpanded ? 'Hide details' : `What's happening (${completedTools.length} tools)`}
+              </button>
+
+              <AnimatePresence>
+                {isDetailsExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 space-y-2 overflow-hidden"
+                  >
+                    {completedTools.map((tool, index) => (
+                      <div key={`detail-${tool.tool}-${index}`} className="pl-3 border-l border-white/10">
+                        <div className="flex items-center gap-2 text-[11px]">
+                          <span className="text-white/30">{tool.icon || '🔧'}</span>
+                          <span className="font-mono text-white/40">{tool.tool}</span>
+                          {getToolDataPreview(tool) && (
+                            <span className="text-emerald-400/60">→ {getToolDataPreview(tool)}</span>
+                          )}
+                        </div>
+                        {tool.summary && (
+                          <div className="text-[10px] text-white/25 mt-0.5 truncate">
+                            {tool.summary}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
-          ))}
+          )}
         </div>
       )}
 
