@@ -1,0 +1,31 @@
+/* === PROFESSIONAL CUSTOM SCROLLBARS === */
+.chat-scroll::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.chat-scroll::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-full);
+}
+
+.chat-scroll::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-border-emphasis);
+    border-radius: var(--radius-full);
+    transition: background 200ms ease;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-teal-500);
+}
+
+/* Firefox scrollbar */
+.chat-scroll,
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-emphasis) var(--color-bg-primary);
+}

@@ -54,6 +54,7 @@ export interface Message {
   type?: 'user' | 'assistant'; // For backward compatibility
   timestamp: string | Date;
   isStreaming?: boolean;
+  assistantName?: string; // For voice sessions: "Vasthu live", regular chat: undefined
   attachment?: {
     name: string;
     type: string;

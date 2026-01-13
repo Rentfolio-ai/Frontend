@@ -79,6 +79,9 @@ export interface UserPreferences {
     showKeyboardHints: boolean;
     isWideMode: boolean;
     theme: 'light' | 'dark' | 'system';
+
+    // Voice preferences (like ChatGPT's "Base style and tone")
+    voicePersona: 'professional' | 'friendly' | 'expert' | 'concise' | null;
 }
 
 export interface PreferencesState extends UserPreferences {
@@ -118,6 +121,7 @@ export interface PreferencesState extends UserPreferences {
 
 
     setAllPreferences: (prefs: Partial<UserPreferences>) => void;
+    setVoicePersona: (persona: UserPreferences['voicePersona']) => void;
 
     resetPreferences: () => void;
 
@@ -140,7 +144,8 @@ const defaultPreferences: UserPreferences = {
     isWideMode: false,
     theme: 'dark',
     inferredPreferences: null,
-    clientLocation: null
+    clientLocation: null,
+    voicePersona: null, // User will select on first voice session
 };
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -226,6 +231,8 @@ export const usePreferencesStore = create<PreferencesState>()(
                 ...prefs
             })),
 
+            setVoicePersona: (persona: UserPreferences['voicePersona']) => set({ voicePersona: persona }),
+
             resetPreferences: () => set(defaultPreferences),
 
             // Backend Sync
@@ -285,6 +292,9 @@ export const usePreferencesStore = create<PreferencesState>()(
                 theme: state.theme,
                 isWideMode: state.isWideMode,
                 showKeyboardHints: state.showKeyboardHints,
+
+                // Voice Preferences
+                voicePersona: state.voicePersona,
             })
         }
     )

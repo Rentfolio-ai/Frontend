@@ -25,14 +25,34 @@ export interface StreamThinkingEvent {
   };
 }
 
+export interface Subtask {
+  id: string;
+  label: string;
+  status: 'pending' | 'running' | 'complete';
+}
+
 export interface StreamToolStartEvent {
   type: 'tool_start';
   title?: string;        // Main action title (e.g., "Analyzing market data")
   tool: string;
+  tool_name?: string;    // Internal tool name
   thinking: string;      // Status text (e.g., "Analyzing market data...")
   explanation?: string;  // Why this is happening
   source?: string;
   icon?: string;
+  params?: Record<string, any>;  // Tool parameters (e.g., {city: "Austin", budget: 400000})
+  subtasks?: Subtask[];  // Subtasks for this tool
+}
+
+export interface StreamToolProgressEvent {
+  type: 'tool_progress';
+  tool: string;
+  progress: number;      // 0-1 (e.g., 0.5 = 50%)
+  message?: string;      // Progress message (e.g., "Found 47 properties")
+  subtask_update?: {     // Update a specific subtask
+    id: string;
+    status: 'pending' | 'running' | 'complete';
+  };
 }
 
 export interface StreamToolEndEvent {
@@ -73,6 +93,7 @@ export type StreamEvent =
   | StreamInitEvent
   | StreamThinkingEvent
   | StreamToolStartEvent
+  | StreamToolProgressEvent
   | StreamToolEndEvent
   | StreamContentEvent
   | StreamDoneEvent
@@ -87,6 +108,7 @@ export interface ThinkingState {
   source?: string;
   icon?: string;
   tool?: string;
+  tool_name?: string;   // Internal tool name
   filtersApplied?: string[];  // Filters from backend (camelCase for frontend)
   userContext?: {              // User context from backend
     budgetMax?: number;
@@ -94,6 +116,9 @@ export interface ThinkingState {
     favoriteMarkets?: string[];
     strategy?: string;
   };
+  params?: Record<string, any>;  // Tool parameters
+  progress?: number;    // Progress (0-1)
+  subtasks?: Subtask[]; // Active subtasks
 }
 
 export interface CompletedTool {

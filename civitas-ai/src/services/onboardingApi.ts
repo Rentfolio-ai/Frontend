@@ -4,7 +4,14 @@
  */
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1);
+}
+if (baseUrl.endsWith('/api')) {
+  baseUrl = baseUrl.slice(0, -4);
+}
+const API_BASE = baseUrl;
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 const defaultHeaders: HeadersInit = {

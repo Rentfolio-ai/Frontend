@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, BarChart3, FileText, Clock, Trash2, Pin, Search, Folder, Brain } from 'lucide-react';
+import { Sparkles, FileText, Clock, Trash2, Pin, Search, Folder, Brain } from 'lucide-react';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { formatChatDateCompact } from '../../utils/dateFormatters';
 import { PricingModal } from '../PricingModal';
@@ -57,89 +57,105 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
 
     return (
         <div
-            className={`fixed left-0 top-0 h-full bg-[#171717] z-40 flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-16'
+            className={`fixed left-0 top-0 h-full z-40 flex flex-col transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-16'
                 }`}
+            style={{
+                background: 'var(--color-bg-secondary)',
+                borderRight: '1px solid var(--color-border-default)'
+            }}
+            data-simple-sidebar
         >
-            {/* Logo - Clickable to toggle */}
-            <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="h-14 flex items-center px-3 border-b border-white/5 flex-shrink-0 hover:bg-white/5 transition-colors"
-            >
-                {isExpanded ? (
-                    <div className="flex items-center gap-2 w-full">
-                        <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0">
+            {/* Header with Logo and Alerts */}
+            <div className="h-14 flex items-center justify-between px-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                {/* Logo - Clickable to toggle */}
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="flex items-center hover:opacity-80 transition-opacity flex-1"
+                >
+                    {isExpanded ? (
+                        <div className="flex items-center gap-2 w-full">
+                            <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0">
+                                {/* Custom Vasthu geometric icon */}
+                                <svg viewBox="0 0 32 32" fill="none" className="w-full h-full">
+                                    {/* Outer circle - sacred geometry */}
+                                    <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradient)" strokeWidth="1.5" opacity="0.8" />
+
+                                    {/* Inner geometric pattern - represents building/structure */}
+                                    <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradient)" strokeWidth="2" fill="none" strokeLinejoin="round" />
+
+                                    {/* Center V for Vasthu */}
+                                    <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+                                    {/* Gradient definition */}
+                                    <defs>
+                                        <linearGradient id="vasthuGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="#14B8A6" />
+                                            <stop offset="100%" stopColor="#10B981" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-sm font-semibold text-white">Vasthu</span>
+                                    <span className="text-xs text-white/40">1.0</span>
+                                </div>
+                                {!loading && subscription && (
+                                    <div className="mt-0.5">
+                                        {subscription.tier === 'pro' ? (
+                                            <span className="inline-block px-1.5 py-0.5 text-[9px] font-bold rounded text-white" style={{ background: 'var(--gradient-brand)' }}>
+                                                PRO
+                                            </span>
+                                        ) : (
+                                            <span className="inline-block px-1.5 py-0.5 text-[9px] font-medium rounded" style={{ background: 'var(--color-bg-elevated)', color: 'var(--color-text-tertiary)' }}>
+                                                FREE
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="w-10 h-10 rounded flex items-center justify-center">
                             {/* Custom Vasthu geometric icon */}
                             <svg viewBox="0 0 32 32" fill="none" className="w-full h-full">
-                                {/* Outer circle - sacred geometry */}
-                                <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradient)" strokeWidth="1.5" opacity="0.8" />
-
-                                {/* Inner geometric pattern - represents building/structure */}
-                                <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradient)" strokeWidth="2" fill="none" strokeLinejoin="round" />
-
-                                {/* Center V for Vasthu */}
-                                <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-
-                                {/* Gradient definition */}
+                                <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradientCollapsed)" strokeWidth="1.5" opacity="0.8" />
+                                <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradientCollapsed)" strokeWidth="2" fill="none" strokeLinejoin="round" />
+                                <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradientCollapsed)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 <defs>
-                                    <linearGradient id="vasthuGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <linearGradient id="vasthuGradientCollapsed" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" stopColor="#14B8A6" />
-                                        <stop offset="100%" stopColor="#2563EB" />
+                                        <stop offset="100%" stopColor="#10B981" />
                                     </linearGradient>
                                 </defs>
                             </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-semibold text-white">Vasthu</span>
-                                <span className="text-xs text-white/40">1.0</span>
-                            </div>
-                            {!loading && subscription && (
-                                <div className="mt-0.5">
-                                    {subscription.tier === 'pro' ? (
-                                        <span className="inline-block px-1.5 py-0.5 text-[9px] font-bold rounded bg-gradient-to-r from-teal-500 to-purple-500 text-white">
-                                            PRO
-                                        </span>
-                                    ) : (
-                                        <span className="inline-block px-1.5 py-0.5 text-[9px] font-medium rounded bg-zinc-700 text-zinc-300">
-                                            FREE
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="w-10 h-10 rounded flex items-center justify-center">
-                        {/* Custom Vasthu geometric icon */}
-                        <svg viewBox="0 0 32 32" fill="none" className="w-full h-full">
-                            <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradientCollapsed)" strokeWidth="1.5" opacity="0.8" />
-                            <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradientCollapsed)" strokeWidth="2" fill="none" strokeLinejoin="round" />
-                            <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradientCollapsed)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <defs>
-                                <linearGradient id="vasthuGradientCollapsed" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stopColor="#14B8A6" />
-                                    <stop offset="100%" stopColor="#2563EB" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                )}
-            </button>
+                    )}
+                </button>
+            </div>
 
             {/* Nav Icons */}
-            <nav className="flex flex-col gap-2 p-2 mt-2 flex-shrink-0">
+            <nav className="flex flex-col gap-2 p-2 mt-4 flex-shrink-0">
                 <button
                     onClick={onNewChat}
-                    className="group flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-white/5 transition-colors"
+                    className={`group flex items-center gap-3 py-2.5 transition-colors relative ${isExpanded ? 'px-3' : 'justify-center px-0'}`}
+                    style={{
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--gradient-card-hover)'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-elevated)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'var(--gradient-card-hover)'}
                 >
-                    {/* Brain icon */}
-                    <div className="flex-shrink-0">
-                        <Brain className="w-5 h-5 text-white group-hover:text-white transition-colors" />
+                    {/* Icon container */}
+                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center" style={{ borderRadius: 'var(--radius-md)', background: 'var(--gradient-brand)' }}>
+                        <Brain className="w-5 h-5 text-white" />
                     </div>
 
-                    <span className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors">
-                        {isExpanded ? 'New chat' : ''}
-                    </span>
+                    {isExpanded && (
+                        <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                            New chat
+                        </span>
+                    )}
                 </button>
 
                 <button
@@ -151,43 +167,105 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                             onChatClick();
                         }
                     }}
-                    className="flex items-center gap-3 px-2 py-2.5 rounded-lg text-white/60 hover:bg-white/5 hover:text-white"
+                    className={`flex items-center gap-3 py-2.5 transition-colors ${isExpanded ? 'px-3' : 'justify-center px-0'}`}
+                    style={{ borderRadius: 'var(--radius-md)', color: 'var(--color-text-secondary)' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--color-text-secondary)';
+                    }}
                 >
-                    <Sparkles className="w-5 h-5 flex-shrink-0" />
+                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center" style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-default)' }}>
+                        <Sparkles className="w-4 h-4" />
+                    </div>
                     {isExpanded && <span className="text-sm font-medium whitespace-nowrap">AI Assistant</span>}
                 </button>
 
                 <button
                     onClick={onAnalyticsClick}
-                    className="flex items-center gap-3 px-2 py-2.5 rounded-lg text-white/60 hover:bg-white/5 hover:text-white"
+                    className={`flex items-center gap-3 py-2.5 transition-colors ${isExpanded ? 'px-3' : 'justify-center px-0'}`}
+                    style={{ borderRadius: 'var(--radius-md)', color: 'var(--color-text-secondary)' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--color-text-secondary)';
+                    }}
                 >
-                    <BarChart3 className="w-5 h-5 flex-shrink-0" />
+                    <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center" style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-default)' }}>
+                        <svg viewBox="0 0 32 32" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="4.5" y="8" width="19" height="13" rx="3" />
+                            <rect x="10" y="6" width="8" height="3" rx="1.2" />
+                            <path d="M4.5 13c3.5 2 7.5 3 12 3" />
+                            <circle cx="24" cy="22" r="5" strokeWidth="2" />
+                            <path d="M24 19v3l2 1" strokeWidth="2" />
+                        </svg>
+                    </div>
                     {isExpanded && <span className="text-sm font-medium whitespace-nowrap">Portfolio</span>}
                 </button>
 
                 <button
                     onClick={onReportsClick}
-                    className="flex items-center gap-3 px-2 py-2.5 rounded-lg text-white/60 hover:bg-white/5 hover:text-white"
+                    className={`flex items-center gap-3 py-2.5 transition-colors ${isExpanded ? 'px-3' : 'justify-center px-0'}`}
+                    style={{ borderRadius: 'var(--radius-md)', color: 'var(--color-text-secondary)' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--color-text-secondary)';
+                    }}
                 >
-                    <FileText className="w-5 h-5 flex-shrink-0" />
+                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center" style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-default)' }}>
+                        <FileText className="w-4 h-4" />
+                    </div>
                     {isExpanded && <span className="text-sm font-medium whitespace-nowrap">Reports</span>}
                 </button>
 
                 <button
                     onClick={onSearchClick}
-                    className="flex items-center gap-3 px-2 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                    className={`flex items-center gap-3 py-2.5 transition-colors ${isExpanded ? 'px-3' : 'justify-center px-0'}`}
+                    style={{ borderRadius: 'var(--radius-md)', color: 'var(--color-text-secondary)' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--color-text-secondary)';
+                    }}
                 >
-                    <Search className="w-5 h-5 flex-shrink-0" />
+                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center" style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-default)' }}>
+                        <Search className="w-4 h-4" />
+                    </div>
                     {isExpanded && <span className="text-sm font-medium whitespace-nowrap">Search Chats</span>}
                 </button>
 
                 <button
                     onClick={onFilesClick}
-                    className="flex items-center gap-3 px-2 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                    className={`flex items-center gap-3 py-2.5 transition-colors ${isExpanded ? 'px-3' : 'justify-center px-0'}`}
+                    style={{ borderRadius: 'var(--radius-md)', color: 'var(--color-text-secondary)' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                        e.currentTarget.style.color = 'var(--color-text-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--color-text-secondary)';
+                    }}
                 >
-                    <Folder className="w-5 h-5 flex-shrink-0" />
+                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center" style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-default)' }}>
+                        <Folder className="w-4 h-4" />
+                    </div>
                     {isExpanded && <span className="text-sm font-medium whitespace-nowrap">Files</span>}
                 </button>
+
             </nav>
 
             {/* Chat History Section - Spacer to push profile to bottom */}

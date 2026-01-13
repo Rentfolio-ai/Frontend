@@ -3,7 +3,8 @@ import { auth } from './firebaseAuth';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const getAuthHeaders = async (): Promise<Record<string, string>> => {
-    const user = auth.currentUser;
+    // @ts-ignore - auth might be undefined if not initialized
+    const user = auth?.currentUser;
     if (!user) return {};
 
     const token = await user.getIdToken();

@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { X } from 'lucide-react';
+import { X, Mic } from 'lucide-react';
 import { useQuerySuggestions } from '../hooks/useQuerySuggestions';
 import { QuerySuggestions } from './QuerySuggestions';
 import { usePreferencesStore } from '../stores/preferencesStore';
@@ -16,6 +16,7 @@ interface EnhancedSmartInputProps {
     autoFocus?: boolean;
     maxLength?: number;
     minLength?: number;
+    onVoiceClick?: () => void;
 }
 
 export interface EnhancedSmartInputHandle {
@@ -27,7 +28,8 @@ export const EnhancedSmartInput = forwardRef<EnhancedSmartInputHandle, EnhancedS
     placeholder = "Ask me anything about real estate...",
     autoFocus = true,
     maxLength = 500,
-    minLength = 3
+    minLength = 3,
+    onVoiceClick,
 }, ref) => {
     const [query, setQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -123,6 +125,17 @@ export const EnhancedSmartInput = forwardRef<EnhancedSmartInputHandle, EnhancedS
                     rows={3}
                     maxLength={maxLength}
                 />
+
+                {onVoiceClick && (
+                    <button
+                        type="button"
+                        onClick={onVoiceClick}
+                        className="absolute right-11 top-3 text-gray-500 hover:text-blue-500 transition-colors"
+                        title="Start voice"
+                    >
+                        <Mic className="w-5 h-5" />
+                    </button>
+                )}
 
                 {query && (
                     <button

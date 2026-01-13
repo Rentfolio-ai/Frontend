@@ -1,4 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+}
+if (baseUrl.endsWith('/api')) {
+    baseUrl = baseUrl.slice(0, -4);
+}
+const API_BASE = baseUrl;
 const API_KEY = import.meta.env.VITE_CIVITAS_API_KEY || '';
 
 const getAuthHeaders = () => ({
@@ -20,7 +28,7 @@ export const submitFeedback = async (
     comment?: string
 ): Promise<void> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/feedback`, {
+        const response = await fetch(`${API_BASE}/api/feedback`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({

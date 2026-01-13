@@ -21,7 +21,14 @@ import type {
 // IMPORTANT: Always use environment variables for API URL
 // Never hardcode URLs or use empty string fallback in production
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1);
+}
+if (baseUrl.endsWith('/api')) {
+  baseUrl = baseUrl.slice(0, -4);
+}
+const API_BASE = baseUrl;
 if (!API_BASE) {
   console.error('API URL must be configured via environment variable (VITE_DATALAYER_API_URL)');
   // In development, allow localhost fallback; in production this should throw
@@ -353,7 +360,119 @@ class PortfolioAPI {
 
     return response.json();
   }
+
+  // ==========================================
+  // AI Portfolio Methods (Health, Optimizer, Rebalancer)
+  // ==========================================
+
+  async getHealthScore(portfolioId: string, userId: string): Promise<HealthScore> {
+    const response = await fetch(
+      `${this.baseURL}/api/portfolios/${portfolioId}/health?user_id=${userId}`,
+      {
+        method: 'GET',
+        headers: defaultHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to fetch health score' }));
+      throw new Error(error.message || 'Failed to fetch health score');
+    }
+
+    return response.json();
+  }
+
+  async getOptimizationPlan(
+    portfolioId: string,
+    userId: string,
+    profile: InvestorProfile
+  ): Promise<OptimizationPlan> {
+    const response = await fetch(
+      `${this.baseURL}/api/portfolios/${portfolioId}/optimize?user_id=${userId}`,
+      {
+        method: 'POST',
+        headers: defaultHeaders,
+        body: JSON.stringify(profile),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to generate optimization plan' }));
+      throw new Error(error.message || 'Failed to generate optimization plan');
+    }
+
+    return response.json();
+  }
+
+  async getRebalancePlan(portfolioId: string, userId: string): Promise<RebalancePlan> {
+    const response = await fetch(
+      `${this.baseURL}/api/portfolios/${portfolioId}/rebalance?user_id=${userId}`,
+      {
+        method: 'GET',
+        headers: defaultHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to fetch rebalance plan' }));
+      throw new Error(error.message || 'Failed to fetch rebalance plan');
+    }
+
+    return response.json();
+  }
+
+  async getRebalancePlanWithTargets(
+    portfolioId: string,
+    userId: string,
+    targets: { strategy_targets: Record<string, number>; market_targets: Record<string, number> }
+  ): Promise<RebalancePlan> {
+    const response = await fetch(
+      `${this.baseURL}/api/portfolios/${portfolioId}/rebalance?user_id=${userId}`,
+      {
+        method: 'POST',
+        headers: defaultHeaders,
+        body: JSON.stringify(targets),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to fetch rebalance plan' }));
+      throw new Error(error.message || 'Failed to fetch rebalance plan');
+    }
+
+    return response.json();
+  }
+
+  async getPortfolioAlerts(
+    portfolioId: string,
+    userId: string,
+    includeRecommendations: boolean = true
+  ): Promise<{ alerts: PortfolioAlert[]; total_count: number }> {
+    const response = await fetch(
+      `${this.baseURL}/api/portfolios/${portfolioId}/alerts?user_id=${userId}&include_recommendations=${includeRecommendations}`,
+      {
+        method: 'GET',
+        headers: defaultHeaders,
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to fetch portfolio alerts' }));
+      throw new Error(error.message || 'Failed to fetch portfolio alerts');
+    }
+
+    return response.json();
+  }
 }
+
+// Import AI portfolio types
+import type {
+  HealthScore,
+  OptimizationPlan,
+  RebalancePlan,
+  PortfolioAlert,
+  InvestorProfile,
+} from '../types/portfolio';
 
 // Export singleton instance
 // Use configured API URL or fallback to localhost in development only
@@ -363,4 +482,3 @@ if (!apiBaseUrl && !import.meta.env.DEV) {
 }
 
 export const portfolioAPI = new PortfolioAPI(apiBaseUrl);
-

@@ -17,6 +17,8 @@ import { useContextualHelp, ContextualHelp } from '@/components/ContextualHelp'
 import { EmptyChat } from '@/components/EmptyStates'
 import { usePreferencesStore } from '@/stores/preferencesStore'
 import { getConfigVersion } from '@/services/configApi'
+// import { VoiceStreamScreen } from '@/components/voice/VoiceStreamScreen'
+import { VasthuLiveScreen } from '@/components/voice/VasthuLiveScreen'
 
 interface ChatInterfaceProps {
   className?: string
@@ -72,6 +74,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const smartInputRef = useRef<{ focus: () => void }>(null)
+  const [showVoiceStream, setShowVoiceStream] = useState(false)
   const timerRef = useRef<number | null>(null)
 
   const { showKeyboardHints, setShowKeyboardHints } = usePreferencesStore()
@@ -383,13 +386,22 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Enhanced Smart Input */}
+      {/* Input Area - Voice + Text */}
       <div className="p-4 sm:p-6 border-t border-white/[0.05] bg-gradient-to-b from-transparent to-black/5 backdrop-blur-xl">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-3">
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowVoiceStream(true)}
+              className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 text-white text-sm"
+            >
+              Start voice
+            </button>
+          </div>
           <EnhancedSmartInput
             ref={smartInputRef}
             onSubmit={handleSendMessage}
             autoFocus={true}
+            onVoiceClick={() => setShowVoiceStream(true)}
           />
         </div>
       </div>
@@ -397,6 +409,13 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       {/* Keyboard Hints Toggle */}
       {showKeyboardHints && (
         <KeyboardHintsToggle onClick={() => setShowKeyboardHints(!showKeyboardHints)} />
+      )}
+      {showVoiceStream && (
+        <VasthuLiveScreen
+          persona="friendly"
+          language="en"
+          onClose={() => setShowVoiceStream(false)}
+        />
       )}
     </div>
   )

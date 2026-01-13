@@ -6,7 +6,15 @@ import type {
 } from '../types/pnl';
 import { logger } from '../utils/logger';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+}
+if (baseUrl.endsWith('/api')) {
+    baseUrl = baseUrl.slice(0, -4);
+}
+const API_BASE = baseUrl;
 
 interface PnLApiResponse<T> {
     success: boolean;
@@ -46,13 +54,13 @@ export async function calculatePropertyPnL(
 ): Promise<PnLApiResponse<PnLOutput>> {
     try {
         const endpoint = propertyId
-            ? `${API_BASE_URL}/api/calculate/${propertyId}`
-            : `${API_BASE_URL}/api/calculate`;
+            ? `${API_BASE}/api/calculate/${propertyId}`
+            : `${API_BASE}/api/calculate`;
 
         // Convert camelCase request to snake_case for backend
         const snakeCaseRequest: any = {};
         for (const [key, value] of Object.entries(request)) {
-            const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+            const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()} `);
             snakeCaseRequest[snakeKey] = value;
         }
 
@@ -66,7 +74,7 @@ export async function calculatePropertyPnL(
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ detail: 'Network response was not ok' }));
-            throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            throw new Error(errorData.detail || `HTTP error! status: ${response.status} `);
         }
 
         const data = await response.json();
@@ -96,7 +104,7 @@ export async function explainPnL(
     context?: PnLRequest
 ): Promise<ExplanationResponse> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/explain`, {
+        const response = await fetch(`${API_BASE}/api/explain`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

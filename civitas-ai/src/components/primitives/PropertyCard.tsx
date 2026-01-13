@@ -96,11 +96,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     );
   }
 
+  // Get deal grade styling
+  const getDealGradeVariant = (grade?: string) => {
+    if (!grade) return 'default';
+    if (grade.startsWith('A')) return 'success';  // A+, A, A-
+    if (grade.startsWith('B')) return 'default';  // B+, B, B-
+    if (grade.startsWith('C')) return 'warning';  // C+, C, C-
+    return 'danger';  // D, F
+  };
+
   return (
     <Card className={cn('hover:shadow-lg transition-shadow', className)} padding="md">
       <CardContent className="space-y-4">
-        {/* Header with Address and Popularity Tag */}
-        <div className="flex items-start justify-between">
+        {/* Header with Address and Deal Grade */}
+        <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <h3 className="font-semibold text-foreground line-clamp-2">
               {property.address}
@@ -109,16 +118,50 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
               {property.city}, {property.state} {property.zip}
             </div>
           </div>
-          {property.popularityTag && (
+
+          {/* Deal Grade Badge (Beat Redfin!) */}
+          {property.deal_grade && (
+            <div className="flex flex-col items-end gap-1">
+              <Badge
+                variant={getDealGradeVariant(property.deal_grade)}
+                className="text-sm font-bold px-3 py-1"
+              >
+                {property.deal_grade}
+              </Badge>
+              {property.deal_category && (
+                <span className="text-xs text-foreground/50">
+                  {property.deal_category}
+                </span>
+              )}
+            </div>
+          )}
+
+          {!property.deal_grade && property.popularityTag && (
             <Badge variant={getPopularityTagVariant(property.popularityTag)}>
               {property.popularityTag}
             </Badge>
           )}
         </div>
 
-        {/* Price */}
-        <div className="text-2xl font-bold text-primary">
-          {formatPrice(property.price)}
+        {/* Price and Cash Flow */}
+        <div className="flex items-end justify-between">
+          <div className="text-2xl font-bold text-primary">
+            {formatPrice(property.price)}
+          </div>
+
+          {/* Cash Flow Indicator (Beat Redfin!) */}
+          {typeof property.monthly_cash_flow === 'number' && (
+            <div className={cn(
+              "text-right",
+              property.monthly_cash_flow > 0 ? "text-green-600" : "text-red-600"
+            )}>
+              <div className="text-xs font-medium text-foreground/60">Cash Flow</div>
+              <div className="text-lg font-bold">
+                {property.monthly_cash_flow > 0 ? '+' : ''}
+                ${Math.round(property.monthly_cash_flow)}/mo
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Property Details */}
@@ -127,6 +170,53 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           {property.baths > 0 && <span>{property.baths}ba</span>}
           {property.sqft > 0 && <span>{property.sqft.toLocaleString()} sqft</span>}
         </div>
+
+        {/* Investment Metrics Grid (Beat Redfin!) */}
+        {(property.roi || property.cap_rate) && (
+          <div className="grid grid-cols-2 gap-2">
+            {typeof property.roi === 'number' && (
+              <div className="bg-muted/50 p-2.5 rounded-lg border border-border">
+                <div className="text-xs text-foreground/60 mb-1">ROI</div>
+                <div className={cn(
+                  "text-lg font-bold",
+                  property.roi >= 10 ? "text-green-600" :
+                    property.roi >= 8 ? "text-blue-600" : "text-foreground"
+                )}>
+                  {property.roi.toFixed(1)}%
+                </div>
+              </div>
+            )}
+
+            {typeof property.cap_rate === 'number' && (
+              <div className="bg-muted/50 p-2.5 rounded-lg border border-border">
+                <div className="text-xs text-foreground/60 mb-1">Cap Rate</div>
+                <div className={cn(
+                  "text-lg font-bold",
+                  property.cap_rate >= 8 ? "text-green-600" :
+                    property.cap_rate >= 6 ? "text-blue-600" : "text-foreground"
+                )}>
+                  {property.cap_rate.toFixed(1)}%
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Deal Reasons (Why it's a good/bad deal) */}
+        {property.deal_reasons && property.deal_reasons.length > 0 && (
+          <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
+            <div className="text-xs font-medium text-foreground/80 mb-1.5">
+              Deal Highlights
+            </div>
+            <div className="space-y-1">
+              {property.deal_reasons.slice(0, 3).map((reason, i) => (
+                <div key={i} className="text-xs text-foreground/70 leading-relaxed">
+                  {reason}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ROI Highlight */}
         <div className={cn(

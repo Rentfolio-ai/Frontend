@@ -17,7 +17,13 @@ import { logger } from '../utils/logger';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+// In development, use relative URLs to leverage Vite proxy
+// In production, use absolute URL from environment
+const CIVITAS_API_BASE = import.meta.env.DEV 
+  ? '' // Relative URL - Vite proxy will handle /api/* requests
+  : (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) 
+    ? envApiUrl 
+    : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 export interface ChatSession {
@@ -55,7 +61,7 @@ export interface ReportDrawerState {
   propertyAddress?: string;
 }
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'analysis'];
+const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'analysis', 'files'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 

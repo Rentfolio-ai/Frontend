@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import type { Message } from '../types/chat';
 import type { CompletedTool } from '../types/stream';
+import { getWelcomeSuggestions } from '../services/suggestionsApi';
 
 export interface SuggestionChip {
     id: string;
@@ -28,23 +29,22 @@ export const useSmartSuggestions = ({
     useEffect(() => {
         const fetchWelcomeChips = async () => {
             try {
-                // Fetch from backend
-                // In production, we'd use a typed API client and pass proper user context
-                const response = await fetch('/api/suggestions/welcome');
-                if (response.ok) {
-                    const data = await response.json();
-                    setWelcomeChips(data);
-                } else {
-                    // Fail silently effectively, just don't set chips or use valid defaults
-                    console.warn("Failed to fetch welcome chips");
+                const data = await getWelcomeSuggestions('default', 4, 'subtle');
+                if (data.length > 0) {
+                    const mapped = data.map((d, idx) => ({
+                        id: d.id || `welcome-${idx}`,
+                        label: d.label || d.query,
+                        icon: d.icon,
+                        query: d.query,
+                        category: (d.category === 'analysis' || d.category === 'action' || d.category === 'info' ? d.category : 'info') as 'action' | 'analysis' | 'info'
+                    }));
+                    setWelcomeChips(mapped);
                 }
             } catch (e) {
                 console.error("Error fetching welcome suggestions:", e);
             }
         };
 
-        // Only fetch if we don't have them yet (dedup)
-        // Note: Real implementation might track if we've already tried to avoid continuous retries
         fetchWelcomeChips();
     }, []);
 

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
+import { AIMessageBubble } from './AIMessageBubble';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import type { Message } from '../../types/chat';
@@ -82,8 +83,9 @@ export const MessageList: React.FC<MessageListProps> = ({
     scrollToBottom();
   }, [messages, isLoading, thinking, completedTools, scrollToBottom]);
 
-  // Show thinking state whenever loading
-  const showThinkingState = isLoading;
+  // Show thinking state only when we have actual thinking data AND loading
+  // This prevents showing thinking for quick responses that complete immediately
+  const showThinkingState = isLoading && thinking;
   const lastMessage = messages[messages.length - 1];
   const isLastMessageAssistant = lastMessage?.role === 'assistant';
 
@@ -108,6 +110,25 @@ export const MessageList: React.FC<MessageListProps> = ({
           // Pass reasoning steps only to the last message if it's from assistant
           // AND we are not loading (since we hide the message while loading)
           const steps = (isLast && message.role === 'assistant' && !isLoading) ? completedTools : undefined;
+
+          // Use AIMessageBubble for assistant messages, MessageBubble for user messages
+          if (message.role === 'assistant') {
+            return (
+              <AIMessageBubble
+                key={message.id}
+                content={message.content}
+                thinkingData={steps ? { thinking: thinking || null, completedTools: steps } : undefined}
+                isStreaming={isLast && isLoading}
+                onCopy={() => {
+                  navigator.clipboard.writeText(message.content);
+                }}
+                onFeedback={(type) => {
+                  // Handle feedback - could integrate with existing feedback system
+                  console.log('Feedback:', type, message.id);
+                }}
+              />
+            );
+          }
 
           return (
             <MessageBubble
@@ -138,13 +159,12 @@ export const MessageList: React.FC<MessageListProps> = ({
             </div>
             <div className="flex-1 max-w-[75%]">
               <ThinkingIndicator
-                thinking={thinking || { status: 'processing' }}
+                thinking={thinking!}
                 completedTools={completedTools}
                 userQuery={lastUserMessage?.content}
                 onCancel={onCancel}
                 error={error}
                 onRetry={onRetry}
-                onOpenPreferences={onOpenPreferences}
               />
             </div>
           </div>

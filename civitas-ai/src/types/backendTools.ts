@@ -64,6 +64,7 @@ export interface ScoutedProperty {
   listing_type?: string;     // "Standard" | "Foreclosure" | "Short Sale" | "New Construction"
   mls_number?: string;       // MLS ID
   lot_size?: number;         // Lot size in sqft
+  amenities?: string[];      // Property amenities
   // Rentcast-derived estimates
   nightly_price?: number;
   monthly_revenue_estimate?: number;

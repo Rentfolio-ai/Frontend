@@ -17,6 +17,7 @@ export interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTex
   attachment?: File | null;
   onClearAttachment?: () => void;
   onOpenPreferences?: () => void;
+  onVoiceStart?: () => void;
 }
 
 export interface ComposerRef {
@@ -24,7 +25,21 @@ export interface ComposerRef {
   focus: () => void;
 }
 
-export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop, onAttach, attachment, onClearAttachment, onOpenPreferences, ...rest }, ref) => {
+export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop, onAttach, attachment, onClearAttachment, onOpenPreferences, onVoiceStart, ...rest }, ref) => {
+  const SiriOrb = ({ active }: { active: boolean }) => (
+    <span className="relative inline-flex h-6 w-6 items-center justify-center">
+      <span
+        className={`absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 via-indigo-500 to-emerald-400 opacity-80 blur-[6px] ${active ? 'animate-pulse' : ''
+          }`}
+      />
+      <span className="absolute inset-[2px] rounded-full bg-slate-950" />
+      <span
+        className={`relative h-4 w-4 rounded-full bg-[conic-gradient(at_50%_50%,#3cf,#8b5cf6,#22d3ee,#10b981,#3cf)] ${active ? 'animate-[spin_6s_linear_infinite]' : ''
+          }`}
+      />
+    </span>
+  );
+
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -315,27 +330,51 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
   return (
     <div className="relative">
       {showCommands && (
-        <div className="absolute bottom-full mb-2 w-full bg-[#1A1D24] border border-white/10 rounded-xl shadow-xl overflow-hidden z-20 max-h-[300px] overflow-y-auto custom-scrollbar">
+        <div
+          className="absolute bottom-full mb-2 w-full overflow-hidden z-20 max-h-[300px] overflow-y-auto custom-scrollbar"
+          style={{
+            background: 'var(--color-bg-tertiary)',
+            border: '1px solid var(--color-border-default)',
+            borderRadius: 'var(--radius-xl)',
+            boxShadow: 'var(--shadow-lg)'
+          }}
+        >
           {filteredCommands.map((cmd: any) => (
             <button
               key={cmd.id}
               onClick={() => handleCommandSelect(cmd.id)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-elevated)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
-              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-lg shrink-0">
+              <div
+                className="w-8 h-8 flex items-center justify-center text-lg shrink-0"
+                style={{
+                  background: 'var(--color-bg-elevated)',
+                  borderRadius: 'var(--radius-md)'
+                }}
+              >
                 {cmd.icon}
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-medium text-white truncate">{cmd.label.split(' - ')[0]}</div>
-                <div className="text-xs text-white/40 truncate">{cmd.label.split(' - ')[1]}</div>
+                <div className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }}>{cmd.label.split(' - ')[0]}</div>
+                <div className="text-xs truncate" style={{ color: 'var(--color-text-tertiary)' }}>{cmd.label.split(' - ')[1]}</div>
               </div>
             </button>
           ))}
         </div>
       )}
 
-      <div className={`relative transition-all duration-300 rounded-3xl ${isLoading ? 'bg-black/20 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]' : 'bg-transparent'
-        }`}>
+      <div
+        className="relative transition-all duration-300"
+        style={{
+          background: 'var(--color-bg-tertiary)',
+          border: `1px solid ${isLoading ? 'var(--color-border-emphasis)' : 'var(--color-border-default)'}`,
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: isLoading ? 'var(--shadow-teal)' : 'var(--shadow-sm)'
+        }}
+      >
 
         {attachment && (
           <div className="mx-4 mt-4">
@@ -359,28 +398,35 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask about properties, markets, or analyze a deal..."
-            className="w-full bg-transparent text-white placeholder-white/40 px-6 py-5 min-h-[60px] max-h-[160px] resize-none focus:outline-none custom-scrollbar text-[15px] leading-relaxed font-light"
-            style={{ height: '60px' }}
+            className="w-full bg-transparent text-white px-6 py-5 min-h-[60px] max-h-[160px] resize-none focus:outline-none custom-scrollbar leading-relaxed"
+            style={{
+              height: '60px',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '15px',
+              fontWeight: 300,
+              color: 'var(--color-text-primary)',
+              caretColor: 'var(--color-accent-teal-500)'
+            }}
             disabled={isLoading}
             {...rest}
           />
 
           {/* Keyboard Shortcuts Hint */}
-          <div className="px-6 pb-2 flex items-center gap-4 text-[11px] text-white/30">
+          <div className="px-6 pb-2 flex items-center gap-4 text-[11px]" style={{ color: 'var(--color-text-tertiary)' }}>
             <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘/</kbd>
+              <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium" style={{ background: 'var(--color-bg-elevated)' }}>⌘/</kbd>
               <span>Shortcuts</span>
             </div>
             <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘F</kbd>
+              <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium" style={{ background: 'var(--color-bg-elevated)' }}>⌘F</kbd>
               <span>Search</span>
             </div>
             <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘↵</kbd>
+              <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium" style={{ background: 'var(--color-bg-elevated)' }}>⌘↵</kbd>
               <span>Send</span>
             </div>
             <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⇧↵</kbd>
+              <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium" style={{ background: 'var(--color-bg-elevated)' }}>⇧↵</kbd>
               <span>New line</span>
             </div>
           </div>
@@ -398,14 +444,39 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
                 className="hidden"
               />
 
+              {onVoiceStart && (
+                <button
+                  type="button"
+                  onClick={onVoiceStart}
+                  className="p-2 transition-all duration-200 group"
+                  style={{
+                    borderRadius: 'var(--radius-lg)',
+                    color: 'var(--color-text-secondary)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+                  title="Start voice input - Talk to Vasthu"
+                  aria-label="Start voice input"
+                  disabled={isLoading}
+                >
+                  <SiriOrb active={false} />
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 -ml-2 rounded-xl text-white/50 hover:text-white transition-all duration-200 group hover:scale-[1.15] active:scale-95"
+                className="p-2 -ml-2 transition-all duration-200 group"
+                style={{
+                  borderRadius: 'var(--radius-lg)',
+                  color: 'var(--color-text-secondary)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
                 title="Attach file - Upload photos, reports, or docs"
                 disabled={isLoading}
               >
-                <Paperclip className="w-5 h-5 group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)] transition-all" />
+                <Paperclip className="w-5 h-5 transition-all" />
               </button>
 
               {/* Emoji Picker Button */}
@@ -463,17 +534,32 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             <button
               type="submit"
               disabled={(!message.trim() && !attachment && !isLoading) || (isLoading && !onStop)}
-              className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 group relative overflow-hidden ${isLoading
-                ? 'bg-white/10 hover:bg-white/15 text-white scale-100'
-                : message.trim() || attachment
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/30 text-white scale-100'
-                  : 'bg-white/5 text-white/20 scale-95 cursor-not-allowed'
-                }`}
+              className="p-3 transition-all duration-200 flex items-center gap-2 group relative overflow-hidden"
+              style={{
+                borderRadius: 'var(--radius-lg)',
+                background: isLoading
+                  ? 'var(--color-bg-elevated)'
+                  : (message.trim() || attachment)
+                    ? 'var(--gradient-brand)'
+                    : 'var(--color-bg-elevated)',
+                boxShadow: (message.trim() || attachment) && !isLoading
+                  ? 'var(--shadow-teal)'
+                  : 'none',
+                color: 'white',
+                opacity: (!message.trim() && !attachment && !isLoading) ? 0.5 : 1,
+                cursor: (!message.trim() && !attachment && !isLoading) ? 'not-allowed' : 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                if ((message.trim() || attachment) && !isLoading) {
+                  e.currentTarget.style.boxShadow = 'var(--shadow-teal-lg)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if ((message.trim() || attachment) && !isLoading) {
+                  e.currentTarget.style.boxShadow = 'var(--shadow-teal)';
+                }
+              }}
             >
-              {/* Shimmer effect on hover */}
-              {(message.trim() || attachment) && !isLoading && (
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-              )}
               {isLoading && onStop ? (
                 <Square className="w-3 h-3 fill-current relative z-10" />
               ) : (

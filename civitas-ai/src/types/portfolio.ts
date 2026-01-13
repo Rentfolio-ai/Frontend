@@ -250,3 +250,161 @@ export interface APIError {
   errors?: Array<{ field: string; message: string }>;
 }
 
+// ==========================================
+// AI Portfolio Types (Health, Optimizer, Rebalancer)
+// ==========================================
+
+// Health Score Types
+export type HealthGrade = 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D' | 'F';
+export type ComponentStatus = 'excellent' | 'good' | 'warning' | 'critical';
+
+export interface ComponentScore {
+  name: string;
+  score: number;
+  weight: number;
+  status: ComponentStatus;
+  value: string | number;
+  benchmark: string | number;
+  insight: string;
+}
+
+export interface HealthBreakdown {
+  cash_flow: ComponentScore;
+  cap_rate: ComponentScore;
+  geographic_diversity: ComponentScore;
+  strategy_diversity: ComponentScore;
+  dscr: ComponentScore;
+  debt_to_equity: ComponentScore;
+}
+
+export interface HealthScore {
+  grade: HealthGrade;
+  score: number;
+  breakdown: HealthBreakdown;
+  action_items: string[];
+  summary: string;
+}
+
+// Optimizer Types
+export type RecommendationType = 'sell' | 'hold' | 'buy' | 'improve' | 'refinance' | 'diversify';
+export type RecommendationPriority = 'urgent' | 'high' | 'medium' | 'low';
+export type RiskTolerance = 'conservative' | 'moderate' | 'aggressive';
+
+export interface Recommendation {
+  type: RecommendationType;
+  priority: RecommendationPriority;
+  title: string;
+  description: string;
+  property_id?: string;
+  property_address?: string;
+  expected_impact?: string;
+  reasoning: string;
+}
+
+export interface TargetAllocation {
+  strategy_targets: Record<string, number>;
+  market_targets: Record<string, number>;
+  property_count_target: number;
+}
+
+export interface PropertySuggestion {
+  market: string;
+  strategy: string;
+  price_range: { min: number; max: number };
+  expected_cap_rate: number;
+  expected_cash_flow: number;
+  reasoning: string;
+}
+
+export interface OptimizationPlan {
+  recommendations: Recommendation[];
+  target_allocation: TargetAllocation;
+  next_acquisition: PropertySuggestion | null;
+  summary: string;
+  generated_at: string;
+}
+
+export interface InvestorProfile {
+  risk_tolerance: RiskTolerance;
+  target_markets: string[];
+  preferred_strategies: string[];
+  cash_flow_goal_monthly: number;
+  portfolio_value_goal: number;
+  time_horizon_years: number;
+  available_capital: number;
+}
+
+// Rebalancer Types
+export type DriftSeverity = 'none' | 'minor' | 'moderate' | 'significant' | 'critical';
+export type RebalanceActionType = 'sell' | 'buy' | 'hold' | 'reposition';
+
+export interface AllocationDrift {
+  dimension: string;
+  category: 'market' | 'strategy';
+  current_pct: number;
+  target_pct: number;
+  drift_pct: number;
+  severity: DriftSeverity;
+}
+
+export interface DriftAnalysis {
+  overall_severity: DriftSeverity;
+  market_drifts: AllocationDrift[];
+  strategy_drifts: AllocationDrift[];
+  concentration_warnings: string[];
+  underperforming_assets: string[];
+  needs_rebalancing: boolean;
+}
+
+export interface RebalanceAction {
+  action: RebalanceActionType;
+  property_id?: string;
+  property_address?: string;
+  market?: string;
+  strategy?: string;
+  reason: string;
+  priority: number;
+  estimated_impact: string;
+}
+
+export interface RebalancePlan {
+  drift_analysis: DriftAnalysis;
+  actions: RebalanceAction[];
+  summary: string;
+  projected_allocation_after: {
+    markets: Record<string, number>;
+    strategies: Record<string, number>;
+  };
+  generated_at: string;
+}
+
+// Portfolio Alert Types
+export type PortfolioAlertType =
+  | 'health_decline'
+  | 'health_improvement'
+  | 'underperforming_asset'
+  | 'concentration_risk'
+  | 'market_warning'
+  | 'rebalance_needed'
+  | 'opportunity'
+  | 'milestone'
+  | 'refinance_opportunity'
+  | 'cashflow_warning';
+
+export type AlertSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';
+
+export interface PortfolioAlert {
+  alert_id: string;
+  alert_type: PortfolioAlertType;
+  severity: AlertSeverity;
+  title: string;
+  summary: string;
+  portfolio_id?: string;
+  property_id?: string;
+  property_address?: string;
+  data: Record<string, unknown>;
+  recommendations: string[];
+  created_at: string;
+  is_read: boolean;
+  is_dismissed: boolean;
+}

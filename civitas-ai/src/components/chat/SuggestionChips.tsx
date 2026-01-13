@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import type { SuggestionChip } from '../../hooks/useSmartSuggestions';
 
@@ -12,26 +11,18 @@ interface SuggestionChipsProps {
 export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
   suggestions,
   onSelect,
-  variant = 'row'
+  variant = 'grid' // Default to grid for professional look
 }) => {
   if (!suggestions || suggestions.length === 0) return null;
 
-  const isGrid = variant === 'grid';
-  const isCarousel = variant === 'carousel';
+  const isGrid = variant === 'grid' || variant === 'carousel'; // Treat carousel as grid
 
-  let containerClass = "flex flex-wrap gap-2 mt-4";
-  if (isGrid) {
-    containerClass = "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto w-full px-4";
-  } else if (isCarousel) {
-    containerClass = "flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x";
-  }
+  const containerClass = isGrid
+    ? "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto w-full px-4"
+    : "flex flex-wrap gap-2 mt-4";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={containerClass}
-    >
+    <div className={containerClass}>
       {suggestions.map((suggestion, index) => {
         const isObject = typeof suggestion !== 'string';
         const label = isObject ? suggestion.label : suggestion;
@@ -44,35 +35,61 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
             <button
               key={key}
               onClick={() => onSelect(query)}
-              className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-left transition-all hover:scale-[1.02] active:scale-[0.98] group"
+              className="flex items-center gap-3 p-4 text-left transition-colors"
+              style={{
+                background: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border-default)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text-secondary)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-border-emphasis)';
+                e.currentTarget.style.background = 'var(--gradient-card-hover)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                e.currentTarget.style.background = 'var(--color-bg-tertiary)';
+              }}
             >
-              <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
-              <div className="flex-1">
-                <div className="font-medium text-white/90">{label}</div>
-                <div className="text-xs text-white/50 truncate max-w-[200px]">{query}</div>
+              <span className="text-2xl flex-shrink-0" style={{ color: 'var(--color-accent-teal-400)' }}>{icon || '✨'}</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>{label}</div>
+                <div className="text-xs truncate mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{query}</div>
               </div>
             </button>
           );
         }
 
+        // Row variant (simple chips)
         return (
           <button
             key={key}
             onClick={() => onSelect(query)}
-            className={isCarousel
-              ? "flex-shrink-0 snap-start flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-sm text-white/80 transition-all hover:scale-[1.02] active:scale-[0.98] group whitespace-nowrap"
-              : "group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-sm text-white/80 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            }
+            className="flex items-center gap-2 px-4 py-2 text-sm transition-colors"
+            style={{
+              background: 'var(--color-bg-tertiary)',
+              border: '1px solid var(--color-border-default)',
+              borderRadius: 'var(--radius-full)',
+              color: 'var(--color-text-secondary)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-emphasis)';
+              e.currentTarget.style.color = 'var(--color-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--color-border-default)';
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+            }}
           >
             {icon ? (
               <span className="text-base">{icon}</span>
             ) : (
-              <Sparkles className="w-3.5 h-3.5 text-blue-400 opacity-50 group-hover:opacity-100 transition-opacity" />
+              <Sparkles className="w-3.5 h-3.5 transition-opacity" style={{ color: 'var(--color-accent-teal-400)' }} />
             )}
             <span>{label}</span>
           </button>
         );
       })}
-    </motion.div>
+    </div>
   );
 };

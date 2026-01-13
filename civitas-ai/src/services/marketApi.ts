@@ -13,13 +13,16 @@ import type {
 } from '../types/market';
 
 // IMPORTANT: Always use environment variables for API URL
-const API_BASE = import.meta.env.VITE_CIVITAS_API_URL || import.meta.env.VITE_API_URL;
-if (!API_BASE) {
-  console.error('API URL must be configured via environment variable (VITE_CIVITAS_API_URL or VITE_API_URL)');
-  if (import.meta.env.DEV) {
-    console.warn('Using localhost fallback for development');
-  }
+
+const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1);
 }
+if (baseUrl.endsWith('/api')) {
+  baseUrl = baseUrl.slice(0, -4);
+}
+const API_BASE = baseUrl;
 
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 

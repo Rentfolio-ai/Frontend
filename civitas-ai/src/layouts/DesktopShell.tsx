@@ -26,7 +26,9 @@ import { useThemeState } from '../hooks/useThemeState';
 import { useToast } from '../hooks/useToast';
 import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
+import { useAlertNotifications } from '../hooks/useAlertNotifications';
 import { ToastContainer } from '../components/primitives/Toast';
+import { ToastContainer as AlertToastContainer } from '../components/alerts/AlertToast';
 import { ChatTabView, ReportsTabView, PortfolioTabView } from '../components/desktop-shell';
 import { SimpleSidebar } from '../components/desktop-shell/SimpleSidebar';
 import { ChatSearchDrawer } from '../components/desktop-shell/ChatSearchDrawer';
@@ -51,6 +53,17 @@ const ONBOARDING_STORAGE_KEY = 'prophetatlas-onboarding-completed';
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const { user } = useAuth();
   const { toasts, closeToast, success, error } = useToast();
+
+  // Alert notifications (auto-popup)
+  const {
+    toastAlerts,
+    dismissToast: dismissAlertToast,
+    handleToastClick: handleAlertToastClick,
+  } = useAlertNotifications({
+    userId: user?.id || 'anonymous',
+    enabled: !!user,
+    pollInterval: 60000, // Check every 60 seconds (less aggressive)
+  });
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -306,6 +319,13 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
         {/* Toast Notifications */}
         <ToastContainer toasts={toasts} onClose={closeToast} />
+
+        {/* Alert Toast Notifications (Auto-popup) */}
+        <AlertToastContainer
+          alerts={toastAlerts}
+          onToastClose={dismissAlertToast}
+          onToastClick={handleAlertToastClick}
+        />
 
         {/* Deal Analyzer Drawer */}
         <DealAnalyzerDrawer

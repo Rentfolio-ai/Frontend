@@ -1,11 +1,11 @@
 // FILE: src/components/portfolio/index.ts
+export { HeroMetrics } from './HeroMetrics';
+export { AIInsightsRibbon } from './AIInsightsRibbon';
+export { PropertyCard } from './PropertyCard';
 export { PortfolioDashboard } from './PortfolioDashboard';
-export { PortfolioList } from './PortfolioList';
+export { PortfolioStatsCards } from './PortfolioStatsCards';
 export { PortfolioCard } from './PortfolioCard';
-export { PortfolioForm } from './PortfolioForm';
+export { PortfolioList } from './PortfolioList';
 export { PortfolioDetail } from './PortfolioDetail';
-export { PropertyForm } from './PropertyForm';
-export { PropertyTable } from './PropertyTable';
-export { ImportDialog } from './ImportDialog';
-export { AnalyticsDashboard } from './AnalyticsDashboard';
-
+export { PortfolioForm } from './PortfolioForm';
+export { PortfolioAlertsPanel } from './PortfolioAlertsPanel';

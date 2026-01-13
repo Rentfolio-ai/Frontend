@@ -17,10 +17,22 @@ export interface ChatResponse {
   }>;
 }
 
+// Helper to get backend URL with correct path
+const getBackendUrl = () => {
+  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
+  let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+  if (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
+  if (baseUrl.endsWith('/api')) {
+    baseUrl = baseUrl.slice(0, -4);
+  }
+  return baseUrl;
+};
+
 export async function fetchToolResults(threadId: string, limit = 5): Promise<ToolResultRecord[]> {
   if (!threadId) return [];
-  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-  const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+  const BACKEND_URL = getBackendUrl();
   const url = `${BACKEND_URL}/api/tool-results/${threadId}?limit=${limit}`;
 
   try {
@@ -56,8 +68,7 @@ export const sendChatMessage = async (
   message: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<ChatResponse> => {
-  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-  const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+  const BACKEND_URL = getBackendUrl();
   const requestUrl = `${BACKEND_URL}/api/chat`;
   const startedAt = performance.now();
 
@@ -134,8 +145,7 @@ interface OnboardingData {
  * Fetch the onboarding/welcome message from backend
  */
 export const getOnboardingMessage = async (userName?: string): Promise<OnboardingData> => {
-  const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-  const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+  const BACKEND_URL = getBackendUrl();
   const url = new URL(`${BACKEND_URL}/api/onboarding/welcome`);
   const startedAt = performance.now();
 

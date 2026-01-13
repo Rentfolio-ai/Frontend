@@ -4,7 +4,7 @@
  * Shows how to integrate the holographic visualization into your property display
  */
 
-import React from 'react';
+
 import { HolographicPropertyView } from './HolographicPropertyView';
 
 // Example: In your property card or detail view

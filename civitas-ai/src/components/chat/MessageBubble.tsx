@@ -86,7 +86,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   // Local state for enhancements
   const [isExpanded, setIsExpanded] = useState(false);
-  const [reactions, setReactions] = useState<Record<string, number>>({});
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
@@ -106,14 +105,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const displayContent = shouldTruncate && !isExpanded
     ? message.content.slice(0, MAX_LENGTH) + '...'
     : message.content;
-
-  // Handle reaction toggle
-  const toggleReaction = (emoji: string) => {
-    setReactions(prev => {
-      const current = prev[emoji] || 0;
-      return { ...prev, [emoji]: current > 0 ? 0 : 1 };
-    });
-  };
 
   const handleCopyMessage = async () => {
     await copy(message.content);
@@ -215,13 +206,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <span>{formatRelativeTime(message.timestamp)}</span>
         </div>
 
-        {/* Message Content - Plain Text */}
+        {/* Message Content - Plain text surface */}
         <div className={cn(
           "relative text-[15px] leading-relaxed whitespace-pre-wrap break-words",
           isUser ? "text-white/95" : "text-white/90",
           message.isStreaming && "animate-pulse"
         )}>
-          {/* No gradient overlay */}
 
           {/* Check for "Deep Reasoning" source from backend and render badge */}
           {message.contextSources?.includes('System 2 Reasoning') && (
@@ -388,77 +378,109 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               </div>
             )}
 
-            {/* Reaction Stats Display */}
-            {Object.values(reactions).some(count => count > 0) && (
-              <div className="flex gap-1 mt-2">
-                {Object.entries(reactions).map(([emoji, count]) => (
-                  count > 0 && (
-                    <div key={emoji} className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full text-[10px] flex items-center gap-1">
-                      <span>{emoji}</span>
-                      <span className="text-white/40">{count}</span>
-                    </div>
-                  )
-                ))}
-              </div>
-            )}
-
-            {/* Action Toolbar (visible on hover) - Ingrained style, at bottom */}
+            {/* Action Toolbar - Professional horizontal bar */}
             {!message.isStreaming && !isUser && (
-              <div className="flex items-center gap-3 mt-4 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div
+                className="flex items-center gap-2 mt-4 pt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                style={{
+                  borderTop: '1px solid var(--color-border-default)',
+                  fontFamily: "'Inter', sans-serif"
+                }}
+              >
+                {/* Copy Button */}
                 <button
                   onClick={() => handleCopyMessage()}
-                  className="text-white/20 hover:text-white/50 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors"
+                  style={{
+                    color: isCopied ? 'var(--color-accent-teal-400)' : 'var(--color-text-tertiary)',
+                    background: 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isCopied) {
+                      e.currentTarget.style.color = 'var(--color-text-secondary)';
+                      e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isCopied) {
+                      e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
                   title="Copy message"
                 >
                   {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{isCopied ? 'Copied' : 'Copy'}</span>
                 </button>
+
+                {/* Feedback Buttons */}
                 <button
                   onClick={() => handleFeedback(true)}
-                  className={cn("transition-colors", feedback === 'up' ? "text-green-400" : "text-white/20 hover:text-green-400/60")}
+                  className="p-1.5 rounded-md transition-colors"
+                  style={{
+                    color: feedback === 'up' ? '#10b981' : 'var(--color-text-tertiary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (feedback !== 'up') {
+                      e.currentTarget.style.color = '#10b981';
+                      e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (feedback !== 'up') {
+                      e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
                   title="Helpful"
                 >
                   <ThumbsUp className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleFeedback(false)}
-                  className={cn("transition-colors", feedback === 'down' ? "text-red-400" : "text-white/20 hover:text-red-400/60")}
+                  className="p-1.5 rounded-md transition-colors"
+                  style={{
+                    color: feedback === 'down' ? '#ef4444' : 'var(--color-text-tertiary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (feedback !== 'down') {
+                      e.currentTarget.style.color = '#ef4444';
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (feedback !== 'down') {
+                      e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
                   title="Not helpful"
                 >
                   <ThumbsDown className="w-3.5 h-3.5" />
                 </button>
 
-                {/* Subtle divider */}
-                <div className="w-px h-3 bg-white/10" />
-
-                {/* Reactions - minimal */}
-                <button
-                  onClick={() => toggleReaction('👍')}
-                  className={cn("text-xs transition-colors", reactions['👍'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
-                >
-                  👍
-                </button>
-                <button
-                  onClick={() => toggleReaction('❤️')}
-                  className={cn("text-xs transition-colors", reactions['❤️'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
-                >
-                  ❤️
-                </button>
-                <button
-                  onClick={() => toggleReaction('🎯')}
-                  className={cn("text-xs transition-colors", reactions['🎯'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
-                >
-                  🎯
-                </button>
-
+                {/* Table Download */}
                 {hasTable && (
                   <>
-                    <div className="w-px h-3 bg-white/10" />
+                    <div className="w-px h-4" style={{ background: 'var(--color-border-default)' }} />
                     <button
                       onClick={handleDownloadTable}
-                      className="text-white/20 hover:text-green-400/60 transition-colors"
-                      title="Download CSV"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors"
+                      style={{
+                        color: 'var(--color-text-tertiary)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--color-accent-teal-400)';
+                        e.currentTarget.style.background = 'var(--color-bg-elevated)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                        e.currentTarget.style.background = 'transparent';
+                      }}
+                      title="Download table as CSV"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5" />
+                      <span>Export</span>
                     </button>
                   </>
                 )}
@@ -469,11 +491,27 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {/* User Message Action Buttons (Edit & Restart) */}
         {isUser && !isEditing && (onEdit || onRefresh) && (
-          <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div
+            className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
             {onEdit && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors"
+                style={{
+                  color: 'var(--color-text-tertiary)',
+                  background: 'var(--color-bg-elevated)',
+                  border: '1px solid var(--color-border-default)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-primary)';
+                  e.currentTarget.style.borderColor = 'var(--color-border-emphasis)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                  e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                }}
                 title="Edit message"
               >
                 <Pencil className="w-3 h-3" />
@@ -483,7 +521,20 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {onRefresh && (
               <button
                 onClick={() => onRefresh(message.id)}
-                className="flex items-center justify-center p-1.5 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                className="flex items-center justify-center p-1.5 rounded-md transition-colors"
+                style={{
+                  color: 'var(--color-text-tertiary)',
+                  background: 'var(--color-bg-elevated)',
+                  border: '1px solid var(--color-border-default)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--color-accent-teal-400)';
+                  e.currentTarget.style.borderColor = 'var(--color-accent-teal-500)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                  e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                }}
                 title="Run this query again"
               >
                 <RotateCcw className="w-3 h-3" />

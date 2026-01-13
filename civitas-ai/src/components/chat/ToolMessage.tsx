@@ -19,6 +19,7 @@ import type { InvestmentStrategy } from '../../types/pnl';
 import type { ComplianceResult } from '../../types/compliance';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
+import { AppLauncherMessage } from './AppLauncherMessage';
 
 interface ROIAnalysisData {
   roi: number;
@@ -118,6 +119,17 @@ type ScoutPropertiesToolResult = {
   status: 'success' | 'warning' | 'error';
 };
 
+type AppLauncherToolResult = {
+  kind: 'app_launcher';
+  title: string;
+  data: {
+    appId: string;
+    context: Record<string, any>;
+    reason?: string;
+  };
+  status: 'success' | 'warning' | 'error';
+};
+
 // Create a discriminated union of all tool result types
 type ToolResult =
   | RoiAnalysisToolResult
@@ -128,7 +140,8 @@ type ToolResult =
   | ComplianceToolResult
   | ValuationToolResult
   | RenovationAnalysisToolResult
-  | ScoutPropertiesToolResult;
+  | ScoutPropertiesToolResult
+  | AppLauncherToolResult;
 
 interface ToolMessageProps {
   tool: ToolResult;
@@ -199,15 +212,32 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
             Property search completed. Results are shown in the chat.
           </div>
         );
+      case 'app_launcher':
+        // Use the new AppLauncherMessage component
+        return (
+          <AppLauncherMessage
+            appId={tool.data.appId}
+            appName={tool.title}
+            context={tool.data.context}
+            reason={tool.data.reason}
+          />
+        );
       default: {
-        // This ensures exhaustiveness checking at compile time, properly scoped in a block
-        const exhaustiveCheck = (x: never): never => {
-          throw new Error(`Unhandled tool kind: ${(x as any).kind}`);
-        };
-        return exhaustiveCheck(tool);
+        return null; // Safe fallback
       }
     }
   };
+
+  // For app launcher, we might want to skip the standard card wrapper if the component handles it well
+  // But strictly, ToolMessage wraps everything in a Card. 
+  // AppLauncherMessage has its own card styling.
+  if (tool.kind === 'app_launcher') {
+    return (
+      <div className="max-w-chat mx-auto animate-slide-in">
+        {renderToolContent()}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-chat mx-auto animate-slide-in">

@@ -7,7 +7,13 @@ import { useState, useCallback, useRef } from 'react';
 import type { StreamEvent, CompletedTool, StreamState } from '../types/stream';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+// In development, use relative URLs to leverage Vite proxy
+// In production, use absolute URL from environment
+const CIVITAS_API_BASE = import.meta.env.DEV
+  ? '' // Relative URL - Vite proxy will handle /api/* requests
+  : (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http'))
+    ? envApiUrl
+    : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 interface UseStreamChatOptions {
@@ -34,7 +40,7 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
   const resetState = useCallback(() => {
     contentRef.current = '';
     setStreamState({
-      thinking: { status: 'Understanding your request...', icon: '🤔' },
+      thinking: null, // Don't show thinking until backend sends thinking event
       completedTools: [],
       content: '',
       isComplete: false,
@@ -77,8 +83,38 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
             source: event.source,
             icon: event.icon,
             tool: event.tool,
+            tool_name: event.tool_name,
+            params: event.params,
+            subtasks: event.subtasks,
+            progress: 0,  // Initialize progress at 0
           },
         }));
+        break;
+
+      case 'tool_progress':
+        setStreamState(prev => {
+          if (!prev.thinking) return prev;
+
+          // Update subtasks if specified
+          let updatedSubtasks = prev.thinking.subtasks;
+          if (event.subtask_update && updatedSubtasks) {
+            updatedSubtasks = updatedSubtasks.map(task =>
+              task.id === event.subtask_update?.id
+                ? { ...task, status: event.subtask_update.status }
+                : task
+            );
+          }
+
+          return {
+            ...prev,
+            thinking: {
+              ...prev.thinking,
+              status: event.message || prev.thinking.status,
+              progress: event.progress,
+              subtasks: updatedSubtasks,
+            },
+          };
+        });
         break;
 
       case 'tool_end':

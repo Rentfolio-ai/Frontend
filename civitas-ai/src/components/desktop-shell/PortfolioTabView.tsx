@@ -1,16 +1,18 @@
 // FILE: src/components/desktop-shell/PortfolioTabView.tsx
 import React from 'react';
-import { PortfolioDashboard } from '../portfolio';
+import { PortfolioDashboard } from '../portfolio/PortfolioDashboard';
 
 interface PortfolioTabViewProps {
-  // Add any props needed for portfolio view
+  // Add props as needed
 }
 
+/**
+ * Portfolio view within the desktop shell.
+ */
 export const PortfolioTabView: React.FC<PortfolioTabViewProps> = () => {
   return (
-    <div className="h-full w-full overflow-auto p-6">
+    <div className="h-full w-full overflow-auto">
       <PortfolioDashboard />
     </div>
   );
 };
-

@@ -1,8 +1,13 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
+// Legacy VoiceInputBar unused after stream UI swap; keep for potential fallback
+// import { VoiceInputBar, type VoiceInputBarHandle } from '../chat/VoiceInputBar';
+// import { VoiceStreamScreen } from '../voice/VoiceStreamScreen';
+import { VasthuLiveScreen } from '../voice/VasthuLiveScreen';
+// synthesizeSpeech unused after streaming swap
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { PreferencesModal } from '../PreferencesModal';
 import { ShortcutsModal } from '../ShortcutsModal';
@@ -15,6 +20,7 @@ import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceS
 import { uploadFile, ingestFileToBackend } from '../../services/fileStorage';
 
 import { checkHealth } from '../../services/agentsApi';
+import { getGreeting } from '../../services/suggestionsApi';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
@@ -53,7 +59,7 @@ interface ChatTabViewProps {
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
 }
 
-// Context-aware greeting based on user preferences and activity
+// Context-aware greeting based on user preferences and activity (fallback)
 const getContextAwareGreeting = (userPreferences?: any, userName?: string): { title: string; tagline: string } => {
   // console.log('[ChatTabView] getContextAwareGreeting called');
   const hour = new Date().getHours();
@@ -68,7 +74,8 @@ const getContextAwareGreeting = (userPreferences?: any, userName?: string): { ti
     contextAwareGreetings.push(
       { title: '', tagline: `${namePrefix}ready to continue exploring ${city}?` },
       { title: '', tagline: `${namePrefix}let's find more opportunities in ${city}` },
-      { title: '', tagline: `What's next for your ${city} search${userName ? ', ' + userName : ''}?` }
+      { title: '', tagline: `What's next for your ${city} search${userName ? ', ' + userName : ''}?` },
+      { title: '', tagline: `${namePrefix}pick a property in ${city} and I'll underwrite it` }
     );
   }
 
@@ -82,7 +89,8 @@ const getContextAwareGreeting = (userPreferences?: any, userName?: string): { ti
     const strategy = strategyNames[userPreferences.default_strategy] || 'investment';
     contextAwareGreetings.push(
       { title: '', tagline: `${namePrefix}find your next ${strategy} opportunity` },
-      { title: '', tagline: `Analyzing ${strategy} deals just for you${userName ? ', ' + userName : ''}` }
+      { title: '', tagline: `Analyzing ${strategy} deals just for you${userName ? ', ' + userName : ''}` },
+      { title: '', tagline: `${namePrefix}want a fresh ${strategy} scenario to model?` }
     );
   }
 
@@ -98,13 +106,15 @@ const getContextAwareGreeting = (userPreferences?: any, userName?: string): { ti
   if (userPreferences?.goals?.includes('cash_flow')) {
     contextAwareGreetings.push(
       { title: '', tagline: `${namePrefix}find properties that maximize cash flow` },
-      { title: '', tagline: `Your next cash-flowing asset awaits${userName ? ', ' + userName : ''}` }
+      { title: '', tagline: `Your next cash-flowing asset awaits${userName ? ', ' + userName : ''}` },
+      { title: '', tagline: `${namePrefix}let's hunt for stronger monthly cash flow` }
     );
   }
 
   if (userPreferences?.goals?.includes('appreciation')) {
     contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}discover high-growth market opportunities` }
+      { title: '', tagline: `${namePrefix}discover high-growth market opportunities` },
+      { title: '', tagline: `${namePrefix}where do you want your next equity win?` }
     );
   }
 
@@ -141,6 +151,10 @@ const getContextAwareGreeting = (userPreferences?: any, userName?: string): { ti
     { title: '', tagline: `${namePrefix}your investment research partner` },
     { title: '', tagline: `${namePrefix}data-driven insights for smarter investing` },
     { title: '', tagline: `${namePrefix}find hidden gems in the market` },
+    { title: '', tagline: `${namePrefix}bring me an address—I'll bring the numbers` },
+    { title: '', tagline: `${namePrefix}ask anything—ROI, cap rate, cash-on-cash` },
+    { title: '', tagline: `${namePrefix}from napkin math to full underwrites—what's next?` },
+    { title: '', tagline: `${namePrefix}want comps, rent rolls, or rehab math?` }
   ];
 
   // Time-based personal touch
@@ -204,7 +218,12 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onEditMessage,
   onNavigateBranch,
 }) => {
+  const prefsStore = usePreferencesStore();
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
+  const [heroGreeting, setHeroGreeting] = useState<{ title: string; tagline: string }>({
+    title: '',
+    tagline: ''
+  });
   const [showPreferences, setShowPreferences] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -212,11 +231,11 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showInConvoSearch, setShowInConvoSearch] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showVoiceStream, setShowVoiceStream] = useState(false);
   const composerRef = useRef<ComposerRef>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
-
-  const prefsStore = usePreferencesStore();
+  // Legacy greeting audio removed with streaming voice
 
   console.log('[ChatTabView] Render started', {
     isLoading,
@@ -259,22 +278,27 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
   // Get context-aware greeting (updates when preferences change)
-  const greeting = useMemo(() => {
-    console.log('[ChatTabView] Calculating greeting with prefs:', {
-      city: prefsStore.lastSearchCity,
-      strategy: prefsStore.defaultStrategy
-    });
-    return getContextAwareGreeting(prefsStore, userName);
-  }, [
-    prefsStore.lastSearchCity,
-    prefsStore.defaultStrategy,
-    prefsStore.favoriteMarkets,
-    prefsStore.budgetRange,
-    prefsStore.financialDna,
-    userName
-  ]);
+  // Fetch hero greeting from backend; fall back to local generator
+  useEffect(() => {
+    const fetchGreeting = async () => {
+      const fallback = getContextAwareGreeting(prefsStore, userName);
+      try {
+        const greeting = await getGreeting('default');
+        if (greeting?.headline) {
+          setHeroGreeting({ title: greeting.subhead || '', tagline: greeting.headline });
+          return;
+        }
+      } catch (err) {
+        console.warn('[ChatTabView] greeting fetch failed, using fallback', err);
+      }
+      setHeroGreeting(fallback);
+    };
+    fetchGreeting();
+  }, [prefsStore, userName]);
 
   const suggestions = useSmartSuggestions({ messages, completedTools, isLoading });
+
+  // Legacy voice dock removed; streaming UI is launched via showVoiceStream
 
   // Detect preference suggestions from new AI responses
   useEffect(() => {
@@ -404,176 +428,210 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   return (
     <div className="h-full flex flex-col relative">
+      {/* Professional hero gradient background */}
+      <div className="pointer-events-none absolute inset-0" style={{ background: 'var(--gradient-hero)' }} />
 
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Modals */}
+        <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
+        <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
+        <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+        <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
-      {/* Header buttons removed per user request */}
+        {/* Messages or Empty State */}
+        <div className="flex-1 overflow-hidden">
+          {showEmptyState ? (
+            /* Premium Empty State - Centered Hero */
+            <div className="h-full flex flex-col items-center justify-center px-6">
+              <div className="max-w-2xl w-full space-y-8 animate-fade-in">
+                {/* Hero Section */}
+                <div className="text-center space-y-6">
+                  {/* Avatar with subtle shadow */}
+                  <div className="relative inline-block" style={{ boxShadow: 'var(--shadow-md)', borderRadius: '50%' }}>
+                    <AgentAvatar size="lg" className="relative" status={agentStatus} />
+                  </div>
 
-      {/* Modals */}
-      <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
-      <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
-      <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
-      <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
-
-      {/* Messages or Empty State */}
-      <div className="flex-1 overflow-hidden">
-        {showEmptyState ? (
-          /* Premium Empty State - Centered Hero */
-          <div className="h-full flex flex-col items-center justify-center px-6">
-            <div className="max-w-2xl w-full space-y-8 animate-fade-in">
-              {/* Hero Section */}
-              <div className="text-center space-y-6">
-                {/* Glowing Avatar */}
-                <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl scale-150 animate-pulse-glow" />
-                  <AgentAvatar size="lg" className="relative" status={agentStatus} />
+                  {/* Welcome Message - Clean text with refined typography */}
+                  <div className="space-y-3">
+                    <p
+                      className="text-2xl md:text-3xl tracking-wider"
+                      style={{
+                        fontFamily: "'Inter', sans-serif",
+                        fontWeight: 200,
+                        color: 'var(--color-text-primary)',
+                        letterSpacing: '0.04em',
+                        opacity: 0.95
+                      }}
+                    >
+                      {heroGreeting.tagline}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Welcome Message - Subtle and flashy */}
-                <div className="space-y-3">
-                  <p className="text-2xl md:text-3xl font-medium bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-transparent animate-gradient-shift">
-                    {greeting.tagline}
-                  </p>
-                </div>
-              </div>
+                {/* Integrated Guidance - Professional card grid */}
+                <div className="max-w-2xl mx-auto px-4">
+                  <div className="text-xs font-medium uppercase tracking-wider text-center mb-4" style={{ color: 'var(--color-text-tertiary)' }}>Try asking about</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {suggestions.map((suggestion, index) => {
+                      const isObject = typeof suggestion !== 'string';
+                      const label = isObject ? suggestion.label : suggestion;
+                      const query = isObject ? suggestion.query : suggestion;
+                      const icon = isObject ? suggestion.icon : null;
+                      const key = isObject ? suggestion.id : index;
 
-              {/* Integrated Guidance - Plain text style like thinking state */}
-              <div className="space-y-4 max-w-xl mx-auto">
-                <div className="text-xs text-white/30 font-medium uppercase tracking-wider text-center mb-3">Try asking about</div>
-                <div className="space-y-2">
-                  {suggestions.map((suggestion, index) => {
-                    const isObject = typeof suggestion !== 'string';
-                    const label = isObject ? suggestion.label : suggestion;
-                    const query = isObject ? suggestion.query : suggestion;
-                    const icon = isObject ? suggestion.icon : null;
-                    const key = isObject ? suggestion.id : index;
-
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => handleSendMessage(query)}
-                        className="group flex items-start gap-3 w-full text-left hover:opacity-80 transition-opacity"
-                      >
-                        <span className="text-xl flex-shrink-0 mt-0.5">{icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-white/70 group-hover:text-white/90 transition-colors text-[15px] leading-relaxed">
-                            {label}
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handleSendMessage(query)}
+                          className="flex items-center gap-3 p-4 text-left transition-colors"
+                          style={{
+                            background: 'var(--color-bg-tertiary)',
+                            border: '1px solid var(--color-border-default)',
+                            borderRadius: 'var(--radius-md)',
+                            color: 'var(--color-text-secondary)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-border-emphasis)';
+                            e.currentTarget.style.background = 'var(--gradient-card-hover)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                            e.currentTarget.style.background = 'var(--color-bg-tertiary)';
+                          }}
+                        >
+                          <span className="text-2xl flex-shrink-0" style={{ color: 'var(--color-accent-teal-400)' }}>{icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                              {label}
+                            </div>
+                            <div className="text-xs truncate mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{query}</div>
                           </div>
-                          <div className="text-xs text-white/30 mt-0.5 line-clamp-1">{query}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Trust Indicators */}
-              <div className="flex items-center justify-center gap-6 pt-4">
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span>Secure & Private</span>
-                </div>
-                <div className="w-px h-4 bg-white/10" />
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span>Real-time Data</span>
-                </div>
-                <div className="w-px h-4 bg-white/10" />
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>AI-Powered</span>
+                {/* Trust Indicators */}
+                <div className="flex items-center justify-center gap-6 pt-4">
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span>Secure & Private</span>
+                  </div>
+                  <div className="w-px h-4" style={{ background: 'var(--color-border-default)' }} />
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Real-time Data</span>
+                  </div>
+                  <div className="w-px h-4" style={{ background: 'var(--color-border-default)' }} />
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <span>AI-Powered</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          /* Chat Messages */
-          <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
-            {/* In-Conversation Search */}
-            <InConversationSearch
-              isOpen={showInConvoSearch}
-              onClose={() => setShowInConvoSearch(false)}
-              messages={messages}
-              onNavigateToMatch={handleNavigateToSearchMatch}
-            />
+          ) : (
+            /* Chat Messages */
+            <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
+              {/* In-Conversation Search */}
+              <InConversationSearch
+                isOpen={showInConvoSearch}
+                onClose={() => setShowInConvoSearch(false)}
+                messages={messages}
+                onNavigateToMatch={handleNavigateToSearchMatch}
+              />
 
-            <MessageList
-              messages={messages}
-              isLoading={isLoading}
-              onAction={onAction}
-              agentStatus={agentStatus}
-              onOpenDealAnalyzer={onOpenDealAnalyzer}
-              bookmarks={bookmarks}
-              onToggleBookmark={onToggleBookmark}
-              onNavigateToReports={onNavigateToReports}
-              thinking={thinking}
-              completedTools={completedTools}
-              userName={userName}
-              onRefresh={onRefresh}
-              onViewDetails={onViewDetails}
-              onEdit={onEditMessage}
-              onCancel={onCancel}
-              error={error}
-              onRetry={onRetry}
-              onOpenPreferences={() => setShowPreferences(true)}
-              isWideMode={prefsStore.isWideMode}
-              onNavigateBranch={onNavigateBranch}
-              onSuggestionSelect={handleSendMessage}
-            />
+              <MessageList
+                messages={messages}
+                isLoading={isLoading}
+                onAction={onAction}
+                agentStatus={agentStatus}
+                onOpenDealAnalyzer={onOpenDealAnalyzer}
+                bookmarks={bookmarks}
+                onToggleBookmark={onToggleBookmark}
+                onNavigateToReports={onNavigateToReports}
+                thinking={thinking}
+                completedTools={completedTools}
+                userName={userName}
+                onRefresh={onRefresh}
+                onViewDetails={onViewDetails}
+                onEdit={onEditMessage}
+                onCancel={onCancel}
+                error={error}
+                onRetry={onRetry}
+                onOpenPreferences={() => setShowPreferences(true)}
+                isWideMode={prefsStore.isWideMode}
+                onNavigateBranch={onNavigateBranch}
+                onSuggestionSelect={handleSendMessage}
+              />
 
-            {/* Scroll to Bottom Button */}
-            <ScrollToBottomButton containerRef={messageContainerRef} />
-          </div>
-        )}
-      </div>
+              {/* Scroll to Bottom Button */}
+              <ScrollToBottomButton containerRef={messageContainerRef} />
+            </div>
+          )}
+        </div>
 
-      {/* Composer - Bottom with gradient fade */}
-      <div className="flex-shrink-0 relative">
-        {/* Gradient fade above composer */}
-        <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        {/* Composer - Bottom with gradient fade */}
+        <div className="flex-shrink-0 relative">
+          {/* Gradient fade above composer */}
+          <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
-        {/* Dynamic Context Chips (Floating) */}
-        {!showEmptyState && suggestions.length > 0 && (
-          <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
-            <SuggestionChips
-              suggestions={suggestions}
-              onSelect={handleSendMessage}
-              variant="carousel"
-            />
-          </div>
-        )}
+          {/* Dynamic Context Chips (Floating) */}
+          {!showEmptyState && suggestions.length > 0 && (
+            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
+              <SuggestionChips
+                suggestions={suggestions}
+                onSelect={handleSendMessage}
+                variant="carousel"
+              />
+            </div>
+          )}
 
-        <div className="px-4 md:px-8 pb-6 pt-4 relative z-20">
-          <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto transition-all duration-300`}>
-            <Composer
-              ref={composerRef}
-              onSend={handleSendMessage}
-              onStop={onCancel}
-              onAttach={onAttach}
-              attachment={attachment}
-              onClearAttachment={onClearAttachment}
-              onOpenPreferences={() => setShowPreferences(true)}
-              aria-label="Chat input"
-            />
+          <div className="px-4 md:px-8 pb-6 pt-4 relative z-20">
+            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto transition-all duration-300`}>
+              {showVoiceStream && (
+                <VasthuLiveScreen
+                  persona="friendly"
+                  language="en"
+                  onClose={() => setShowVoiceStream(false)}
+                />
+              )}
 
-            {/* Subtle disclaimer */}
-            <p className="text-center text-[11px] text-white/20 mt-3">
-              Vasthu can make mistakes. Verify important information independently.
-            </p>
+              <Composer
+                ref={composerRef}
+                onSend={handleSendMessage}
+                onStop={onCancel}
+                onAttach={onAttach}
+                attachment={attachment}
+                onClearAttachment={onClearAttachment}
+                onOpenPreferences={() => setShowPreferences(true)}
+                onVoiceStart={() => {
+                  setShowVoiceStream(true);
+                }}
+                aria-label="Chat input"
+              />
+
+              {/* Subtle disclaimer */}
+              <p className="text-center text-[11px] text-white/20 mt-3">
+                Vasthu can make mistakes. Verify important information independently.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Preference Suggestion Toast */}
-      <PreferenceSuggestionToast
-        suggestion={preferenceSuggestion}
-        onDismiss={() => setPreferenceSuggestion(null)}
-      />
+        {/* Preference Suggestion Toast */}
+        <PreferenceSuggestionToast
+          suggestion={preferenceSuggestion}
+          onDismiss={() => setPreferenceSuggestion(null)}
+        />
+      </div>
     </div>
   );
 };

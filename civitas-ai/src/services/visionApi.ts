@@ -10,7 +10,14 @@ import type {
 } from '../types/backendTools';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1);
+}
+if (baseUrl.endsWith('/api')) {
+  baseUrl = baseUrl.slice(0, -4);
+}
+const API_BASE = baseUrl;
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -68,7 +75,7 @@ export const visionService = {
     if (options.context) formData.append('context', options.context);
     if (options.thread_id) formData.append('thread_id', options.thread_id);
 
-    const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image`, {
+    const response = await fetch(`${API_BASE}/api/analyze/image`, {
       method: 'POST',
       headers: getHeaders(),
       body: formData,
@@ -109,7 +116,7 @@ export const visionService = {
       ...options,
     };
 
-    const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image/json`, {
+    const response = await fetch(`${API_BASE}/api/analyze/image/json`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(body),
@@ -154,7 +161,7 @@ export const visionService = {
     if (options.context) formData.append('context', options.context);
     if (options.thread_id) formData.append('thread_id', options.thread_id);
 
-    const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image`, {
+    const response = await fetch(`${API_BASE}/api/analyze/image`, {
       method: 'POST',
       headers: getHeaders(),
       body: formData,

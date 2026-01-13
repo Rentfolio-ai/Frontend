@@ -59,7 +59,7 @@ export const HolographicPropertyModal: React.FC<HolographicModalProps> = ({
                         address: property.address,
                         amenities: property.amenities || [],
                         yearBuilt: property.year_built,
-                        lotSize: property.lot_sqft
+                        lotSize: property.lot_size
                     }}
                     variant="full"
                 />

@@ -1,22 +1,148 @@
 /* Import premium font - must be first */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+/* Import Inter font with ultra-light weights for elegant typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600&display=swap');
+
+/* Import custom scrollbars */
+@import './styles/scrollbar.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Hide sidebar when voice fullscreen is active (Gemini Live-style) */
+.vasthu-live-active .sidebar,
+.vasthu-live-active .app-sidebar,
+.vasthu-live-active .desktop-sidebar,
+.vasthu-live-active [data-sidebar],
+.vasthu-live-active [data-simple-sidebar],
+.vasthu-live-active aside,
+.vasthu-live-active nav.sidebar,
+.vasthu-live-active [role="complementary"],
+.vasthu-live-active [data-testid="sidebar"],
+.vasthu-live-active [aria-label*="sidebar" i],
+.vasthu-live-active [class*="sidebar" i],
+.vasthu-live-active [class*="side-nav" i],
+.vasthu-live-active [class*="sidenav" i],
+.vasthu-live-active [class*="nav-side" i],
+.vasthu-live-active [class*="left-nav" i],
+.vasthu-live-active [class*="sidepanel" i],
+.vasthu-live-active [class*="drawer" i] {
+  display: none !important;
+}
+
 @layer base {
   :root {
-    /* Vasthu - Luxury Real Estate Color System */
-    /* Deep charcoal base with emerald/teal accents and warm gold highlights */
-    --primary: 160 84% 39%;
-    /* Emerald #10B981 */
-    --accent-from: 160 84% 39%;
+    /* === VASTHU PROFESSIONAL DESIGN SYSTEM === */
+
+    /* === BACKGROUND LAYERS === */
+    --color-bg-base: #080a0f;
+    --color-bg-primary: #0a0d14;
+    --color-bg-secondary: #11141c;
+    --color-bg-tertiary: #171a23;
+    --color-bg-elevated: #1d2029;
+
+    /* === BORDERS - Intentional Contrast === */
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-border-default: rgba(255, 255, 255, 0.08);
+    --color-border-emphasis: rgba(255, 255, 255, 0.14);
+    --color-border-strong: rgba(255, 255, 255, 0.20);
+
+    /* === TEXT HIERARCHY === */
+    --color-text-primary: rgba(255, 255, 255, 0.95);
+    --color-text-secondary: rgba(255, 255, 255, 0.70);
+    --color-text-tertiary: rgba(255, 255, 255, 0.45);
+    --color-text-disabled: rgba(255, 255, 255, 0.25);
+    --color-text-placeholder: rgba(255, 255, 255, 0.35);
+
+    /* === ACCENT COLORS - Teal/Emerald Theme (Unique) === */
+    --color-accent-teal-50: #f0fdfa;
+    --color-accent-teal-100: #ccfbf1;
+    --color-accent-teal-200: #99f6e4;
+    --color-accent-teal-300: #5eead4;
+    --color-accent-teal-400: #2dd4bf;
+    --color-accent-teal-500: #14b8a6;
+    --color-accent-teal-600: #0d9488;
+    --color-accent-teal-700: #0f766e;
+    --color-accent-teal-800: #115e59;
+    --color-accent-teal-900: #134e4a;
+
+    --color-accent-emerald-400: #34d399;
+    --color-accent-emerald-500: #10b981;
+    --color-accent-emerald-600: #059669;
+
+    --color-accent-cyan-400: #22d3ee;
+    --color-accent-cyan-500: #06b6d4;
+    --color-accent-cyan-600: #0891b2;
+
+    /* === SEMANTIC COLORS === */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+
+    /* === GRADIENTS - Strategic Usage === */
+    --gradient-hero: linear-gradient(135deg, #0a0d14 0%, #11141c 50%, #0f1318 100%);
+    --gradient-brand: linear-gradient(135deg, #14b8a6 0%, #10b981 100%);
+    --gradient-thread: linear-gradient(180deg, rgba(20, 184, 166, 0.3) 0%, rgba(16, 185, 129, 0.2) 50%, rgba(20, 184, 166, 0.1) 100%);
+    --gradient-card-hover: linear-gradient(135deg, rgba(20, 184, 166, 0.04) 0%, rgba(16, 185, 129, 0.02) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+
+    /* === SPACING SCALE (8px base) === */
+    --space-0: 0;
+    --space-1: 0.125rem;
+    --space-2: 0.25rem;
+    --space-3: 0.5rem;
+    --space-4: 0.75rem;
+    --space-5: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+
+    /* === TYPOGRAPHY SCALE === */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+
+    --text-xs: 0.6875rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --text-lg: 1.0625rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+
+    /* === SHADOWS - Professional Depth === */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.12);
+    --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
+    --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.20);
+    --shadow-lg: 0 8px 16px -4px rgba(0, 0, 0, 0.24);
+    --shadow-xl: 0 12px 24px -6px rgba(0, 0, 0, 0.28);
+    --shadow-teal: 0 4px 12px -2px rgba(20, 184, 166, 0.15);
+    --shadow-teal-lg: 0 8px 20px -4px rgba(20, 184, 166, 0.20);
+
+    /* === BORDER RADIUS === */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-full: 9999px;
+
+    /* === TRANSITIONS === */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* === TAILWIND COMPATIBILITY (mapped from new system) === */
+    --primary: 173 80% 40%;
+    /* Teal-500 */
+    --accent-from: 173 80% 40%;
+    /* Teal */
+    --accent-to: 160 84% 39%;
     /* Emerald */
-    --accent-to: 173 80% 40%;
-    /* Teal #14B8A6 */
-    --highlight: 45 93% 47%;
-    /* Warm Gold #EAB308 */
+    --highlight: 173 80% 40%;
     --success: 160 84% 39%;
     --warning: 45 93% 47%;
     --danger: 0 84% 60%;
@@ -51,26 +177,17 @@
   }
 
   .dark {
-    /* Neutral Dark Theme - Inspired by ChatGPT/Claude/Gemini */
-
-    /* Base: Pure neutral grays - no color tints */
+    /* === DARK THEME === */
+    /* Tailwind compatibility - use new design tokens */
     --background: 0 0% 13%;
-    /* #212121 - Civitas AI Dark Gray - Clearly visible, professional */
     --surface: 0 0% 12%;
-    /* #1F1F1F - Cards */
     --surface-elevated: 0 0% 14%;
-    /* #242424 - Elevated UI */
     --muted: 0 0% 15%;
     --border: 0 0% 15%;
-    /* Hairline borders - subtle */
     --border-subtle: 0 0% 12%;
-    /* Even more subtle */
     --foreground: 0 0% 90%;
-    /* #E5E5E5 - Primary text */
     --text-muted: 0 0% 65%;
-    /* Clean gray for secondary text */
 
-    /* Vibrant Accents - Keep teal branding */
     --primary: 173 80% 50%;
     --accent-from: 173 80% 50%;
     --accent-to: 280 65% 60%;
@@ -81,9 +198,7 @@
     --info: 199 89% 66%;
     --neutral: 0 0% 50%;
 
-    /* Component colors */
     --card: 0 0% 10%;
-    /* #1A1A1A - Matches surface */
     --card-foreground: 0 0% 90%;
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 90%;
@@ -212,47 +327,34 @@
     @apply bg-white/80 dark:bg-white/[0.03] backdrop-blur-2xl border border-black/5 dark:border-white/[0.08] shadow-xl;
   }
 
-  /* Text gradient */
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent-to to-primary;
+  /* Essential animations only */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
   }
 
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400;
-  }
-
-  /* Animated gradient background - Warm Slate */
-  .bg-gradient-animated {
-    background: linear-gradient(135deg,
-        hsl(30 20% 98%) 0%,
-        hsl(30 18% 96%) 25%,
-        hsl(30 15% 94%) 50%,
-        hsl(30 18% 96%) 75%,
-        hsl(30 20% 98%) 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
-  }
-
-  .dark .bg-gradient-animated {
-    background: linear-gradient(135deg,
-        hsl(220 15% 8%) 0%,
-        hsl(220 18% 10%) 25%,
-        hsl(220 20% 12%) 50%,
-        hsl(220 18% 10%) 75%,
-        hsl(220 15% 8%) 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
-  }
-
-  @keyframes gradientShift {
-
-    0%,
-    100% {
-      background-position: 0% 50%;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
     }
 
-    50% {
-      background-position: 100% 50%;
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
@@ -272,196 +374,24 @@
     animation: slide-in-right 0.3s ease-out forwards;
   }
 
-  /* Mesh gradient overlay */
-  .bg-mesh {
-    background-image:
-      radial-gradient(at 0% 0%, hsl(160 84% 39% / 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsl(173 80% 40% / 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsl(45 93% 47% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsl(160 84% 39% / 0.1) 0px, transparent 50%);
-  }
-
-  /* Glow effects */
-  .glow-emerald {
-    box-shadow: 0 0 40px hsl(160 84% 39% / 0.3), 0 0 80px hsl(160 84% 39% / 0.15);
-  }
-
-  .glow-gold {
-    box-shadow: 0 0 30px hsl(45 93% 47% / 0.4), 0 0 60px hsl(45 93% 47% / 0.2);
-  }
-
-  /* Hover effects */
-  .hover-lift {
-    @apply transition-all duration-300;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-
-  .hover-glow {
-    @apply transition-all duration-300;
-  }
-
-  .hover-glow:hover {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
-  }
-
-  /* Animation utilities */
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-  }
-
-  @keyframes float {
-
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-
-    50% {
-      transform: translateY(-8px);
-    }
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 3s ease-in-out infinite;
-  }
-
-  @keyframes pulseGlow {
-
-    0%,
-    100% {
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
-      opacity: 1;
-    }
-
-    50% {
-      box-shadow: 0 0 40px hsl(var(--primary) / 0.4);
-      opacity: 0.8;
-    }
-  }
-
-  .animate-shimmer {
-    background: linear-gradient(90deg,
-        hsl(var(--muted)) 0%,
-        hsl(var(--surface-elevated)) 50%,
-        hsl(var(--muted)) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 2s ease-in-out infinite;
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  .animate-gradient-shift {
-    animation: gradientTextShift 3s ease infinite;
-  }
-
-  .animate-gradient {
-    animation: gradientTextShift 4s ease infinite;
-  }
-
-  @keyframes gradientTextShift {
-
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  /* Slide in animations */
-  .animate-slide-up {
-    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  /* Stagger delays */
-  .delay-100 {
-    animation-delay: 100ms;
-  }
-
-  .delay-200 {
-    animation-delay: 200ms;
-  }
-
-  .delay-300 {
-    animation-delay: 300ms;
-  }
-
-  .delay-400 {
-    animation-delay: 400ms;
-  }
-
-  .delay-500 {
-    animation-delay: 500ms;
-  }
-
-  /* Premium button styles */
+  /* Professional button styles */
   .btn-primary {
-    @apply px-6 py-3 rounded-xl font-semibold text-white;
-    background: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(173 80% 40%) 100%);
-    box-shadow: 0 4px 20px hsl(160 84% 39% / 0.3), inset 0 1px 0 hsl(160 84% 60% / 0.3);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    @apply px-6 py-3 font-semibold text-white;
+    background: var(--gradient-brand);
+    box-shadow: var(--shadow-teal);
+    border-radius: var(--radius-lg);
+    transition: var(--transition-base);
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px hsl(160 84% 39% / 0.4), inset 0 1px 0 hsl(160 84% 60% / 0.4);
+    box-shadow: var(--shadow-teal-lg);
   }
 
   .btn-primary:active {
-    transform: translateY(0);
+    transform: scale(0.98);
   }
 
-  .btn-gold {
-    @apply px-6 py-3 rounded-xl font-semibold;
-    background: linear-gradient(135deg, hsl(45 93% 47%) 0%, hsl(38 92% 50%) 100%);
-    color: hsl(224 71% 4%);
-    box-shadow: 0 4px 20px hsl(45 93% 47% / 0.3), inset 0 1px 0 hsl(45 93% 70% / 0.5);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
 
-  .btn-gold:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px hsl(45 93% 47% / 0.5), inset 0 1px 0 hsl(45 93% 70% / 0.6);
-  }
 }
 
 /* Custom scrollbar for chat */
@@ -639,4 +569,21 @@
 .message-jump-highlight {
   animation: messageJumpHighlight 2s ease-out;
   scroll-margin-top: 100px;
+}
+
+/* Teal pulse animation for thinking indicator */
+@keyframes teal-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: teal-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

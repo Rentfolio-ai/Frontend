@@ -5,7 +5,14 @@
 import { logger } from '../utils/logger';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+let baseUrl = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1);
+}
+if (baseUrl.endsWith('/api')) {
+  baseUrl = baseUrl.slice(0, -4);
+}
+const CIVITAS_API_BASE = baseUrl;
 const API_BASE = `${CIVITAS_API_BASE}/api/reports`;
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -118,10 +125,14 @@ export const reportsService = {
 
   /**
    * Get URL for rendering report HTML in iframe
-   * This returns the direct URL - the browser will fetch HTML content
+   * Includes API key as query parameter since iframes can't send custom headers
    */
   getHtmlUrl: (reportId: string): string => {
-    return `${API_BASE}/${reportId}/view`;
+    const url = `${API_BASE}/${reportId}/view`;
+    if (CIVITAS_API_KEY) {
+      return `${url}?api_key=${encodeURIComponent(CIVITAS_API_KEY)}`;
+    }
+    return url;
   },
 
   /**
