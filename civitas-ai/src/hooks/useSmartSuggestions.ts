@@ -2,6 +2,8 @@ import { useMemo, useState, useEffect } from 'react';
 import type { Message } from '../types/chat';
 import type { CompletedTool } from '../types/stream';
 
+const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
 export interface SuggestionChip {
     id: string;
     label: string;
@@ -30,7 +32,11 @@ export const useSmartSuggestions = ({
             try {
                 // Fetch from backend
                 // In production, we'd use a typed API client and pass proper user context
-                const response = await fetch('/api/suggestions/welcome');
+                const response = await fetch('/api/suggestions/welcome', {
+                    headers: {
+                        ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+                    },
+                });
                 if (response.ok) {
                     const data = await response.json();
                     setWelcomeChips(data);

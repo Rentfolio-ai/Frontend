@@ -334,8 +334,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
         </div>
       )}
 
-      <div className={`relative transition-all duration-300 rounded-3xl ${isLoading ? 'bg-black/20 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]' : 'bg-transparent'
-        }`}>
+      <div className="relative rounded-xl bg-[#2C2C2C] border border-white/[0.08] hover:border-white/[0.15] focus-within:border-white/[0.2] transition-colors shadow-lg">
 
         {attachment && (
           <div className="mx-4 mt-4">
@@ -358,38 +357,23 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about properties, markets, or analyze a deal..."
-            className="w-full bg-transparent text-white placeholder-white/40 px-6 py-5 min-h-[60px] max-h-[160px] resize-none focus:outline-none custom-scrollbar text-[15px] leading-relaxed font-light"
-            style={{ height: '60px' }}
+            placeholder="Ask, search, or make anything..."
+            className="w-full bg-transparent text-white placeholder-white/40 px-4 py-3.5 min-h-[52px] max-h-[160px] resize-none focus:outline-none custom-scrollbar text-[15px] leading-normal"
+            style={{ height: '52px' }}
             disabled={isLoading}
             {...rest}
           />
 
-          {/* Keyboard Shortcuts Hint */}
-          <div className="px-6 pb-2 flex items-center gap-4 text-[11px] text-white/30">
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘/</kbd>
-              <span>Shortcuts</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘F</kbd>
-              <span>Search</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⌘↵</kbd>
-              <span>Send</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-medium">⇧↵</kbd>
-              <span>New line</span>
-            </div>
-          </div>
 
-          <div className="px-4 pb-3 flex items-center justify-between">
+          <div className="px-3 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <QuickPreferencesChip onOpenFullPreferences={onOpenPreferences || (() => { })} />
-
-              <div className="h-4 w-[1px] bg-gradient-to-b from-transparent via-white/20 to-transparent mx-2" />
+              {/* Quick Preferences Chip */}
+              {onOpenPreferences && (
+                <QuickPreferencesChip 
+                  onOpenFullPreferences={onOpenPreferences}
+                  className="mr-1"
+                />
+              )}
 
               <input
                 type="file"
@@ -401,11 +385,11 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 -ml-2 rounded-xl text-white/50 hover:text-white transition-all duration-200 group hover:scale-[1.15] active:scale-95"
-                title="Attach file - Upload photos, reports, or docs"
+                className="p-1.5 rounded-md text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
+                title="Attach file"
                 disabled={isLoading}
               >
-                <Paperclip className="w-5 h-5 group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)] transition-all" />
+                <Paperclip className="w-[18px] h-[18px]" />
               </button>
 
               {/* Emoji Picker Button */}
@@ -413,11 +397,11 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-2 rounded-xl text-white/50 hover:text-white transition-all duration-200 group hover:scale-[1.15] active:scale-95"
+                  className="p-1.5 rounded-md text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
                   title="Add emoji"
                   disabled={isLoading}
                 >
-                  <Smile className="w-5 h-5 group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)] transition-all" />
+                  <Smile className="w-[18px] h-[18px]" />
                 </button>
                 <EmojiPicker
                   isOpen={showEmojiPicker}
@@ -426,36 +410,27 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
                 />
               </div>
 
-              {/* Location Button or City Badge */}
+              {/* Location Button */}
               {clientLocation?.cityName ? (
-                // Show city badge when location is detected
                 <button
                   type="button"
                   onClick={handleDetectLocation}
                   disabled={isLoading || isLocating}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 hover:bg-blue-500/20 transition-all text-[11px] font-medium group"
-                  title={`${clientLocation.cityName}\nLat: ${clientLocation.latitude.toFixed(4)}, Lon: ${clientLocation.longitude.toFixed(4)}${clientLocation.accuracy ? `\nAccuracy: ±${Math.round(clientLocation.accuracy)}m` : ''}`}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.06] text-white/70 hover:bg-white/[0.08] hover:text-white/90 transition-colors text-[11px]"
+                  title={`${clientLocation.cityName}`}
                 >
-                  <MapPin className="w-3 h-3 drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
-                  <span className="max-w-[100px] truncate">{clientLocation.cityName}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                  <MapPin className="w-3 h-3" />
+                  <span className="max-w-[80px] truncate">{clientLocation.cityName}</span>
                 </button>
               ) : (
-                // Show icon button when no location
                 <button
                   type="button"
                   onClick={handleDetectLocation}
-                  className={`p-2 rounded-xl transition-all duration-200 group relative hover:scale-[1.15] active:scale-95 ${clientLocation
-                    ? 'text-blue-400'
-                    : 'text-white/50 hover:text-white'
-                    }`}
-                  title={clientLocation ? "Location detected - Click to update" : "Detect location - Auto-fill your current city"}
+                  className="p-1.5 rounded-md text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
+                  title="Detect location"
                   disabled={isLoading || isLocating}
                 >
-                  <MapPin className={`w-5 h-5 transition-all ${isLocating ? 'animate-pulse' : ''} ${clientLocation ? 'drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]' : 'group-hover:drop-shadow-[0_0_10px_rgba(96,165,250,0.7)]'}`} />
-                  {clientLocation && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-black animate-pulse shadow-lg shadow-blue-500/50" />
-                  )}
+                  <MapPin className={`w-[18px] h-[18px] ${isLocating ? 'animate-pulse' : ''}`} />
                 </button>
               )}
             </div>
@@ -463,21 +438,17 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             <button
               type="submit"
               disabled={(!message.trim() && !attachment && !isLoading) || (isLoading && !onStop)}
-              className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 group relative overflow-hidden ${isLoading
-                ? 'bg-white/10 hover:bg-white/15 text-white scale-100'
+              className={`p-2 rounded-lg transition-all ${isLoading
+                ? 'bg-white/[0.08] hover:bg-white/[0.12] text-white/80'
                 : message.trim() || attachment
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-lg shadow-blue-500/30 text-white scale-100'
-                  : 'bg-white/5 text-white/20 scale-95 cursor-not-allowed'
+                  ? 'bg-white hover:bg-white/90 text-black shadow-sm'
+                  : 'bg-white/[0.06] text-white/30 cursor-not-allowed'
                 }`}
             >
-              {/* Shimmer effect on hover */}
-              {(message.trim() || attachment) && !isLoading && (
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-              )}
               {isLoading && onStop ? (
-                <Square className="w-3 h-3 fill-current relative z-10" />
+                <Square className="w-[18px] h-[18px] fill-current" />
               ) : (
-                <ArrowUp className="w-4 h-4 relative z-10" />
+                <ArrowUp className="w-[18px] h-[18px] stroke-[2.5]" />
               )}
             </button>
           </div>

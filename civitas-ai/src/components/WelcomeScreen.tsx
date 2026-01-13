@@ -7,6 +7,8 @@
 import React, { useEffect, useState } from 'react';
 import { X, Sparkles } from 'lucide-react';
 
+const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
 interface WelcomeScreenProps {
     onClose: () => void;
     onSelectQuery: (query: string) => void;
@@ -26,13 +28,21 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onClose, onSelectQ
     useEffect(() => {
         const fetchOnboarding = async () => {
             try {
+                const headers = {
+                    ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+                };
+
                 // Fetch welcome message
-                const welcomeRes = await fetch(`${import.meta.env.VITE_API_URL}/api/onboarding/welcome`);
+                const welcomeRes = await fetch(`${import.meta.env.VITE_API_URL}/api/onboarding/welcome`, {
+                    headers,
+                });
                 const welcomeData = await welcomeRes.json();
                 setWelcomeMessage(welcomeData.message);
 
                 // Fetch sample queries
-                const samplesRes = await fetch(`${import.meta.env.VITE_API_URL}/api/onboarding/samples`);
+                const samplesRes = await fetch(`${import.meta.env.VITE_API_URL}/api/onboarding/samples`, {
+                    headers,
+                });
                 const samplesData = await samplesRes.json();
                 setSamples(samplesData.samples.slice(0, 6)); // Show first 6
             } catch (error) {

@@ -4,7 +4,7 @@ import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
-import { PreferencesModal } from '../PreferencesModal';
+import { PreferencesModalSimplified } from '../PreferencesModalSimplified';
 import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
 
@@ -212,6 +212,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showInConvoSearch, setShowInConvoSearch] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showSuggestionChips, setShowSuggestionChips] = useState(true);
   const composerRef = useRef<ComposerRef>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
@@ -410,90 +411,90 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
       {/* Modals */}
       <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
-      <PreferencesModal isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
+      <PreferencesModalSimplified isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
       <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
       <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
       {/* Messages or Empty State */}
       <div className="flex-1 overflow-hidden">
         {showEmptyState ? (
-          /* Premium Empty State - Centered Hero */
-          <div className="h-full flex flex-col items-center justify-center px-6">
-            <div className="max-w-2xl w-full space-y-8 animate-fade-in">
-              {/* Hero Section */}
-              <div className="text-center space-y-6">
-                {/* Glowing Avatar */}
+          /* Notion-style: Avatar + Greeting + Composer + Cards below */
+          <div className="h-full flex flex-col items-center justify-center px-4 py-6">
+            <div className="w-full max-w-[680px] mx-auto space-y-5">
+              {/* Avatar + Greeting */}
+              <div className="text-center space-y-3.5">
                 <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-primary/30 rounded-full blur-2xl scale-150 animate-pulse-glow" />
                   <AgentAvatar size="lg" className="relative" status={agentStatus} />
                 </div>
-
-                {/* Welcome Message - Subtle and flashy */}
-                <div className="space-y-3">
-                  <p className="text-2xl md:text-3xl font-medium bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 bg-clip-text text-transparent animate-gradient-shift">
-                    {greeting.tagline}
-                  </p>
-                </div>
+                <h1 className="text-[24px] md:text-[28px] font-semibold text-white/95 tracking-tight px-4">
+                  {greeting.tagline}
+                </h1>
               </div>
 
-              {/* Integrated Guidance - Plain text style like thinking state */}
-              <div className="space-y-4 max-w-xl mx-auto">
-                <div className="text-xs text-white/30 font-medium uppercase tracking-wider text-center mb-3">Try asking about</div>
-                <div className="space-y-2">
-                  {suggestions.map((suggestion, index) => {
-                    const isObject = typeof suggestion !== 'string';
-                    const label = isObject ? suggestion.label : suggestion;
-                    const query = isObject ? suggestion.query : suggestion;
-                    const icon = isObject ? suggestion.icon : null;
-                    const key = isObject ? suggestion.id : index;
+              {/* Composer - Main focus */}
+              <div className="w-full">
+                <Composer
+                  ref={composerRef}
+                  onSend={handleSendMessage}
+                  onStop={onCancel}
+                  onAttach={onAttach}
+                  attachment={attachment}
+                  onClearAttachment={onClearAttachment}
+                  onOpenPreferences={() => setShowPreferences(true)}
+                  aria-label="Chat input"
+                />
+              </div>
 
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => handleSendMessage(query)}
-                        className="group flex items-start gap-3 w-full text-left hover:opacity-80 transition-opacity"
-                      >
-                        <span className="text-xl flex-shrink-0 mt-0.5">{icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-white/70 group-hover:text-white/90 transition-colors text-[15px] leading-relaxed">
+              {/* Suggestion Cards - Horizontal Row (Notion-style) */}
+              {showSuggestionChips && (
+                <div className="space-y-2.5 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="text-xs text-white/40 font-medium">Get started</div>
+                    <button 
+                      onClick={() => setShowSuggestionChips(false)}
+                      className="text-white/30 hover:text-white/60 hover:bg-white/[0.05] rounded p-1 transition-all"
+                      title="Hide suggestions"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+                    {suggestions.slice(0, 4).map((suggestion, index) => {
+                      const isObject = typeof suggestion !== 'string';
+                      const label = isObject ? suggestion.label : suggestion;
+                      const query = isObject ? suggestion.query : suggestion;
+                      const key = isObject ? suggestion.id : index;
+
+                      // Icons that match your app's features
+                      const chipIcons = ['🏠', '📈', '📋', '🎯'];
+                      const icon = chipIcons[index % 4];
+
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => handleSendMessage(query)}
+                          className="group flex-1 min-w-[130px] max-w-[160px] flex flex-col items-start gap-2.5 p-3 rounded-lg bg-gradient-to-br from-teal-500/8 to-cyan-500/8 group-hover:from-teal-500/12 group-hover:to-cyan-500/12 border border-teal-500/15 hover:border-teal-500/30 transition-all"
+                        >
+                          <div className="w-8 h-8 rounded-md bg-teal-500/10 group-hover:bg-teal-500/15 group-hover:scale-110 flex items-center justify-center text-xl transition-all">
+                            {icon}
+                          </div>
+                          <div className="text-xs text-white/75 group-hover:text-white/95 font-medium leading-snug text-left line-clamp-2">
                             {label}
                           </div>
-                          <div className="text-xs text-white/30 mt-0.5 line-clamp-1">{query}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="flex items-center justify-center gap-6 pt-4">
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span>Secure & Private</span>
-                </div>
-                <div className="w-px h-4 bg-white/10" />
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span>Real-time Data</span>
-                </div>
-                <div className="w-px h-4 bg-white/10" />
-                <div className="flex items-center gap-2 text-white/30 text-xs">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>AI-Powered</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         ) : (
-          /* Chat Messages */
+          /* Chat Messages - Compact centered */
           <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
+            <div className="max-w-[800px] mx-auto px-4">
             {/* In-Conversation Search */}
             <InConversationSearch
               isOpen={showInConvoSearch}
@@ -528,46 +529,37 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
             {/* Scroll to Bottom Button */}
             <ScrollToBottomButton containerRef={messageContainerRef} />
+            </div>
           </div>
         )}
       </div>
 
-      {/* Composer - Bottom with gradient fade */}
-      <div className="flex-shrink-0 relative">
-        {/* Gradient fade above composer */}
-        <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      {/* Composer - Only show when NOT empty state */}
+      {!showEmptyState && (
+        <div className="flex-shrink-0 relative">
+          <div className="absolute -top-12 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
-        {/* Dynamic Context Chips (Floating) */}
-        {!showEmptyState && suggestions.length > 0 && (
-          <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-3xl'} mx-auto mb-2 relative z-10 transition-all duration-300`}>
-            <SuggestionChips
-              suggestions={suggestions}
-              onSelect={handleSendMessage}
-              variant="carousel"
-            />
-          </div>
-        )}
+          <div className="px-4 md:px-6 pb-4 pt-3 relative z-20">
+            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-3xl' : 'max-w-[680px]'} mx-auto transition-all duration-200`}>
+              <Composer
+                ref={composerRef}
+                onSend={handleSendMessage}
+                onStop={onCancel}
+                onAttach={onAttach}
+                attachment={attachment}
+                onClearAttachment={onClearAttachment}
+                onOpenPreferences={() => setShowPreferences(true)}
+                aria-label="Chat input"
+              />
 
-        <div className="px-4 md:px-8 pb-6 pt-4 relative z-20">
-          <div className={`w-full ${prefsStore.isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto transition-all duration-300`}>
-            <Composer
-              ref={composerRef}
-              onSend={handleSendMessage}
-              onStop={onCancel}
-              onAttach={onAttach}
-              attachment={attachment}
-              onClearAttachment={onClearAttachment}
-              onOpenPreferences={() => setShowPreferences(true)}
-              aria-label="Chat input"
-            />
-
-            {/* Subtle disclaimer */}
-            <p className="text-center text-[11px] text-white/20 mt-3">
-              Vasthu can make mistakes. Verify important information independently.
-            </p>
+              {/* Minimal disclaimer */}
+              <p className="text-center text-[10.5px] text-white/25 mt-2.5">
+                Vasthu can make mistakes. Verify important information.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Preference Suggestion Toast */}
       <PreferenceSuggestionToast

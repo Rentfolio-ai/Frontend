@@ -14,6 +14,7 @@ import { generateReport } from '../services/agentsApi';
 import type { ToolResultRecord } from '../types/toolResults';
 import { toolResultsToRecords, toolResultsToToolCards } from '../utils/toolResults';
 import { logger } from '../utils/logger';
+import { uploadFile } from '../services/fileStorage';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
@@ -53,6 +54,14 @@ export interface ReportDrawerState {
   error: string | null;
   inferredStrategy?: InvestmentStrategy;
   propertyAddress?: string;
+}
+
+// Command Center state (for property intelligence workspace)
+export interface CommandCenterState {
+  selectedPropertyId: string | null;
+  comparisonDockProperties: any[]; // ScoutedProperty[]
+  intelligencePaneView: 'details' | 'comparison';
+  isPanePinned: boolean;
 }
 
 const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'analysis'];
@@ -180,6 +189,14 @@ export function useDesktopShell() {
     error: null,
     inferredStrategy: undefined,
     propertyAddress: undefined,
+  });
+
+  // Command Center state (Property Intelligence Workspace)
+  const [commandCenter, setCommandCenter] = useState<CommandCenterState>({
+    selectedPropertyId: null,
+    comparisonDockProperties: [],
+    intelligencePaneView: 'details',
+    isPanePinned: false,
   });
 
   // Track latest P&L output for report generation
@@ -593,7 +610,10 @@ export function useDesktopShell() {
 
   // Send message with SSE streaming
   const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }) => {
-    if (!message.trim()) return;
+    if (!message.trim() && !attachment) return;
+
+    const currentAttachment = attachment;
+    const trimmedMessage = message.trim();
 
     // Cancel any existing stream
     if (abortControllerRef.current) {
@@ -602,12 +622,29 @@ export function useDesktopShell() {
 
     // Only add user message if NOT skipping (e.g. not regenerating)
     if (!options?.skipUserMessage) {
-      const userMessage: Message = ChatService.createUserMessage(message.trim());
+      const userMessage: Message = ChatService.createUserMessage(trimmedMessage);
       setMessages(prev => [...prev, userMessage]);
     }
 
+    setAttachment(null);
     setIsLoading(true);
     resetThinkingState();
+
+    // Upload file to Firebase for Files vault
+    if (currentAttachment) {
+      try {
+        const chatTitle = chatHistory.find(c => c.id === activeChatId)?.title || 'Untitled Chat';
+        await uploadFile(currentAttachment, {
+          chatId: activeChatId,
+          chatTitle: chatTitle,
+          conversationTopic: trimmedMessage || undefined,
+        });
+        logger.info('[useDesktopShell] File uploaded to vault (streaming):', currentAttachment.name);
+      } catch (error) {
+        logger.error('[useDesktopShell] Failed to upload file to vault (streaming):', error);
+        // Don't block the chat if upload fails
+      }
+    }
 
     const messageId = `stream_${Date.now()}`;
     abortControllerRef.current = new AbortController();
@@ -826,7 +863,7 @@ export function useDesktopShell() {
   }, [activeChatId]);
 
   // Chat handlers
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = async (message: string) => {
     if (!message.trim() && !attachment) return;
 
     const currentAttachment = attachment;
@@ -849,6 +886,22 @@ export function useDesktopShell() {
     setMessages(prev => [...prev, userMessage]);
     setAttachment(null);
     setIsLoading(true);
+
+    // Upload file to Firebase for Files vault
+    if (currentAttachment) {
+      try {
+        const chatTitle = chatHistory.find(c => c.id === activeChatId)?.title || 'Untitled Chat';
+        await uploadFile(currentAttachment, {
+          chatId: activeChatId,
+          chatTitle: chatTitle,
+          conversationTopic: trimmedMessage || undefined,
+        });
+        logger.info('[useDesktopShell] File uploaded to vault:', currentAttachment.name);
+      } catch (error) {
+        logger.error('[useDesktopShell] Failed to upload file to vault:', error);
+        // Don't block the chat if upload fails
+      }
+    }
 
     // Get AI response from Civitas API
     const delay = 1000 + Math.random() * 1000;
@@ -1318,6 +1371,72 @@ export function useDesktopShell() {
     setActiveTab('analysis');
   }, []);
 
+  // Command Center handlers
+  const selectProperty = useCallback((property: any) => {
+    const propertyId = property.listing_id || property.address;
+    setCommandCenter(prev => ({
+      ...prev,
+      selectedPropertyId: propertyId,
+      intelligencePaneView: 'details',
+    }));
+  }, []);
+
+  const addToComparisonDock = useCallback((property: any) => {
+    setCommandCenter(prev => {
+      // Check if already in dock
+      const exists = prev.comparisonDockProperties.some(
+        p => (p.listing_id || p.address) === (property.listing_id || property.address)
+      );
+      if (exists) return prev;
+
+      // Max 4 properties
+      if (prev.comparisonDockProperties.length >= 4) {
+        showToast('Maximum 4 properties can be compared at once', 'warning');
+        return prev;
+      }
+
+      return {
+        ...prev,
+        comparisonDockProperties: [...prev.comparisonDockProperties, property],
+      };
+    });
+  }, [showToast]);
+
+  const removeFromComparisonDock = useCallback((propertyId: string) => {
+    setCommandCenter(prev => ({
+      ...prev,
+      comparisonDockProperties: prev.comparisonDockProperties.filter(
+        p => (p.listing_id || p.address) !== propertyId
+      ),
+    }));
+  }, []);
+
+  const clearComparisonDock = useCallback(() => {
+    setCommandCenter(prev => ({
+      ...prev,
+      comparisonDockProperties: [],
+      intelligencePaneView: 'details',
+    }));
+  }, []);
+
+  const startComparison = useCallback(() => {
+    if (commandCenter.comparisonDockProperties.length < 2) {
+      showToast('Add at least 2 properties to compare', 'warning');
+      return;
+    }
+    setCommandCenter(prev => ({
+      ...prev,
+      intelligencePaneView: 'comparison',
+    }));
+  }, [commandCenter.comparisonDockProperties.length, showToast]);
+
+  const togglePanePin = useCallback(() => {
+    setCommandCenter(prev => ({
+      ...prev,
+      isPanePinned: !prev.isPanePinned,
+    }));
+  }, []);
+
   return {
     // State
     chatHistory,
@@ -1381,6 +1500,15 @@ export function useDesktopShell() {
     handlePinChat,
     handleArchiveChat,
     updateChatTitle,
+
+    // Command Center
+    commandCenter,
+    selectProperty,
+    addToComparisonDock,
+    removeFromComparisonDock,
+    clearComparisonDock,
+    startComparison,
+    togglePanePin,
   };
 
 }

@@ -5,7 +5,10 @@
 import { apiLogger, logger } from '@/utils/logger';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+// Use relative URLs in dev (proxied by Vite), absolute in prod
+const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) 
+  ? envApiUrl 
+  : (import.meta.env.DEV ? '' : 'http://localhost:8001');
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 const jsonHeaders: HeadersInit = {
@@ -588,7 +591,7 @@ export async function checkHealth(): Promise<{
   version?: string;
   endpoints?: Record<string, string>;
 }> {
-  const candidatePaths = ['/api/agents/health', '/health', '/api/health'];
+  const candidatePaths = ['/api/agents/health', '/api/health', '/health'];
   let lastError: unknown = null;
 
   for (const path of candidatePaths) {

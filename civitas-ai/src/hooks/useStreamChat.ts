@@ -7,7 +7,10 @@ import { useState, useCallback, useRef } from 'react';
 import type { StreamEvent, CompletedTool, StreamState } from '../types/stream';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
+// Use relative URLs in dev (proxied by Vite), absolute in prod
+const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) 
+  ? envApiUrl 
+  : (import.meta.env.DEV ? '' : 'http://localhost:8001');
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 interface UseStreamChatOptions {

@@ -27,16 +27,18 @@ import { useToast } from '../hooks/useToast';
 import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
-import { ChatTabView, ReportsTabView, PortfolioTabView } from '../components/desktop-shell';
+import { PortfolioTabView } from '../components/desktop-shell';
+import { ReportsPage } from '../components/reports/ReportsPage';
+import { CommandCenterChatView } from '../components/desktop-shell/CommandCenterChatView';
 import { SimpleSidebar } from '../components/desktop-shell/SimpleSidebar';
-import { ChatSearchDrawer } from '../components/desktop-shell/ChatSearchDrawer';
+import { CommandSearch } from '../components/desktop-shell/CommandSearch';
 import { PropertyAnalysisPage } from '../components/pages/PropertyAnalysisPage';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
 import { OnboardingTour } from '../components/onboarding';
 import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
-import { FilesLibrary } from '../components/files/FilesLibrary';
+import { FilesPage } from '../components/files/FilesPage';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -55,6 +57,20 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Global ⌘K shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ⌘K (Mac) or Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Custom hooks for state management
   const {
@@ -92,6 +108,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     handleArchiveChat,
     handleNavigateBranch,
     handleEditMessage,
+    // Command Center
+    commandCenter,
+    selectProperty,
+    addToComparisonDock,
+    removeFromComparisonDock,
+    clearComparisonDock,
+    startComparison,
+    togglePanePin,
   } = useDesktopShell();
 
   console.log('[DesktopShell] Render state:', {
@@ -253,14 +277,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       />
 
       {/* Content layer with left padding for sidebar */}
-      <div className="relative z-10 h-full flex flex-col pl-12">
+      <div className="relative z-10 h-full flex flex-col pl-14">
 
         {/* Main Content Area - Full height */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
           {/* Tab Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {activeTab === 'chat' && (
-              <ChatTabView
+              <CommandCenterChatView
                 messages={messages}
                 isLoading={isLoading}
                 userName={user?.name?.split(' ')[0]}
@@ -284,16 +308,24 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 error={streamError}
                 onEditMessage={handleEditMessage}
                 onNavigateBranch={handleNavigateBranch}
+                // Command Center props
+                commandCenter={commandCenter}
+                selectProperty={selectProperty}
+                addToComparisonDock={addToComparisonDock}
+                removeFromComparisonDock={removeFromComparisonDock}
+                clearComparisonDock={clearComparisonDock}
+                startComparison={startComparison}
+                togglePanePin={togglePanePin}
               />
             )}
             {activeTab === 'reports' && (
-              <ReportsTabView />
+              <ReportsPage />
             )}
             {activeTab === 'portfolio' && (
               <PortfolioTabView />
             )}
             {activeTab === 'files' && (
-              <FilesLibrary />
+              <FilesPage />
             )}
             {activeTab === 'analysis' && activeProperty && (
               <PropertyAnalysisPage
@@ -338,8 +370,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           onTabChange={setActiveTab}
         />
 
-        {/* Chat Search Drawer */}
-        <ChatSearchDrawer
+        {/* Command Search */}
+        <CommandSearch
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
           chatHistory={chatHistory}
