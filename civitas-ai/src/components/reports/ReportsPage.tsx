@@ -12,6 +12,8 @@ import {
 import { reportsService, type ReportSummary } from '@/services/reportsApi';
 import { cn } from '@/lib/utils';
 import type { InvestmentReportFormat } from '@/types/enums';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { useToast } from '@/hooks/useToast';
 
 type SortField = 'name' | 'property' | 'recommendation' | 'date';
 type SortOrder = 'asc' | 'desc';
@@ -77,6 +79,7 @@ export const ReportsPage: React.FC = () => {
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [selectedReport, setSelectedReport] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+    const { success, error: showError } = useToast();
 
     // Fetch reports
     useEffect(() => {
@@ -167,8 +170,10 @@ export const ReportsPage: React.FC = () => {
             if (expandedRow === reportId) {
                 setExpandedRow(null);
             }
+            success('Report deleted successfully');
         } catch (err) {
             console.error('[ReportsPage] Failed to delete report:', err);
+            showError('Failed to delete report. Please try again.');
         }
     };
 
@@ -203,24 +208,26 @@ export const ReportsPage: React.FC = () => {
 
             {/* Search & Filter */}
             <div className="flex items-center gap-3 mb-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                    <input
-                        type="text"
-                        placeholder="Search reports..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-10 pl-10 pr-10 bg-white/[0.05] border border-white/[0.10] rounded-lg text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
-                    />
-                    {searchQuery && (
-                        <button
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/[0.05] rounded transition-colors"
-                        >
-                            <X className="w-3 h-3 text-white/40" />
-                        </button>
-                    )}
-                </div>
+                <Tooltip content="Search by report name or property">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                        <input
+                            type="text"
+                            placeholder="Search reports..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-10 pl-10 pr-10 bg-white/[0.05] border border-white/[0.10] rounded-lg text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/[0.05] rounded transition-colors"
+                            >
+                                <X className="w-3 h-3 text-white/40" />
+                            </button>
+                        )}
+                    </div>
+                </Tooltip>
                 
                 <select
                     value={filter}
@@ -245,18 +252,26 @@ export const ReportsPage: React.FC = () => {
 
             {/* Table */}
             {isLoading ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex flex-col items-center justify-center gap-3">
                     <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
+                    <p className="text-sm text-white/60">Loading reports...</p>
                 </div>
             ) : error ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
                     <span className="text-red-500 text-2xl mb-4">⚠️</span>
-                    <h3 className="text-lg font-medium text-white/60 mb-2">{error}</h3>
+                    <h3 className="text-lg font-medium text-white/60 mb-2">Failed to load reports</h3>
+                    <p className="text-sm text-white/40 mb-4 max-w-sm">
+                        {error.includes('network') ? 
+                            'Network error. Please check your internet connection.' :
+                        error.includes('401') || error.includes('403') ?
+                            'Authentication required. Please log in again.' :
+                            'An error occurred. Please try refreshing the page.'}
+                    </p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="text-sm text-teal-400 hover:underline"
+                        className="px-4 py-2 bg-white/[0.05] text-white/70 rounded-lg hover:bg-white/[0.10] transition-colors text-sm"
                     >
-                        Try again
+                        Refresh Page
                     </button>
                 </div>
             ) : sortedReports.length === 0 ? (
@@ -264,14 +279,30 @@ export const ReportsPage: React.FC = () => {
                     {searchQuery || filter !== 'all' ? (
                         <>
                             <Search className="w-12 h-12 text-white/20 mb-4" />
-                            <p className="text-white/60 mb-2">No reports found</p>
-                            <p className="text-white/40 text-sm">Try different search terms or filters</p>
+                            <h3 className="text-lg font-medium text-white/70 mb-2">No reports found</h3>
+                            <p className="text-sm text-white/50 mb-3">Try adjusting your search or filters</p>
+                            <button
+                                onClick={() => {
+                                    setSearchQuery('');
+                                    setFilter('all');
+                                }}
+                                className="px-4 py-2 bg-white/[0.05] text-white/70 rounded-lg hover:bg-white/[0.10] transition-colors text-sm"
+                            >
+                                Clear filters
+                            </button>
                         </>
                     ) : (
                         <>
-                            <FileText className="w-12 h-12 text-white/20 mb-4" />
-                            <p className="text-white/60 mb-2">No reports yet</p>
-                            <p className="text-white/40 text-sm">Generate investment reports in chat and they'll appear here</p>
+                            <FileText className="w-16 h-16 text-white/20 mb-4" />
+                            <h3 className="text-lg font-medium text-white/70 mb-2">No reports yet</h3>
+                            <p className="text-sm text-white/50 mb-4 max-w-sm text-center">
+                                Generate investment reports in chat and they'll automatically appear here
+                            </p>
+                            <div className="flex flex-col gap-2 text-xs text-white/40">
+                                <p>💬 Chat with Civitas about a property</p>
+                                <p>📊 Request a report analysis</p>
+                                <p>✨ Your reports will appear here</p>
+                            </div>
                         </>
                     )}
                 </div>
@@ -334,23 +365,27 @@ export const ReportsPage: React.FC = () => {
                                         )}
                                         onClick={() => setExpandedRow(isExpanded ? null : report.report_id)}
                                     >
-                                        {/* Name */}
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            {isExpanded ? (
-                                                <ChevronDown className="w-4 h-4 text-white/40 flex-shrink-0" />
-                                            ) : (
-                                                <ChevronRight className="w-4 h-4 text-white/40 flex-shrink-0" />
-                                            )}
-                                            <span className="text-lg flex-shrink-0">{config.icon}</span>
-                                            <span className="text-sm text-white/90 truncate hover:text-white transition-colors">
-                                                {config.label}
-                                            </span>
-                                        </div>
+                        {/* Name */}
+                        <div className="flex items-center gap-3 min-w-0">
+                            <Tooltip content={isExpanded ? "Collapse details" : "Expand details"}>
+                                {isExpanded ? (
+                                    <ChevronDown className="w-4 h-4 text-white/40 flex-shrink-0" />
+                                ) : (
+                                    <ChevronRight className="w-4 h-4 text-white/40 flex-shrink-0" />
+                                )}
+                            </Tooltip>
+                            <span className="text-lg flex-shrink-0">{config.icon}</span>
+                            <span className="text-sm text-white/90 truncate hover:text-white transition-colors">
+                                {config.label}
+                            </span>
+                        </div>
 
-                                        {/* Property */}
-                                        <div className="text-sm text-white/70 truncate flex items-center">
-                                            {report.property_address}
-                                        </div>
+                        {/* Property */}
+                        <div className="text-sm text-white/70 truncate flex items-center">
+                            <Tooltip content={report.property_address}>
+                                <span className="truncate">{report.property_address}</span>
+                            </Tooltip>
+                        </div>
 
                                         {/* Recommendation */}
                                         <div className="flex items-center">
@@ -367,18 +402,20 @@ export const ReportsPage: React.FC = () => {
                                             {formatDate(report.created_at)}
                                         </div>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center justify-end">
-                                            <div className="relative">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedReport(selectedReport === report.report_id ? null : report.report_id);
-                                                    }}
-                                                    className="p-1.5 hover:bg-white/[0.05] rounded transition-colors"
-                                                >
-                                                    <MoreVertical className="w-4 h-4 text-white/60" />
-                                                </button>
+                        {/* Actions */}
+                        <div className="flex items-center justify-end">
+                            <div className="relative">
+                                <Tooltip content="More actions">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedReport(selectedReport === report.report_id ? null : report.report_id);
+                                        }}
+                                        className="p-1.5 hover:bg-white/[0.05] rounded transition-colors"
+                                    >
+                                        <MoreVertical className="w-4 h-4 text-white/60" />
+                                    </button>
+                                </Tooltip>
 
                                                 {/* Context Menu */}
                                                 {selectedReport === report.report_id && (

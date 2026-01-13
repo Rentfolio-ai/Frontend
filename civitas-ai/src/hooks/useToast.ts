@@ -1,59 +1,56 @@
-// FILE: src/hooks/useToast.ts
-import { useState, useCallback } from 'react';
-import type { ToastProps } from '../components/primitives/Toast';
+/**
+ * Toast Hook
+ * Hook for showing toast notifications
+ */
 
-export function useToast() {
-  const [toasts, setToasts] = useState<ToastProps[]>([]);
+import { create } from 'zustand';
 
-  const showToast = useCallback((
-    message: string,
-    type: ToastProps['type'] = 'info',
-    action?: ToastProps['action'],
-    duration = 5000
-  ) => {
-    const id = Date.now().toString() + Math.random().toString(36);
-    
-    const newToast: ToastProps = {
-      id,
-      message,
-      type,
-      action,
-      duration,
-      onClose: (id: string) => {
-        setToasts(prev => prev.filter(t => t.id !== id));
-      }
+type ToastType = 'success' | 'info' | 'warning' | 'error';
+
+interface ToastItem {
+    id: string;
+    type: ToastType;
+    message: string;
+    duration?: number;
+    action?: {
+        label: string;
+        onClick: () => void;
     };
+}
 
-    setToasts(prev => [...prev, newToast]);
-  }, []);
+interface ToastStore {
+    toasts: ToastItem[];
+    showToast: (message: string, type?: ToastType, action?: ToastItem['action']) => void;
+    closeToast: (id: string) => void;
+}
 
-  const success = useCallback((message: string, action?: ToastProps['action']) => {
-    showToast(message, 'success', action);
-  }, [showToast]);
+export const useToastStore = create<ToastStore>((set) => ({
+    toasts: [],
+    showToast: (message, type = 'info', action) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        set((state) => ({
+            toasts: [...state.toasts, { id, message, type, action }],
+        }));
+    },
+    closeToast: (id) => {
+        set((state) => ({
+            toasts: state.toasts.filter((t) => t.id !== id),
+        }));
+    },
+}));
 
-  const error = useCallback((message: string, action?: ToastProps['action']) => {
-    showToast(message, 'error', action);
-  }, [showToast]);
+// Convenience hook
+export function useToast() {
+    const { toasts, showToast, closeToast } = useToastStore();
 
-  const info = useCallback((message: string, action?: ToastProps['action']) => {
-    showToast(message, 'info', action);
-  }, [showToast]);
-
-  const warning = useCallback((message: string, action?: ToastProps['action']) => {
-    showToast(message, 'warning', action);
-  }, [showToast]);
-
-  const closeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  return {
-    toasts,
-    showToast,
-    success,
-    error,
-    info,
-    warning,
-    closeToast
-  };
+    return {
+        toasts,
+        closeToast,
+        toast: (message: string) => showToast(message, 'info'),
+        success: (message: string) => showToast(message, 'success'),
+        error: (message: string) => showToast(message, 'error'),
+        warning: (message: string) => showToast(message, 'warning'),
+        info: (message: string) => showToast(message, 'info'),
+        showToast,
+    };
 }

@@ -3,9 +3,9 @@
  * Notion-inspired table view with user control
  */
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
-    Search, Upload, MoreVertical, Download, Edit2, Trash2, 
+    Search, MoreVertical, Download, Edit2, Trash2, 
     MessageCircle, FileText, Image as ImageIcon, FileSpreadsheet,
     File, ArrowUp, ArrowDown, X, Loader2
 } from 'lucide-react';
@@ -69,13 +69,9 @@ export const FilesPage: React.FC = () => {
     const [sortField, setSortField] = useState<SortField>('date');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
     const [selectedFile, setSelectedFile] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const [renamingFile, setRenamingFile] = useState<string | null>(null);
     const [newFileName, setNewFileName] = useState('');
-    
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const dropZoneRef = useRef<HTMLDivElement>(null);
 
     // Fetch files
     useEffect(() => {
@@ -181,63 +177,18 @@ export const FilesPage: React.FC = () => {
         setNewFileName(file.fileName);
     };
 
-    // Handle file upload
-    const handleFileUpload = async (uploadedFiles: FileList | null) => {
-        if (!uploadedFiles || uploadedFiles.length === 0) return;
-        
-        setIsUploading(true);
-        // TODO: Implement upload logic
-        console.log('Upload:', uploadedFiles);
-        
-        setTimeout(() => {
-            setIsUploading(false);
-        }, 2000);
-    };
-
-    // Drag & drop handlers
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleFileUpload(e.dataTransfer.files);
-    };
 
     // Calculate total size
     const totalSize = files.reduce((sum, f) => sum + f.fileSize, 0);
 
     return (
         <BiometricGate>
-            <div 
-                ref={dropZoneRef}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                className="h-full bg-background flex flex-col p-6"
-            >
+            <div className="h-full bg-background flex flex-col p-6">
                 {/* Header */}
                 <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <div>
-                            <h1 className="text-2xl font-semibold text-white/95">Your Documents</h1>
-                            <p className="text-sm text-white/50 mt-1">All your files in one place</p>
-                        </div>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg hover:bg-white/90 transition-colors font-medium"
-                        >
-                            <Upload className="w-4 h-4" />
-                            Upload File
-                        </button>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            onChange={(e) => handleFileUpload(e.target.files)}
-                            className="hidden"
-                        />
+                    <div className="mb-2">
+                        <h1 className="text-2xl font-semibold text-white/95">Your Documents</h1>
+                        <p className="text-sm text-white/50 mt-1">Files from your conversations</p>
                     </div>
                 </div>
 
@@ -292,15 +243,16 @@ export const FilesPage: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                <Upload className="w-12 h-12 text-white/20 mb-4" />
-                                <p className="text-white/60 mb-2">No files yet</p>
-                                <p className="text-white/40 text-sm mb-4">Upload files or attach them in chat</p>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="px-4 py-2 bg-white/[0.05] text-white/70 rounded-lg hover:bg-white/[0.10] transition-colors"
-                                >
-                                    Upload Your First File
-                                </button>
+                                <FileText className="w-16 h-16 text-white/20 mb-4" />
+                                <h3 className="text-lg font-medium text-white/70 mb-2">No files yet</h3>
+                                <p className="text-sm text-white/50 mb-4">
+                                    Files you attach in chat will automatically appear here
+                                </p>
+                                <div className="flex flex-col gap-2 text-xs text-white/40">
+                                    <p>💬 Chat with Civitas</p>
+                                    <p>📎 Attach a file to your message</p>
+                                    <p>✨ It will appear here automatically</p>
+                                </div>
                             </>
                         )}
                     </div>
