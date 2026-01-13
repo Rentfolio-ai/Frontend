@@ -32,8 +32,22 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
   const [shouldFocusAfterSet, setShouldFocusAfterSet] = useState(false);
   const [thumbnail, setThumbnail] = useState<string | undefined>();
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Rotating placeholder suggestions
+  const placeholders = [
+    "Ask, search, or make anything...",
+    "Find investment properties in San Francisco...",
+    "Analyze this property for STR potential...",
+    "Compare these properties side by side...",
+    "What's the cap rate for this deal?...",
+    "Generate a full investment report...",
+    "Search for ADU-friendly properties...",
+    "Calculate my cash-on-cash return...",
+    "Find flip opportunities under $500k...",
+  ];
 
   const { updateClientLocation, clientLocation } = usePreferencesStore();
 
@@ -68,6 +82,15 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
       setShouldFocusAfterSet(false);
     }
   }, [shouldFocusAfterSet]);
+
+  // Rotate placeholder text every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [placeholders.length]);
 
   useImperativeHandle(ref, () => ({
     setInput: (text: string) => {
@@ -357,7 +380,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask, search, or make anything..."
+            placeholder={placeholders[placeholderIndex]}
             className="w-full bg-transparent text-white placeholder-white/40 px-4 py-3.5 min-h-[52px] max-h-[160px] resize-none focus:outline-none custom-scrollbar text-[15px] leading-normal"
             style={{ height: '52px' }}
             disabled={isLoading}

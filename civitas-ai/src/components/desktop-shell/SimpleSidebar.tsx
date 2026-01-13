@@ -98,7 +98,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                     </div>
                     {isExpanded && (
                         <span className="text-[13px] font-normal text-white/80 group-hover:text-white/95 transition-colors">
-                            New chat
+                            VasthuAI
                         </span>
                     )}
                 </button>

@@ -210,7 +210,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           "flex items-center gap-2 text-xs text-white/30 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity",
           isUser ? "flex-row-reverse" : "flex-row"
         )}>
-          <span className="font-medium text-white/40">{isUser ? (userName || 'You') : 'Civitas AI'}</span>
+          <span className="font-medium text-white/40">{isUser ? (userName || 'You') : 'Vasthu AI'}</span>
           <span>•</span>
           <span>{formatRelativeTime(message.timestamp)}</span>
         </div>
