@@ -39,6 +39,16 @@ import { OnboardingTour } from '../components/onboarding';
 import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
 import { FilesPage } from '../components/files/FilesPage';
+import { PortfolioPage } from '../pages/PortfolioPage';
+import { ProfilePage } from '../pages/ProfilePage';
+import { SettingsPage } from '../pages/SettingsPage';
+import { FAQPage } from '../pages/FAQPage';
+import { DocumentationPage } from '../pages/DocumentationPage';
+import { BillingPage } from '../pages/BillingPage';
+import { ContactPage } from '../pages/ContactPage';
+import { PrivacyPage } from '../pages/PrivacyPage';
+import { TermsPage } from '../pages/TermsPage';
+import { AboutPage } from '../pages/AboutPage';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -256,28 +266,35 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   // Navigation menu items - Always include Property Analysis
 
 
+  // Only show hamburger menu on Chat page - all other pages have back buttons
+  const showSidebar = activeTab === 'chat';
+
   return (
     <div className="h-screen w-full relative overflow-hidden dark bg-background">
-      {/* Simple Left Sidebar with integrated chat history */}
-      <SimpleSidebar
-        onNewChat={() => {
-          handleNewChat();
-          setActiveTab('chat');
-        }}
-        onChatClick={() => setActiveTab('chat')}
-        onAnalyticsClick={() => setActiveTab('portfolio')}
-        onReportsClick={() => setActiveTab('reports')}
-        onSearchClick={() => setIsSearchOpen(true)}
-        onFilesClick={() => setActiveTab('files')}
-        chatHistory={chatHistory}
-        activeChatId={activeChatId}
-        onLoadChat={handleLoadChat}
-        onDeleteChat={handleDeleteChat}
-        onPinChat={handlePinChat}
-      />
+      {/* Simple Left Sidebar with integrated chat history - Only show on Chat page */}
+      {showSidebar && (
+        <SimpleSidebar
+          activeTab={activeTab}
+          onTabChange={(tab) => setActiveTab(tab as any)}
+          onNewChat={() => {
+            handleNewChat();
+            setActiveTab('chat');
+          }}
+          onChatClick={() => setActiveTab('chat')}
+          onAnalyticsClick={() => setActiveTab('portfolio')}
+          onReportsClick={() => setActiveTab('reports')}
+          onSearchClick={() => setIsSearchOpen(true)}
+          onFilesClick={() => setActiveTab('files')}
+          chatHistory={chatHistory}
+          activeChatId={activeChatId}
+          onLoadChat={handleLoadChat}
+          onDeleteChat={handleDeleteChat}
+          onPinChat={handlePinChat}
+        />
+      )}
 
-      {/* Content layer with left padding for sidebar */}
-      <div className="relative z-10 h-full flex flex-col pl-14">
+      {/* Content layer - Full width (sidebar is now overlay) */}
+      <div className="relative z-10 h-full flex flex-col">
 
         {/* Main Content Area - Full height */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -319,10 +336,37 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
               />
             )}
             {activeTab === 'reports' && (
-              <ReportsPage />
+              <ReportsPage onBack={() => setActiveTab('chat')} />
             )}
             {activeTab === 'portfolio' && (
-              <PortfolioTabView />
+              <PortfolioPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'profile' && (
+              <ProfilePage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'settings' && (
+              <SettingsPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'faq' && (
+              <FAQPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'documentation' && (
+              <DocumentationPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'billing' && (
+              <BillingPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'contact' && (
+              <ContactPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'privacy' && (
+              <PrivacyPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'terms' && (
+              <TermsPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'about' && (
+              <AboutPage onBack={() => setActiveTab('chat')} />
             )}
             {activeTab === 'files' && (
               <FilesPage />

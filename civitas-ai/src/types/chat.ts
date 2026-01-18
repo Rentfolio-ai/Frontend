@@ -15,11 +15,13 @@ export type ToolKind =
   | 'compliance_check'
   | 'valuation'
   | 'generated_report'  // generate_report tool output
-  | 'generic'
+  | 'generic'  // Generic tool completion
   // New backend tool kinds
   | 'portfolio_analysis'
   | 'cashflow_timeseries'
   | 'renovation_analysis'
+  | 'scout_properties'  // Property search
+  | 'Property Scout'  // Property search (alternate name)
   | 'report';
 
 export interface ToolCard {

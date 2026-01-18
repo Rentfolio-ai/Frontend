@@ -50,8 +50,15 @@ export interface StreamContentEvent {
   content: string;
 }
 
+export interface StreamAnswerDeltaEvent {
+  type: 'answer.delta';
+  content: string;
+}
+
 export interface StreamDoneEvent {
   type: 'done';
+  thread_id?: string;
+  duration_ms?: number;
 }
 
 export interface StreamErrorEvent {
@@ -75,6 +82,7 @@ export type StreamEvent =
   | StreamToolStartEvent
   | StreamToolEndEvent
   | StreamContentEvent
+  | StreamAnswerDeltaEvent
   | StreamDoneEvent
   | StreamErrorEvent
   | StreamSuggestionsEvent

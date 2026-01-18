@@ -7,6 +7,7 @@ import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { PreferencesModalSimplified } from '../PreferencesModalSimplified';
 import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
+import { designTokens } from '../../styles/design-tokens';
 
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
@@ -404,7 +405,12 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const showEmptyState = messages.length === 0 && !isLoading;
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div 
+      className="h-full flex flex-col relative"
+      style={{
+        background: `linear-gradient(180deg, ${designTokens.colors.bg.primary} 0%, ${designTokens.colors.bg.secondary} 50%, ${designTokens.colors.bg.primary} 100%)`
+      }}
+    >
 
 
       {/* Header buttons removed per user request */}
@@ -426,7 +432,16 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 <div className="relative inline-block">
                   <AgentAvatar size="lg" className="relative" status={agentStatus} />
                 </div>
-                <h1 className="text-[24px] md:text-[28px] font-semibold text-white/95 tracking-tight px-4">
+                <h1 
+                  className="px-4"
+                  style={{
+                    fontSize: designTokens.typography.fontSize.xxl,
+                    fontWeight: designTokens.typography.fontWeight.semibold,
+                    color: designTokens.colors.text.primary,
+                    letterSpacing: designTokens.typography.letterSpacing.tight,
+                    lineHeight: designTokens.typography.lineHeight.tight,
+                  }}
+                >
                   {greeting.tagline}
                 </h1>
               </div>
@@ -475,14 +490,38 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                         <button
                           key={key}
                           onClick={() => handleSendMessage(query)}
-                          className="group flex-1 min-w-[130px] max-w-[160px] flex flex-col items-start gap-2.5 p-3 rounded-lg bg-gradient-to-br from-teal-500/8 to-cyan-500/8 group-hover:from-teal-500/12 group-hover:to-cyan-500/12 border border-teal-500/15 hover:border-teal-500/30 transition-all"
+                          className="group flex items-center backdrop-blur-md transition-all hover:scale-105 hover:-translate-y-0.5 active:scale-95"
+                          style={{
+                            gap: '6px',
+                            padding: '6px 14px',
+                            borderRadius: designTokens.border.radius.full,
+                            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                            border: `1px solid ${designTokens.colors.border.subtle}`,
+                            transition: designTokens.transition.normal,
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.borderColor = designTokens.colors.border.standard;
+                            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.borderColor = designTokens.colors.border.subtle;
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                          }}
                         >
-                          <div className="w-8 h-8 rounded-md bg-teal-500/10 group-hover:bg-teal-500/15 group-hover:scale-110 flex items-center justify-center text-xl transition-all">
-                            {icon}
-                          </div>
-                          <div className="text-xs text-white/75 group-hover:text-white/95 font-medium leading-snug text-left line-clamp-2">
+                          <span style={{ fontSize: '14px' }}>{icon}</span>
+                          <span 
+                            className="font-normal"
+                            style={{
+                              fontSize: '11px',
+                              color: designTokens.colors.text.tertiary,
+                            }}
+                          >
                             {label}
-                          </div>
+                          </span>
                         </button>
                       );
                     })}

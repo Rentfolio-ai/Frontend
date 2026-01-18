@@ -527,6 +527,7 @@ export function useDesktopShell() {
         break;
 
       case 'content':
+      case 'answer.delta':
         setThinking(null);
         streamContentRef.current += event.content;
         setMessages(prev => {
@@ -670,16 +671,7 @@ export function useDesktopShell() {
         },
         body: JSON.stringify({
           message: message.trim(),
-          stream: true,
-          thread_id: effectiveThreadId,
-          user_preferences: {
-            budget: budgetRange ? `up to $${budgetRange.max.toLocaleString()}` : undefined,
-            strategy: defaultStrategy || undefined,
-            dislikes: interactionProfile?.dislikes || [],
-            favorite_markets: favoriteMarkets || [],
-            financial_dna: financialDna || undefined,
-            client_location: clientLocation || undefined
-          }
+          session_id: effectiveThreadId,
         }),
       }); if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

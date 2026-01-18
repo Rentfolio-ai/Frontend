@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Component Showcase - Visual Refinement</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(to bottom, #1A1D23 0%, #252A32 100%);
+      color: rgba(255, 255, 255, 0.95);
+      padding: 48px 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 48px;
+    }
+
+    section {
+      margin-bottom: 64px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+    .card {
+      background: #252A32;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      padding: 24px;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      background: #2D323C;
+      border-color: rgba(255, 255, 255, 0.10);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .card-elevated {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .status-card {
+      padding: 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-success {
+      background: rgba(82, 199, 125, 0.12);
+      border: 1px solid rgba(82, 199, 125, 0.25);
+      color: #52C77D;
+    }
+
+    .status-warning {
+      background: rgba(255, 184, 77, 0.12);
+      border: 1px solid rgba(255, 184, 77, 0.25);
+      color: #FFB84D;
+    }
+
+    .status-error {
+      background: rgba(255, 107, 107, 0.12);
+      border: 1px solid rgba(255, 107, 107, 0.25);
+      color: #FF6B6B;
+    }
+
+    .status-info {
+      background: rgba(91, 163, 255, 0.12);
+      border: 1px solid rgba(91, 163, 255, 0.25);
+      color: #5BA3FF;
+    }
+
+    .integration-card {
+      background: #252A32;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .integration-logo {
+      width: 48px;
+      height: 48px;
+      background: #2D323C;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-center;
+      font-size: 24px;
+    }
+
+    .integration-info {
+      flex: 1;
+    }
+
+    .integration-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .integration-status {
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .status-connected { color: #52C77D; }
+    .status-syncing { color: #5BA3FF; }
+    .status-error-text { color: #FF6B6B; }
+    .status-disconnected { color: rgba(255, 255, 255, 0.30); }
+
+    .integration-time {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .btn {
+      padding: 8px;
+      background: #2D323C;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      transition: 150ms;
+    }
+
+    .btn:hover {
+      background: #1A1D23;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .inline-composer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #252A32;
+      border: 1.5px solid rgba(255, 255, 255, 0.06);
+      border-radius: 9999px;
+      padding: 16px;
+      transition: 200ms;
+    }
+
+    .inline-composer:focus-within {
+      border-color: #4A7BFF;
+      box-shadow: 0 0 24px rgba(74, 123, 255, 0.3);
+    }
+
+    .inline-composer input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    .inline-composer input::placeholder {
+      color: rgba(255, 255, 255, 0.55);
+    }
+
+    .send-btn {
+      width: 32px;
+      height: 32px;
+      background: #4A7BFF;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-center;
+      transition: 150ms;
+    }
+
+    .send-btn:hover {
+      background: #6B93FF;
+      transform: scale(1.05);
+    }
+
+    .quick-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      padding: 8px 16px;
+      background: #2D323C;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.75);
+      cursor: pointer;
+      transition: 150ms;
+      white-space: nowrap;
+    }
+
+    .chip:hover {
+      background: rgba(74, 123, 255, 0.12);
+      border-color: #4A7BFF;
+      color: #4A7BFF;
+    }
+
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+    }
+
+    .spacing-bar {
+      height: 16px;
+      background: #4A7BFF;
+      border-radius: 2px;
+    }
+
+    .text-xs { font-size: 12px; color: rgba(255, 255, 255, 0.55); }
+    .text-sm { font-size: 14px; color: rgba(255, 255, 255, 0.55); }
+    .text-base { font-size: 15px; color: rgba(255, 255, 255, 0.75); }
+    .text-lg { font-size: 18px; }
+    .text-xl { font-size: 24px; }
+    .text-xxl { font-size: 32px; }
+
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <h1>Component Showcase</h1>
+    <p class="subtitle">SolidHealth.ai inspired components for real estate</p>
+
+    <!-- Design Tokens -->
+    <section>
+      <h2>Design Tokens</h2>
+      <div class="grid grid-3">
+        <!-- Colors -->
+        <div class="card">
+          <h3>Colors</h3>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="color-swatch" style="background: #4A7BFF;"></div>
+            <span class="text-sm">Brand Primary</span>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="color-swatch" style="background: #52C77D;"></div>
+            <span class="text-sm">Success</span>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="color-swatch" style="background: #FFB84D;"></div>
+            <span class="text-sm">Warning</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="color-swatch" style="background: #FF6B6B;"></div>
+            <span class="text-sm">Error</span>
+          </div>
+        </div>
+
+        <!-- Spacing -->
+        <div class="card">
+          <h3>Spacing (8px system)</h3>
+          <div class="mb-3">
+            <div class="spacing-bar" style="width: 4px;"></div>
+            <span class="text-xs">xxs: 4px</span>
+          </div>
+          <div class="mb-3">
+            <div class="spacing-bar" style="width: 8px;"></div>
+            <span class="text-xs">xs: 8px</span>
+          </div>
+          <div class="mb-3">
+            <div class="spacing-bar" style="width: 12px;"></div>
+            <span class="text-xs">sm: 12px</span>
+          </div>
+          <div class="mb-3">
+            <div class="spacing-bar" style="width: 16px;"></div>
+            <span class="text-xs">md: 16px</span>
+          </div>
+          <div class="mb-3">
+            <div class="spacing-bar" style="width: 24px;"></div>
+            <span class="text-xs">lg: 24px</span>
+          </div>
+          <div>
+            <div class="spacing-bar" style="width: 32px;"></div>
+            <span class="text-xs">xl: 32px</span>
+          </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="card">
+          <h3 class="mb-4">Typography</h3>
+          <div class="text-xxl mb-3">Page Title (32px)</div>
+          <div class="text-xl mb-3">Heading (24px)</div>
+          <div class="text-lg mb-3">Subheading (18px)</div>
+          <div class="text-base mb-3">Body (15px)</div>
+          <div class="text-sm mb-3">Small (14px)</div>
+          <div class="text-xs">Micro (12px)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card Variants -->
+    <section>
+      <h2>Card Components</h2>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="flex items-center gap-2 mb-3">
+            <span style="font-size: 20px;">🏠</span>
+            <h3 style="margin: 0;">Default Card</h3>
+          </div>
+          <p class="text-sm">Standard card with subtle shadow</p>
+        </div>
+
+        <div class="card card-elevated">
+          <div class="flex items-center gap-2 mb-3">
+            <span style="font-size: 20px;">📈</span>
+            <h3 style="margin: 0;">Elevated Card</h3>
+          </div>
+          <p class="text-sm">Higher elevation, more prominent</p>
+        </div>
+
+        <div class="card" style="box-shadow: none;">
+          <div class="flex items-center gap-2 mb-3">
+            <span style="font-size: 20px;">✨</span>
+            <h3 style="margin: 0;">Flat Card</h3>
+          </div>
+          <p class="text-sm">No shadow, minimal styling</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status Cards -->
+    <section>
+      <h2>Status Cards</h2>
+      <div class="grid grid-2">
+        <div class="status-card status-success">
+          <span>✓</span>
+          <span style="font-weight: 500;">Successfully connected to Zillow</span>
+        </div>
+
+        <div class="status-card status-warning">
+          <span>⚠</span>
+          <span style="font-weight: 500;">Limited API calls remaining</span>
+        </div>
+
+        <div class="status-card status-error">
+          <span>✕</span>
+          <span style="font-weight: 500;">Connection failed</span>
+        </div>
+
+        <div class="status-card status-info">
+          <span>ℹ</span>
+          <span style="font-weight: 500;">Data sync in progress</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Integration Cards -->
+    <section>
+      <h2>Integration Cards</h2>
+      <div class="grid" style="grid-template-columns: 1fr;">
+        <div class="integration-card">
+          <div class="integration-logo">🏠</div>
+          <div class="integration-info">
+            <div class="integration-name">Zillow</div>
+            <div>
+              <span class="integration-status status-connected">Connected</span>
+              <span class="integration-time">• 2 min ago</span>
+            </div>
+          </div>
+          <button class="btn" onclick="alert('Refresh')">↻</button>
+          <button class="btn" onclick="alert('Edit')">✎</button>
+        </div>
+
+        <div class="integration-card">
+          <div class="integration-logo">🏘️</div>
+          <div class="integration-info">
+            <div class="integration-name">Redfin</div>
+            <div>
+              <span class="integration-status status-syncing">Syncing...</span>
+            </div>
+          </div>
+          <button class="btn" onclick="alert('Refresh')">↻</button>
+          <button class="btn" onclick="alert('Edit')">✎</button>
+        </div>
+
+        <div class="integration-card">
+          <div class="integration-logo">📊</div>
+          <div class="integration-info">
+            <div class="integration-name">RentCast</div>
+            <div>
+              <span class="integration-status status-error-text">Error</span>
+            </div>
+          </div>
+          <button class="btn" onclick="alert('Refresh')">↻</button>
+          <button class="btn" onclick="alert('Edit')">✎</button>
+        </div>
+
+        <div class="integration-card">
+          <div class="integration-logo">🔍</div>
+          <div class="integration-info">
+            <div class="integration-name">Realtor.com</div>
+            <div>
+              <span class="integration-status status-disconnected">Disconnected</span>
+            </div>
+          </div>
+          <button class="btn" onclick="alert('Connect')">Connect</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inline Composer -->
+    <section>
+      <h2>Inline Composer</h2>
+      
+      <div class="card" style="padding: 24px;">
+        <h3>Generic Inline Composer</h3>
+        <div class="inline-composer">
+          <span style="color: #4A7BFF; font-size: 18px;">✨</span>
+          <input type="text" placeholder="Ask a question about Austin market...">
+          <button class="send-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="quick-questions">
+          <button class="chip">Average home prices</button>
+          <button class="chip">Best neighborhoods</button>
+          <button class="chip">Price trends</button>
+          <button class="chip">Rental yields</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 24px; margin-top: 16px;">
+        <h3>Property Inline Composer</h3>
+        <div class="flex items-center gap-2 mb-4">
+          <span style="color: #4A7BFF; font-size: 18px;">✨</span>
+          <h3 style="margin: 0; font-size: 15px;">Ask about this property</h3>
+        </div>
+        <div class="inline-composer">
+          <span style="color: #4A7BFF; font-size: 18px;">✨</span>
+          <input type="text" placeholder="Ask a question about 123 Main St...">
+          <button class="send-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="quick-questions">
+          <button class="chip">What's the estimated cash flow?</button>
+          <button class="chip">Show rental comps nearby</button>
+          <button class="chip">Compare to similar properties</button>
+          <button class="chip">What are the property taxes?</button>
+          <button class="chip">Is this a good investment?</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // Add click handlers for chips
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        alert('Quick question: ' + chip.textContent);
+      });
+    });
+  </script>
+</body>
+</html>

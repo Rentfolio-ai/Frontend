@@ -199,6 +199,9 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
             Property search completed. Results are shown in the chat.
           </div>
         );
+      case 'generic':
+        // Generic tool completion - just show success message
+        return null;
       default: {
         // This ensures exhaustiveness checking at compile time, properly scoped in a block
         const exhaustiveCheck = (x: never): never => {

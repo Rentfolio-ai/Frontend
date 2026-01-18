@@ -115,7 +115,10 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
         break;
 
       case 'content':
-        contentRef.current += event.content;
+      case 'answer.delta':
+        // Handle both old 'content' and new 'answer.delta' formats
+        const textContent = (event as any).content || (event as any).text || '';
+        contentRef.current += textContent;
         setStreamState(prev => ({
           ...prev,
           thinking: null,

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
-import { ThinkingIndicator } from './ThinkingIndicator';
+import { CalmThinking } from '../primitives/CalmThinking';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
@@ -137,14 +137,8 @@ export const MessageList: React.FC<MessageListProps> = ({
               <AgentAvatar size="md" status={agentStatus} />
             </div>
             <div className="flex-1 max-w-[75%]">
-              <ThinkingIndicator
-                thinking={thinking || { status: 'processing' }}
-                completedTools={completedTools}
-                userQuery={lastUserMessage?.content}
-                onCancel={onCancel}
-                error={error}
-                onRetry={onRetry}
-                onOpenPreferences={onOpenPreferences}
+              <CalmThinking 
+                status={thinking?.status || 'Thinking...'}
               />
             </div>
           </div>

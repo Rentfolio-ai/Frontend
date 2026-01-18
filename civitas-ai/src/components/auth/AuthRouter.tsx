@@ -4,12 +4,23 @@ import { useAuth } from '../../contexts/AuthContext';
 import { DesktopShell } from '../../layouts/DesktopShell';
 import { SignInPage } from '../../pages/auth/SignInPage';
 import { SignUpPage } from '../../pages/auth/SignUpPage';
+import { InlineComposerDemo } from '../demo/InlineComposerDemo';
+import { PortfolioDemo } from '../demo/PortfolioDemo';
 
 type AuthView = 'signin' | 'signup';
 
 export const AuthRouter: React.FC = () => {
   const { user, isLoading, signIn, signUp } = useAuth();
   const [authView, setAuthView] = useState<AuthView>('signin');
+
+  // TEMP: Demo modes
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'composer') {
+    return <InlineComposerDemo />;
+  }
+  if (urlParams.get('demo') === 'portfolio') {
+    return <PortfolioDemo />;
+  }
 
   // Show loading spinner while checking auth state
   if (isLoading) {

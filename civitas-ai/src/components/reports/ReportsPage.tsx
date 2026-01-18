@@ -7,7 +7,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { 
     Search, MoreVertical, Download, Printer, ExternalLink, Trash2,
     ChevronDown, ChevronRight, ArrowUp, ArrowDown, X, Loader2,
-    FileText
+    FileText, ArrowLeft
 } from 'lucide-react';
 import { reportsService, type ReportSummary } from '@/services/reportsApi';
 import { cn } from '@/lib/utils';
@@ -68,7 +68,11 @@ const formatDate = (isoString: string): string => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-export const ReportsPage: React.FC = () => {
+interface ReportsPageProps {
+    onBack?: () => void;
+}
+
+export const ReportsPage: React.FC<ReportsPageProps> = ({ onBack }) => {
     const [reports, setReports] = useState<ReportSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -198,6 +202,24 @@ export const ReportsPage: React.FC = () => {
 
     return (
         <div className="h-full bg-background flex flex-col p-6">
+            {/* Back Button */}
+            {onBack && (
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-2 px-3 py-2 mb-4 text-white/60 hover:text-teal-400 transition-colors self-start"
+                    style={{
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                    }}
+                >
+                    <ArrowLeft size={18} />
+                    Back
+                </button>
+            )}
+
             {/* Header */}
             <div className="mb-6">
                 <div className="mb-2">
