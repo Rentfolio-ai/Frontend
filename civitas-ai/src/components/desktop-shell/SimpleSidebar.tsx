@@ -4,16 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileMenuModal } from '../modals/ProfileMenuModal';
+import { Logo } from '../ui/Logo';
 
 // Custom Sidebar Toggle Icon
 const SidebarIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
         strokeLinejoin="round"
         className={className}
     >
@@ -99,31 +100,20 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
 
     return (
         <>
-            {/* Hamburger Button - ChatGPT Style */}
+            {/* Minimal Logo Toggle */}
             {!isOpen && (
                 <button
                     data-hamburger-button
                     onClick={() => setIsOpen(true)}
-                    className="fixed left-4 top-4 z-50 w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300"
+                    className="fixed left-4 top-4 z-50 transition-transform duration-300 hover:scale-105"
                     style={{
-                        backgroundColor: '#1E293B',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        color: '#ECECF1',
                         opacity: hideHamburger ? 0 : 1,
                         transform: hideHamburger ? 'translateY(-10px)' : 'translateY(0)',
                         pointerEvents: hideHamburger ? 'none' : 'auto',
                     }}
-                    onMouseEnter={(e) => {
-                        if (!hideHamburger) {
-                            e.currentTarget.style.backgroundColor = '#0F172A';
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1E293B';
-                    }}
                     aria-label="Open sidebar"
                 >
-                    <Menu className="w-5 h-5" />
+                    <Logo showText={false} className="w-8 h-8" variant="light" />
                 </button>
             )}
 
@@ -138,36 +128,22 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
             {/* Sidebar Panel - Compact ChatGPT/Claude Style */}
             <div
                 ref={sidebarRef}
-                className={`fixed left-0 top-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out ${
-                    isOpen ? 'translate-x-0' : '-translate-x-full'
-                }`}
+                className={`fixed left-0 top-0 h-full z-50 flex flex-col transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
                 style={{
                     backgroundColor: '#334155',
                     width: '260px',
                     borderRight: '1px solid rgba(255, 255, 255, 0.15)',
                 }}
             >
-                {/* Header */}
-                <div className="flex items-center justify-between px-3 py-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
-                    <div className="flex items-center gap-2">
-                        <div
-                            className="w-6 h-6 rounded flex items-center justify-center"
-                            style={{ background: 'linear-gradient(135deg, #0D9488, #14B8A6)' }}
-                        >
-                            <Home className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-                        </div>
-                        <span style={{ color: '#ECECF1', fontSize: '14px', fontWeight: 600 }}>
-                            Vasthu
-                        </span>
-                    </div>
+                {/* Header - Click Logo to Close */}
+                <div className="flex items-center justify-between px-4 py-4 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="w-6 h-6 rounded flex items-center justify-center transition-colors"
-                        style={{ color: '#8E8EA0' }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = '#ECECF1'}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#8E8EA0'}
+                        className="flex items-center hover:opacity-80 transition-opacity"
+                        title="Close sidebar"
                     >
-                        <SidebarIcon className="w-4 h-4" />
+                        <Logo variant="light" className="h-8" showIcon={true} showText={true} />
                     </button>
                 </div>
 
@@ -284,7 +260,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                     >
                                         {chat.title || 'New conversation'}
                                     </span>
-                                    
+
                                     {/* Ellipsis Menu */}
                                     <div className="hidden group-hover:flex items-center relative">
                                         <button

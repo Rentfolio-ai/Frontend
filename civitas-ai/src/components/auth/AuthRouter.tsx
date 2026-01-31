@@ -5,13 +5,21 @@ import { DesktopShell } from '../../layouts/DesktopShell';
 import { LandingPage } from '../../pages/auth/LandingPage';
 import { SignInPage } from '../../pages/auth/SignInPage';
 import { SignUpPage } from '../../pages/auth/SignUpPage';
+import { FAQPage } from '../../pages/public/FAQPage';
 import { LocationPermissionModal } from '../modals/LocationPermissionModal';
 
-type AuthView = 'landing' | 'signin' | 'signup';
+type AuthView = 'landing' | 'signin' | 'signup' | 'faq';
 
 export const AuthRouter: React.FC = () => {
   const { user, isLoading, signIn, signUp } = useAuth();
   const [authView, setAuthView] = useState<AuthView>('landing');
+
+  // Reset to landing page when user logs out
+  React.useEffect(() => {
+    if (!user) {
+      setAuthView('landing');
+    }
+  }, [user]);
 
   // Show loading spinner while checking auth state
   if (isLoading) {
@@ -52,6 +60,7 @@ export const AuthRouter: React.FC = () => {
       <LandingPage
         onNavigateToSignIn={() => setAuthView('signin')}
         onNavigateToSignUp={() => setAuthView('signup')}
+        onNavigateToFAQ={() => setAuthView('faq')}
       />
     );
   }
@@ -62,6 +71,14 @@ export const AuthRouter: React.FC = () => {
         onSignUp={signUp}
         onNavigateToSignIn={() => setAuthView('signin')}
         onNavigateToLanding={() => setAuthView('landing')}
+      />
+    );
+  }
+
+  if (authView === 'faq') {
+    return (
+      <FAQPage 
+        onBackToHome={() => setAuthView('landing')} 
       />
     );
   }

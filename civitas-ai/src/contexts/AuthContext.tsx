@@ -17,6 +17,7 @@ interface AuthContextType {
   signUp: (user: User) => void;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  resumeSession: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,10 +42,10 @@ const transformUser = (apiUser: AuthResponse['user']): User => {
     email: apiUser.email,
     avatar: apiUser.name
       ? apiUser.name
-          .split(' ')
-          .map((n) => n[0])
-          .join('')
-          .toUpperCase()
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
       : apiUser.email[0].toUpperCase(),
   };
 };
@@ -59,7 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         // Check for token in storage
         const token = localStorage.getItem('civitas-token') || sessionStorage.getItem('civitas-token');
-        
+
         if (token) {
           // Try to get current user from API
           try {
@@ -77,21 +78,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         } else {
           // Fallback: check for legacy user data
-    const savedUser = localStorage.getItem('civitas-user');
-    if (savedUser) {
-      try {
+          const savedUser = localStorage.getItem('civitas-user');
+          if (savedUser) {
+            try {
               const parsedUser = JSON.parse(savedUser);
               setUser(parsedUser);
-      } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('civitas-user');
-      }
-    }
+            } catch (error) {
+              console.error('Error parsing saved user:', error);
+              localStorage.removeItem('civitas-user');
+            }
+          }
         }
       } catch (error) {
         console.error('Error checking auth state:', error);
       } finally {
-    setIsLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -110,10 +111,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
+      // Soft Logout: Move current credentials to "recent" storage for 24h
+      const token = localStorage.getItem('civitas-token') || sessionStorage.getItem('civitas-token');
+      const currentUser = localStorage.getItem('civitas-user');
+
+      if (token && currentUser) {
+        localStorage.setItem('civitas-recent-token', token);
+        localStorage.setItem('civitas-recent-user', currentUser);
+        localStorage.setItem('civitas-recent-timestamp', Date.now().toString());
+      }
+
       await authAPI.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
-      // Continue with local cleanup even if API call fails
     } finally {
       setUser(null);
       localStorage.removeItem('civitas-user');
@@ -131,11 +141,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error refreshing user:', error);
       // If refresh fails, user might be logged out
-    setUser(null);
-    localStorage.removeItem('civitas-user');
+      setUser(null);
+      localStorage.removeItem('civitas-user');
       localStorage.removeItem('civitas-token');
       sessionStorage.removeItem('civitas-token');
     }
+  };
+
+  const resumeSession = async (): Promise<boolean> => {
+    try {
+      const recentTimestamp = localStorage.getItem('civitas-recent-timestamp');
+      console.log('Attempting resume. Timestamp:', recentTimestamp);
+
+      if (!recentTimestamp) return false;
+
+      // Check if leass than 24 hours (24 * 60 * 60 * 1000 = 86400000 ms)
+      const isRecent = (Date.now() - parseInt(recentTimestamp)) < 86400000;
+      console.log('Is Recent (<24h):', isRecent);
+
+      if (isRecent) {
+        const recentToken = localStorage.getItem('civitas-recent-token');
+        const recentUserStr = localStorage.getItem('civitas-recent-user');
+
+        if (recentToken && recentUserStr) {
+          // Restore
+          localStorage.setItem('civitas-token', recentToken);
+          localStorage.setItem('civitas-user', recentUserStr);
+          setUser(JSON.parse(recentUserStr));
+
+          // Clear recent to avoid loop/stale
+          localStorage.removeItem('civitas-recent-token');
+          localStorage.removeItem('civitas-recent-user');
+          localStorage.removeItem('civitas-recent-timestamp');
+          return true;
+        }
+      } else {
+        // Expired, clear it
+        console.log('Session expired, clearing recent data');
+        localStorage.removeItem('civitas-recent-token');
+        localStorage.removeItem('civitas-recent-user');
+        localStorage.removeItem('civitas-recent-timestamp');
+      }
+    } catch (e) {
+      console.error("Failed to resume session", e);
+    }
+    return false;
   };
 
   const value = {
@@ -145,6 +195,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signOut,
     refreshUser,
+    resumeSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
