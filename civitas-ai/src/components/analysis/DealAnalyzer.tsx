@@ -23,6 +23,10 @@ import { SCENARIO_PRESETS } from '../../types/pnl';
 import { AssumptionsPanel } from './AssumptionsPanel';
 import { ResultsPanel } from './ResultsPanel';
 import { AIInsightsPanel } from './AIInsightsPanel';
+import { KeyMetricsPanel } from './KeyMetricsPanel';
+import { TabbedAssumptionsPanel } from './TabbedAssumptionsPanel';
+import { EnhancedResultsPanel } from './EnhancedResultsPanel';
+import { EnhancedAIInsightsPanel } from './EnhancedAIInsightsPanel';
 
 interface DealAnalyzerProps {
   propertyId?: string | null;
@@ -82,187 +86,170 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
   ];
 
   return (
-    <div className={cn('flex flex-col h-full bg-background', className)}>
-      {/* Header */}
-      <div className="flex-shrink-0 px-6 py-5 border-b border-white/10 bg-slate-900 text-white relative overflow-hidden">
-        {/* Abstract Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-teal-500/10" />
-
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30">
-              <Calculator className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold tracking-tight">Deal Analyzer</h2>
-              {propertyAddress && (
-                <p className="text-sm text-slate-400 font-medium line-clamp-1">{propertyAddress}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Strategy Toggle */}
-          <div className="flex items-center gap-2 p-1 rounded-lg bg-muted/50 border border-border/50">
-            <button
-              onClick={() => setStrategy('STR')}
-              className={cn(
-                'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
-                strategy === 'STR'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-foreground/70 hover:text-foreground hover:bg-muted'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                STR
-              </span>
-            </button>
-            <button
-              onClick={() => setStrategy('LTR')}
-              className={cn(
-                'px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
-                strategy === 'LTR'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-foreground/70 hover:text-foreground hover:bg-muted'
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Home className="w-4 h-4" />
-                LTR
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 mt-5 relative">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scenario</span>
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
-            {(Object.keys(SCENARIO_PRESETS) as ScenarioPreset[]).map((preset) => (
-              <button
-                key={preset}
-                onClick={() => setScenario(preset)}
-                className={cn(
-                  'px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
-                  activeScenario === preset
-                    ? 'bg-indigo-500 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                )}
-              >
-                {SCENARIO_PRESETS[preset].name}
-              </button>
-            ))}
-            {activeScenario === 'custom' && (
-              <span className="px-3 py-1.5 rounded-md text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Custom
-              </span>
-            )}
-          </div>
-          <div className="h-4 w-px bg-white/10 mx-1" />
+    <div className={cn('flex flex-col h-full bg-[#0F1115]', className)}>
+      {/* Compact Header - Hidden as it is redundant with Drawer header now, or keep very minimal */}
+      <div className="flex-shrink-0 px-6 py-4 border-b border-white/5 flex items-center justify-between">
+        {/* Strategy Toggle - Sleek segments */}
+        <div className="flex items-center bg-white/5 rounded-lg p-1 border border-white/5">
           <button
-            onClick={resetToDefaults}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-            title="Reset to defaults"
+            onClick={() => setStrategy('STR')}
+            className={cn(
+              'px-4 py-1.5 rounded-md text-sm font-medium transition-all',
+              strategy === 'STR'
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'text-white/60 hover:text-white hover:bg-white/5'
+            )}
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Reset</span>
+            Short-Term
+          </button>
+          <button
+            onClick={() => setStrategy('LTR')}
+            className={cn(
+              'px-4 py-1.5 rounded-md text-sm font-medium transition-all',
+              strategy === 'LTR'
+                ? 'bg-blue-500 text-white shadow-sm'
+                : 'text-white/60 hover:text-white hover:bg-white/5'
+            )}
+          >
+            Long-Term
           </button>
         </div>
+
+        {/* Reset Button */}
+        <button
+          onClick={resetToDefaults}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          Reset Defaults
+        </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-        {/* Assumptions Panel */}
-        <div className="lg:w-[360px] flex-shrink-0 border-r border-border/50 overflow-y-auto">
-          <AssumptionsPanel
-            strategy={strategy}
-            assumptions={assumptions}
-            onUpdateAssumption={updateAssumption}
-            isFieldOverridden={isFieldOverridden}
-            isLoading={isLoading}
-          />
-        </div>
-
-        {/* Results Panel */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-950/30">
-          {/* AI Verdict Banner */}
-          {aiVerdict && (
-            <div className="p-6 pb-0">
-              <div className={cn(
-                "relative overflow-hidden rounded-2xl border p-5 transition-all duration-500 shadow-xl",
-                aiVerdict === 'Black'
-                  ? "bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20 shadow-emerald-500/5"
-                  : "bg-gradient-to-br from-rose-500/10 to-orange-500/10 border-rose-500/20 shadow-rose-500/5"
-              )}>
-                <div className="flex items-start gap-5 relative z-10">
-                  <div className={cn(
-                    "flex-shrink-0 p-3 rounded-xl",
-                    aiVerdict === 'Black' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-rose-500/20 text-rose-600 dark:text-rose-400"
-                  )}>
-                    {aiVerdict === 'Black' ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className={cn(
-                        "text-lg font-bold tracking-tight",
-                        aiVerdict === 'Black' ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"
-                      )}>
-                        {aiVerdict === 'Black' ? 'Excellent Investment Opportunity' : 'High Risk Investment'}
-                      </h3>
-                      <span className={cn(
-                        "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border",
-                        aiVerdict === 'Black'
-                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
-                          : "bg-rose-500/10 border-rose-500/20 text-rose-600"
-                      )}>
-                        {aiVerdict === 'Black' ? 'Strong Buy' : 'Caution'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-foreground/70 leading-relaxed">
-                      {aiExplanation}
-                    </p>
-                  </div>
+      {/* Main Content - Full width single column */}
+      <div className="flex-1 overflow-y-auto bg-[#0F1115]">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          {/* Key Metrics - Top */}
+          {pnlOutput && (
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-emerald-500/30 transition-colors group">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="text-sm font-medium text-white/60">Cash Flow</div>
+                </div>
+                <div className="text-3xl font-semibold text-white tracking-tight">
+                  <span className="text-emerald-400">$</span>{Math.round((pnlOutput.year1?.cashflow_before_taxes || 0) / 12).toLocaleString()}
+                  <span className="text-lg text-white/40 font-normal ml-1">/mo</span>
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-blue-500/30 transition-colors group">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <div className="text-sm font-medium text-white/60">Cap Rate</div>
+                </div>
+                <div className="text-3xl font-semibold text-white tracking-tight">
+                  {((pnlOutput.year1?.cap_rate || 0) * 100).toFixed(2)}
+                  <span className="text-lg text-blue-400/80 font-normal ml-0.5">%</span>
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-purple-500/30 transition-colors group">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <div className="text-sm font-medium text-white/60">CoC ROI</div>
+                </div>
+                <div className="text-3xl font-semibold text-white tracking-tight">
+                  {((pnlOutput.year1?.cash_on_cash_return || 0) * 100).toFixed(2)}
+                  <span className="text-lg text-purple-400/80 font-normal ml-0.5">%</span>
                 </div>
               </div>
             </div>
           )}
 
-          {error ? (
-            <div className="p-6">
-              <div className="p-4 rounded-lg bg-danger/10 border border-danger/30 text-danger">
-                <p className="font-medium">Calculation Error</p>
-                <p className="text-sm mt-1 opacity-80">{error}</p>
+          {/* Inputs Panel */}
+          <div className="bg-transparent border border-white/5 rounded-xl overflow-hidden">
+            <TabbedAssumptionsPanel
+              strategy={strategy}
+              assumptions={assumptions}
+              onUpdate={updateAssumption}
+              isFieldOverridden={isFieldOverridden}
+              dataSources={{
+                purchase_price: { source: 'Zillow', confidence: 'high' },
+                monthly_rent: { source: 'Census', confidence: 'high' },
+                mortgage_rate_pct: { source: 'FRED', confidence: 'high' },
+                property_tax_rate_pct: { source: 'Census', confidence: 'high' },
+              }}
+            />
+          </div>
+
+          {/* AI Verdict */}
+          {aiVerdict && (
+            <div className={cn(
+              "p-4 rounded-xl border",
+              aiVerdict === 'Black'
+                ? "bg-emerald-500/5 border-emerald-500/20"
+                : "bg-red-500/5 border-red-500/20"
+            )}>
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5",
+                  aiVerdict === 'Black' ? "bg-emerald-500/10" : "bg-red-500/10"
+                )}>
+                  {aiVerdict === 'Black' ? (
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  ) : (
+                    <TrendingDown className="w-5 h-5 text-red-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className={cn(
+                    "text-sm font-semibold mb-1",
+                    aiVerdict === 'Black' ? "text-emerald-400" : "text-red-400"
+                  )}>
+                    {aiVerdict === 'Black' ? 'Investment Opportunity' : 'High Risk Factor'}
+                  </h3>
+                  <p className="text-sm text-white/70 leading-relaxed">{aiExplanation}</p>
+                </div>
               </div>
             </div>
-          ) : (
-            <ResultsPanel
-              pnlOutput={pnlOutput}
-              strategy={strategy}
-              isLoading={isLoading}
-              financingSummary={pnlOutput?.financingSummary}
-            />
           )}
 
-          {/* AI Insights Panel */}
-          {pnlOutput?.aiInsights && (
-            <div className="p-6 pt-0">
-              <AIInsightsPanel insights={pnlOutput.aiInsights} />
+          {/* Results */}
+          {error ? (
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+              <p className="font-semibold text-red-400 mb-1">Calculation Error</p>
+              <p className="text-sm text-red-400/80">{error}</p>
+            </div>
+          ) : (
+            <div className="bg-transparent border border-white/5 rounded-xl overflow-hidden">
+              <EnhancedResultsPanel pnlOutput={pnlOutput} />
             </div>
           )}
+
+          {/* AI Insights */}
+          <div className="bg-transparent border border-white/5 rounded-xl overflow-hidden">
+            <EnhancedAIInsightsPanel
+              insights={pnlOutput?.aiInsights}
+              verdict={aiVerdict === 'Black' ? 'good' : aiVerdict === 'Red' ? 'bad' : 'okay'}
+              isLoading={isExplaining}
+              onAskQuestion={async (question) => {
+                await askAI(question);
+              }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* AI Chat Section */}
-      <div className="flex-shrink-0 border-t border-border/50 bg-gradient-to-r from-blue-50/30 to-teal-50/30 dark:from-blue-950/20 dark:to-teal-950/20">
+      {/* AI Chat Section - Compact */}
+      <div className="flex-shrink-0 border-t border-white/5 bg-[#0F1115]">
         <button
           onClick={() => setShowAIChat(!showAIChat)}
-          className="w-full px-6 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+          className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-700 transition-colors group"
         >
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Ask AI about this deal</span>
+            <MessageSquare className="w-4 h-4 text-blue-400" />
+            <span className="text-xs font-bold text-white">Ask AI about this deal</span>
           </div>
           <ChevronDown className={cn(
-            'w-4 h-4 text-foreground/50 transition-transform',
+            'w-4 h-4 text-slate-400 transition-transform',
             showAIChat && 'rotate-180'
           )} />
         </button>

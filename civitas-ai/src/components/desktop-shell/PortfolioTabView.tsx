@@ -8,9 +8,8 @@ interface PortfolioTabViewProps {
 
 export const PortfolioTabView: React.FC<PortfolioTabViewProps> = () => {
   return (
-    <div className="h-full w-full overflow-auto p-6">
+    <div className="h-full w-full">
       <PortfolioDashboard />
     </div>
   );
 };
-

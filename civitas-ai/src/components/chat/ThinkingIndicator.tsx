@@ -10,9 +10,18 @@ import { X, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Lightbulb } from 'lu
 import type { ThinkingState, CompletedTool } from '@/types/stream';
 import { SourceBadge } from './SourceBadge';
 
+// Define ReasoningStep type inline since we only need it for props
+interface ReasoningStep {
+  title: string;
+  description: string;
+  status: 'pending' | 'running' | 'complete' | 'error';
+  tool?: string;
+}
+
 interface ThinkingIndicatorProps {
   thinking: ThinkingState | null;
   completedTools?: CompletedTool[];
+  reasoningSteps?: ReasoningStep[]; // 🚀 NEW: Real-time reasoning steps
   className?: string;
   userQuery?: string;
   onCancel?: () => void;
@@ -32,10 +41,14 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   error,
   onRetry,
   onOpenPreferences,
+  reasoningSteps = [], // NEW: Receive reasoning steps
 }) => {
   const { interactionProfile, budgetRange, defaultStrategy, financialDna } = usePreferencesStore();
   const dislikes = interactionProfile?.dislikes || [];
   const riskProfile = interactionProfile?.risk_profile;
+
+  // CRITICAL: Always ensure we have a thinking state to display
+  const displayThinking: ThinkingState = thinking || { status: 'Thinking...' };
 
   // Elapsed time tracking
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
@@ -47,6 +60,15 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   // Helper to extract meaningful preview from tool data
   const getToolDataPreview = React.useCallback((tool: CompletedTool): string | null => {
     if (!tool.data) return null;
+
+    // Handle Deep Dive Web Search
+    if (tool.tool === 'web_search') {
+      const meta = tool.data.metadata;
+      if (meta && meta.deep_dive_count) {
+        return `${meta.deep_dive_count} pages read`;
+      }
+      return `${tool.data.results?.length || 0} findings`;
+    }
 
     // Handle different data structures
     if (Array.isArray(tool.data)) {
@@ -146,195 +168,52 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     return parts.length > 0 ? parts.join(' • ') : null;
   }, [budgetRange, defaultStrategy, dislikes, financialDna, riskProfile]);
 
-  // Helper to generate a sequence of thinking steps based on context
-  const getThinkingFlow = (query: string, location: string | null, price: string | null, dislikes: string[] = []): string[] => {
-    const lowerQuery = query.toLowerCase();
 
-    // Default flow
-    let flow = [
-      'Processing request...',
-      'Analyzing data...',
-      'Synthesizing insights...',
-      'Finalizing response...'
-    ];
+  // ALWAYS prioritize backend status - NO auto-cycling
+  const backendStatus = displayThinking.title || displayThinking.status || '';
 
-    if (lowerQuery.includes('find') || lowerQuery.includes('search') || lowerQuery.includes('scout')) {
-      // Context Aware Search Flow
-      const filterNote = dislikes.length > 0 ? ` (Filtering ${dislikes[0]}${dislikes.length > 1 ? '+' : ''})` : '';
-
-      if (location && price) {
-        flow = [
-          `Scouting ${location} for deals under ${price}${filterNote}...`,
-          `Filtering for high-yield properties...`,
-          `Analyzing price history...`,
-          `Ranking best opportunities...`
-        ];
-      } else if (location) {
-        flow = [
-          `Scouting ${location} real estate market${filterNote}...`,
-          `Identifying active listings...`,
-          `Comparing neighborhoods in ${location}...`,
-          `Selecting top properties...`
-        ];
-      } else {
-        flow = [
-          `Searching property database${filterNote}...`,
-          'Filtering by criteria...',
-          'Checking market conditions...',
-          'Compiling results...'
-        ];
-      }
-    } else if (lowerQuery.includes('analyze') || lowerQuery.includes('roi') || lowerQuery.includes('calculator')) {
-      // Context Aware: Show Financial DNA if available
-      let dnaNote = '';
-      if (riskProfile) {
-        dnaNote = ` (Applying ${riskProfile} Profile)`;
-      } else if (financialDna?.down_payment_pct != null) {
-        dnaNote = ` (Using ${Math.round(financialDna.down_payment_pct * 100)}% Down)`;
-      }
-
-      flow = [
-        `Parsing property financial data...`,
-        `Applying underwriting rules${dnaNote}...`,
-        'Estimating rental income potential...',
-        'Generating investment report...'
-      ];
-    } else if (lowerQuery.includes('rule') || lowerQuery.includes('allow') || lowerQuery.includes('permit') || lowerQuery.includes('compliance')) {
-      // Compliance check flow
-      if (location) {
-        flow = [
-          `Checking STR regulations in ${location}...`,
-          'Reviewing permit requirements...',
-          'Checking local zoning laws...',
-          'Summarizing compliance status...'
-        ];
-      } else {
-        flow = [
-          'Researching short-term rental policies...',
-          'Reviewing general requirements...',
-          'Summarizing findings...'
-        ];
-      }
-    } else if (lowerQuery.includes('compare')) {
-      flow = [
-        'Fetching property details...',
-        'Aligning metrics side-by-side...',
-        'Evaluating differences...',
-        'Generating comparison summary...'
-      ];
-    }
-
-    return flow;
-  };
-
-  // Helper to humanize status messages based on query context
-  const getFriendlyText = (text: string) => {
-    const lowerText = text.toLowerCase();
-    const lowerQuery = (userQuery || '').toLowerCase();
-    const hasCompletedTools = completedTools.length > 0;
-
-    // If the backend status is already specific (not generic), use it
-    if (!lowerText.includes('analyzing') && !lowerText.includes('processing') && !lowerText.includes('generating') && !lowerText.includes('searching')) {
-      return text;
-    }
-
-    // If we have already completed some tools, we are likely in the analysis/finalization phase
-    if (hasCompletedTools) {
-      if (lowerText.includes('generating')) return 'Writing response...';
-      return 'Analyzing results...';
-    }
-
-    // Initial Phase: Context-aware overrides based on user query
-    if (lowerQuery) {
-      const locationMatch = userQuery?.match(/(?:in|near|at)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-      const location = locationMatch ? locationMatch[1] : null;
-      const priceMatch = userQuery?.match(/\$?\d+(?:,\d{3})*(?:k|m)?/i);
-      const price = priceMatch ? priceMatch[0] : null;
-
-      if (lowerQuery.includes('find') || lowerQuery.includes('search') || lowerQuery.includes('looking for') || lowerQuery.includes('show me')) {
-        const filterNote = dislikes.length > 0 ? ` (Filtering ${dislikes[0]}${dislikes.length > 1 ? '+' : ''})` : '';
-        if (location && price) return `Scouting ${location} for deals under ${price}${filterNote}...`;
-        if (location) return `Scouting ${location} market${filterNote}...`;
-        return `Searching for properties${filterNote}...`;
-      }
-
-      if (lowerQuery.includes('analyze') || lowerQuery.includes('roi') || lowerQuery.includes('cash flow')) {
-        const addressMatch = userQuery?.match(/\d+\s+[A-Z][a-z]+/); // simplistic address match
-        if (addressMatch) return `Analyzing financials for ${addressMatch[0]}...`;
-        return 'Crunching the numbers...';
-      }
-
-      if (lowerQuery.includes('market') || lowerQuery.includes('trend')) {
-        // Context Aware: Show strategy filter if applicable
-        const strategyNote = dislikes.includes('Condos') ? ' (Excluding Condos)' : '';
-        if (location) return `Analyzing ${location} market trends${strategyNote}...`;
-        return `Evaluating local market data${strategyNote}...`;
-      }
-
-      if (lowerQuery.includes('compare')) {
-        return 'Comparing property data...';
-      }
-
-      if (lowerQuery.includes('rule') || lowerQuery.includes('allow') || lowerQuery.includes('permit') || lowerQuery.includes('compliance') || lowerQuery.includes('str')) {
-        // Compliance check
-        if (location) return `Checking STR regulations in ${location}...`;
-        return 'Researching short-term rental policies...';
-      }
-    }
-
-    // Fallbacks
-    if (lowerText.includes('analyzing') || lowerText.includes('processing')) return 'Thinking...';
-    if (lowerText.includes('searching')) return 'Looking that up...';
-    if (lowerText.includes('generating')) return 'Working on it...';
-    return text;
-  };
-
-  // State for cycling messages
-  const [msgIndex, setMsgIndex] = React.useState(0);
-
-  // Reset index when query changes
+  // Debug: Log what we're receiving
   React.useEffect(() => {
-    setMsgIndex(0);
-  }, [userQuery]);
-
-  // Cycle through messages
-  React.useEffect(() => {
-    if (!thinking) return;
-    const interval = setInterval(() => {
-      setMsgIndex(prev => prev + 1);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [thinking]);
-
-  const locationMatch = userQuery?.match(/(?:in|near|at)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-  const location = locationMatch ? locationMatch[1] : null;
-  const priceMatch = userQuery?.match(/\$?\d+(?:,\d{3})*(?:k|m)?/i);
-  const price = priceMatch ? priceMatch[0] : null;
-
-  const flowMessages = getThinkingFlow(userQuery || '', location, price, dislikes);
-  const currentFlowMessage = flowMessages[msgIndex % flowMessages.length];
+    if (thinking) {
+      console.log('🎨 [ThinkingIndicator] Received thinking state:', {
+        title: thinking.title,
+        status: thinking.status,
+        backendStatus,
+      });
+    }
+  }, [thinking, backendStatus]);
 
   // BACKEND-FIRST: If backend provides filtersApplied, use that
-  const backendFilters = thinking?.filtersApplied || [];
+  const backendFilters = displayThinking.filtersApplied || [];
   const backendFilterText = backendFilters.length > 0
     ? ` (${backendFilters.slice(0, 3).join(', ')})`
     : '';
 
-  // Logic: Use backend status if it's specific/meaningful, otherwise use our flow
-  const backendStatus = thinking?.title || thinking?.status || '';
-  const isGenericStatus = !backendStatus ||
-    backendStatus.toLowerCase().includes('processing') ||
-    backendStatus.toLowerCase().includes('thinking') ||
-    backendStatus === 'searching';
+  // 🚀 NEW: Use reasoning steps if available, otherwise backend status
+  const runningStep = reasoningSteps.find(s => s.status === 'running');
+  const currentStep = runningStep || reasoningSteps[reasoningSteps.length - 1];
 
-  // If backend has filters, append them to status
-  let displayStatus = isGenericStatus ? currentFlowMessage : getFriendlyText(backendStatus);
-  if (backendFilters.length > 0 && !displayStatus.includes('(')) {
+  let displayStatus = backendStatus || 'Thinking...';
+
+  // Override with current reasoning step if available
+  if (currentStep) {
+    displayStatus = currentStep.title;
+    // Add "..." suffix if still processing
+    if (currentStep.status === 'running') {
+      displayStatus += '...';
+    }
+  }
+
+  // Debug: Log what we're displaying
+  console.log('🖼️ [ThinkingIndicator] Displaying:', displayStatus, { currentStep, reasoningSteps: reasoningSteps.length });
+
+  // If backend has filters, append them to status (only if not using reasoning steps)
+  if (!currentStep && backendFilters.length > 0 && !displayStatus.includes('(')) {
     displayStatus = displayStatus.replace('...', `${backendFilterText}...`);
   }
 
-  const displayExplanation = thinking?.explanation && !thinking.explanation.toLowerCase().includes('processing')
-    ? thinking.explanation
+  const displayExplanation = displayThinking.explanation && !displayThinking.explanation.toLowerCase().includes('processing')
+    ? displayThinking.explanation
     : null;
 
   // Pipeline steps logic
@@ -390,65 +269,31 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   // Only show pipeline if there are completed tools or actively thinking
   const showPipeline = thinking || completedTools.length > 0;
 
+  // Simple, clean thinking indicator like ChatGPT
   return (
-    <div className={cn('space-y-3 max-w-3xl mx-auto py-2', className)}>
-      {/* Pipeline Steps - Horizontal */}
-      {showPipeline && (
-        <div className="flex items-center justify-center gap-1">
-          {pipelineSteps.map((step, index) => (
-            <React.Fragment key={step.id}>
-              {/* Step */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex flex-col items-center gap-1"
-              >
-                {/* Icon/Status */}
-                <div className={cn(
-                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300',
-                  step.status === 'complete' && 'bg-green-500/20 text-green-400',
-                  step.status === 'active' && 'bg-purple-500/20 text-purple-400 animate-pulse',
-                  step.status === 'pending' && 'bg-white/5 text-white/30'
-                )}>
-                  {step.status === 'complete' ? '✓' : step.icon}
-                </div>
-                {/* Label */}
-                <span className={cn(
-                  'text-[10px] font-medium transition-colors',
-                  step.status === 'complete' && 'text-green-400/70',
-                  step.status === 'active' && 'text-purple-300',
-                  step.status === 'pending' && 'text-white/20'
-                )}>
-                  {step.label}
-                </span>
-              </motion.div>
-
-              {/* Connector */}
-              {index < pipelineSteps.length - 1 && (
-                <div className={cn(
-                  'w-8 h-0.5 mx-1 transition-colors duration-300',
-                  step.status === 'complete' ? 'bg-green-500/30' : 'bg-white/10'
-                )} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-      )}
-
-      {/* Active Preferences Line - Now Clickable */}
-      {showPipeline && preferencesDisplay && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={onOpenPreferences}
-          className="text-center text-[11px] text-white/30 font-medium hover:text-white/50 transition-colors cursor-pointer group"
-          title="Click to edit preferences"
+    <div className={cn('max-w-3xl mx-auto', className)}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex items-center gap-2 py-1"
+      >
+        {/* Simple text with chevron */}
+        <span className="text-[15px] text-white/60 font-normal">
+          {displayStatus}
+        </span>
+        <motion.span
+          animate={{ x: [0, 3, 0] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="text-white/60"
         >
-          <span className="text-white/40 group-hover:text-white/60">Using:</span> {preferencesDisplay}
-          {onOpenPreferences && <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">✎</span>}
-        </motion.button>
-      )}
+          ›
+        </motion.span>
+      </motion.div>
 
       {/* Completed Tools - Enhanced with data preview and suggestions */}
       {completedTools.length > 0 && (
@@ -557,96 +402,33 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
         </div>
       )}
 
-      {/* Active Thinking State - Streaming Reasoning Text */}
+      {/* Cancel Button - Only show when actively thinking */}
       {thinking && (
-        <div className="relative min-h-[60px] py-2">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={thinking.status + (thinking.explanation || '') + (thinking.source || '')}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="flex flex-col gap-2"
-            >
-              {/* System 2 Deep Reasoning - Streaming Text Block */}
-              {thinking.source === 'System 2 Reasoning' ? (
-                <div className="space-y-2">
-                  {/* Header with SourceBadge and animated dot */}
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.6, 1, 0.6]
-                      }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                      className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
-                    />
-                    <SourceBadge source={thinking.source} />
-                  </div>
-
-                  {/* Streaming Reasoning Text with enhanced gradient */}
-                  <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent">
-                    <motion.div
-                      initial={{ opacity: 0, y: 2 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="relative text-sm font-semibold leading-relaxed whitespace-pre-wrap tracking-tight"
-                    >
-                      {/* Gradient text with shimmer animation */}
-                      <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto] drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">
-                        {thinking.status}
-                      </span>
-                      {/* Animated cursor */}
-                      <span className="inline-block w-1 h-4 ml-1 bg-gradient-to-b from-purple-400 to-pink-400 animate-pulse shadow-lg shadow-purple-500/50" />
-                    </motion.div>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Source or Explanation - Only for non-System 2 */}
-              {(thinking.source && thinking.source !== 'System 2 Reasoning' || displayExplanation) && (
-                <div className="flex flex-col gap-2">
-                  {thinking.source && thinking.source !== 'System 2 Reasoning' && (
-                    <div className="flex items-center gap-2">
-                      <motion.div
-                        animate={{
-                          scale: [1, 1.2, 1],
-                          opacity: [0.6, 1, 0.6]
-                        }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"
-                      />
-                      <SourceBadge source={thinking.source} />
-                    </div>
-                  )}
-                  {displayExplanation && (
-                    <div className="text-xs text-white/60 font-normal leading-relaxed pl-0.5">
-                      {displayExplanation}
-                    </div>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Timer and Cancel Row */}
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-            {/* Elapsed Timer */}
-            <span className="text-[10px] text-white/30 font-mono">
-              ~{elapsedSeconds}s
-            </span>
-
-            {/* Cancel Button */}
-            {onCancel && (
+        <div className="relative py-2">
+          {/* Cancel Button Only (no timer) */}
+          {onCancel && (
+            <div className="flex justify-end mt-2">
               <button
                 onClick={onCancel}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-red-400/80 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                style={{
+                  color: '#94A3B8',
+                  backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+                  e.currentTarget.style.color = '#EF4444';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
+                  e.currentTarget.style.color = '#94A3B8';
+                }}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
                 Stop
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

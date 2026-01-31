@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test V2 Query Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-case {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .pass { background-color: #d4edda; }
+        .fail { background-color: #f8d7da; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 V2 Query Detection Test</h1>
+    <p>This tests if property queries are being detected correctly.</p>
+
+    <div>
+        <h2>Test Your Query:</h2>
+        <input type="text" id="testInput" placeholder="Type a query like: Show me properties in Austin">
+        <button onclick="testQuery()">Test Query Detection</button>
+        <div id="testResult" class="result"></div>
+    </div>
+
+    <h2>Pre-defined Test Cases:</h2>
+    
+    <div id="testCases"></div>
+
+    <script>
+        // Copy of isPropertyQuery from v2PropertyApi.ts
+        function isPropertyQuery(message) {
+            const propertyKeywords = [
+                'property', 'properties', 'home', 'homes', 'house', 'houses',
+                'condo', 'condos', 'apartment', 'apartments',
+                'real estate', 'for sale', 'listing', 'listings',
+                'find', 'search', 'show me', 'looking for'
+            ];
+
+            const locationKeywords = [
+                'in', 'near', 'around', 'austin', 'dallas', 'houston', 'san antonio',
+                'texas', 'tx'
+            ];
+
+            const messageLower = message.toLowerCase();
+            
+            const hasPropertyKeyword = propertyKeywords.some(kw => messageLower.includes(kw));
+            const hasLocationKeyword = locationKeywords.some(kw => messageLower.includes(kw));
+
+            return hasPropertyKeyword || hasLocationKeyword;
+        }
+
+        // Test cases
+        const testCases = [
+            { query: "Show me properties in Austin", expected: true, reason: "Has 'show me' + 'properties' + 'in' + 'austin'" },
+            { query: "Find 3 bedroom homes under $400k", expected: true, reason: "Has 'find' + 'homes'" },
+            { query: "Properties in Dallas", expected: true, reason: "Has 'properties' + 'in' + 'dallas'" },
+            { query: "What's the weather in Austin?", expected: true, reason: "Has 'in' + 'austin' (location keywords)" },
+            { query: "Tell me about Austin", expected: true, reason: "Has 'austin' (location keyword)" },
+            { query: "Calculate ROI", expected: false, reason: "No property or location keywords" },
+            { query: "Hello", expected: false, reason: "No property or location keywords" },
+        ];
+
+        // Run tests
+        function runTests() {
+            const container = document.getElementById('testCases');
+            container.innerHTML = '';
+
+            testCases.forEach((test, index) => {
+                const result = isPropertyQuery(test.query);
+                const passed = result === test.expected;
+                
+                const div = document.createElement('div');
+                div.className = `test-case ${passed ? 'pass' : 'fail'}`;
+                div.innerHTML = `
+                    <strong>${passed ? '✅ PASS' : '❌ FAIL'}</strong><br>
+                    <strong>Query:</strong> "${test.query}"<br>
+                    <strong>Expected:</strong> ${test.expected ? 'V2' : 'V1'}<br>
+                    <strong>Got:</strong> ${result ? 'V2' : 'V1'}<br>
+                    <strong>Reason:</strong> ${test.reason}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function testQuery() {
+            const input = document.getElementById('testInput');
+            const resultDiv = document.getElementById('testResult');
+            const query = input.value;
+            
+            if (!query) {
+                resultDiv.innerHTML = '⚠️ Please enter a query';
+                resultDiv.className = 'result';
+                return;
+            }
+
+            const result = isPropertyQuery(query);
+            
+            resultDiv.innerHTML = `
+                <strong>Query:</strong> "${query}"<br>
+                <strong>Result:</strong> ${result ? '✅ Will route to V2' : '❌ Will route to V1'}<br>
+                ${result ? '✅ Property query detected!' : '⚠️ No property or location keywords found'}
+            `;
+            resultDiv.className = `result ${result ? 'pass' : 'fail'}`;
+        }
+
+        // Run tests on load
+        runTests();
+
+        // Allow Enter key to test
+        document.getElementById('testInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                testQuery();
+            }
+        });
+    </script>
+</body>
+</html>

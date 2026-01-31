@@ -1,7 +1,7 @@
 // FILE: src/components/desktop-shell/DesktopSidebarMenu.tsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pin, Archive, ArchiveRestore, Trash2, MessageSquare, FileText, BarChart3, Home } from 'lucide-react';
+import { Pin, Archive, ArchiveRestore, Trash2, MessageSquare, FileText, BarChart3, Home, MoreVertical } from 'lucide-react';
 import type { ChatSession, TabType } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatChatDateCompact } from '../../utils/dateFormatters';
@@ -53,6 +53,8 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [modelVersion, setModelVersion] = useState<{ version: string, mode: string } | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Fetch model version on mount
   useEffect(() => {
@@ -60,6 +62,20 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
       setModelVersion(data);
     });
   }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openMenuId]);
 
   // Filter chat history based on search query
   const filteredChatHistory = useMemo(() => {
@@ -537,36 +553,77 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                   {formatChatDateCompact(chat.createdAt)}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                {onPinChat && !chat.isArchived && (
-                                  <button
-                                    onClick={(e) => onPinChat(chat.id, e)}
-                                    className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
-                                    title="Pin chat"
-                                  >
-                                    <Pin className="w-3.5 h-3.5 text-white/40 hover:text-white" />
-                                  </button>
-                                )}
-                                {onArchiveChat && (
-                                  <button
-                                    onClick={(e) => onArchiveChat(chat.id, e)}
-                                    className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
-                                    title={chat.isArchived ? "Unarchive" : "Archive"}
-                                  >
-                                    {chat.isArchived ? (
-                                      <ArchiveRestore className="w-3.5 h-3.5 text-white/40 hover:text-white" />
-                                    ) : (
-                                      <Archive className="w-3.5 h-3.5 text-white/40 hover:text-white" />
-                                    )}
-                                  </button>
-                                )}
+                              {/* Ellipsis Menu */}
+                              <div className="relative opacity-60 group-hover:opacity-100 transition-opacity">
                                 <button
-                                  onClick={(e) => onDeleteChat(chat.id, e)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(openMenuId === chat.id ? null : chat.id);
+                                  }}
                                   className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
-                                  aria-label="Delete chat"
+                                  title="More options"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-red-400 transition-colors" />
+                                  <MoreVertical className="w-3.5 h-3.5 text-white/40 hover:text-white" />
                                 </button>
+
+                                {/* Dropdown Menu */}
+                                <AnimatePresence>
+                                  {openMenuId === chat.id && (
+                                    <motion.div
+                                      ref={menuRef}
+                                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                      transition={{ duration: 0.1 }}
+                                      className="absolute right-0 top-8 w-40 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {onPinChat && !chat.isArchived && (
+                                        <button
+                                          onClick={(e) => {
+                                            onPinChat(chat.id, e);
+                                            setOpenMenuId(null);
+                                          }}
+                                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                        >
+                                          <Pin size={14} className={chat.isPinned ? 'text-emerald-400' : ''} />
+                                          <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
+                                        </button>
+                                      )}
+                                      {onArchiveChat && (
+                                        <button
+                                          onClick={(e) => {
+                                            onArchiveChat(chat.id, e);
+                                            setOpenMenuId(null);
+                                          }}
+                                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                        >
+                                          {chat.isArchived ? (
+                                            <>
+                                              <ArchiveRestore size={14} />
+                                              <span>Unarchive</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Archive size={14} />
+                                              <span>Archive</span>
+                                            </>
+                                                          )}
+                                                        </button>
+                                                      )}
+                                                      <button
+                                                        onClick={(e) => {
+                                                          onDeleteChat(chat.id, e);
+                                                          setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
+                                                      >
+                                                        <Trash2 size={14} />
+                                                        <span>Delete</span>
+                                                      </button>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
                             </motion.button>
                           ))

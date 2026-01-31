@@ -1,0 +1,48 @@
+// FILE: src/components/chat/AgentModeSelector.tsx
+import React from 'react';
+import { Brain, Search, Target } from 'lucide-react';
+import type { AgentMode } from '../../types/chat';
+
+interface AgentModeSelectorProps {
+    currentMode: AgentMode;
+    onModeChange: (mode: AgentMode) => void;
+    disabled?: boolean;
+}
+
+export const AgentModeSelector: React.FC<AgentModeSelectorProps> = ({
+    currentMode,
+    onModeChange,
+    disabled
+}) => {
+    // Define modes here for easy customization
+    const modes: { id: AgentMode, label: string, icon: React.ReactNode, description?: string }[] = [
+        { id: 'research', label: 'Research', icon: <Search className="w-4 h-4" /> },
+        { id: 'strategist', label: 'Strategist', icon: <Brain className="w-4 h-4" /> },
+        { id: 'hunter', label: 'Hunter', icon: <Target className="w-4 h-4" /> },
+        // Future modes can be added here, e.g.:
+        // { id: 'builder', label: 'Build', icon: <Wrench className="w-4 h-4" /> },
+        // { id: 'planner', label: 'Plan', icon: <FileText className="w-4 h-4" /> },
+    ];
+
+    return (
+        <div className="absolute top-4 left-0 right-0 z-10 flex justify-center pointer-events-none">
+            <div className="bg-black/40 backdrop-blur-md p-1 rounded-full border border-white/10 pointer-events-auto flex gap-1">
+                {modes.map(mode => (
+                    <button
+                        key={mode.id}
+                        onClick={() => onModeChange(mode.id)}
+                        disabled={disabled}
+                        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${currentMode === mode.id
+                            ? 'bg-white/10 text-white shadow-lg border border-white/10'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={mode.description}
+                    >
+                        {mode.icon}
+                        {mode.label}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};

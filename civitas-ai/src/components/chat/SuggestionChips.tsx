@@ -41,36 +41,79 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
 
         if (isGrid) {
           return (
-            <button
+            <motion.button
               key={key}
               onClick={() => onSelect(query)}
-              className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-left transition-all hover:scale-[1.02] active:scale-[0.98] group"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-3 p-5 rounded-2xl text-left transition-all group"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1.5px solid rgba(148,163,184,0.3)',
+                boxShadow: '0 4px 16px rgba(15,23,42,0.12), 0 2px 8px rgba(15,23,42,0.08)',
+                backdropFilter: 'blur(8px)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#F0FDFA';
+                e.currentTarget.style.borderColor = 'rgba(20,184,166,0.4)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(13,148,136,0.20), 0 6px 16px rgba(13,148,136,0.12)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+                e.currentTarget.style.borderColor = 'rgba(148,163,184,0.3)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(15,23,42,0.12), 0 2px 8px rgba(15,23,42,0.08)';
+              }}
             >
               <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
               <div className="flex-1">
-                <div className="font-medium text-white/90">{label}</div>
-                <div className="text-xs text-white/50 truncate max-w-[200px]">{query}</div>
+                <div className="font-semibold" style={{ color: '#0F172A' }}>{label}</div>
+                <div className="text-xs truncate max-w-[200px]" style={{ color: '#64748B' }}>{query}</div>
               </div>
-            </button>
+            </motion.button>
           );
         }
 
         return (
-          <button
+          <motion.button
             key={key}
             onClick={() => onSelect(query)}
-            className={isCarousel
-              ? "flex-shrink-0 snap-start flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-sm text-white/80 transition-all hover:scale-[1.02] active:scale-[0.98] group whitespace-nowrap"
-              : "group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full text-sm text-white/80 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            }
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`group flex items-center gap-2 px-5 py-3 rounded-full text-sm transition-all whitespace-nowrap ${isCarousel ? 'flex-shrink-0 snap-start' : ''}`}
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '1.5px solid rgba(148,163,184,0.3)',
+              color: '#1E293B',
+              boxShadow: '0 4px 12px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.08)',
+              fontWeight: 500,
+              backdropFilter: 'blur(8px)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#F0FDFA';
+              e.currentTarget.style.borderColor = 'rgba(20,184,166,0.4)';
+              e.currentTarget.style.color = '#0D9488';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(13,148,136,0.20), 0 4px 12px rgba(13,148,136,0.12)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#FFFFFF';
+              e.currentTarget.style.borderColor = 'rgba(148,163,184,0.3)';
+              e.currentTarget.style.color = '#1E293B';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.08)';
+            }}
           >
             {icon ? (
               <span className="text-base">{icon}</span>
             ) : (
-              <Sparkles className="w-3.5 h-3.5 text-blue-400 opacity-50 group-hover:opacity-100 transition-opacity" />
+              <Sparkles className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: '#14B8A6' }} />
             )}
             <span>{label}</span>
-          </button>
+          </motion.button>
         );
       })}
     </motion.div>

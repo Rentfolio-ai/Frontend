@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Pin, Archive, Trash2, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Search, Pin, Archive, Trash2, MessageSquare, ArrowLeft, MoreVertical } from 'lucide-react';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { formatChatDateCompact } from '../../utils/dateFormatters';
 
@@ -27,6 +27,22 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showArchived, setShowArchived] = useState(false);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuId(null);
+            }
+        };
+
+        if (openMenuId) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [openMenuId]);
 
     // Filter chats
     const filteredChats = useMemo(() => {
@@ -156,30 +172,64 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                                                 {formatChatDateCompact(chat.createdAt || new Date().toISOString())}
                                             </span>
 
-                                            {/* Hover Actions */}
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {/* Ellipsis Menu */}
+                                            <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
-                                                    onClick={(e) => onPinChat(chat.id, e)}
-                                                    className={`p-1.5 rounded-md transition-colors ${chat.isPinned ? 'text-emerald-400 bg-emerald-400/10' : 'text-white/40 hover:text-white hover:bg-white/10'
-                                                        }`}
-                                                    title={chat.isPinned ? "Unpin" : "Pin"}
-                                                >
-                                                    <Pin size={12} />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => onArchiveChat(chat.id, e)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenMenuId(openMenuId === chat.id ? null : chat.id);
+                                                    }}
                                                     className="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-                                                    title={showArchived ? "Unarchive" : "Archive"}
+                                                    title="More options"
                                                 >
-                                                    {showArchived ? <Archive size={12} /> : <Archive size={12} />}
+                                                    <MoreVertical size={14} />
                                                 </button>
-                                                <button
-                                                    onClick={(e) => onDeleteChat(chat.id, e)}
-                                                    className="p-1.5 rounded-md text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
+
+                                                {/* Dropdown Menu */}
+                                                <AnimatePresence>
+                                                    {openMenuId === chat.id && (
+                                                        <motion.div
+                                                            ref={menuRef}
+                                                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                            transition={{ duration: 0.1 }}
+                                                            className="absolute right-0 top-8 w-40 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    onPinChat(chat.id, e);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                                            >
+                                                                <Pin size={14} className={chat.isPinned ? 'text-emerald-400' : ''} />
+                                                                <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    onArchiveChat(chat.id, e);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                                            >
+                                                                <Archive size={14} />
+                                                                <span>{showArchived ? 'Unarchive' : 'Archive'}</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    onDeleteChat(chat.id, e);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                                <span>Delete</span>
+                                                            </button>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </div>
                                     </div>

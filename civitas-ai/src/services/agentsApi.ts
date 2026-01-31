@@ -6,8 +6,8 @@ import { apiLogger, logger } from '@/utils/logger';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
 // Use relative URLs in dev (proxied by Vite), absolute in prod
-const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) 
-  ? envApiUrl 
+const API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http'))
+  ? envApiUrl
   : (import.meta.env.DEV ? '' : 'http://localhost:8001');
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -888,19 +888,4 @@ export async function deleteProperty(propertyId: string): Promise<{ success: boo
   return response.json();
 }
 
-/**
- * Get market data for location (from ETL pipeline)
- */
-export async function getMarketData(location: string): Promise<{ success: boolean; data: MarketData }> {
-  const response = await fetch(`${API_BASE}/api/market-data?location=${encodeURIComponent(location)}`, {
-    method: 'GET',
-    headers: jsonHeaders,
-  });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to fetch market data' }));
-    throw new Error(error.detail || 'Failed to fetch market data');
-  }
-
-  return response.json();
-}

@@ -1,24 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { AgentAvatar } from '../common/AgentAvatar';
 
-const LOADING_STATES = [
-  "Analyzing market data...",
-  "Calculating ROI potential...",
-  "Checking rental regulations...",
-  "Scouting comparable properties...",
-  "Synthesizing insights..."
-];
-
 export const LoadingBubble: React.FC = () => {
-  const [textIndex, setTextIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTextIndex((prev) => (prev + 1) % LOADING_STATES.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="flex gap-3 mb-3 animate-slide-in justify-start">
       {/* AI Agent Avatar with professional pulse */}
@@ -46,10 +29,10 @@ export const LoadingBubble: React.FC = () => {
               ))}
             </div>
 
-            {/* Cycling Text */}
+            {/* Simple text - backend will provide actual status */}
             <div className="min-w-[180px]">
-              <span className="text-[13px] font-medium text-slate-700 flex items-center gap-2 animate-fade-in">
-                {LOADING_STATES[textIndex]}
+              <span className="text-[13px] font-medium text-slate-700 flex items-center gap-2">
+                Thinking...
               </span>
             </div>
           </div>

@@ -1,13 +1,10 @@
 // FILE: src/components/chat/Composer.tsx
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
-import { Paperclip, ArrowUp, MapPin, Square, Smile } from 'lucide-react';
-import { QuickPreferencesChip } from './QuickPreferencesChip';
-import { usePreferencesStore } from '../../stores/preferencesStore';
+import { Paperclip, ArrowUp, Square, Sparkles, Settings, Brain, Search, Target } from 'lucide-react';
 import { AttachmentPreview, generateThumbnail } from '../FileAttachment';
-import { EmojiPicker } from './EmojiPicker';
-
-
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { trackComposerAction } from '../../services/analytics';
+import type { AgentMode } from '../../types/chat';
 
 export interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>,
   'value' | 'onChange' | 'rows' | 'disabled' | 'onKeyDown' | 'placeholder'> {
@@ -17,6 +14,8 @@ export interface ComposerProps extends Omit<React.TextareaHTMLAttributes<HTMLTex
   attachment?: File | null;
   onClearAttachment?: () => void;
   onOpenPreferences?: () => void;
+  currentMode?: AgentMode;
+  onModeChange?: (mode: AgentMode) => void;
 }
 
 export interface ComposerRef {
@@ -24,17 +23,31 @@ export interface ComposerRef {
   focus: () => void;
 }
 
-export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop, onAttach, attachment, onClearAttachment, onOpenPreferences, ...rest }, ref) => {
+export const Composer = forwardRef<ComposerRef, ComposerProps>(({
+  onSend,
+  onStop,
+  onAttach,
+  attachment,
+  onClearAttachment,
+  onOpenPreferences,
+  currentMode = 'hunter',
+  onModeChange,
+  ...rest
+}, ref) => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
   const [showCommands, setShowCommands] = useState(false);
   const [shouldFocusAfterSet, setShouldFocusAfterSet] = useState(false);
   const [thumbnail, setThumbnail] = useState<string | undefined>();
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Agent Mode Dropdown State
+  const [showModeMenu, setShowModeMenu] = useState(false);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
 
   // Rotating placeholder suggestions
   const placeholders = [
@@ -48,8 +61,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
     "Calculate my cash-on-cash return...",
     "Find flip opportunities under $500k...",
   ];
-
-  const { updateClientLocation, clientLocation } = usePreferencesStore();
 
   const allCommands = useMemo(() => {
     const systemCommands = [
@@ -91,6 +102,23 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
 
     return () => clearInterval(interval);
   }, [placeholders.length]);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
+        setShowActionsMenu(false);
+      }
+      if (modeMenuRef.current && !modeMenuRef.current.contains(event.target as Node)) {
+        setShowModeMenu(false);
+      }
+    };
+
+    if (showActionsMenu || showModeMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showActionsMenu, showModeMenu]);
 
   useImperativeHandle(ref, () => ({
     setInput: (text: string) => {
@@ -206,158 +234,38 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
     }
   };
 
-  const handleEmojiSelect = (emoji: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      setMessage(message + emoji);
-      return;
-    }
+  // Agent Mode Logic
+  const modes: { id: AgentMode, label: string, icon: React.ReactNode, description: string }[] = [
+    { id: 'hunter', label: 'Hunter', icon: <Target className="w-3.5 h-3.5" />, description: 'Exhaustive search & discovery' },
+    { id: 'research', label: 'Research', icon: <Search className="w-3.5 h-3.5" />, description: 'Deep market analysis' },
+    { id: 'strategist', label: 'Strategist', icon: <Brain className="w-3.5 h-3.5" />, description: 'Planning & scenarios' },
+  ];
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const newMessage = message.slice(0, start) + emoji + message.slice(end);
-
-    setMessage(newMessage);
-    setShowEmojiPicker(false);
-
-    // Set cursor position after emoji
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-    }, 0);
-  };
-
-  // Reverse geocode coordinates to city name
-  const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
-    try {
-      // Check cache first
-      const cacheKey = `geocode_${lat.toFixed(4)}_${lon.toFixed(4)}`;
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        const { cityName, timestamp } = JSON.parse(cached);
-        // Cache for 7 days
-        if (Date.now() - timestamp < 7 * 24 * 60 * 60 * 1000) {
-          return cityName;
-        }
-      }
-
-      // Fetch from Nominatim API
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10`,
-        {
-          headers: {
-            'User-Agent': 'Civitas AI (contact@civitas.ai)' // Required by Nominatim
-          }
-        }
-      );
-
-      if (!response.ok) throw new Error('Geocoding failed');
-
-      const data = await response.json();
-
-      // Extract city name (try different fields)
-      const cityName = data.address?.city ||
-        data.address?.town ||
-        data.address?.village ||
-        data.address?.county ||
-        data.name ||
-        'Unknown Location';
-
-      // Cache the result
-      localStorage.setItem(cacheKey, JSON.stringify({
-        cityName,
-        timestamp: Date.now()
-      }));
-
-      return cityName;
-    } catch (error) {
-      console.error('Reverse geocoding error:', error);
-      return null;
-    }
-  };
-
-  const handleDetectLocation = () => {
-    if (isLocating) return;
-
-    setIsLocating(true);
-    if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
-      setIsLocating(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-
-        // First update with coordinates
-        updateClientLocation({ latitude, longitude, accuracy });
-
-        // Then fetch city name
-        const cityName = await reverseGeocode(latitude, longitude);
-
-        // Update with city name
-        if (cityName) {
-          updateClientLocation({ latitude, longitude, accuracy, cityName });
-        }
-
-        setIsLocating(false);
-      },
-      (error) => {
-        // Provide user-friendly error messages
-        let errorMessage = "Error detecting location";
-
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = "Location permission denied. Please enable location access in your browser settings.";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = "Location information unavailable. Please try again.";
-            break;
-          case error.TIMEOUT:
-            errorMessage = "Location request timed out. Please try again.";
-            break;
-          default:
-            errorMessage = "An unknown error occurred while detecting location.";
-        }
-
-        console.error(errorMessage, error);
-        setIsLocating(false);
-
-        // Optional: Show toast/notification to user
-        // toast.error(errorMessage);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
-  };
+  const currentModeData = modes.find(m => m.id === currentMode) || modes[0];
 
   return (
     <div className="relative">
       {showCommands && (
-        <div className="absolute bottom-full mb-2 w-full bg-[#1A1D24] border border-white/10 rounded-xl shadow-xl overflow-hidden z-20 max-h-[300px] overflow-y-auto custom-scrollbar">
+        <div className="absolute bottom-full mb-3 w-full backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] rounded-2xl shadow-2xl shadow-black/20 overflow-hidden z-20 max-h-[300px] overflow-y-auto custom-scrollbar">
           {filteredCommands.map((cmd: any) => (
             <button
               key={cmd.id}
               onClick={() => handleCommandSelect(cmd.id)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.08] text-left transition-all duration-150"
             >
-              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-lg shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.04] flex items-center justify-center text-lg shrink-0 shadow-sm">
                 {cmd.icon}
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-medium text-white truncate">{cmd.label.split(' - ')[0]}</div>
-                <div className="text-xs text-white/40 truncate">{cmd.label.split(' - ')[1]}</div>
+                <div className="text-xs text-white/50 truncate">{cmd.label.split(' - ')[1]}</div>
               </div>
             </button>
           ))}
         </div>
       )}
 
-      <div className="relative rounded-xl bg-[#2C2C2C] border border-white/[0.08] hover:border-white/[0.15] focus-within:border-white/[0.2] transition-colors shadow-lg">
+      <div className="relative rounded-2xl backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] hover:border-white/[0.18] focus-within:border-teal-400/30 transition-all duration-200 shadow-2xl shadow-black/20">
 
         {attachment && (
           <div className="mx-4 mt-4">
@@ -381,23 +289,15 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={placeholders[placeholderIndex]}
-            className="w-full bg-transparent text-white placeholder-white/40 px-4 py-3.5 min-h-[52px] max-h-[160px] resize-none focus:outline-none custom-scrollbar text-[15px] leading-normal"
-            style={{ height: '52px' }}
+            className="w-full bg-transparent text-white placeholder-white/35 px-5 py-4 min-h-[56px] max-h-[160px] resize-none focus:outline-none custom-scrollbar text-[15px] leading-relaxed"
+            style={{ height: '56px' }}
             disabled={isLoading}
             {...rest}
           />
 
 
-          <div className="px-3 pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              {/* Quick Preferences Chip */}
-              {onOpenPreferences && (
-                <QuickPreferencesChip 
-                  onOpenFullPreferences={onOpenPreferences}
-                  className="mr-1"
-                />
-              )}
-
+          <div className="px-4 pb-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
               <input
                 type="file"
                 ref={fileInputRef}
@@ -405,78 +305,164 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({ onSend, onStop
                 className="hidden"
               />
 
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="p-1.5 rounded-md text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
-                title="Attach file"
-                disabled={isLoading}
-              >
-                <Paperclip className="w-[18px] h-[18px]" />
-              </button>
-
-              {/* Emoji Picker Button */}
-              <div className="relative">
+              {/* Mode Selector Dropdown */}
+              <div className="relative" ref={modeMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="p-1.5 rounded-md text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
-                  title="Add emoji"
-                  disabled={isLoading}
+                  onClick={() => setShowModeMenu(!showModeMenu)}
+                  disabled={isLoading || !onModeChange}
+                  className={`h-8 pl-2 pr-3 rounded-lg flex items-center gap-2 border transition-all ${showModeMenu
+                    ? 'bg-white/[0.12] border-white/20 text-white'
+                    : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:text-white/90 hover:bg-white/[0.08] hover:border-white/15'
+                    } ${(!onModeChange || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Select Agent Mode"
                 >
-                  <Smile className="w-[18px] h-[18px]" />
+                  <span className={`${currentMode === 'hunter' ? 'text-teal-400' : currentMode === 'strategist' ? 'text-purple-400' : 'text-blue-400'}`}>
+                    {currentModeData.icon}
+                  </span>
+                  <span className="text-xs font-medium">{currentModeData.label}</span>
                 </button>
-                <EmojiPicker
-                  isOpen={showEmojiPicker}
-                  onClose={() => setShowEmojiPicker(false)}
-                  onEmojiSelect={handleEmojiSelect}
-                />
+
+                <AnimatePresence>
+                  {showModeMenu && onModeChange && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="absolute bottom-full left-0 mb-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30"
+                    >
+                      <div className="p-1">
+                        {modes.map(mode => (
+                          <button
+                            key={mode.id}
+                            type="button"
+
+                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all ${currentMode === mode.id
+                              ? 'bg-white/10 text-white'
+                              : 'text-white/50 hover:text-white/90 hover:bg-white/5'
+                              }`}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (onModeChange) {
+                                onModeChange(mode.id);
+                              }
+                              setShowModeMenu(false);
+                            }}
+                          >
+                            <div className={`${currentMode === mode.id ? (mode.id === 'hunter' ? 'text-teal-400' : mode.id === 'strategist' ? 'text-purple-400' : 'text-blue-400') : 'text-current'}`}>
+                              {mode.icon}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-medium">{mode.label}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* Location Button */}
-              {clientLocation?.cityName ? (
+              {/* Divider */}
+              <div className="w-px h-4 bg-white/10 mx-1" />
+
+              {/* Star Actions Menu - Updated Styling */}
+              <div className="relative" ref={actionsMenuRef}>
                 <button
                   type="button"
-                  onClick={handleDetectLocation}
-                  disabled={isLoading || isLocating}
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.06] text-white/70 hover:bg-white/[0.08] hover:text-white/90 transition-colors text-[11px]"
-                  title={`${clientLocation.cityName}`}
+                  onClick={() => {
+                    const newState = !showActionsMenu;
+                    setShowActionsMenu(newState);
+                    trackComposerAction(newState ? 'star_opened' : 'star_closed');
+                  }}
+                  className={`p-2 rounded-lg transition-all ${showActionsMenu
+                    ? 'text-white bg-white/[0.12]'
+                    : 'text-white/40 hover:text-white/80 hover:bg-white/[0.06]'
+                    }`}
+                  disabled={isLoading}
+                  aria-label="Actions menu"
                 >
-                  <MapPin className="w-3 h-3" />
-                  <span className="max-w-[80px] truncate">{clientLocation.cityName}</span>
+                  <Sparkles className="w-4 h-4" />
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleDetectLocation}
-                  className="p-1.5 rounded-md text-white/50 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
-                  title="Detect location"
-                  disabled={isLoading || isLocating}
-                >
-                  <MapPin className={`w-[18px] h-[18px] ${isLocating ? 'animate-pulse' : ''}`} />
-                </button>
-              )}
+
+                {/* Actions Menu Popover */}
+                <AnimatePresence>
+                  {showActionsMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute bottom-full left-0 mb-2 w-56 bg-[#0f0f0f] backdrop-blur-xl rounded-lg border border-white/[0.15] overflow-hidden z-50"
+                      style={{
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6)',
+                      }}
+                    >
+                      {/* Menu Items */}
+                      <div className="py-1">
+                        {/* Attach File */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            fileInputRef.current?.click();
+                            setShowActionsMenu(false);
+                            trackComposerAction('attach_file');
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white/[0.08] transition-colors"
+                        >
+                          <Paperclip className="w-4 h-4 text-white/70" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13px] font-medium text-white">Attach file</div>
+                          </div>
+                        </button>
+
+                        {/* Preferences */}
+                        {onOpenPreferences && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onOpenPreferences();
+                              setShowActionsMenu(false);
+                              trackComposerAction('preferences');
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white/[0.08] transition-colors"
+                          >
+                            <Settings className="w-4 h-4 text-white/70" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[13px] font-medium text-white">Preferences</div>
+                            </div>
+                          </button>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={(!message.trim() && !attachment && !isLoading) || (isLoading && !onStop)}
               className={`p-2 rounded-lg transition-all ${isLoading
-                ? 'bg-white/[0.08] hover:bg-white/[0.12] text-white/80'
+                ? 'bg-white/[0.12] hover:bg-white/[0.16] text-white'
                 : message.trim() || attachment
-                  ? 'bg-white hover:bg-white/90 text-black shadow-sm'
-                  : 'bg-white/[0.06] text-white/30 cursor-not-allowed'
+                  ? 'bg-white text-black hover:bg-white/90'
+                  : 'bg-white/[0.08] text-white/30 cursor-not-allowed'
                 }`}
+              aria-label={isLoading ? 'Stop' : 'Send message'}
             >
               {isLoading && onStop ? (
-                <Square className="w-[18px] h-[18px] fill-current" />
+                <Square className="w-4 h-4" />
               ) : (
-                <ArrowUp className="w-[18px] h-[18px] stroke-[2.5]" />
+                <ArrowUp className="w-4 h-4" />
               )}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 });
+

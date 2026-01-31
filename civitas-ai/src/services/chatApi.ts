@@ -1,6 +1,7 @@
 // FILE: src/services/chatApi.ts
 import { apiLogger } from '@/utils/logger';
 import type { ToolResultRecord } from '../types/toolResults';
+import type { AgentMode } from '../types/chat';
 
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -54,7 +55,8 @@ export async function fetchToolResults(threadId: string, limit = 5): Promise<Too
  */
 export const sendChatMessage = async (
   message: string,
-  conversationHistory: ChatMessage[] = []
+  conversationHistory: ChatMessage[] = [],
+  mode: AgentMode = 'hunter'
 ): Promise<ChatResponse> => {
   const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
   const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
@@ -71,6 +73,7 @@ export const sendChatMessage = async (
       },
       body: JSON.stringify({
         message,
+        mode,
         context: {
           history: conversationHistory,
         }
@@ -201,7 +204,7 @@ export const getOnboardingMessage = async (userName?: string): Promise<Onboardin
     // Return graceful static message if API fails
     const data: OnboardingData = {
       message:
-        "Welcome to ProphetAtlas! 🏠✨\n\nI'm your all-knowing real estate intelligence assistant. Ask me anything about properties, markets, investments, and more!",
+        "Welcome to Vasthu! 🏠✨\n\nI'm your all-knowing real estate intelligence assistant. Ask me anything about properties, markets, investments, and more!",
       example_prompts: [
         { text: 'Find properties in Austin', label: '🏠 Search', category: 'search' },
         { text: 'Analyze Miami market', label: '📊 Market', category: 'market' },

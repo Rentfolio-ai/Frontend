@@ -2,14 +2,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DesktopShell } from '../../layouts/DesktopShell';
+import { LandingPage } from '../../pages/auth/LandingPage';
 import { SignInPage } from '../../pages/auth/SignInPage';
 import { SignUpPage } from '../../pages/auth/SignUpPage';
+import { LocationPermissionModal } from '../modals/LocationPermissionModal';
 
-type AuthView = 'signin' | 'signup';
+type AuthView = 'landing' | 'signin' | 'signup';
 
 export const AuthRouter: React.FC = () => {
   const { user, isLoading, signIn, signUp } = useAuth();
-  const [authView, setAuthView] = useState<AuthView>('signin');
+  const [authView, setAuthView] = useState<AuthView>('landing');
 
   // Show loading spinner while checking auth state
   if (isLoading) {
@@ -26,7 +28,7 @@ export const AuthRouter: React.FC = () => {
             </svg>
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-foreground">ProphetAtlas</h2>
+            <h2 className="text-xl font-semibold text-foreground">Vasthu</h2>
             <p className="text-sm text-foreground/60">Loading...</p>
           </div>
         </div>
@@ -36,15 +38,30 @@ export const AuthRouter: React.FC = () => {
 
   // If user is authenticated, show the main desktop shell
   if (user) {
-    return <DesktopShell />;
+    return (
+      <>
+        <DesktopShell />
+        <LocationPermissionModal />
+      </>
+    );
   }
 
   // If not authenticated, show auth pages
+  if (authView === 'landing') {
+    return (
+      <LandingPage
+        onNavigateToSignIn={() => setAuthView('signin')}
+        onNavigateToSignUp={() => setAuthView('signup')}
+      />
+    );
+  }
+
   if (authView === 'signup') {
     return (
       <SignUpPage
         onSignUp={signUp}
         onNavigateToSignIn={() => setAuthView('signin')}
+        onNavigateToLanding={() => setAuthView('landing')}
       />
     );
   }
@@ -53,6 +70,7 @@ export const AuthRouter: React.FC = () => {
     <SignInPage
       onSignIn={signIn}
       onNavigateToSignUp={() => setAuthView('signup')}
+      onNavigateToLanding={() => setAuthView('landing')}
     />
   );
 };

@@ -12,6 +12,7 @@ import {
   ValuationCard,
 
 } from './tool-cards';
+import { SimplePropertyResults } from './tool-cards/SimplePropertyResults';
 import type { DealAnalyzerData } from './tool-cards';
 import type { ValuationData } from './tool-cards';
 import type { VisionAnalysisData } from './tool-cards';
@@ -133,7 +134,7 @@ type ToolResult =
 interface ToolMessageProps {
   tool: ToolResult;
   timestamp: string;
-  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy) => void;
+  onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
   // Property bookmark support
   bookmarks?: BookmarkedProperty[];
   onToggleBookmark?: (property: ScoutedProperty) => void;
@@ -193,12 +194,32 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         return null;
       case 'scout_properties':
       case 'Property Scout':
-        // Scout properties tool - just show a simple message for now
+        // Render properties using SimplePropertyResults - NO wrapper
+        const properties = tool.data?.properties || [];
+        const location = tool.data?.market_context?.location || '';
+        const priceRange = tool.data?.market_context?.price_range || '';
+        
+        if (properties.length === 0) {
+          return null;
+        }
+        
+        // Return directly with no wrapper div
         return (
-          <div className="text-sm text-foreground/80">
-            Property search completed. Results are shown in the chat.
-          </div>
+          <SimplePropertyResults 
+            properties={properties} 
+            location={location}
+            priceRange={priceRange}
+            onOpenDealAnalyzer={onOpenDealAnalyzer}
+          />
         );
+      case 'generic':
+      case 'property_comparison_table':
+      case 'generated_report':
+      case 'portfolio_analysis':
+      case 'cashflow_timeseries':
+      case 'report':
+        // Generic/unsupported tools - don't render anything, let the AI message handle it
+        return null;
       default: {
         // This ensures exhaustiveness checking at compile time, properly scoped in a block
         const exhaustiveCheck = (x: never): never => {
@@ -209,6 +230,11 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
     }
   };
 
+  // For property scout tools, return content directly with NO Card wrapper
+  if (tool.kind === 'scout_properties' || tool.kind === 'Property Scout') {
+    return <>{renderToolContent()}</>;
+  }
+  
   return (
     <div className="max-w-chat mx-auto animate-slide-in">
       <Card

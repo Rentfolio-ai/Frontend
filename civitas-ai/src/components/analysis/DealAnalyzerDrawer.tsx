@@ -36,7 +36,7 @@ export const DealAnalyzerDrawer: React.FC<DealAnalyzerDrawerProps> = ({
         onClose();
       }
     };
-    
+
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
@@ -57,53 +57,72 @@ export const DealAnalyzerDrawer: React.FC<DealAnalyzerDrawerProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Subtle dark overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
             onClick={onClose}
           />
 
-          {/* Drawer */}
+          {/* Drawer - Clean, solid background */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{
+              type: 'spring',
+              damping: 40, // Reduced bounce
+              stiffness: 400 // Faster snap
+            }}
             className={cn(
-              'fixed top-0 right-0 h-full bg-background shadow-2xl z-50 flex flex-col',
-              isMaximized ? 'w-full' : 'w-full max-w-4xl'
+              'fixed top-0 right-0 h-full z-50 flex flex-col',
+              'bg-[#0F1115] border-l border-white/10', // Dark solid bg, subtle border
+              'shadow-2xl',
+              isMaximized ? 'w-full' : 'w-full max-w-6xl'
             )}
           >
-            {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border/50 bg-muted/30">
+            {/* Header - Minimalist */}
+            <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 bg-[#0F1115] border-b border-white/5">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold text-white tracking-tight">Deal Analysis</h2>
+                  {propertyAddress && (
+                    <>
+                      <span className="text-white/20">|</span>
+                      <p className="text-sm text-white/60 font-medium">{propertyAddress}</p>
+                    </>
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setIsMaximized(!isMaximized)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                  className="p-2 rounded-md hover:bg-white/5 text-white/40 hover:text-white transition-colors"
                   title={isMaximized ? 'Restore' : 'Maximize'}
                 >
                   {isMaximized ? (
-                    <Minimize2 className="w-4 h-4 text-foreground/60" />
+                    <Minimize2 className="w-4 h-4" />
                   ) : (
-                    <Maximize2 className="w-4 h-4 text-foreground/60" />
+                    <Maximize2 className="w-4 h-4" />
                   )}
                 </button>
+
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-md hover:bg-red-500/10 text-white/40 hover:text-red-400 transition-colors"
+                  title="Close (Esc)"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg hover:bg-muted transition-colors"
-                title="Close"
-              >
-                <X className="w-5 h-5 text-foreground/60" />
-              </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-hidden">
+            {/* Content - Solid background */}
+            <div className="flex-1 overflow-hidden bg-[#0F1115]">
               <DealAnalyzer
                 propertyId={propertyId}
                 initialPurchasePrice={initialPurchasePrice}

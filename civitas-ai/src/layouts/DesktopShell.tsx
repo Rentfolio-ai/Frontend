@@ -39,6 +39,16 @@ import { OnboardingTour } from '../components/onboarding';
 import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
 import { FilesPage } from '../components/files/FilesPage';
+import { SettingsPage } from '../components/pages/SettingsPage';
+import { HelpPage } from '../components/pages/HelpPage';
+import { UpgradePage } from '../components/pages/UpgradePage';
+import { AboutPage } from '../components/pages/AboutPage';
+import { ProfilePage } from '../components/pages/ProfilePage';
+import { NotificationsPage } from '../components/pages/NotificationsPage';
+import { AppearancePage } from '../components/pages/AppearancePage';
+import { LanguageRegionPage } from '../components/pages/LanguageRegionPage';
+import { InvestmentPreferencesPage } from '../components/pages/InvestmentPreferencesPage';
+import { DealAnalyzerPage } from '../components/pages/DealAnalyzerPage';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -97,6 +107,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Thinking state
     thinking,
     completedTools,
+    reasoningSteps, // 🚀 NEW: Real-time reasoning steps
     handleRegenerate,
     activeProperty,
     handleViewPropertyDetails,
@@ -116,6 +127,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     clearComparisonDock,
     startComparison,
     togglePanePin,
+    // Temporary chat
+    isCurrentChatTemporary,
+    setIsCurrentChatTemporary,
+    // Agent Mode
+    currentMode,
+    setCurrentMode,
   } = useDesktopShell();
 
   console.log('[DesktopShell] Render state:', {
@@ -126,6 +143,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   });
 
   const { selectedState } = useThemeState();
+
+  // Track scroll direction for hamburger button visibility
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+
+  // Toggle temporary chat mode
+  const handleToggleTemporary = useCallback(() => {
+    setIsCurrentChatTemporary(prev => !prev);
+  }, [setIsCurrentChatTemporary]);
 
   // Preferences hook removed as settings tab is removed
   // const {
@@ -257,7 +282,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
 
   return (
-    <div className="h-screen w-full relative overflow-hidden dark bg-background">
+    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: '#334155' }}>
       {/* Simple Left Sidebar with integrated chat history */}
       <SimpleSidebar
         onNewChat={() => {
@@ -267,13 +292,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         onChatClick={() => setActiveTab('chat')}
         onAnalyticsClick={() => setActiveTab('portfolio')}
         onReportsClick={() => setActiveTab('reports')}
-        onSearchClick={() => setIsSearchOpen(true)}
-        onFilesClick={() => setActiveTab('files')}
+        onSettingsClick={() => setActiveTab('settings')}
+        onHelpClick={() => setActiveTab('help')}
+        onUpgradeClick={() => setActiveTab('upgrade')}
+        onAboutClick={() => setActiveTab('about')}
         chatHistory={chatHistory}
         activeChatId={activeChatId}
         onLoadChat={handleLoadChat}
         onDeleteChat={handleDeleteChat}
         onPinChat={handlePinChat}
+        onArchiveChat={handleArchiveChat}
+        hideHamburger={activeTab === 'chat' && isScrollingDown}
+        isCurrentChatTemporary={isCurrentChatTemporary}
       />
 
       {/* Content layer with left padding for sidebar */}
@@ -283,41 +313,58 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         <div className="flex-1 flex flex-col overflow-hidden relative">
           {/* Tab Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            {activeTab === 'chat' && (
-              <CommandCenterChatView
-                messages={messages}
-                isLoading={isLoading}
-                userName={user?.name?.split(' ')[0]}
-                selectedState={selectedState}
-                onSendMessage={sendMessageWithStream}
-                onAction={handleAction}
-                onAttach={file => setAttachment(file)}
-                attachment={attachment}
-                onClearAttachment={() => setAttachment(null)}
-                onOpenDealAnalyzer={openDealAnalyzer}
-                bookmarks={bookmarks}
-                onToggleBookmark={handleToggleBookmark}
-                onNavigateToReports={handleNavigateToReportsAndRefresh}
-                onOpenSidebar={() => setIsSidebarOpen(true)}
-                onNewChat={handleNewChat}
-                thinking={thinking}
-                completedTools={completedTools}
-                onRefresh={handleRegenerate}
-                onViewDetails={handleViewPropertyDetails}
-                onCancel={cancelStream}
-                error={streamError}
-                onEditMessage={handleEditMessage}
-                onNavigateBranch={handleNavigateBranch}
-                // Command Center props
-                commandCenter={commandCenter}
-                selectProperty={selectProperty}
-                addToComparisonDock={addToComparisonDock}
-                removeFromComparisonDock={removeFromComparisonDock}
-                clearComparisonDock={clearComparisonDock}
-                startComparison={startComparison}
-                togglePanePin={togglePanePin}
-              />
-            )}
+            {activeTab === 'chat' && (() => {
+              const activeChat = chatHistory.find(c => c.id === activeChatId);
+              return (
+                <CommandCenterChatView
+                  messages={messages}
+                  isLoading={isLoading}
+                  userName={user?.name?.split(' ')[0]}
+                  selectedState={selectedState}
+                  onSendMessage={sendMessageWithStream}
+                  onAction={handleAction}
+                  onAttach={file => setAttachment(file)}
+                  attachment={attachment}
+                  onClearAttachment={() => setAttachment(null)}
+                  onOpenDealAnalyzer={openDealAnalyzer}
+                  bookmarks={bookmarks}
+                  onToggleBookmark={handleToggleBookmark}
+                  onNavigateToReports={handleNavigateToReportsAndRefresh}
+                  onNavigateToInvestmentPreferences={() => setActiveTab('investment_preferences')}
+                  onOpenSidebar={() => setIsSidebarOpen(true)}
+                  onNewChat={handleNewChat}
+                  thinking={thinking}
+                  completedTools={completedTools}
+                  reasoningSteps={reasoningSteps} // 🚀 NEW: Real-time reasoning steps
+                  onRefresh={handleRegenerate}
+                  onViewDetails={handleViewPropertyDetails}
+                  onCancel={cancelStream}
+                  error={streamError}
+                  onEditMessage={handleEditMessage}
+                  onNavigateBranch={handleNavigateBranch}
+                  // Chat management props
+                  chatTitle={activeChat?.title}
+                  chatId={activeChatId || undefined}
+                  onPinChat={(chatId) => handlePinChat(chatId)}
+                  onArchiveChat={(chatId) => handleArchiveChat(chatId)}
+                  onDeleteChat={(chatId) => handleDeleteChat(chatId)}
+                  isPinned={activeChat?.isPinned}
+                  onScrollDirectionChange={setIsScrollingDown}
+                  isTemporary={isCurrentChatTemporary}
+                  onToggleTemporary={handleToggleTemporary}
+                  // Command Center props
+                  commandCenter={commandCenter}
+                  selectProperty={selectProperty}
+                  addToComparisonDock={addToComparisonDock}
+                  removeFromComparisonDock={removeFromComparisonDock}
+                  clearComparisonDock={clearComparisonDock}
+                  startComparison={startComparison}
+                  togglePanePin={togglePanePin}
+                  currentMode={currentMode}
+                  onModeChange={setCurrentMode}
+                />
+              );
+            })()}
             {activeTab === 'reports' && (
               <ReportsPage />
             )}
@@ -327,12 +374,47 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             {activeTab === 'files' && (
               <FilesPage />
             )}
+            {activeTab === 'settings' && (
+              <SettingsPage
+                onBack={() => setActiveTab('chat')}
+                onNavigateToProfile={() => setActiveTab('profile')}
+                onNavigateToNotifications={() => setActiveTab('notifications')}
+                onNavigateToAppearance={() => setActiveTab('appearance')}
+                onNavigateToLanguageRegion={() => setActiveTab('language_region')}
+                onNavigateToInvestmentPreferences={() => setActiveTab('investment_preferences')}
+              />
+            )}
+            {activeTab === 'profile' && (
+              <ProfilePage onBack={() => setActiveTab('settings')} />
+            )}
+            {activeTab === 'notifications' && (
+              <NotificationsPage onBack={() => setActiveTab('settings')} />
+            )}
+            {activeTab === 'appearance' && (
+              <AppearancePage onBack={() => setActiveTab('settings')} />
+            )}
+            {activeTab === 'language_region' && (
+              <LanguageRegionPage onBack={() => setActiveTab('settings')} />
+            )}
+            {activeTab === 'investment_preferences' && (
+              <InvestmentPreferencesPage onBack={() => setActiveTab('settings')} />
+            )}
+            {activeTab === 'help' && (
+              <HelpPage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'upgrade' && (
+              <UpgradePage onBack={() => setActiveTab('chat')} />
+            )}
+            {activeTab === 'about' && (
+              <AboutPage onBack={() => setActiveTab('chat')} />
+            )}
             {activeTab === 'analysis' && activeProperty && (
               <PropertyAnalysisPage
                 property={activeProperty}
                 onBack={() => setActiveTab('chat')}
               />
             )}
+            {/* Deal Analyzer now only uses Drawer - no duplicate page */}
           </div>
         </div>
 

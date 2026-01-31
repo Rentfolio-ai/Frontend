@@ -46,6 +46,7 @@ const DEFAULT_TITLES: Record<string, string> = {
   // Backend tool names
   scout_properties: 'Property Search Results',
   compare_properties: 'Property Comparison',
+  request_financial_analysis: 'P&L Analysis',               // Current financial analysis tool
   request_pnl_calculation: 'P&L Analysis (Validated)',      // New validated PNL tool
   request_flip_analysis: 'Flip Analysis',                   // New dedicated Flip tool
   calculate_pnl_tool: 'P&L Analysis',                       // Legacy PNL tool
@@ -116,6 +117,7 @@ const deriveKind = (rawKind?: string, toolName?: string): ToolCard['kind'] | und
     case 'pnl':
     case 'pnl_analysis':
     case 'pnl_calculation':
+    case 'request_financial_analysis':   // Current financial analysis tool
     case 'request_pnl_calculation':      // New validated PNL tool
     case 'request_flip_analysis':        // New dedicated Flip tool
     case 'calculate_pnl_tool':           // Legacy PNL tool

@@ -8,6 +8,7 @@ import { PreferencesModalSimplified } from '../PreferencesModalSimplified';
 import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
 
+
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
@@ -18,10 +19,13 @@ import { checkHealth } from '../../services/agentsApi';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
-import { SuggestionChips } from '../chat/SuggestionChips';
+
 import { ScrollToBottomButton } from '../chat/ScrollToBottomButton';
 import { InConversationSearch } from '../chat/InConversationSearch';
+import { motion, AnimatePresence } from 'framer-motion';
 import { KeyboardShortcutsModal } from '../chat/KeyboardShortcutsModal';
+
+import type { AgentMode } from '../../types/chat';
 
 
 interface ChatTabViewProps {
@@ -51,6 +55,9 @@ interface ChatTabViewProps {
   onRetry?: () => void;
   onEditMessage?: (id: string, newContent: string) => void;
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
+  chatTitle?: string;
+  currentMode: AgentMode;
+  onModeChange: (mode: AgentMode) => void;
 }
 
 // Context-aware greeting based on user preferences and activity
@@ -203,9 +210,13 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onRetry,
   onEditMessage,
   onNavigateBranch,
+  chatTitle,
+  currentMode,
+  onModeChange
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const [showPreferences, setShowPreferences] = useState(false);
+
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
@@ -218,6 +229,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const lastProcessedMessageId = useRef<string | null>(null);
 
   const prefsStore = usePreferencesStore();
+  const showEmptyState = messages.length === 0 && !isLoading;
 
   console.log('[ChatTabView] Render started', {
     isLoading,
@@ -401,10 +413,14 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     }
   };
 
-  const showEmptyState = messages.length === 0 && !isLoading;
+
+
 
   return (
     <div className="h-full flex flex-col relative">
+
+
+
 
 
       {/* Header buttons removed per user request */}
@@ -442,26 +458,16 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   onClearAttachment={onClearAttachment}
                   onOpenPreferences={() => setShowPreferences(true)}
                   aria-label="Chat input"
+                  currentMode={currentMode}
+                  onModeChange={onModeChange}
                 />
               </div>
 
-              {/* Suggestion Cards - Horizontal Row (Notion-style) */}
+              {/* Suggestion Chips - Pill Shaped */}
               {showSuggestionChips && (
-                <div className="space-y-2.5 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between px-1">
-                    <div className="text-xs text-white/40 font-medium">Get started</div>
-                    <button 
-                      onClick={() => setShowSuggestionChips(false)}
-                      className="text-white/30 hover:text-white/60 hover:bg-white/[0.05] rounded p-1 transition-all"
-                      title="Hide suggestions"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
-                    {suggestions.slice(0, 4).map((suggestion, index) => {
+                <div className="animate-in fade-in duration-200">
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {suggestions.slice(0, 3).map((suggestion, index) => {
                       const isObject = typeof suggestion !== 'string';
                       const label = isObject ? suggestion.label : suggestion;
                       const query = isObject ? suggestion.query : suggestion;
@@ -475,17 +481,23 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                         <button
                           key={key}
                           onClick={() => handleSendMessage(query)}
-                          className="group flex-1 min-w-[130px] max-w-[160px] flex flex-col items-start gap-2.5 p-3 rounded-lg bg-gradient-to-br from-teal-500/8 to-cyan-500/8 group-hover:from-teal-500/12 group-hover:to-cyan-500/12 border border-teal-500/15 hover:border-teal-500/30 transition-all"
+                          className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all duration-200"
                         >
-                          <div className="w-8 h-8 rounded-md bg-teal-500/10 group-hover:bg-teal-500/15 group-hover:scale-110 flex items-center justify-center text-xl transition-all">
-                            {icon}
-                          </div>
-                          <div className="text-xs text-white/75 group-hover:text-white/95 font-medium leading-snug text-left line-clamp-2">
-                            {label}
-                          </div>
+                          <span className="text-sm opacity-70 group-hover:scale-110 transition-transform">{icon}</span>
+                          <span className="text-xs text-white/70 group-hover:text-white/95 font-medium">{label}</span>
                         </button>
                       );
                     })}
+                    {/* Close button for suggestions */}
+                    <button
+                      onClick={() => setShowSuggestionChips(false)}
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-white/30 hover:text-white/70 transition-all"
+                      title="Hide suggestions"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}
@@ -495,40 +507,40 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           /* Chat Messages - Compact centered */
           <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
             <div className="max-w-[800px] mx-auto px-4">
-            {/* In-Conversation Search */}
-            <InConversationSearch
-              isOpen={showInConvoSearch}
-              onClose={() => setShowInConvoSearch(false)}
-              messages={messages}
-              onNavigateToMatch={handleNavigateToSearchMatch}
-            />
+              {/* In-Conversation Search */}
+              <InConversationSearch
+                isOpen={showInConvoSearch}
+                onClose={() => setShowInConvoSearch(false)}
+                messages={messages}
+                onNavigateToMatch={handleNavigateToSearchMatch}
+              />
 
-            <MessageList
-              messages={messages}
-              isLoading={isLoading}
-              onAction={onAction}
-              agentStatus={agentStatus}
-              onOpenDealAnalyzer={onOpenDealAnalyzer}
-              bookmarks={bookmarks}
-              onToggleBookmark={onToggleBookmark}
-              onNavigateToReports={onNavigateToReports}
-              thinking={thinking}
-              completedTools={completedTools}
-              userName={userName}
-              onRefresh={onRefresh}
-              onViewDetails={onViewDetails}
-              onEdit={onEditMessage}
-              onCancel={onCancel}
-              error={error}
-              onRetry={onRetry}
-              onOpenPreferences={() => setShowPreferences(true)}
-              isWideMode={prefsStore.isWideMode}
-              onNavigateBranch={onNavigateBranch}
-              onSuggestionSelect={handleSendMessage}
-            />
+              <MessageList
+                messages={messages}
+                isLoading={isLoading}
+                onAction={onAction}
+                agentStatus={agentStatus}
+                onOpenDealAnalyzer={onOpenDealAnalyzer}
+                bookmarks={bookmarks}
+                onToggleBookmark={onToggleBookmark}
+                onNavigateToReports={onNavigateToReports}
+                thinking={thinking}
+                completedTools={completedTools}
+                userName={userName}
+                onRefresh={onRefresh}
+                onViewDetails={onViewDetails}
+                onEdit={onEditMessage}
+                onCancel={onCancel}
+                error={error}
+                onRetry={onRetry}
+                onOpenPreferences={() => setShowPreferences(true)}
+                isWideMode={prefsStore.isWideMode}
+                onNavigateBranch={onNavigateBranch}
+                onSuggestionSelect={handleSendMessage}
+              />
 
-            {/* Scroll to Bottom Button */}
-            <ScrollToBottomButton containerRef={messageContainerRef} />
+              {/* Scroll to Bottom Button */}
+              <ScrollToBottomButton containerRef={messageContainerRef} />
             </div>
           </div>
         )}
@@ -537,7 +549,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       {/* Composer - Only show when NOT empty state */}
       {!showEmptyState && (
         <div className="flex-shrink-0 relative">
-          <div className="absolute -top-12 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+
 
           <div className="px-4 md:px-6 pb-4 pt-3 relative z-20">
             <div className={`w-full ${prefsStore.isWideMode ? 'max-w-3xl' : 'max-w-[680px]'} mx-auto transition-all duration-200`}>
@@ -550,6 +562,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 onClearAttachment={onClearAttachment}
                 onOpenPreferences={() => setShowPreferences(true)}
                 aria-label="Chat input"
+                currentMode={currentMode}
+                onModeChange={onModeChange}
               />
 
               {/* Minimal disclaimer */}

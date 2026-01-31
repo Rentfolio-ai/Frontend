@@ -26,7 +26,7 @@ const mockMessages: Message[] = [
   {
     id: '1',
     type: 'assistant',
-    content: 'Hello! I\'m ProphetAtlas, your all-knowing real estate intelligence assistant. I can help you analyze properties, calculate ROI, provide market insights, and generate comprehensive reports. What would you like to explore today?',
+    content: 'Hello! I\'m Vasthu, your all-knowing real estate intelligence assistant. I can help you analyze properties, calculate ROI, provide market insights, and generate comprehensive reports. What would you like to explore today?',
     timestamp: new Date(Date.now() - 300000),
   },
   {

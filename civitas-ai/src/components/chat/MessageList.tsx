@@ -23,6 +23,7 @@ interface MessageListProps {
   // Thinking state props
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
+  reasoningSteps?: any[]; // 🚀 NEW: Real-time reasoning steps
   userName?: string;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
@@ -40,6 +41,7 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({
   messages,
+  reasoningSteps = [], // 🚀 NEW: Real-time reasoning steps
   isLoading = false,
   onAction,
   agentStatus = 'online',
@@ -86,6 +88,17 @@ export const MessageList: React.FC<MessageListProps> = ({
   const showThinkingState = isLoading;
   const lastMessage = messages[messages.length - 1];
   const isLastMessageAssistant = lastMessage?.role === 'assistant';
+  const isStreaming = lastMessage?.isStreaming;
+  
+  // Debug logging with timestamp
+  console.log(`[MessageList] ${new Date().toLocaleTimeString()} State:`, { 
+    isLoading, 
+    showThinkingState, 
+    hasThinking: !!thinking,
+    thinkingStatus: thinking?.status,
+    isStreaming,
+    willRender: showThinkingState && !isStreaming
+  });
 
   // Find the last user message for context-aware thinking
   const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
@@ -102,7 +115,7 @@ export const MessageList: React.FC<MessageListProps> = ({
       className="h-full overflow-y-auto chat-scroll relative"
       onScroll={handleScroll}
     >
-      <div className={`${isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto py-8 px-4 md:px-6 space-y-12 transition-all duration-300`}>
+      <div className={`${isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto py-8 px-4 md:px-6 space-y-6 transition-all duration-300`}>
         {visibleMessages.map((message, index) => {
           const isLast = index === visibleMessages.length - 1;
           // Pass reasoning steps only to the last message if it's from assistant
@@ -130,16 +143,17 @@ export const MessageList: React.FC<MessageListProps> = ({
           );
         })}
 
-        {/* Thinking State - shown during loading */}
+        {/* Thinking State - Always show when loading, even during early streaming */}
         {showThinkingState && (
-          <div className="flex gap-3 animate-fade-in">
-            <div className="flex-shrink-0 pt-1">
+          <div className="flex gap-3 items-start animate-fade-in mb-4">
+            <div className="flex-shrink-0">
               <AgentAvatar size="md" status={agentStatus} />
             </div>
-            <div className="flex-1 max-w-[75%]">
+            <div className="flex-1 pt-1">
               <ThinkingIndicator
-                thinking={thinking || { status: 'processing' }}
+                thinking={thinking || { status: 'Thinking' }}
                 completedTools={completedTools}
+                reasoningSteps={reasoningSteps} // 🚀 NEW: Pass reasoning steps
                 userQuery={lastUserMessage?.content}
                 onCancel={onCancel}
                 error={error}

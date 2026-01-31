@@ -19,11 +19,7 @@ const DEFAULT_THEME = { primary: '#3b82f6', secondary: '#2563eb', gradient: 'lin
 export type StateTheme = keyof typeof STATE_THEMES;
 
 export function useThemeState() {
-  const [theme] = useState<'light' | 'dark'>(() => {
-    return typeof window !== 'undefined' && window.localStorage.getItem('civitas-theme') === 'dark' 
-      ? 'dark' 
-      : 'light';
-  });
+  const [theme] = useState<'light' | 'dark'>('light'); // Force light theme
 
   const [selectedState, setSelectedState] = useState<string>(() => {
     const saved = typeof window !== 'undefined' 
@@ -33,12 +29,9 @@ export function useThemeState() {
   });
 
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    window.localStorage.setItem('civitas-theme', theme);
+    // Always remove dark class for light theme
+    document.documentElement.classList.remove('dark');
+    window.localStorage.setItem('civitas-theme', 'light');
   }, [theme]);
 
   useEffect(() => {

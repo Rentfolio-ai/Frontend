@@ -5,10 +5,33 @@
  */
 
 import React from 'react';
-import { Settings, HelpCircle, Zap, Info, LogOut, ChevronRight } from 'lucide-react';
+import { Settings, HelpCircle, Info, LogOut, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
+
+// Custom Billing Icon with modern design
+const BillingIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+        className={className}
+    >
+        {/* Credit card base */}
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+        {/* Sparkle accents */}
+        <circle cx="18" cy="15" r="0.5" fill="currentColor" />
+        <circle cx="6" cy="15" r="0.5" fill="currentColor" />
+        {/* Card chip/detail */}
+        <rect x="6" y="13" width="3" height="2" rx="0.5" />
+    </svg>
+);
 
 interface ProfileMenuModalProps {
     isOpen: boolean;
@@ -87,8 +110,8 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                             <div className="h-px bg-white/10 my-1 mx-2" />
 
                             <MenuItem
-                                icon={Zap}
-                                label="Upgrade plan"
+                                icon={BillingIcon}
+                                label="Billing & Subscriptions"
                                 badge={!isPremium ? "PRO" : undefined}
                                 onClick={() => {
                                     onUpgradeClick();

@@ -5,13 +5,18 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { StreamEvent, CompletedTool, StreamState } from '../types/stream';
+import type { AgentMode } from '../types/chat';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
 // Use relative URLs in dev (proxied by Vite), absolute in prod
-const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) 
-  ? envApiUrl 
+const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http'))
+  ? envApiUrl
   : (import.meta.env.DEV ? '' : 'http://localhost:8001');
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
+// Debug: Log API key status (only first 10 chars for security)
+console.log('[useStreamChat] API Key loaded:', CIVITAS_API_KEY ? `${CIVITAS_API_KEY.substring(0, 10)}...` : 'MISSING');
+
 
 interface UseStreamChatOptions {
   onContent?: (content: string) => void;
@@ -142,13 +147,65 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
         }));
         options.onError?.(event.error);
         break;
+
+      // 🚀 NEW: Handle citations from backend
+      case 'citations':
+        // Citations will be passed to MessageBubble via props
+        // Store in state for current message
+        setStreamState(prev => ({
+          ...prev,
+          citations: event.citations,
+        }));
+        break;
+
+      // 🚀 NEW: Handle reasoning steps
+      case 'reasoning_step':
+        setStreamState(prev => ({
+          ...prev,
+          reasoningSteps: [...(prev.reasoningSteps || []), event.step],
+        }));
+        break;
+
+      // 🚀 NEW: Handle confidence scores
+      case 'confidence':
+        setStreamState(prev => ({
+          ...prev,
+          confidence: event.score,
+        }));
+        break;
+
+      // 🚀 NEW: Handle data sources
+      case 'data_sources':
+        setStreamState(prev => ({
+          ...prev,
+          dataSources: event.sources,
+        }));
+        break;
+
+      case 'clarification_request':
+        setStreamState(prev => ({
+          ...prev,
+          clarificationRequest: event.data,
+        }));
+        break;
+
+      case 'clear_content':
+        // Reset content - used when agent retries generation (e.g. after hallucination check)
+        contentRef.current = '';
+        setStreamState(prev => ({
+          ...prev,
+          content: '',
+        }));
+        options.onContent?.('');
+        break;
     }
   }, [options, streamState.threadId]);
 
   const sendMessage = useCallback(async (
     message: string,
     threadId?: string,
-    userContext?: { name?: string; onboarding_completed?: boolean }
+    userContext?: { name?: string; onboarding_completed?: boolean },
+    mode?: AgentMode
   ) => {
     // Cancel any existing stream
     if (abortControllerRef.current) {
@@ -170,18 +227,27 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
       //     : undefined
       // );
 
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+      };
+
+      // Debug: Log headers being sent (mask API key)
+      console.log('[useStreamChat] Request headers:', {
+        ...headers,
+        'X-API-Key': headers['X-API-Key'] ? `${headers['X-API-Key'].substring(0, 10)}...` : 'MISSING'
+      });
+
       const response = await fetch(`${CIVITAS_API_BASE}/api/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
-        },
+        headers,
         body: JSON.stringify({
           message,
           thread_id: effectiveThreadId,
           temperature: 0.2,
           max_tokens: null,
           context: userContext ? { user_context: userContext } : undefined,
+          mode: mode || 'hunter',
         }),
         signal: abortControllerRef.current.signal,
       });

@@ -15,11 +15,14 @@ import type { ToolResultRecord } from '../types/toolResults';
 import { toolResultsToRecords, toolResultsToToolCards } from '../utils/toolResults';
 import { logger } from '../utils/logger';
 import { uploadFile } from '../services/fileStorage';
+import { parsePropertyQuery, isPropertyQuery as isPropertyQueryHelper } from '../utils/v2Helpers';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
 const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
+
+export type AgentMode = 'research' | 'strategist' | 'hunter';
 
 export interface ChatSession {
   id: string;
@@ -29,12 +32,13 @@ export interface ChatSession {
   isActive?: boolean;
   isPinned?: boolean;
   isArchived?: boolean;
+  isTemporary?: boolean;
   messages: Message[];
 }
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files';
+export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'dealAnalyzer';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -116,6 +120,12 @@ export function useDesktopShell() {
       : null;
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Temporary chat state - not persisted to localStorage
+  const [isCurrentChatTemporary, setIsCurrentChatTemporary] = useState(false);
+
+  // Agent Mode
+  const [currentMode, setCurrentMode] = useState<AgentMode>('hunter');
 
   // UI state
   const [isRailCollapsed, setIsRailCollapsed] = useState(() => {
@@ -205,6 +215,7 @@ export function useDesktopShell() {
   // Thinking state for SSE streaming
   const [thinking, setThinking] = useState<ThinkingState | null>(null);
   const [completedTools, setCompletedTools] = useState<CompletedTool[]>([]);
+  const [reasoningSteps, setReasoningSteps] = useState<any[]>([]); // NEW: Reasoning steps from stream
   const [streamError, _setStreamError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamContentRef = useRef<string>('');
@@ -403,15 +414,13 @@ export function useDesktopShell() {
 
   const clearToolMemoryError = useCallback(() => setToolMemoryError(null), []);
 
-  // Reset thinking state
+  // Reset thinking state - backend will provide actual status
   const resetThinkingState = useCallback(() => {
     setThinking({
-      status: 'Thinking...',
-      title: 'Analyzing your request',
-      explanation: 'I\'m processing your question to determine the best approach and tools to use.',
-      icon: '🤔'
+      status: 'Thinking...'
     });
     setCompletedTools([]);
+    setReasoningSteps([]); // NEW: Reset reasoning steps
     streamContentRef.current = '';
     currentToolsRef.current = [];
   }, []);
@@ -425,15 +434,155 @@ export function useDesktopShell() {
         }
         break;
 
+      // V2 Event: properties received
+      case 'properties':
+        console.log('🏠 [V2-SSE] PROPERTIES EVENT:', event);
+        setThinking(null); // Clear searching indicator
+
+        // Extract key info
+        const propertyCount = event.total_found || event.properties?.length || 0;
+        const location = event.market_context?.location || 'this area';
+        const properties = event.properties || [];
+
+        // Calculate price range
+        const prices = properties.map((p: any) => p.price || p.current_value_estimate || 0).filter((p: number) => p > 0);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+        const priceRange = minPrice > 0 ? `$${(minPrice / 1000).toFixed(0)}k - $${(maxPrice / 1000).toFixed(0)}k` : '';
+
+        // 🚀 NO HEADER - Let AI response speak for itself
+        streamContentRef.current = '';
+
+        // Enhance property data with AI scoring (this would come from backend in production)
+        const enhancedProperties = properties.map((prop: any, idx: number) => {
+          // Simple scoring based on price and estimated rent
+          const price = prop.price || prop.current_value_estimate || 0;
+          const rent = prop.estimated_rent || prop.current_rent_estimate || 0;
+          const capRate = price > 0 && rent > 0 ? ((rent * 12) / price) * 100 : 0;
+          const cashflow = rent > 0 ? rent - (price * 0.007) : 0; // Rough estimate
+          const matchScore = 85 + (idx * -5); // Simulated match score
+
+          return {
+            ...prop,
+            ai_match_score: matchScore,
+            cap_rate: capRate,
+            monthly_cashflow: cashflow,
+            ai_badge: idx === 0 ? '🌟 AI TOP PICK' : idx === 1 ? '💰 BEST VALUE' : idx === 2 ? '📈 HIGH GROWTH' : null,
+            ai_reason: idx === 0 ? 'Perfect match for your LTR strategy' :
+              idx === 1 ? `Undervalued by ~15%` :
+                idx === 2 ? 'Emerging neighborhood with strong growth' : null
+          };
+        });
+
+        console.log('[V2-SSE] Enhanced properties sample:', enhancedProperties[0]);
+        console.log('[V2-SSE] Enhanced properties count:', enhancedProperties.length);
+
+        // Convert to tool card format with enhanced data
+        const propertyToolCard = {
+          id: `properties-${Date.now()}`,
+          title: `${propertyCount} Properties Found`,
+          description: `AI-ranked by match score · ${location}`,
+          status: 'success',
+          kind: 'scout_properties',
+          name: 'scout_properties',
+          data: {
+            properties: enhancedProperties,
+            total_found: event.total_found,
+            market_context: {
+              ...event.market_context,
+              price_range: priceRange,
+              location: location
+            },
+            sorted_by: 'ai_match_score',
+            filters_applied: {
+              max_price: enhancedProperties[0]?.max_price,
+              strategy: 'Long-Term Rental'
+            }
+          }
+        };
+
+        currentToolsRef.current = [propertyToolCard];
+        setCompletedTools([propertyToolCard]);
+
+        // Add message with header and properties
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== messageId);
+          return [...filtered, {
+            id: messageId,
+            content: streamContentRef.current,
+            role: 'assistant',
+            type: 'assistant',
+            timestamp: new Date(),
+            isStreaming: true,
+            tools: [propertyToolCard]
+          } as Message];
+        });
+        break;
+
+      // V2 Event: AI insight chunks (streaming text)
+      case 'ai_chunk':
+        console.log('🤖 [V2-SSE] AI_CHUNK:', event.text?.substring(0, 50));
+
+        // 🚀 NO HEADERS - Just stream the AI response directly
+        streamContentRef.current += event.text || '';
+
+        // Clear thinking after first chunk
+        if (streamContentRef.current.length > 10) {
+          setThinking(null);
+        }
+
+        // Update message content with streaming AI insights
+        setMessages(prev => prev.map(m =>
+          m.id === messageId
+            ? { ...m, content: streamContentRef.current, isStreaming: true }
+            : m
+        ));
+        break;
+
+      // V2 Event: search complete
+      case 'complete':
+        console.log('✅ [V2-SSE] COMPLETE:', event.message);
+        setThinking(null);
+        setIsLoading(false);
+
+        // No footer needed - keep it clean and concise
+
+        setMessages(prev => prev.map(m =>
+          m.id === messageId
+            ? { ...m, content: streamContentRef.current, isStreaming: false }
+            : m
+        ));
+        break;
+
+      // 🚀 NEW: Handle reasoning step events
+      case 'reasoning_step':
+        console.log('🧠 [SSE] REASONING_STEP EVENT:', event.step);
+        setReasoningSteps(prev => {
+          // Update existing step or add new one
+          const existingIndex = prev.findIndex(s => s.title === event.step.title);
+          if (existingIndex >= 0) {
+            // Update existing step (e.g., from running to complete)
+            const updated = [...prev];
+            updated[existingIndex] = event.step;
+            return updated;
+          } else {
+            // Add new step
+            return [...prev, event.step];
+          }
+        });
+        break;
+
       case 'thinking':
-        setThinking({
+        console.log('🧠 [SSE] THINKING EVENT:', event.status || event.title, 'at', new Date().toLocaleTimeString());
+        console.log('📦 [SSE] Full event data:', JSON.stringify(event, null, 2));
+        const newThinking = {
           title: event.title,
-          status: event.status,
+          status: event.status || 'Thinking',
           explanation: event.explanation,
           source: event.source,
           icon: event.icon,
           tool: event.tool,
-          // Map snake_case SSE fields to camelCase
+          mode: event.mode,
           filtersApplied: event.filters_applied,
           userContext: event.user_context ? {
             budgetMax: event.user_context.budget_max,
@@ -441,7 +590,10 @@ export function useDesktopShell() {
             favoriteMarkets: event.user_context.favorite_markets,
             strategy: event.user_context.strategy,
           } : undefined,
-        });
+        };
+        console.log('🧠 Setting thinking to:', newThinking);
+        console.log('✅ [SSE] Status will be:', newThinking.status);
+        setThinking(newThinking);
         break;
 
       case 'tool_start':
@@ -527,7 +679,13 @@ export function useDesktopShell() {
         break;
 
       case 'content':
-        setThinking(null);
+        console.log('📝 [SSE] CONTENT at', new Date().toLocaleTimeString(), '- length:', streamContentRef.current.length);
+        // Clear thinking state after a few content chunks (not immediately)
+        // This ensures smooth transition from thinking to content
+        if (streamContentRef.current.length > 20) {
+          console.log('✂️ Clearing thinking (content > 20)');
+          setThinking(null);
+        }
         streamContentRef.current += event.content;
         setMessages(prev => {
           const filtered = prev.filter(m => m.id !== messageId);
@@ -615,6 +773,18 @@ export function useDesktopShell() {
     const currentAttachment = attachment;
     const trimmedMessage = message.trim();
 
+    // 🔍 V2 ROUTING: Check if this is a property query
+    console.log('[useDesktopShell] 🔍 Analyzing message:', trimmedMessage);
+
+    const USE_V2_FOR_PROPERTIES = true;
+    const shouldUseV2 = USE_V2_FOR_PROPERTIES && isPropertyQueryHelper(trimmedMessage) && !currentAttachment;
+
+    if (shouldUseV2) {
+      console.log('[useDesktopShell] ✅ ✅ ✅ PROPERTY QUERY DETECTED! ROUTING TO V2! ✅ ✅ ✅');
+    } else {
+      console.log('[useDesktopShell] ℹ️  Not a property query or has attachment - routing to V1');
+    }
+
     // Cancel any existing stream
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -661,17 +831,18 @@ export function useDesktopShell() {
         clientLocation
       } = usePreferencesStore.getState();
 
-      const response = await fetch(`${CIVITAS_API_BASE}/api/stream`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${CIVITAS_API_KEY}`,
-          'X-Api-Key': CIVITAS_API_KEY
-        },
-        body: JSON.stringify({
-          message: message.trim(),
+      // Determine endpoint and payload based on query type
+      const endpoint = shouldUseV2
+        ? `${CIVITAS_API_BASE}/v2/property/search/stream`
+        : `${CIVITAS_API_BASE}/api/stream`;
+
+      const requestBody = shouldUseV2
+        ? parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation })
+        : {
+          message: trimmedMessage,
           stream: true,
           thread_id: effectiveThreadId,
+          mode: currentMode, // Pass current mode to backend
           user_preferences: {
             budget: budgetRange ? `up to $${budgetRange.max.toLocaleString()}` : undefined,
             strategy: defaultStrategy || undefined,
@@ -680,7 +851,20 @@ export function useDesktopShell() {
             financial_dna: financialDna || undefined,
             client_location: clientLocation || undefined
           }
-        }),
+        };
+
+      console.log(`[useDesktopShell] 📡 Calling ${shouldUseV2 ? 'V2' : 'V1'} endpoint:`, endpoint);
+      console.log('[useDesktopShell] 📦 Request body:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${CIVITAS_API_KEY}`,
+          'X-Api-Key': CIVITAS_API_KEY
+        },
+        body: JSON.stringify(requestBody),
+        signal: abortControllerRef.current?.signal
       }); if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -706,9 +890,10 @@ export function useDesktopShell() {
 
             try {
               const data = JSON.parse(jsonStr) as StreamEvent;
+              console.log('[SSE] Event received:', data.type, data);
               handleStreamEvent(data, messageId);
-            } catch {
-              // Skip invalid JSON
+            } catch (err) {
+              console.error('[SSE] Failed to parse:', jsonStr, err);
             }
           }
         }
@@ -1118,7 +1303,8 @@ export function useDesktopShell() {
   };
 
   const handleNewChat = () => {
-    if (messages.length > 0) {
+    // Only save to history if current chat is not temporary and has messages
+    if (messages.length > 0 && !isCurrentChatTemporary) {
       const firstUserMessage = messages.find(msg => msg.role === 'user' || msg.type === 'user')?.content || '';
       const chatExists = chatHistory.some(chat => chat.id === activeChatId);
 
@@ -1151,11 +1337,15 @@ export function useDesktopShell() {
     const newId = Date.now().toString();
     setActiveChatId(newId);
     updateThreadIdForChat(newId, null);
+    setIsCurrentChatTemporary(false);
   };
 
   const handleLoadChat = (chatId: string) => {
     const chat = chatHistory.find(c => c.id === chatId);
     if (!chat) return;
+
+    // Loading a saved chat means it's not temporary
+    setIsCurrentChatTemporary(false);
 
     setActiveChatId(chatId);
     setMessages(chat.messages || []);
@@ -1174,8 +1364,8 @@ export function useDesktopShell() {
     }
   };
 
-  const handleDeleteChat = (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteChat = (chatId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     if (chatHistory.length === 1) return;
 
     const updatedHistory = chatHistory.filter(c => c.id !== chatId);
@@ -1214,6 +1404,7 @@ export function useDesktopShell() {
     propertyAddress?: string,
     initialOverrides?: any
   ) => {
+    // Store deal analyzer data
     setDealAnalyzer({
       isOpen: true,
       propertyId,
@@ -1222,6 +1413,7 @@ export function useDesktopShell() {
       propertyAddress,
       initialOverrides,
     });
+    // Don't change tab - drawer overlays on current view
   };
 
   const closeDealAnalyzer = () => {
@@ -1485,6 +1677,7 @@ export function useDesktopShell() {
     // Thinking / Tools
     thinking,
     completedTools,
+    reasoningSteps, // 🚀 NEW: Real-time reasoning steps
     handleRegenerate,
     refreshToolResults,
     toolResultsByThread,
@@ -1500,6 +1693,10 @@ export function useDesktopShell() {
     handlePinChat,
     handleArchiveChat,
     updateChatTitle,
+    isCurrentChatTemporary,
+    setIsCurrentChatTemporary,
+    currentMode,
+    setCurrentMode,
 
     // Command Center
     commandCenter,

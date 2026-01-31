@@ -11,7 +11,7 @@
  * - Shows normal chat view
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
@@ -23,6 +23,8 @@ import { IntelligencePane } from '../property/IntelligencePane';
 import { ComparisonDock } from '../property/ComparisonDock';
 import { ContextMenu, useContextMenu, createPropertyContextMenuItems } from '../primitives/ContextMenu';
 import { ChatTabView } from './ChatTabView';
+import { Composer, type ComposerRef } from '../chat/Composer';
+import { usePreferencesStore } from '../../stores/preferencesStore';
 
 interface CommandCenterChatViewProps {
   // Chat props
@@ -39,6 +41,7 @@ interface CommandCenterChatViewProps {
   bookmarks?: BookmarkedProperty[];
   onToggleBookmark?: (property: ScoutedProperty) => void;
   onNavigateToReports?: () => void;
+  onNavigateToInvestmentPreferences?: () => void;
   onOpenSidebar?: () => void;
   onNewChat?: () => void;
   thinking?: ThinkingState | null;
@@ -49,6 +52,16 @@ interface CommandCenterChatViewProps {
   error?: string | null;
   onEditMessage?: (messageId: string, newContent: string) => void;
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
+  // Chat management
+  chatTitle?: string;
+  chatId?: string;
+  onPinChat?: (chatId: string) => void;
+  onArchiveChat?: (chatId: string) => void;
+  onDeleteChat?: (chatId: string) => void;
+  isPinned?: boolean;
+  onScrollDirectionChange?: (isScrollingDown: boolean) => void;
+  isTemporary?: boolean;
+  onToggleTemporary?: () => void;
 
   // Command Center props
   commandCenter: {
@@ -63,6 +76,8 @@ interface CommandCenterChatViewProps {
   clearComparisonDock: () => void;
   startComparison: () => void;
   togglePanePin: () => void;
+  currentMode: any; // typed in ChatTabView
+  onModeChange: (mode: any) => void;
 }
 
 export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (props) => {
@@ -76,10 +91,21 @@ export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (prop
     startComparison,
     togglePanePin,
     onOpenDealAnalyzer,
+    onSendMessage,
+    onCancel,
+    onAttach,
+    attachment,
+    onClearAttachment,
+    onNavigateToInvestmentPreferences,
+    isLoading,
+    currentMode,
+    onModeChange,
   } = props;
 
   const [contextProperty, setContextProperty] = useState<ScoutedProperty | null>(null);
   const { isOpen: isContextMenuOpen, position: contextMenuPosition, openContextMenu, closeContextMenu } = useContextMenu();
+  const composerRef = useRef<ComposerRef>(null);
+  const prefsStore = usePreferencesStore();
 
   // Extract properties from the latest tool results in messages
   const properties = useMemo(() => {
@@ -127,7 +153,7 @@ export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (prop
   const handleDrop = (e: React.DragEvent) => {
     const propertyId = e.dataTransfer.getData('propertyId');
     const propertyData = e.dataTransfer.getData('property');
-    
+
     if (propertyData) {
       try {
         const property = JSON.parse(propertyData);
@@ -168,90 +194,21 @@ export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (prop
       },
       onAnalyzeDeal: onOpenDealAnalyzer
         ? () => {
-            onOpenDealAnalyzer(
-              contextProperty.listing_id,
-              'STR',
-              contextProperty.price,
-              contextProperty.address
-            );
-          }
+          onOpenDealAnalyzer(
+            contextProperty.listing_id,
+            'STR',
+            contextProperty.price,
+            contextProperty.address
+          );
+        }
         : undefined,
     });
   }, [contextProperty, selectProperty, addToComparisonDock, onOpenDealAnalyzer]);
 
-  // If no properties, show regular chat
-  if (!hasProperties) {
-    return <ChatTabView {...props} />;
-  }
+  // DISABLED: Command Center split-screen layout
+  // Always show simple chat view instead of complex PropertyGrid layout
+  // This fixes React hooks errors and provides a cleaner, simpler UI
 
-  // Show Command Center layout
-  return (
-    <>
-      <CommandCenterLayout
-        leftContent={
-          <div className="h-full overflow-y-auto">
-            {/* Chat messages above property grid */}
-            <div className="px-6 pt-6 pb-4">
-              <div className="mb-4">
-                {messages.slice(-2, -1).map((message) => (
-                  <div key={message.id} className="mb-4">
-                    <div className="text-white/90 text-sm leading-relaxed">
-                      {message.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-white/10 pt-4">
-                <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                  <span className="text-teal-400">🔍</span>
-                  Found {properties.length} {properties.length === 1 ? 'Property' : 'Properties'}
-                </h3>
-              </div>
-            </div>
-
-            {/* Property Grid */}
-            <PropertyGrid
-              properties={properties}
-              selectedPropertyId={commandCenter.selectedPropertyId}
-              onSelectProperty={handleSelectProperty}
-              onDragStart={handleDragStart}
-              onContextMenu={handleContextMenu}
-            />
-          </div>
-        }
-        rightContent={
-          <IntelligencePane
-            selectedProperty={selectedProperty}
-            comparisonProperties={commandCenter.comparisonDockProperties}
-            view={commandCenter.intelligencePaneView}
-            isPinned={commandCenter.isPanePinned}
-            onTogglePin={togglePanePin}
-            onAddToComparison={addToComparisonDock}
-            onOpenDealAnalyzer={onOpenDealAnalyzer}
-          />
-        }
-        dockContent={
-          commandCenter.comparisonDockProperties.length > 0 || true ? (
-            <ComparisonDock
-              properties={commandCenter.comparisonDockProperties}
-              onRemoveProperty={removeFromComparisonDock}
-              onClearAll={clearComparisonDock}
-              onCompare={startComparison}
-              onDrop={handleDrop}
-            />
-          ) : undefined
-        }
-      />
-
-      {/* Context Menu */}
-      <ContextMenu
-        isOpen={isContextMenuOpen}
-        x={contextMenuPosition.x}
-        y={contextMenuPosition.y}
-        items={contextMenuItems}
-        onClose={closeContextMenu}
-      />
-    </>
-  );
+  return <ChatTabView {...props} currentMode={currentMode} onModeChange={onModeChange} />;
 };
 

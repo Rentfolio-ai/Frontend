@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import type { ScoutedProperty } from '@/types/backendTools';
 import type { BookmarkedProperty } from '@/types/bookmarks';
 import type { InvestmentStrategy } from '@/types/pnl';
+import { SimplePropertyResults } from './SimplePropertyResults';
 
 // Icons
 const BookmarkIcon = ({ filled = false, className }: { filled?: boolean; className?: string }) => (
@@ -422,6 +423,20 @@ export const PropertyBookmarkCard: React.FC<PropertyBookmarkCardProps> = ({
     return null; // Don't render anything if no properties
   }
 
+  // Check if properties have AI enhancements (V2 format)
+  const hasAIEnhancements = properties.some(p => 
+    'ai_match_score' in p || 'ai_badge' in p || 'ai_reason' in p
+  );
+  
+  console.log('[PropertyBookmarkCard] hasAIEnhancements:', hasAIEnhancements);
+  
+  // Use simple property grid for V2 results with AI enhancements
+  if (hasAIEnhancements) {
+    console.log('[PropertyBookmarkCard] ✅ Using SIMPLE V2 cards!');
+    return <SimplePropertyResults properties={properties} onOpenDealAnalyzer={onOpenDealAnalyzer} />;
+  }
+
+  // Use standard bookmark list for V1 results
   return (
     <div className="space-y-2 mt-3">
       {properties.map((property, index) => {

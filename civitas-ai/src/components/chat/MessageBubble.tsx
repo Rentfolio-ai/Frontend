@@ -26,6 +26,14 @@ import { ContextBadge } from './ContextBadge';
 import { useClipboard } from '../../hooks/useClipboard';
 import { highlightKeyStats } from '../../utils/messageHighlighter';
 import rehypeRaw from 'rehype-raw';
+import { motion } from 'framer-motion';
+
+// 🚀 NEW: Import all Week 1 & 2 + Citation components
+import { CitationBadge, type Citation } from './CitationBadge';
+import { CitationsPanel } from './CitationsPanel';
+import { AIReasoningPanel, type ReasoningStep } from './AIReasoningPanel';
+import { DataSourceBadge } from './DataSourceBadge';
+import '../../styles/llm-theme.css';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -62,6 +70,16 @@ interface MessageBubbleProps {
   onEdit?: (content: string) => void;
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
   onSuggestionSelect?: (suggestion: string) => void;
+  
+  // 🚀 NEW: Week 1 & 2 + Citation props
+  citations?: Citation[];
+  aiReasoningSteps?: ReasoningStep[];
+  confidence?: number;
+  dataSources?: Array<{
+    source: string;
+    dataCount?: number;
+    status?: 'live' | 'cached' | 'recent';
+  }>;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -78,7 +96,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onViewDetails,
   onEdit,
   onNavigateBranch,
-  onSuggestionSelect
+  onSuggestionSelect,
+  // 🚀 NEW: Week 1 & 2 + Citation props
+  citations = [],
+  aiReasoningSteps = [],
+  confidence,
+  dataSources = []
 }) => {
   const isUser = message.role === 'user' || message.type === 'user';
   const hasAttachment = !!message.attachment;
@@ -215,12 +238,45 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <span>{formatRelativeTime(message.timestamp)}</span>
         </div>
 
-        {/* Message Content - Plain Text */}
-        <div className={cn(
-          "relative text-[15px] leading-relaxed whitespace-pre-wrap break-words",
-          isUser ? "text-white/95" : "text-white/90",
-          message.isStreaming && "animate-pulse"
-        )}>
+        {/* Message Content with Card - Improved Modern Style */}
+        <div 
+          className={cn(
+            "relative whitespace-pre-wrap break-words overflow-hidden transition-all duration-200",
+            message.isStreaming && "streaming-message",
+            isUser ? "rounded-3xl" : "",
+            // Remove any default padding/background for AI messages with property tools
+            !isUser && hasTools && message.tools?.some(t => t.kind === 'scout_properties') && "!p-0 !bg-transparent"
+          )}
+          style={{
+            backgroundColor: isUser 
+              ? 'rgba(20, 184, 166, 0.15)'  // Teal accent for user
+              : hasTools && message.tools?.some(t => t.kind === 'scout_properties')
+                ? 'transparent'  // Completely transparent for property cards
+                : 'transparent', // No background for AI - ingrained in UI
+            border: isUser 
+              ? '1px solid rgba(20, 184, 166, 0.3)'
+              : 'none',
+            padding: isUser ? '14px 18px' : hasTools && message.tools?.some(t => t.kind === 'scout_properties') ? '0' : '0',
+            fontSize: '15px',  // Comfortable reading size
+            lineHeight: '1.6',  // Better spacing
+            color: isUser ? '#F0FDFA' : '#E2E8F0',
+            boxShadow: isUser 
+              ? '0 2px 8px rgba(20, 184, 166, 0.15)' 
+              : 'none',
+            backdropFilter: isUser ? 'blur(12px)' : 'none',
+          }}
+        >
+          {/* Streaming Gradient Overlay - Very subtle for AI */}
+          {message.isStreaming && !isUser && (
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-30"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(20, 184, 166, 0.08) 50%, transparent 100%)',
+                animation: 'shimmer 3s ease-in-out infinite',
+                backgroundSize: '200% 100%',
+              }}
+            />
+          )}
           {/* No gradient overlay */}
 
           {/* Check for "Deep Reasoning" source from backend and render badge */}
@@ -236,10 +292,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
           )}
 
-          {/* Content Area */}
-          <div className={cn("prose prose-invert prose-sm max-w-none relative z-10", isUser && "text-white")}>
+          {/* Content Area - Improved Typography */}
+          <div 
+            className={cn(
+              "prose prose-sm max-w-none relative z-10",
+              message.isStreaming && !isUser && "streaming-text"
+            )}
+            style={{ 
+              color: isUser ? '#F0FDFA' : '#E2E8F0',
+              fontWeight: isUser ? '400' : '400',
+            }}
+          >
             {isUser && isEditing ? (
-              <div className="bg-white/10 rounded-xl p-3 border border-white/20 w-full min-w-[300px]">
+              <div className="bg-white/10 rounded-xl p-4 border border-white/20 w-full min-w-[300px]">
                 <textarea
                   ref={textareaRef}
                   value={editContent}
@@ -249,7 +314,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     e.target.style.height = `${e.target.scrollHeight}px`;
                   }}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-transparent border-none focus:ring-0 text-white/95 resize-none p-0 text-[15px] leading-[1.75]"
+                  className="w-full bg-transparent border-none focus:ring-0 text-white resize-none p-0"
+                  style={{ fontSize: '16px', lineHeight: '1.6' }}
                   rows={1}
                 />
                 <div className="flex justify-end gap-2 mt-3">
@@ -283,7 +349,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                     if (!inline && match) {
                       return (
-                        <div className="relative group/code my-4 rounded-lg overflow-hidden border border-white/10 bg-[#0d0d0d]">
+                        <div className="relative group/code my-4 rounded-xl overflow-hidden border border-white/10 bg-[#0d0d0d]">
                           <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
                             <span className="text-xs text-white/40 font-mono">{language}</span>
                             <button
@@ -321,7 +387,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     </a>
                   ),
                   table: ({ children }) => (
-                    <div className="overflow-x-auto my-4 border border-white/10 rounded-lg">
+                    <div className="overflow-x-auto my-4 border border-white/10 rounded-xl">
                       <table className="min-w-full divide-y divide-white/10 bg-white/5 text-sm">
                         {children}
                       </table>
@@ -377,7 +443,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {/* Attachment Preview (Legacy) */}
             {hasAttachment && (
-              <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center gap-3">
+              <div className="mt-3 p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
                 <div className="w-10 h-10 rounded bg-blue-500/20 flex items-center justify-center">
                   <FileSpreadsheet className="w-5 h-5 text-blue-400" />
                 </div>
@@ -402,60 +468,113 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               </div>
             )}
 
-            {/* Action Toolbar (visible on hover) - Ingrained style, at bottom */}
+            {/* 🚀 NEW: Streaming Cursor */}
+            {message.isStreaming && !isUser && (
+              <motion.span
+                className="inline-block w-0.5 h-5 bg-purple-500 ml-1 -mb-1"
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+              />
+            )}
+
+            {/* 🚀 NEW: Data Sources */}
+            {!isUser && dataSources.length > 0 && !message.isStreaming && (
+              <div className="mt-3 pt-3 border-t border-white/5">
+                <div className="text-[10px] text-white/40 mb-2 font-medium">Data Sources:</div>
+                <div className="flex flex-wrap gap-2">
+                  {dataSources.map((ds, i) => (
+                    <DataSourceBadge
+                      key={i}
+                      source={ds.source}
+                      dataCount={ds.dataCount}
+                      status={ds.status || 'live'}
+                      lastUpdated={new Date()}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 🚀 NEW: Citations Panel */}
+            {!isUser && citations.length > 0 && !message.isStreaming && (
+              <div className="mt-3">
+                <CitationsPanel
+                  citations={citations}
+                  collapsible={true}
+                  defaultExpanded={false}
+                />
+              </div>
+            )}
+
+            {/* Action Toolbar (visible on hover) - Clean Modern Style */}
             {!message.isStreaming && !isUser && (
-              <div className="flex items-center gap-3 mt-4 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="flex items-center gap-1.5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 <button
                   onClick={() => handleCopyMessage()}
-                  className="text-white/20 hover:text-white/50 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  style={{ color: isCopied ? '#10B981' : '#94A3B8' }}
                   title="Copy message"
                 >
-                  {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={() => handleFeedback(true)}
-                  className={cn("transition-colors", feedback === 'up' ? "text-green-400" : "text-white/20 hover:text-green-400/60")}
+                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  style={{ color: feedback === 'up' ? '#10B981' : '#94A3B8' }}
                   title="Helpful"
                 >
-                  <ThumbsUp className="w-3.5 h-3.5" />
+                  <ThumbsUp className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleFeedback(false)}
-                  className={cn("transition-colors", feedback === 'down' ? "text-red-400" : "text-white/20 hover:text-red-400/60")}
+                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  style={{ color: feedback === 'down' ? '#EF4444' : '#94A3B8' }}
                   title="Not helpful"
                 >
-                  <ThumbsDown className="w-3.5 h-3.5" />
+                  <ThumbsDown className="w-4 h-4" />
                 </button>
 
-                {/* Subtle divider */}
-                <div className="w-px h-3 bg-white/10" />
+                {/* Divider */}
+                <div className="w-px h-4 mx-1" style={{ backgroundColor: 'rgba(148, 163, 184, 0.15)' }} />
 
-                {/* Reactions - minimal */}
+                {/* Reactions - Clean minimal style */}
                 <button
                   onClick={() => toggleReaction('👍')}
-                  className={cn("text-xs transition-colors", reactions['👍'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-all text-sm",
+                    reactions['👍'] ? "opacity-100 bg-white/5" : "opacity-40 hover:opacity-70 hover:bg-white/5"
+                  )}
                 >
                   👍
                 </button>
                 <button
                   onClick={() => toggleReaction('❤️')}
-                  className={cn("text-xs transition-colors", reactions['❤️'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-all text-sm",
+                    reactions['❤️'] ? "opacity-100 bg-white/5" : "opacity-40 hover:opacity-70 hover:bg-white/5"
+                  )}
                 >
                   ❤️
                 </button>
                 <button
                   onClick={() => toggleReaction('🎯')}
-                  className={cn("text-xs transition-colors", reactions['🎯'] ? "opacity-100" : "opacity-20 hover:opacity-50")}
+                  className={cn(
+                    "p-1.5 rounded-lg transition-all text-sm",
+                    reactions['🎯'] ? "opacity-100 bg-white/5" : "opacity-40 hover:opacity-70 hover:bg-white/5"
+                  )}
                 >
                   🎯
                 </button>
 
                 {hasTable && (
                   <>
-                    <div className="w-px h-3 bg-white/10" />
+                    <div className="w-px h-3" style={{ backgroundColor: 'rgba(148, 163, 184, 0.2)' }} />
                     <button
                       onClick={handleDownloadTable}
-                      className="text-white/20 hover:text-green-400/60 transition-colors"
+                      className="transition-colors"
+                      style={{ color: '#94A3B8' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#10B981'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
                       title="Download CSV"
                     >
                       <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -467,23 +586,34 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         </div>
 
-        {/* User Message Action Buttons (Edit & Restart) */}
-        {isUser && !isEditing && (onEdit || onRefresh) && (
+        {/* User Message Action Buttons (Copy, Edit & Restart) */}
+        {isUser && !isEditing && (
           <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Copy Button - Always visible for user messages */}
+            <button
+              onClick={() => copy(message.content)}
+              className="flex items-center justify-center p-2 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+              title={isCopied ? "Copied!" : "Copy message"}
+            >
+              {isCopied ? (
+                <Check className="w-3 h-3" />
+              ) : (
+                <Copy className="w-3 h-3" />
+              )}
+            </button>
             {onEdit && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                className="flex items-center justify-center p-2 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                 title="Edit message"
               >
                 <Pencil className="w-3 h-3" />
-                Edit
               </button>
             )}
             {onRefresh && (
               <button
                 onClick={() => onRefresh(message.id)}
-                className="flex items-center justify-center p-1.5 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+                className="flex items-center justify-center p-2 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                 title="Run this query again"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -502,9 +632,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         )}
 
-        {/* Tool Cards */}
+        {/* Tool Cards - No container, float directly */}
         {hasTools && (
-          <div className="w-full mt-3 space-y-3">
+          <div className="w-full mt-3">
             {message.tools?.map((tool) => {
               // Render appropriate tool card based on kind
               if (tool.kind === 'property_comparison' && tool.data) {
@@ -535,7 +665,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   timestamp={new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   bookmarks={bookmarks}
                   onToggleBookmark={onToggleBookmark}
-                  onOpenDealAnalyzer={(propId) => onOpenDealAnalyzer?.(propId, 'STR')} // Default strategy
+                  onOpenDealAnalyzer={onOpenDealAnalyzer} // Pass through all parameters
                 />
               );
             })}
@@ -547,15 +677,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <PropertyListCard
             properties={message.data.tool_results.scouted_properties}
             onViewDetails={onViewDetails || (() => { })}
+            onOpenDealAnalyzer={onOpenDealAnalyzer}
           />
+        )}
+
+        {/* 🚀 NEW: AI Reasoning Panel (after all content) */}
+        {!isUser && aiReasoningSteps.length > 0 && !message.isStreaming && (
+          <div className="w-full mt-4">
+            <AIReasoningPanel
+              steps={aiReasoningSteps}
+              totalFactors={aiReasoningSteps.length}
+            />
+          </div>
         )}
       </div>
 
       {/* User Avatar (Right) */}
       {isUser && (
         <div className="flex-shrink-0 ml-4 mt-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/5 shadow-inner">
-            <span className="text-sm font-semibold text-white/90">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{
+            background: 'linear-gradient(135deg, #0D9488, #14B8A6)',
+            boxShadow: '0 2px 4px rgba(13,148,136,0.15)'
+          }}>
+            <span className="text-sm font-semibold text-white">
               {userName ? userName.charAt(0).toUpperCase() : 'U'}
             </span>
           </div>

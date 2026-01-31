@@ -30,9 +30,9 @@ const REPORT_CONFIG: Record<InvestmentReportFormat, { icon: string; label: strin
 
 // Recommendation badge styles
 const RECOMMENDATION_STYLES: Record<string, string> = {
-    buy: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    pass: 'bg-red-50 text-red-700 border-red-200',
-    negotiate: 'bg-amber-50 text-amber-700 border-amber-200',
+    buy: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+    pass: 'bg-red-500/10 text-red-400 border-red-500/30',
+    negotiate: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
 };
 
 // Format currency
@@ -79,6 +79,8 @@ export const ReportsPage: React.FC = () => {
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [selectedReport, setSelectedReport] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+    const [showDownloadConfirm, setShowDownloadConfirm] = useState<string | null>(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const { success, error: showError } = useToast();
 
     // Fetch reports
@@ -177,11 +179,48 @@ export const ReportsPage: React.FC = () => {
         }
     };
 
-    // Handle view report
+    // Handle view report (free)
     const handleViewReport = (reportId: string) => {
         const htmlUrl = reportsService.getHtmlUrl(reportId);
         window.open(htmlUrl, '_blank');
         setSelectedReport(null);
+    };
+
+    // Handle download with payment
+    const handleDownload = async (reportId: string) => {
+        setIsProcessingPayment(true);
+        try {
+            // Call billing API to process $2 charge
+            const response = await fetch('/api/billing/charge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': localStorage.getItem('civitas-user') || ''
+                },
+                body: JSON.stringify({
+                    action_type: 'report_download',
+                    resource_id: reportId,
+                    amount: 200  // $2.00 in cents
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Payment failed');
+            }
+
+            // Payment successful, proceed with download
+            const htmlUrl = reportsService.getHtmlUrl(reportId);
+            window.open(htmlUrl, '_blank');
+            
+            success('Payment processed. Report downloading...');
+            setShowDownloadConfirm(null);
+            setSelectedReport(null);
+        } catch (error) {
+            console.error('Download payment error:', error);
+            showError('Payment failed. Please try again or contact support.');
+        } finally {
+            setIsProcessingPayment(false);
+        }
     };
 
     // Handle print
@@ -197,7 +236,7 @@ export const ReportsPage: React.FC = () => {
     };
 
     return (
-        <div className="h-full bg-background flex flex-col p-6">
+        <div className="h-full flex flex-col p-6" style={{ backgroundColor: '#334155' }}>
             {/* Header */}
             <div className="mb-6">
                 <div className="mb-2">
@@ -299,7 +338,7 @@ export const ReportsPage: React.FC = () => {
                                 Generate investment reports in chat and they'll automatically appear here
                             </p>
                             <div className="flex flex-col gap-2 text-xs text-white/40">
-                                <p>💬 Chat with Civitas about a property</p>
+                                <p>💬 Chat with Vasthu about a property</p>
                                 <p>📊 Request a report analysis</p>
                                 <p>✨ Your reports will appear here</p>
                             </div>
@@ -391,7 +430,7 @@ export const ReportsPage: React.FC = () => {
                                         <div className="flex items-center">
                                             <span className={cn(
                                                 'px-2 py-0.5 rounded-full text-xs font-medium border',
-                                                RECOMMENDATION_STYLES[report.recommendation.toLowerCase()] || 'bg-gray-50 text-gray-700 border-gray-200'
+                                                RECOMMENDATION_STYLES[report.recommendation.toLowerCase()] || 'bg-white/5 text-white/70 border-white/20'
                                             )}>
                                                 {report.recommendation}
                                             </span>
@@ -451,14 +490,16 @@ export const ReportsPage: React.FC = () => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    const htmlUrl = reportsService.getHtmlUrl(report.report_id);
-                                                                    window.open(htmlUrl, '_blank');
+                                                                    setShowDownloadConfirm(report.report_id);
                                                                     setSelectedReport(null);
                                                                 }}
-                                                                className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-white/[0.05] transition-colors flex items-center gap-3"
+                                                                className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-white/[0.05] transition-colors flex items-center justify-between"
                                                             >
-                                                                <Download className="w-4 h-4" />
-                                                                Download
+                                                                <div className="flex items-center gap-3">
+                                                                    <Download className="w-4 h-4" />
+                                                                    Download
+                                                                </div>
+                                                                <span className="text-xs text-white/50">$2.00</span>
                                                             </button>
                                                             <div className="border-t border-white/[0.05]" />
                                                             <button
@@ -562,6 +603,62 @@ export const ReportsPage: React.FC = () => {
                                 className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
                             >
                                 Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Download Confirmation with Payment */}
+            {showDownloadConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#1a1a1a] border border-white/[0.10] rounded-xl p-6 max-w-sm w-full">
+                        <div className="flex items-start gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+                                <Download className="w-5 h-5 text-teal-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-1">Download Report</h3>
+                                <p className="text-sm text-white/60">
+                                    Download full report as PDF/HTML
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white/[0.03] border border-white/[0.08] rounded-lg p-4 mb-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-white/70">Report Download</span>
+                                <span className="text-lg font-semibold text-white">$2.00</span>
+                            </div>
+                            <p className="text-xs text-white/50">
+                                One-time charge • Instant download • Full access
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setShowDownloadConfirm(null)}
+                                disabled={isProcessingPayment}
+                                className="flex-1 px-4 py-2.5 text-sm text-white/70 hover:text-white transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleDownload(showDownloadConfirm)}
+                                disabled={isProcessingPayment}
+                                className="flex-1 px-4 py-2.5 text-sm bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {isProcessingPayment ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" />
+                                        Pay & Download
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

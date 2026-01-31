@@ -1,9 +1,56 @@
 /* Import clean, minimal font - Notion-style */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
+/* Flashcard 3D flip styles - must be before @tailwind */
+@import './styles/flashcard.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Streaming message gradient animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes gradient-flow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.streaming-message {
+  position: relative;
+}
+
+.streaming-message::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 20px;
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(180deg, #14B8A6 0%, #0D9488 100%);
+  animation: pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-radius: 2px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
 
 @layer base {
   :root {

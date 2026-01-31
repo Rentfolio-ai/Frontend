@@ -1,211 +1,279 @@
 // FILE: src/components/portfolio/PortfolioDashboard.tsx
-import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { usePortfolioStore } from '../../stores/portfolioStore';
-import { PortfolioList } from './PortfolioList';
-import { PortfolioForm } from './PortfolioForm';
-import { PortfolioDetail } from './PortfolioDetail';
-import { AnalyticsDashboard } from './AnalyticsDashboard';
-import type { PortfolioWithMetrics, CreatePortfolioForm } from '../../types/portfolio';
+import React, { useState, useEffect } from 'react';
+import { Plus, Home, TrendingUp, DollarSign, Calendar } from 'lucide-react';
+import type { Portfolio, PortfolioSummary } from '../../services/agentsApi';
+import { formatCurrency, formatPercentage } from '../../utils/portfolioHelpers';
+import { getPortfolios, getPortfolioSummary } from '../../services/agentsApi';
 
-interface PortfolioDashboardProps {
-  onPortfolioSelect?: (portfolio: PortfolioWithMetrics) => void;
-}
+export const PortfolioDashboard: React.FC = () => {
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<string | null>(null);
+  const [summary, setSummary] = useState<PortfolioSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({
-  onPortfolioSelect,
-}) => {
-  const { user } = useAuth();
-  const {
-    portfolios,
-    loading,
-    errors,
-    fetchPortfolios,
-    createPortfolio,
-    updatePortfolio,
-    deletePortfolio,
-    setCurrentPortfolio,
-  } = usePortfolioStore();
-
-  const [portfoliosWithMetrics, setPortfoliosWithMetrics] = useState<PortfolioWithMetrics[]>([]);
-  const [showPortfolioForm, setShowPortfolioForm] = useState(false);
-  const [editingPortfolio, setEditingPortfolio] = useState<PortfolioWithMetrics | null>(null);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<PortfolioWithMetrics | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'analytics'>('list');
-
+  // Load portfolios on mount
   useEffect(() => {
-    if (user?.id || user?.email) {
-      const userId = user.id || user.email || '';
-      fetchPortfolios(userId);
-    }
-  }, [user, fetchPortfolios]);
+    loadPortfolios();
+  }, []);
 
-  // Convert portfolios to PortfolioWithMetrics format
+  // Load summary when portfolio selected
   useEffect(() => {
-    setPortfoliosWithMetrics(
-      portfolios.map((p) => ({
-        ...p,
-        property_count: 0,
-        total_value: 0,
-      }))
-    );
-  }, [portfolios]);
+    if (selectedPortfolio) {
+      loadPortfolioSummary(selectedPortfolio);
+    }
+  }, [selectedPortfolio]);
 
-  const handlePortfolioClick = (portfolio: PortfolioWithMetrics) => {
-    setCurrentPortfolio(portfolio);
-    setSelectedPortfolio(portfolio);
-    setViewMode('detail');
-    if (onPortfolioSelect) {
-      onPortfolioSelect(portfolio);
+  const loadPortfolios = async () => {
+    try {
+      setLoading(true);
+      const response = await getPortfolios();
+      
+      // Safely handle response
+      const portfolioList = response?.portfolios || [];
+      setPortfolios(portfolioList);
+      
+      // Auto-select first portfolio if available
+      if (portfolioList.length > 0 && !selectedPortfolio) {
+        setSelectedPortfolio(portfolioList[0].id);
+      }
+      
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load portfolios:', err);
+      setError('Failed to load portfolios');
+      setPortfolios([]); // Set empty array on error
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCreatePortfolio = () => {
-    setEditingPortfolio(null);
-    setShowPortfolioForm(true);
-  };
-
-  const handleEditPortfolio = (portfolio: PortfolioWithMetrics) => {
-    setEditingPortfolio(portfolio);
-    setShowPortfolioForm(true);
-  };
-
-  const handleSavePortfolio = async (formData: CreatePortfolioForm) => {
-    const dataWithUser = {
-      ...formData,
-      user_id: user?.id || user?.email || '',
-    };
-
-    if (editingPortfolio) {
-      await updatePortfolio(editingPortfolio.portfolio_id, dataWithUser);
-    } else {
-      await createPortfolio(dataWithUser);
-    }
-    setShowPortfolioForm(false);
-    setEditingPortfolio(null);
-    if (user?.id || user?.email) {
-      const userId = user.id || user.email || '';
-      fetchPortfolios(userId);
+  const loadPortfolioSummary = async (portfolioId: string) => {
+    try {
+      const response = await getPortfolioSummary(portfolioId);
+      setSummary(response?.data || null);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load portfolio summary:', err);
+      setError('Failed to load portfolio details');
+      setSummary(null); // Clear summary on error
     }
   };
 
-
-
-  const handleViewAnalytics = () => {
-    setViewMode('analytics');
-  };
-
-  const handleViewProperties = () => {
-    setViewMode('detail');
-  };
-
-  if (errors.portfolios) {
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-red-500 mb-2">Error loading portfolios</p>
-        <p className="text-sm text-gray-500">{errors.portfolios}</p>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading portfolios...</p>
+        </div>
       </div>
     );
   }
 
-  // Show portfolio detail view
-  if (selectedPortfolio && viewMode === 'detail') {
+  if (error && portfolios.length === 0) {
     return (
-      <>
-        <PortfolioDetail
-          portfolio={selectedPortfolio}
-          onViewAnalytics={handleViewAnalytics}
-        />
-        <PortfolioForm
-          isOpen={showPortfolioForm}
-          onClose={() => {
-            setShowPortfolioForm(false);
-            setEditingPortfolio(null);
-          }}
-          onSubmit={handleSavePortfolio}
-          initialData={editingPortfolio || undefined}
-          mode={editingPortfolio ? 'edit' : 'create'}
-        />
-      </>
-    );
-  }
-
-  // Show analytics view
-  if (selectedPortfolio && viewMode === 'analytics') {
-    return (
-      <>
-        <div className="h-full flex flex-col">
-          <div className="flex items-center justify-end mb-6">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleViewProperties}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Properties
-              </button>
-              <button
-                onClick={handleViewAnalytics}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Analytics
-              </button>
-            </div>
-          </div>
-          <AnalyticsDashboard portfolio={selectedPortfolio} />
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">{error}</p>
+          <button
+            onClick={loadPortfolios}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
-        <PortfolioForm
-          isOpen={showPortfolioForm}
-          onClose={() => {
-            setShowPortfolioForm(false);
-            setEditingPortfolio(null);
-          }}
-          onSubmit={handleSavePortfolio}
-          initialData={editingPortfolio || undefined}
-          mode={editingPortfolio ? 'edit' : 'create'}
-        />
-      </>
+      </div>
     );
   }
 
-  // Show portfolio list view
+  if (portfolios.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center max-w-lg px-6">
+          <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Start Tracking Your Properties</h2>
+          <p className="text-gray-400 mb-6">
+            Tell me about your properties in chat. I'll help you track, analyze, and optimize your investments.
+          </p>
+          
+          {/* Single CTA: Go to Chat */}
+          <button
+            onClick={() => {
+              // Navigate to chat tab
+              window.dispatchEvent(new CustomEvent('navigate-to-tab', { 
+                detail: { tab: 'chat' } 
+              }));
+            }}
+            className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center justify-center gap-2 text-base font-medium"
+          >
+            Go to Chat to Add Properties
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <div className="h-full flex flex-col">
-        <div className="flex items-center justify-between mb-6">
+    <div className="h-full overflow-y-auto bg-gray-900">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-6 py-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Portfolios</h1>
-            <p className="text-sm text-gray-500 mt-1">Manage your real estate investment portfolios</p>
+            <h1 className="text-2xl font-bold text-white">Portfolio</h1>
+            <p className="text-gray-400 text-sm mt-1">Track and manage your investments</p>
           </div>
           <button
-            onClick={handleCreatePortfolio}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Create Portfolio
+            Add Property
           </button>
         </div>
 
-        <PortfolioList
-          portfolios={portfoliosWithMetrics}
-          onPortfolioClick={handlePortfolioClick}
-          onEdit={handleEditPortfolio}
-          onDelete={deletePortfolio}
-          loading={loading.portfolios}
-        />
+        {/* Portfolio Selector */}
+        {portfolios.length > 1 && (
+          <div className="mt-4 flex gap-2 overflow-x-auto">
+            {portfolios.map((portfolio) => (
+              <button
+                key={portfolio.id}
+                onClick={() => setSelectedPortfolio(portfolio.id)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                  selectedPortfolio === portfolio.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                {portfolio.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <PortfolioForm
-        isOpen={showPortfolioForm}
-        onClose={() => {
-          setShowPortfolioForm(false);
-          setEditingPortfolio(null);
-        }}
-        onSubmit={handleSavePortfolio}
-        initialData={editingPortfolio || undefined}
-        mode={editingPortfolio ? 'edit' : 'create'}
-      />
-    </>
+      {/* Content */}
+      <div className="p-6 space-y-6">
+        {summary ? (
+          <>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricCard
+                icon={<Home className="w-5 h-5" />}
+                label="Properties"
+                value={(summary.properties?.length || 0).toString()}
+                color="blue"
+              />
+              <MetricCard
+                icon={<DollarSign className="w-5 h-5" />}
+                label="Total Equity"
+                value={formatCurrency(summary.performanceMetrics.totalEquity)}
+                color="green"
+              />
+              <MetricCard
+                icon={<TrendingUp className="w-5 h-5" />}
+                label="Avg Monthly Cash Flow"
+                value={formatCurrency(summary.performanceMetrics.averageCashFlow)}
+                color={summary.performanceMetrics.averageCashFlow >= 0 ? 'green' : 'red'}
+              />
+              <MetricCard
+                icon={<Calendar className="w-5 h-5" />}
+                label="Avg ROI"
+                value={formatPercentage(summary.performanceMetrics.averageROI)}
+                color="purple"
+              />
+            </div>
+
+            {/* Properties List */}
+            <div className="bg-gray-800 rounded-lg border border-gray-700">
+              <div className="px-6 py-4 border-b border-gray-700">
+                <h2 className="text-lg font-semibold text-white">Properties</h2>
+              </div>
+              <div className="divide-y divide-gray-700">
+                {summary.properties && summary.properties.length > 0 ? (
+                  summary.properties.map((property) => (
+                    <PropertyRow key={property.id} property={property} />
+                  ))
+                ) : (
+                  <div className="px-6 py-8 text-center text-gray-400">
+                    No properties yet. Add your first property to get started.
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
+// Metric Card Component
+interface MetricCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  color: 'blue' | 'green' | 'red' | 'purple';
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) => {
+  const colorClasses = {
+    blue: 'bg-blue-500/10 text-blue-400',
+    green: 'bg-green-500/10 text-green-400',
+    red: 'bg-red-500/10 text-red-400',
+    purple: 'bg-purple-500/10 text-purple-400',
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+      <div className={`inline-flex p-2 rounded-lg ${colorClasses[color]} mb-3`}>
+        {icon}
+      </div>
+      <div className="text-2xl font-bold text-white mb-1">{value}</div>
+      <div className="text-sm text-gray-400">{label}</div>
+    </div>
+  );
+};
+
+// Property Row Component
+interface PropertyRowProps {
+  property: any;
+}
+
+const PropertyRow: React.FC<PropertyRowProps> = ({ property }) => {
+  const cashFlow = (property.monthlyRent || 0) - (property.monthlyExpenses || 0);
+  
+  return (
+    <div className="px-6 py-4 hover:bg-gray-750 transition-colors">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h3 className="text-white font-medium">{property.address}</h3>
+          <p className="text-sm text-gray-400 mt-1">
+            {property.city && property.state ? `${property.city}, ${property.state}` : 'Location not specified'}
+          </p>
+        </div>
+        <div className="flex items-center gap-6 text-sm">
+          <div className="text-right">
+            <div className="text-gray-400">Purchase Price</div>
+            <div className="text-white font-medium">{formatCurrency(property.purchasePrice)}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-gray-400">Current Value</div>
+            <div className="text-white font-medium">
+              {formatCurrency(property.currentValue || property.purchasePrice)}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-gray-400">Monthly Cash Flow</div>
+            <div className={`font-medium ${cashFlow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {formatCurrency(cashFlow)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

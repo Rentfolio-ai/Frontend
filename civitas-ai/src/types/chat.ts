@@ -20,7 +20,26 @@ export type ToolKind =
   | 'portfolio_analysis'
   | 'cashflow_timeseries'
   | 'renovation_analysis'
+  | 'renovation_analysis'
   | 'report';
+
+export type AgentMode = 'research' | 'strategist' | 'hunter';
+
+export interface ClarificationQuestion {
+  id: string;
+  text: string;
+  type: 'text' | 'number' | 'single_choice' | 'multiple_choice';
+  options?: string[];
+  default_value?: any;
+  allow_multiple?: boolean;
+}
+
+export interface ClarificationRequest {
+  type: 'clarification_request';
+  questions: ClarificationQuestion[];
+  reason: string;
+  ui_component: 'ClarificationForm';
+}
 
 export interface ToolCard {
   id: string;

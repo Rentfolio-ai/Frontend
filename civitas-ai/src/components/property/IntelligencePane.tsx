@@ -48,8 +48,38 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
   onAddToComparison,
   onOpenDealAnalyzer,
 }) => {
+  // ALL HOOKS MUST BE AT THE TOP - React Rules of Hooks
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
+  // Keyboard shortcut handler - MUST be before any returns
+  React.useEffect(() => {
+    // Only add listener if we have a selected property
+    if (!selectedProperty) return;
+    
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      switch (e.key) {
+        case '1':
+          setActiveTab('overview');
+          break;
+        case '2':
+          setActiveTab('financials');
+          break;
+        case '3':
+          setActiveTab('ai-insights');
+          break;
+        case '4':
+          setActiveTab('3d-view');
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [selectedProperty]);
+
+  // NOW conditional renders can happen
   // Empty state
   if (!selectedProperty && view === 'details') {
     return (
@@ -107,31 +137,6 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
   }
 
   if (!selectedProperty) return null;
-
-  // Keyboard shortcut handler
-  React.useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      
-      switch (e.key) {
-        case '1':
-          setActiveTab('overview');
-          break;
-        case '2':
-          setActiveTab('financials');
-          break;
-        case '3':
-          setActiveTab('ai-insights');
-          break;
-        case '4':
-          setActiveTab('3d-view');
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
 
   const tabs: Array<{ id: TabType; label: string; icon: React.ReactNode; shortcut: string }> = [
     { id: 'overview', label: 'Overview', icon: <Home className="w-4 h-4" />, shortcut: '1' },
