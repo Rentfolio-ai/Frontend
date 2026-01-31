@@ -28,7 +28,7 @@ interface PropertySearchV2Props {
 
 export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
   console.log('[PropertySearchV2] 🎉 Component mounted! Query:', query);
-  
+
   const {
     isSearching,
     isStreamingAI,
@@ -77,8 +77,8 @@ export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
           <span className="thinking-message">{thinkingMessage}</span>
         </div>
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${progress * 100}%` }}
           />
         </div>
@@ -95,7 +95,7 @@ export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
       <div className="property-search-v2-error">
         <div className="error-icon">❌</div>
         <div className="error-message">{error}</div>
-        <button 
+        <button
           className="retry-button"
           onClick={() => {
             const searchQuery = typeof query === 'string' ? parseQuery(query) : query;
@@ -115,7 +115,7 @@ export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
   return (
     <div className="property-search-v2-results">
       {/* Header */}
-      {properties.length > 0 && (
+      {properties?.length > 0 && (
         <div className="results-header">
           <h3 className="results-title">
             Found {totalFound} Properties
@@ -146,7 +146,7 @@ export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
       )}
 
       {/* Properties Grid */}
-      {properties.length > 0 && (
+      {properties?.length > 0 && (
         <div className="properties-grid">
           {properties.map((property) => (
             <div key={property.id} className="property-card">
@@ -156,11 +156,11 @@ export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
                   {property.city}, {property.state} {property.zip_code}
                 </p>
               </div>
-              
+
               <div className="property-price">
                 ${property.price.toLocaleString()}
               </div>
-              
+
               <div className="property-details">
                 <span className="detail">{property.beds} bed</span>
                 <span className="detail-separator">•</span>
@@ -204,7 +204,7 @@ export function PropertySearchV2({ query, onComplete }: PropertySearchV2Props) {
               </button>
             )}
           </div>
-          
+
           <div className="ai-insights-content">
             <p className="ai-text">
               {aiInsights}

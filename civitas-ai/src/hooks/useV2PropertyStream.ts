@@ -26,19 +26,19 @@ export interface V2PropertyStreamState {
   isSearching: boolean;
   isStreamingAI: boolean;
   isComplete: boolean;
-  
+
   // Thinking indicator
   thinkingMessage: string | null;
   progress: number;
-  
+
   // Property results
   properties: Property[];
   totalFound: number;
   marketContext?: MarketContext;
-  
+
   // AI insights
   aiInsights: string;
-  
+
   // Error handling
   error: string | null;
 }
@@ -120,7 +120,7 @@ export function useV2PropertyStream(options: UseV2PropertyStreamOptions = {}) {
         onProperties: (properties, totalFound, marketContext) => {
           setState(prev => ({
             ...prev,
-            properties,
+            properties: properties || [],
             totalFound,
             marketContext,
             thinkingMessage: null, // Hide thinking, show results
@@ -135,7 +135,7 @@ export function useV2PropertyStream(options: UseV2PropertyStreamOptions = {}) {
         // AI streaming (word by word)
         onAIChunk: (text, progress) => {
           aiTextRef.current += text;
-          
+
           setState(prev => ({
             ...prev,
             aiInsights: aiTextRef.current,
@@ -229,7 +229,7 @@ export function useV2PropertyStream(options: UseV2PropertyStreamOptions = {}) {
 
     try {
       const propertyIds = state.properties.map(p => p.id);
-      
+
       const response = await v2PropertyApi.generateInsights({
         property_ids: propertyIds,
         insight_type: 'investment',
@@ -261,7 +261,7 @@ export function useV2PropertyStream(options: UseV2PropertyStreamOptions = {}) {
   return {
     // State
     ...state,
-    
+
     // Actions
     searchProperties,
     cancelSearch,
