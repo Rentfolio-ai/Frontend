@@ -378,7 +378,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             key={id}
                             onClick={() => setActiveTab(id as Tab)}
                             className={`flex items-center gap-2 px-5 py-3 font-medium rounded-t-xl border-b-2 ${activeTab === id
-                                ? 'text-white bg-white/5 border-teal-500'
+                                ? 'text-white bg-white/5 border-[#C08B5C]'
                                 : 'text-white/50 hover:text-white/70 hover:bg-white/[0.02] border-transparent'
                                 }`}
                         >
@@ -482,12 +482,12 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                     <div>
                                         <label className="text-xs text-white/40 mb-1.5 block">Max</label>
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400 text-sm">$</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#D4A27F] text-sm">$</span>
                                             <input
                                                 type="number"
                                                 value={maxBudget}
                                                 onChange={(e) => setMaxBudget(Number(e.target.value))}
-                                                className="w-full bg-transparent border-b border-white/10 py-2 pl-7 pr-2 text-white text-sm focus:outline-none focus:border-teal-500/50"
+                                                className="w-full bg-transparent border-b border-white/10 py-2 pl-7 pr-2 text-white text-sm focus:outline-none focus:border-[#C08B5C]/50"
                                                 step="10000"
                                             />
                                         </div>
@@ -934,7 +934,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="px-8 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-8 py-2.5 rounded-lg bg-[#A8734A] hover:bg-[#C08B5C] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isSaving ? 'Saving...' : 'Save Preferences'}
                     </button>

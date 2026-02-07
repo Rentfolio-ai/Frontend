@@ -8,11 +8,7 @@
 
 import { apiLogger } from '@/utils/logger';
 
-const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
-const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
-const BACKEND_URL = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) 
-  ? envApiUrl 
-  : 'http://localhost:8000';
+import { API_BASE_URL as BACKEND_URL, API_KEY as CIVITAS_API_KEY } from './apiConfig';
 
 // ============================================================================
 // Types

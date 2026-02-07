@@ -113,7 +113,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
     
     // Create custom ghost image
     const ghostElement = document.createElement('div');
-    ghostElement.className = 'p-3 bg-black/90 backdrop-blur-xl rounded-lg border border-teal-500/50 shadow-2xl';
+    ghostElement.className = 'p-3 bg-black/90 backdrop-blur-xl rounded-lg border border-[#C08B5C]/50 shadow-2xl';
     ghostElement.innerHTML = `
       <div class="text-white font-semibold">$${property.price?.toLocaleString()}</div>
       <div class="text-white/60 text-sm truncate max-w-[200px]">${property.address}</div>
@@ -150,7 +150,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
         'relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group',
         'bg-[#1E1E1E] border-2',
         isSelected
-          ? 'border-teal-500 shadow-lg shadow-teal-500/30 transform scale-[1.02]'
+          ? 'border-[#C08B5C] shadow-lg shadow-[#C08B5C]/30 transform scale-[1.02]'
           : 'border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-xl',
         isDragging && 'opacity-50 scale-95'
       )}
@@ -163,7 +163,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
         <div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(20, 184, 166, 0.3) 50%, transparent 100%)',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(192, 139, 92, 0.3) 50%, transparent 100%)',
             backgroundSize: '200% 100%',
             animation: 'scan 2s ease-in-out infinite',
           }}
@@ -216,7 +216,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
             <div className={cn(
               'absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1',
               isPositive
-                ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
                 : 'bg-red-500/20 text-red-400 border border-red-500/30'
             )}>
               {isPositive ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
@@ -259,7 +259,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
               {highlights.slice(0, 2).map((highlight, idx) => (
                 <div
                   key={idx}
-                  className="text-[10px] px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20 truncate"
+                  className="text-[10px] px-2 py-0.5 rounded bg-[#C08B5C]/10 text-[#D4A27F] border border-[#C08B5C]/20 truncate"
                 >
                   {highlight.label}
                 </div>
@@ -293,7 +293,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
       {/* Hover Overlay */}
       <div className={cn(
-        'absolute inset-0 bg-gradient-to-t from-teal-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none',
+        'absolute inset-0 bg-gradient-to-t from-[#C08B5C]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none',
         isSelected && 'opacity-100'
       )} />
     </div>

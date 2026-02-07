@@ -49,11 +49,11 @@ export function Toast({ id, message, type = 'info', duration = 5000, action, onC
       <div className="flex-shrink-0">
         {icons[type]}
       </div>
-      
+
       <div className="flex-1 text-white font-medium text-sm">
         {message}
       </div>
-      
+
       {action && (
         <button
           onClick={() => {
@@ -65,7 +65,7 @@ export function Toast({ id, message, type = 'info', duration = 5000, action, onC
           {action.label}
         </button>
       )}
-      
+
       <button
         onClick={() => onClose(id)}
         className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
@@ -78,7 +78,7 @@ export function Toast({ id, message, type = 'info', duration = 5000, action, onC
 }
 
 interface ToastContainerProps {
-  toasts: ToastProps[];
+  toasts: Omit<ToastProps, 'onClose'>[];
   onClose: (id: string) => void;
 }
 

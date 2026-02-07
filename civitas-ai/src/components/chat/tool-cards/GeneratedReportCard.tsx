@@ -3,46 +3,51 @@
 // Reports are auto-saved on backend - no manual save needed
 
 import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FileText, X, Printer, ExternalLink, FolderOpen,
+  TrendingUp, Shield, Search, Target, ChevronRight,
+  BarChart3, Zap
+} from 'lucide-react';
 import type { GenerateReportOutput } from '@/types/backendTools';
 import { reportsService } from '@/services/reportsApi';
 
-// Icons
-const DocumentIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
+// Mode-to-theme config
+const MODE_THEMES: Record<string, { gradient: string; icon: React.ReactNode; badge: string; badgeBg: string }> = {
+  hunter: {
+    gradient: 'from-amber-500/20 via-yellow-500/10 to-orange-500/5',
+    icon: <Target className="w-4 h-4" />,
+    badge: 'Deal Analysis',
+    badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/20',
+  },
+  strategist: {
+    gradient: 'from-violet-500/20 via-purple-500/10 to-indigo-500/5',
+    icon: <BarChart3 className="w-4 h-4" />,
+    badge: 'Strategy',
+    badgeBg: 'bg-violet-500/20 text-violet-300 border-violet-500/20',
+  },
+  research: {
+    gradient: 'from-cyan-500/20 via-[#C08B5C]/10 to-blue-500/5',
+    icon: <Search className="w-4 h-4" />,
+    badge: 'Research',
+    badgeBg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/20',
+  },
+};
 
-const CloseIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-5 h-5', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-);
+// Recommendation badge styling
+const REC_STYLES: Record<string, string> = {
+  buy: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/20',
+  pass: 'bg-rose-500/20 text-rose-300 border-rose-500/20',
+  negotiate: 'bg-amber-500/20 text-amber-300 border-amber-500/20',
+  hold: 'bg-blue-500/20 text-blue-300 border-blue-500/20',
+  'explore further': 'bg-cyan-500/20 text-cyan-300 border-cyan-500/20',
+  'strong candidate': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/20',
+  'below market': 'bg-amber-500/20 text-amber-300 border-amber-500/20',
+  monitor: 'bg-blue-500/20 text-blue-300 border-blue-500/20',
+  reposition: 'bg-violet-500/20 text-violet-300 border-violet-500/20',
+};
 
-const PrintIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-  </svg>
-);
-
-const ExternalLinkIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-  </svg>
-);
-
-
-
-const FolderIcon = ({ className }: { className?: string }) => (
-  <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-  </svg>
-);
-
-
-
-// Report Modal Component - Uses iframe with backend HTML endpoint or embedded content
+// Report Modal Component
 interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -50,6 +55,7 @@ interface ReportModalProps {
   reportType: string;
   propertyAddress: string;
   htmlContent?: string;
+  mode?: string;
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
@@ -59,11 +65,11 @@ const ReportModal: React.FC<ReportModalProps> = ({
   reportType,
   propertyAddress,
   htmlContent,
+  mode = 'hunter',
 }) => {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
-
-  // Get the HTML URL from the reports service (fallback)
   const htmlUrl = reportsService.getHtmlUrl(reportId);
+  const theme = MODE_THEMES[mode] || MODE_THEMES.hunter;
 
   const handlePrint = () => {
     if (iframeRef.current?.contentWindow) {
@@ -73,7 +79,6 @@ const ReportModal: React.FC<ReportModalProps> = ({
 
   const handleOpenNewTab = () => {
     if (htmlContent) {
-      // Create a blob URL for the content
       const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -85,74 +90,86 @@ const ReportModal: React.FC<ReportModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-black/60 backdrop-blur-md"
+          onClick={onClose}
+        />
 
-      {/* Modal */}
-      <div className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-          <div className="flex items-center gap-2">
-            <DocumentIcon className="w-5 h-5 text-blue-500" />
-            <div>
-              <h2 className="font-semibold text-slate-800 dark:text-slate-200">
-                {reportType}
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {propertyAddress}
-              </p>
+        {/* Modal */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-[#0d0f14] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-white/[0.08]"
+        >
+          {/* Header */}
+          <div className={`flex items-center justify-between px-5 py-3 border-b border-white/[0.08] bg-gradient-to-r ${theme.gradient}`}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-white/[0.08] backdrop-blur-sm flex items-center justify-center text-white/70">
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-white/90 text-sm">
+                  {reportType}
+                </h2>
+                <p className="text-[11px] text-white/40">
+                  {propertyAddress}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handlePrint}
+                className="p-2 rounded-lg hover:bg-white/[0.08] transition-colors text-white/40 hover:text-white/70"
+                title="Print report"
+              >
+                <Printer className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleOpenNewTab}
+                className="p-2 rounded-lg hover:bg-white/[0.08] transition-colors text-white/40 hover:text-white/70"
+                title="Open in new tab"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-white/[0.08] transition-colors text-white/40 hover:text-white/70"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
-              title="Print report"
-            >
-              <PrintIcon />
-            </button>
-            <button
-              onClick={handleOpenNewTab}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
-              title="Open in new tab"
-            >
-              <ExternalLinkIcon />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
-              title="Close"
-            >
-              <CloseIcon />
-            </button>
-          </div>
-        </div>
 
-        {/* Report Content - iframe pointing to HTML endpoint or embedded content */}
-        <div className="flex-1 overflow-hidden">
-          <iframe
-            ref={iframeRef}
-            src={htmlContent ? undefined : htmlUrl}
-            srcDoc={htmlContent}
-            className="w-full h-full min-h-[600px] border-0 bg-white"
-            title={reportType}
-          />
-        </div>
+          {/* Report Content */}
+          <div className="flex-1 overflow-hidden bg-white">
+            <iframe
+              ref={iframeRef}
+              src={htmlContent ? undefined : htmlUrl}
+              srcDoc={htmlContent}
+              className="w-full h-full min-h-[600px] border-0"
+              title={reportType}
+            />
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 };
-
 
 
 export interface GeneratedReportCardProps {
   data: GenerateReportOutput;
   onNavigateToReports?: () => void;
-  // Legacy props - kept for backward compatibility but not used
+  // Legacy props
   onSaveReport?: (data: GenerateReportOutput) => void;
   isSaved?: boolean;
   autoSave?: boolean;
@@ -168,36 +185,115 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
     report_type,
     property_address,
     report_id,
-    html_content, // Destructure new field
+    recommendation,
+    html_content,
+    key_metrics,
   } = data;
+
+  // Detect mode from data or infer from report type
+  const mode = (data as any).mode || (
+    ['portfolio', 'strategy'].some(t => (report_type || '').toLowerCase().includes(t)) ? 'strategist' :
+    ['market', 'research', 'comparison'].some(t => (report_type || '').toLowerCase().includes(t)) ? 'research' :
+    'hunter'
+  );
+
+  const theme = MODE_THEMES[mode] || MODE_THEMES.hunter;
+  const recStyle = REC_STYLES[(recommendation || '').toLowerCase()] || REC_STYLES.negotiate;
+
+  // Extract key metrics for the preview card
+  const cashFlow = key_metrics?.cash_flow_monthly || key_metrics?.monthly_cash_flow;
+  const capRate = key_metrics?.cap_rate;
+  const coc = key_metrics?.cash_on_cash;
 
   return (
     <>
-      {/* Single immersed button - no box, just clean UI */}
-      {/* Primary View Button */}
-      <button
-        onClick={() => setIsReportOpen(true)}
-        className="mt-3 flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
+      {/* Report Card — dark glassmorphic style */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className={`mt-3 rounded-xl border border-white/[0.08] bg-gradient-to-br ${theme.gradient} backdrop-blur-xl overflow-hidden`}
       >
-        <DocumentIcon className="w-4 h-4" />
-        View Full Report
-      </button>
+        {/* Card Header */}
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-white/60">
+              {theme.icon}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[13px] font-semibold text-white/90">{report_type}</span>
+                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${theme.badgeBg}`}>
+                  {theme.badge}
+                </span>
+              </div>
+              <p className="text-[11px] text-white/40 mt-0.5 truncate max-w-[280px]">{property_address}</p>
+            </div>
+          </div>
 
-      {/* Secondary Link to Reports Tab */}
-      {onNavigateToReports && (
-        <button
-          onClick={onNavigateToReports}
-          className={cn(
-            'mt-2 flex items-center gap-2 text-xs font-medium transition-colors',
-            'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+          {/* Recommendation badge */}
+          {recommendation && (
+            <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border ${recStyle}`}>
+              {recommendation.toUpperCase()}
+            </span>
           )}
-        >
-          <FolderIcon className="w-3 h-3" />
-          View all reports
-        </button>
-      )}
+        </div>
 
-      {/* Report Modal - Uses iframe with backend HTML endpoint */}
+        {/* Key Metrics Row */}
+        {(cashFlow || capRate || coc) && (
+          <div className="px-4 pb-2 flex gap-4 text-[11px]">
+            {cashFlow != null && (
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className={`w-3 h-3 ${cashFlow >= 0 ? 'text-emerald-400/70' : 'text-rose-400/70'}`} />
+                <span className="text-white/40">Cash Flow</span>
+                <span className={`font-semibold ${cashFlow >= 0 ? 'text-emerald-300/90' : 'text-rose-300/90'}`}>
+                  ${Math.abs(cashFlow).toLocaleString()}/mo
+                </span>
+              </div>
+            )}
+            {capRate != null && (
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3 h-3 text-white/30" />
+                <span className="text-white/40">Cap Rate</span>
+                <span className="font-semibold text-white/80">{(capRate * 100).toFixed(1)}%</span>
+              </div>
+            )}
+            {coc != null && (
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-white/30" />
+                <span className="text-white/40">CoC</span>
+                <span className="font-semibold text-white/80">{(coc * 100).toFixed(1)}%</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="px-4 py-3 flex items-center gap-2 border-t border-white/[0.05]">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsReportOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg text-[12px] font-medium shadow-lg shadow-violet-500/15 hover:from-violet-500 hover:to-purple-500 transition-all"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            View Full Report
+            <ChevronRight className="w-3 h-3 opacity-60" />
+          </motion.button>
+
+          {onNavigateToReports && (
+            <button
+              onClick={onNavigateToReports}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-white/40 hover:text-white/60 text-[11px] font-medium transition-colors rounded-lg hover:bg-white/[0.04]"
+            >
+              <FolderOpen className="w-3 h-3" />
+              All Reports
+            </button>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Report Modal */}
       {report_id && (
         <ReportModal
           isOpen={isReportOpen}
@@ -206,6 +302,7 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
           reportType={report_type}
           propertyAddress={property_address}
           htmlContent={html_content}
+          mode={mode}
         />
       )}
     </>

@@ -63,7 +63,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
             className="flex items-center gap-2 mb-6 transition-all"
             style={{ color: '#475569' }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#0D9488';
+              e.currentTarget.style.color = '#A8734A';
               e.currentTarget.style.transform = 'translateX(-4px)';
             }}
             onMouseLeave={(e) => {
@@ -92,7 +92,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: '#1E293B' }}>
+            <h1 className="text-2xl font-bold mb-2" style={{ color: '#18181c' }}>
               Welcome back
             </h1>
             <p className="text-sm" style={{ color: '#64748B' }}>
@@ -121,7 +121,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
               style={{
                 backgroundColor: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                color: '#1E293B',
+                color: '#18181c',
               }}
               onMouseEnter={(e) => {
                 if (!isAppleLoading) {
@@ -148,7 +148,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
               style={{
                 backgroundColor: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                color: '#1E293B',
+                color: '#18181c',
               }}
               onMouseEnter={(e) => {
                 if (!isGoogleLoading) {
@@ -192,7 +192,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
               style={{
                 backgroundColor: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                color: '#1E293B',
+                color: '#18181c',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#F1F5F9';
@@ -209,7 +209,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
           ) : (
             <form onSubmit={handleSSOSignIn} className="space-y-4">
               <div>
-                <label htmlFor="sso-email" className="block text-sm font-medium mb-2" style={{ color: '#334155' }}>
+                <label htmlFor="sso-email" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
                   Work email address
                 </label>
                 <input
@@ -222,10 +222,10 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                   style={{
                     backgroundColor: '#F8FAFC',
                     border: '1px solid #E2E8F0',
-                    color: '#1E293B',
+                    color: '#18181c',
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#0D9488';
+                    e.currentTarget.style.borderColor = '#A8734A';
                     e.currentTarget.style.backgroundColor = '#FFFFFF';
                   }}
                   onBlur={(e) => {
@@ -241,14 +241,14 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                   type="submit"
                   className="flex-1 h-11 rounded-lg font-semibold text-sm transition-all"
                   style={{
-                    backgroundColor: '#1E293B',
+                    backgroundColor: '#18181c',
                     color: '#FFFFFF',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#334155';
+                    e.currentTarget.style.backgroundColor = '#111114';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#1E293B';
+                    e.currentTarget.style.backgroundColor = '#18181c';
                   }}
                 >
                   Continue
@@ -285,9 +285,9 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
           <button
             onClick={onNavigateToSignUp}
             className="font-semibold transition-colors"
-            style={{ color: '#0D9488' }}
+            style={{ color: '#A8734A' }}
             onMouseEnter={(e) => e.currentTarget.style.color = '#0F766E'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#0D9488'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#A8734A'}
           >
             Sign up
           </button>

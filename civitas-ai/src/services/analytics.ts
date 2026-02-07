@@ -61,15 +61,13 @@ class AnalyticsService {
       timestamp: new Date().toISOString(),
     };
 
-    // Send to backend
+    // Send to backend (fire-and-forget; endpoint may not exist yet)
     try {
-      await fetch('/api/analytics/events', {
+      const { API_BASE_URL: baseUrl, jsonHeaders: getHeaders } = await import('./apiConfig');
+      await fetch(`${baseUrl}/api/analytics/events`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         body: JSON.stringify(event),
-        credentials: 'include',
       });
 
       // Also log to console in development

@@ -254,6 +254,29 @@ export interface PnLAiAnalysis {
 }
 
 /**
+ * Sensitivity analysis scenario
+ */
+export interface SensitivityScenario {
+  label: string;
+  rentDelta: number;       // e.g. 0.10 = +10%
+  vacancyDelta: number;    // e.g. 0.05 = +5 ppts
+  rateDelta: number;       // e.g. 0.01 = +1 ppt
+  monthlyCashflow: number;
+}
+
+/**
+ * Advanced investment metrics (IRR, NPV, sensitivity, break-even)
+ */
+export interface AdvancedMetrics {
+  irr: number | null;                   // Internal Rate of Return (e.g. 0.142 = 14.2%)
+  npv: number | null;                   // Net Present Value in dollars
+  npvDiscountRate: number;              // Discount rate used for NPV
+  breakEvenOccupancy: number | null;    // STR: occupancy % where cashflow = 0
+  breakEvenRent: number | null;         // LTR: monthly rent where cashflow = 0
+  sensitivity: SensitivityScenario[];   // Sensitivity scenarios
+}
+
+/**
  * Complete P&L Output from API
  */
 export interface PnLOutput {
@@ -261,6 +284,7 @@ export interface PnLOutput {
   year1: Year1Summary;
   projection: ProjectionYear[];
   financingSummary: FinancingSummary;
+  advancedMetrics?: AdvancedMetrics;
   presentation?: PresentationBundle;
   aiAnalysis?: PnLAiAnalysis;
   aiInsights?: AIInsights;

@@ -106,7 +106,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
             className="flex items-center gap-2 mb-6 transition-all"
             style={{ color: '#475569' }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#0D9488';
+              e.currentTarget.style.color = '#A8734A';
               e.currentTarget.style.transform = 'translateX(-4px)';
             }}
             onMouseLeave={(e) => {
@@ -135,7 +135,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: '#1E293B' }}>
+            <h1 className="text-2xl font-bold mb-2" style={{ color: '#18181c' }}>
               Start your journey
             </h1>
             <p className="text-sm" style={{ color: '#64748B' }}>
@@ -164,7 +164,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
               style={{
                 backgroundColor: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                color: '#1E293B',
+                color: '#18181c',
               }}
               onMouseEnter={(e) => {
                 if (!isAppleLoading) {
@@ -190,7 +190,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
               style={{
                 backgroundColor: '#F8FAFC',
                 border: '1px solid #E2E8F0',
-                color: '#1E293B',
+                color: '#18181c',
               }}
               onMouseEnter={(e) => {
                 if (!isGoogleLoading) {
@@ -230,7 +230,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
             {/* First and Last Name */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium mb-2" style={{ color: '#334155' }}>
+                <label htmlFor="firstName" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
                   First name <span style={{ color: '#DC2626' }}>*</span>
                 </label>
                 <input
@@ -243,11 +243,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   style={{
                     backgroundColor: '#F8FAFC',
                     border: errors.firstName ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                    color: '#1E293B',
+                    color: '#18181c',
                   }}
                   onFocus={(e) => {
                     if (!errors.firstName) {
-                      e.currentTarget.style.borderColor = '#0D9488';
+                      e.currentTarget.style.borderColor = '#A8734A';
                       e.currentTarget.style.backgroundColor = '#FFFFFF';
                     }
                   }}
@@ -259,7 +259,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium mb-2" style={{ color: '#334155' }}>
+                <label htmlFor="lastName" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
                   Last name <span style={{ color: '#DC2626' }}>*</span>
                 </label>
                 <input
@@ -272,11 +272,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   style={{
                     backgroundColor: '#F8FAFC',
                     border: errors.lastName ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                    color: '#1E293B',
+                    color: '#18181c',
                   }}
                   onFocus={(e) => {
                     if (!errors.lastName) {
-                      e.currentTarget.style.borderColor = '#0D9488';
+                      e.currentTarget.style.borderColor = '#A8734A';
                       e.currentTarget.style.backgroundColor = '#FFFFFF';
                     }
                   }}
@@ -290,7 +290,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: '#334155' }}>
+              <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
                 Email address <span style={{ color: '#DC2626' }}>*</span>
               </label>
               <input
@@ -303,11 +303,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 style={{
                   backgroundColor: '#F8FAFC',
                   border: errors.email ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                  color: '#1E293B',
+                  color: '#18181c',
                 }}
                 onFocus={(e) => {
                   if (!errors.email) {
-                    e.currentTarget.style.borderColor = '#0D9488';
+                    e.currentTarget.style.borderColor = '#A8734A';
                     e.currentTarget.style.backgroundColor = '#FFFFFF';
                   }
                 }}
@@ -320,7 +320,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium mb-2" style={{ color: '#334155' }}>
+              <label htmlFor="phone" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
                 Phone number <span className="font-normal" style={{ color: '#94A3B8' }}>(optional)</span>
               </label>
               <div className="flex gap-2">
@@ -329,11 +329,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   style={{
                     backgroundColor: '#F8FAFC',
                     border: '1px solid #E2E8F0',
-                    color: '#1E293B',
+                    color: '#18181c',
                     width: '80px',
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#0D9488';
+                    e.currentTarget.style.borderColor = '#A8734A';
                     e.currentTarget.style.backgroundColor = '#FFFFFF';
                   }}
                   onBlur={(e) => {
@@ -356,10 +356,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   style={{
                     backgroundColor: '#F8FAFC',
                     border: '1px solid #E2E8F0',
-                    color: '#1E293B',
+                    color: '#18181c',
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#0D9488';
+                    e.currentTarget.style.borderColor = '#A8734A';
                     e.currentTarget.style.backgroundColor = '#FFFFFF';
                   }}
                   onBlur={(e) => {
@@ -376,16 +376,16 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
               disabled={isLoading}
               className="w-full h-12 rounded-lg font-semibold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
               style={{
-                backgroundColor: '#1E293B',
+                backgroundColor: '#18181c',
                 color: '#FFFFFF',
               }}
               onMouseEnter={(e) => {
                 if (!isLoading) {
-                  e.currentTarget.style.backgroundColor = '#334155';
+                  e.currentTarget.style.backgroundColor = '#111114';
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#1E293B';
+                e.currentTarget.style.backgroundColor = '#18181c';
               }}
             >
               {isLoading ? 'Creating account...' : 'Continue'}
@@ -399,9 +399,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
           <button
             onClick={onNavigateToSignIn}
             className="font-semibold transition-colors"
-            style={{ color: '#0D9488' }}
+            style={{ color: '#A8734A' }}
             onMouseEnter={(e) => e.currentTarget.style.color = '#0F766E'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#0D9488'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#A8734A'}
           >
             Sign in
           </button>

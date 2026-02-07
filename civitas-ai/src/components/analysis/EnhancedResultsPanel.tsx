@@ -221,7 +221,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-white">{title}</span>
           {badge && (
-            <span className="px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-400 text-xs font-medium">
+            <span className="px-2 py-0.5 rounded-md bg-[#C08B5C]/20 text-[#D4A27F] text-xs font-medium">
               {badge}
             </span>
           )}
@@ -322,8 +322,8 @@ export const EnhancedResultsPanel: React.FC<EnhancedResultsPanelProps> = ({
   }
 
   const year1 = pnlOutput.year1 || {};
-  const cashflow = year1.cashflow_before_taxes || 0;
-  const monthlyFlow = cashflow / 12;
+  const cashflow = year1.cashflowBeforeTaxes || 0;
+  const monthlyFlow = year1.monthlyCashflow || cashflow / 12;
   
   return (
     <div className={cn('space-y-6', className)}>
@@ -346,89 +346,94 @@ export const EnhancedResultsPanel: React.FC<EnhancedResultsPanelProps> = ({
       <div className="grid grid-cols-3 gap-4">
         <MetricTile
           label="Cap Rate"
-          value={`${((year1.cap_rate || 0) * 100).toFixed(2)}%`}
+          value={`${((year1.capRate || 0) * 100).toFixed(2)}%`}
           benchmark={{ target: 8, min: 5 }}
           explanation="Net Operating Income ÷ Purchase Price"
           icon={<Percent className="w-4 h-4 text-slate-400" />}
         />
         <MetricTile
           label="Cash-on-Cash"
-          value={`${((year1.cash_on_cash_return || 0) * 100).toFixed(2)}%`}
+          value={`${((year1.cashOnCash || 0) * 100).toFixed(2)}%`}
           benchmark={{ target: 10, min: 8 }}
           explanation="Annual Cashflow ÷ Total Cash Invested"
           icon={<DollarSign className="w-4 h-4 text-slate-400" />}
         />
         <MetricTile
           label="DSCR"
-          value={(year1.dscr || 0).toFixed(2)}
+          value={(year1.noi && year1.annualDebtService ? (year1.noi / year1.annualDebtService) : 0).toFixed(2)}
           benchmark={{ target: 1.25, min: 1.0 }}
-          alert={year1.dscr < 1.25 ? 'Below lender minimum' : undefined}
+          alert={(year1.noi && year1.annualDebtService && (year1.noi / year1.annualDebtService) < 1.25) ? 'Below lender minimum' : undefined}
           explanation="Debt Service Coverage Ratio"
           icon={<TrendingUp className="w-4 h-4 text-slate-400" />}
         />
       </div>
       
       {/* Income Breakdown */}
-      <AccordionSection title="Income Breakdown" badge={`$${year1.total_income?.toLocaleString() || 0}`}>
+      <AccordionSection title="Income Breakdown" badge={`$${year1.income?.totalIncome?.toLocaleString() || 0}`}>
         <DataTable
           data={[
-            { label: 'Rental Income', value: year1.rental_income || 0 },
-            { label: 'Other Income', value: year1.other_income || 0 },
-          ]}
+            { label: 'Gross Potential Income', value: year1.income?.grossPotentialIncome || 0 },
+            { label: 'Vacancy Loss', value: -(year1.income?.vacancyLoss || 0), sublabel: 'Deducted from gross' },
+            { label: 'Effective Gross Income', value: year1.income?.effectiveGrossIncome || 0 },
+            { label: 'Other Income', value: year1.income?.otherIncome || 0 },
+          ].filter(row => row.value !== 0)}
           showTotal
         />
       </AccordionSection>
       
       {/* Expense Breakdown */}
-      <AccordionSection title="Expense Breakdown" badge={`$${year1.total_expenses?.toLocaleString() || 0}`}>
+      <AccordionSection title="Expense Breakdown" badge={`$${year1.expenses?.totalExpenses?.toLocaleString() || 0}`}>
         <DataTable
           data={[
-            { label: 'Property Tax', value: year1.property_tax || 0 },
-            { label: 'Insurance', value: year1.insurance || 0 },
-            { label: 'HOA Fees', value: year1.hoa_fees || 0 },
-            { label: 'Maintenance', value: year1.maintenance || 0 },
-            { label: 'Property Management', value: year1.property_mgmt || 0 },
-            { label: 'Utilities', value: year1.utilities || 0 },
-            { label: 'CapEx Reserve', value: year1.capex || 0 },
-            { label: 'Vacancy Reserve', value: year1.vacancy_reserve || 0 },
+            { label: 'Property Tax', value: year1.expenses?.propertyTax || 0 },
+            { label: 'Insurance', value: year1.expenses?.insurance || 0 },
+            { label: 'HOA Fees', value: year1.expenses?.hoa || 0 },
+            { label: 'Maintenance', value: year1.expenses?.maintenance || 0 },
+            { label: 'Property Management', value: year1.expenses?.propertyManagement || 0 },
+            { label: 'Utilities', value: year1.expenses?.utilities || 0 },
+            { label: 'Internet', value: year1.expenses?.internet || 0 },
+            { label: 'CapEx Reserve', value: year1.expenses?.capexReserve || 0 },
+            { label: 'Cleaning Costs', value: year1.expenses?.cleaningCosts || 0 },
+            { label: 'Platform Fees', value: year1.expenses?.platformFees || 0 },
+            { label: 'Other Operating', value: year1.expenses?.otherOperating || 0 },
           ].filter(row => row.value > 0)}
           showTotal
         />
       </AccordionSection>
       
       {/* NOI Calculation */}
-      <div className="p-6 rounded-xl bg-gradient-to-br from-teal-500/10 to-teal-600/5 border border-teal-500/30">
-        <div className="text-sm font-medium text-teal-400 mb-4">Net Operating Income</div>
+      <div className="p-6 rounded-xl bg-gradient-to-br from-[#C08B5C]/10 to-[#A8734A]/5 border border-[#C08B5C]/30">
+        <div className="text-sm font-medium text-[#D4A27F] mb-4">Net Operating Income</div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-slate-300">Total Income</span>
-            <span className="text-white font-medium">${year1.total_income?.toLocaleString() || 0}</span>
+            <span className="text-white font-medium">${year1.income?.totalIncome?.toLocaleString() || 0}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-300">Total Expenses</span>
-            <span className="text-red-400">-${year1.total_expenses?.toLocaleString() || 0}</span>
+            <span className="text-red-400">-${year1.expenses?.totalExpenses?.toLocaleString() || 0}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-300">Debt Service</span>
-            <span className="text-red-400">-${year1.debt_service?.toLocaleString() || 0}</span>
+            <span className="text-red-400">-${year1.annualDebtService?.toLocaleString() || 0}</span>
           </div>
           <div className="h-px bg-white/20 my-3" />
           <div className="flex justify-between font-bold text-lg">
             <span className="text-white">Net Operating Income</span>
-            <span className="text-teal-400">${year1.noi?.toLocaleString() || 0}</span>
+            <span className="text-[#D4A27F]">${year1.noi?.toLocaleString() || 0}</span>
           </div>
         </div>
       </div>
       
       {/* 5-Year Projection Button */}
-      <button className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/50 hover:bg-white/10 transition-all group">
+      <button className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all group">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-teal-400" />
+            <Calendar className="w-5 h-5 text-[#D4A27F]" />
             <span className="text-sm font-semibold text-white">View 5-Year Projection</span>
           </div>
           <motion.div
-            className="text-slate-400 group-hover:text-teal-400 transition-colors"
+            className="text-slate-400 group-hover:text-[#D4A27F] transition-colors"
             whileHover={{ x: 5 }}
           >
             →

@@ -122,7 +122,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
           >
             <div className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-white/10 shadow-2xl overflow-hidden">
               {/* Decorative gradient orbs */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-500/20 to-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#C08B5C]/20 to-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
               {/* Content */}
@@ -144,24 +144,24 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                 >
                   {/* Vasthu Icon */}
                   <div className="mb-6 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-blue-500 rounded-2xl blur-2xl opacity-50"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#C08B5C] to-blue-500 rounded-2xl blur-2xl opacity-50"></div>
                     <svg viewBox="0 0 32 32" fill="none" className="w-20 h-20 relative">
                       <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradientOnboarding)" strokeWidth="1.5" opacity="0.8" />
                       <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradientOnboarding)" strokeWidth="2" fill="none" strokeLinejoin="round" />
                       <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradientOnboarding)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       <defs>
                         <linearGradient id="vasthuGradientOnboarding" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#14B8A6" />
+                          <stop offset="0%" stopColor="#C08B5C" />
                           <stop offset="100%" stopColor="#2563EB" />
                         </linearGradient>
                       </defs>
                     </svg>
                   </div>
 
-                  <h1 className="text-5xl font-bold bg-gradient-to-r from-teal-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-[#D4A27F] via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
                     {currentStepData.title}
                   </h1>
-                  <p className="text-xl text-teal-400/80 font-medium mb-2">
+                  <p className="text-xl text-[#D4A27F]/80 font-medium mb-2">
                     {currentStepData.subtitle}
                   </p>
                   <p className="text-white/60 text-center max-w-2xl">
@@ -177,13 +177,13 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
-                      className="group relative p-6 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 hover:border-teal-500/50 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
+                      className="group relative p-6 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
                     >
                       {/* Hover glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-teal-500/0 to-blue-500/0 group-hover:from-teal-500/10 group-hover:to-blue-500/10 rounded-2xl transition-all duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#C08B5C]/0 to-blue-500/0 group-hover:from-[#C08B5C]/10 group-hover:to-blue-500/10 rounded-2xl transition-all duration-300"></div>
 
                       <div className="relative flex items-start gap-4">
-                        <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-teal-500/20 to-blue-500/20 text-teal-400 group-hover:scale-110 transition-transform">
+                        <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-[#C08B5C]/20 to-blue-500/20 text-[#D4A27F] group-hover:scale-110 transition-transform">
                           {feature.icon}
                         </div>
                         <div className="flex-1">
@@ -191,7 +191,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                             <h3 className="text-white font-bold text-base">
                               {feature.title}
                             </h3>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400 font-semibold">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#C08B5C]/20 text-[#D4A27F] font-semibold">
                               {feature.highlight}
                             </span>
                           </div>
@@ -213,7 +213,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                 >
                   <button
                     onClick={handleComplete}
-                    className="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 hover:from-teal-500 hover:via-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-2xl shadow-teal-500/40 transition-all hover:scale-[1.05] hover:shadow-teal-500/60 overflow-hidden"
+                    className="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-[#A8734A] via-blue-600 to-purple-600 hover:from-[#C08B5C] hover:via-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-2xl shadow-[#C08B5C]/40 transition-all hover:scale-[1.05] hover:shadow-[#C08B5C]/60 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
                     <span className="relative z-10 flex items-center gap-2">

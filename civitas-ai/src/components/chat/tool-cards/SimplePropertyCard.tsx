@@ -19,17 +19,20 @@ export const SimplePropertyCard: React.FC<SimplePropertyCardProps> = ({
   onViewDetails,
   bookmarks = []
 }) => {
-  // Calculate estimated monthly rent and cash flow
+  // Use backend calculated metrics when available, fallback to rough estimates
+  const metrics = property.calculated_metrics;
   const estimatedRent = property.estimated_rent || (property.price * 0.008);
-  const estimatedMortgage = property.price ? (property.price * 0.8 * 0.006) : 0;
-  const monthlyCashFlow = estimatedRent - estimatedMortgage - 500;
+  const estimatedMortgage = metrics?.monthly_mortgage || (property.price ? (property.price * 0.8 * 0.006) : 0);
+  const monthlyCashFlow = metrics?.monthly_cash_flow ?? (estimatedRent - estimatedMortgage - 500);
 
   const isPositiveCashFlow = monthlyCashFlow > 0;
 
-  // Calculate cap rate if we have data
-  const capRate = property.price && estimatedRent
-    ? (((estimatedRent * 12) * 0.6) / property.price * 100).toFixed(1)
-    : null;
+  // Use backend cap rate, fallback to rough estimate
+  const capRate = metrics?.cap_rate?.toFixed(1) || (
+    property.price && estimatedRent
+      ? (((estimatedRent * 12) * 0.6) / property.price * 100).toFixed(1)
+      : null
+  );
 
   return (
     <div className="group relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-5 shadow-xl shadow-black/40 hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-[1.02] border border-slate-700/50 overflow-hidden w-[320px] min-w-[320px]">

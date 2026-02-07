@@ -4,10 +4,15 @@ import './index.css'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 
+import { ApolloProvider } from '@apollo/client'
+import { apolloClient } from './lib/apollo-client'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <ApolloProvider client={apolloClient}>
+        <App />
+      </ApolloProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

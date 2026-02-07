@@ -189,7 +189,7 @@ export const DealAnalyzerCard: React.FC<DealAnalyzerCardProps> = ({
     LTR: 'bg-green-500/20 text-green-700 dark:text-green-400',
     Flip: 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
     ADU: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
-    MF: 'bg-teal-500/20 text-teal-700 dark:text-teal-400',
+    MF: 'bg-[#C08B5C]/20 text-[#A8734A] dark:text-[#D4A27F]',
   };
 
   // Recommendation badge colors
@@ -203,7 +203,7 @@ export const DealAnalyzerCard: React.FC<DealAnalyzerCardProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-border/50 bg-gradient-to-br from-blue-50/50 to-teal-50/50 dark:from-blue-950/30 dark:to-teal-950/30 overflow-hidden"
+      className="rounded-xl border border-border/50 bg-gradient-to-br from-blue-50/50 to-[#D4A27F]/50 dark:from-blue-950/30 dark:to-[#8A5D3B]/30 overflow-hidden"
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">

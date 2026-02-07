@@ -32,6 +32,7 @@ interface ChatTabViewProps {
   messages: Message[];
   isLoading: boolean;
   userName?: string;
+  userAvatar?: string;
   selectedState?: string;
   onSendMessage: (message: string) => void;
   onAction?: (actionValue: string, actionContext?: any) => void;
@@ -60,136 +61,135 @@ interface ChatTabViewProps {
   onModeChange: (mode: AgentMode) => void;
 }
 
-// Context-aware greeting based on user preferences and activity
-const getContextAwareGreeting = (userPreferences?: any, userName?: string): { title: string; tagline: string } => {
-  // console.log('[ChatTabView] getContextAwareGreeting called');
+// Context-aware greeting with tagline + subtitle for a richer welcome
+const getContextAwareGreeting = (
+  userPreferences?: any,
+  userName?: string
+): { title: string; tagline: string; subtitle: string } => {
   const hour = new Date().getHours();
-  const namePrefix = userName ? `${userName}, ` : '';
+  const name = userName || '';
+  const n = (msg: string) => (name ? `${name}, ${msg}` : msg.charAt(0).toUpperCase() + msg.slice(1));
+  const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
 
-  // Build context-aware pool
-  const contextAwareGreetings: { title: string; tagline: string }[] = [];
+  type G = { title: string; tagline: string; subtitle: string };
+  const pool: G[] = [];
 
-  // 1. Resume-based greetings (if user has recent activity)
+  // ── Contextual greetings based on user data ──
+
   if (userPreferences?.last_search_city) {
     const city = userPreferences.last_search_city;
-    contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}ready to continue exploring ${city}?` },
-      { title: '', tagline: `${namePrefix}let's find more opportunities in ${city}` },
-      { title: '', tagline: `What's next for your ${city} search${userName ? ', ' + userName : ''}?` }
+    pool.push(
+      { title: '', tagline: n(`new listings just dropped in ${city}`), subtitle: 'I\'ve been watching the market while you were away.' },
+      { title: '', tagline: n(`${city} is moving — want the latest?`), subtitle: 'Median prices shifted since your last search.' },
+      { title: '', tagline: `Back to ${city}${name ? ', ' + name : ''}?`, subtitle: 'Pick up right where you left off, or explore something new.' },
+      { title: '', tagline: n(`let's dig deeper into ${city}`), subtitle: 'I can pull comps, analyze neighborhoods, or scout new deals.' },
     );
   }
 
-  // 2. Strategy-based greetings
   if (userPreferences?.default_strategy) {
-    const strategyNames: Record<string, string> = {
-      'STR': 'short-term rental',
-      'LTR': 'long-term rental',
-      'FLIP': 'fix & flip'
-    };
-    const strategy = strategyNames[userPreferences.default_strategy] || 'investment';
-    contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}find your next ${strategy} opportunity` },
-      { title: '', tagline: `Analyzing ${strategy} deals just for you${userName ? ', ' + userName : ''}` }
+    const strats: Record<string, string> = { STR: 'short-term rental', LTR: 'long-term rental', FLIP: 'fix & flip' };
+    const s = strats[userPreferences.default_strategy] || 'investment';
+    pool.push(
+      { title: '', tagline: n(`let's find your next ${s} win`), subtitle: 'Tell me a market and I\'ll run the numbers.' },
+      { title: '', tagline: n(`${s} deals are heating up`), subtitle: 'Ask me to scout any zip code or neighborhood.' },
     );
   }
 
-  // 3. Portfolio-based greetings (if they have properties)
   if (userPreferences?.portfolio_count && userPreferences.portfolio_count > 0) {
-    contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}grow your ${userPreferences.portfolio_count}-property portfolio` },
-      { title: '', tagline: `${namePrefix}optimize your portfolio with data insights` }
+    const ct = userPreferences.portfolio_count;
+    pool.push(
+      { title: '', tagline: n(`time to turn ${ct} properties into ${ct + 1}?`), subtitle: 'I can find deals that complement your existing portfolio.' },
+      { title: '', tagline: n(`your ${ct}-door portfolio is growing`), subtitle: 'Want a performance check or new acquisition targets?' },
     );
   }
 
-  // 4. Goal-based greetings
+  if (userPreferences?.favorite_markets?.length > 0) {
+    const mkt = userPreferences.favorite_markets[Math.floor(Math.random() * userPreferences.favorite_markets.length)];
+    pool.push(
+      { title: '', tagline: n(`${mkt} market pulse — ready when you are`), subtitle: 'I\'ll break down trends, comps, and off-market intel.' },
+      { title: '', tagline: `What's happening in ${mkt}${name ? ', ' + name : ''}?`, subtitle: 'I track price shifts, days on market, and inventory changes daily.' },
+    );
+  }
+
   if (userPreferences?.goals?.includes('cash_flow')) {
-    contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}find properties that maximize cash flow` },
-      { title: '', tagline: `Your next cash-flowing asset awaits${userName ? ', ' + userName : ''}` }
+    pool.push(
+      { title: '', tagline: n(`cash flow is king — let's find yours`), subtitle: 'I analyze rent-to-price ratios across every market I cover.' },
     );
   }
 
   if (userPreferences?.goals?.includes('appreciation')) {
-    contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}discover high-growth market opportunities` }
+    pool.push(
+      { title: '', tagline: n(`growth markets are shifting fast`), subtitle: 'Ask me which neighborhoods are trending before they peak.' },
     );
   }
 
-  // 5. Budget-aware greetings
-  if (userPreferences?.budget_max) {
-    const budget = userPreferences.budget_max;
-    if (budget < 300000) {
-      contextAwareGreetings.push(
-        { title: '', tagline: `${namePrefix}smart deals await in your budget range` }
-      );
-    } else if (budget > 500000) {
-      contextAwareGreetings.push(
-        { title: '', tagline: `${namePrefix}premium properties matched to your criteria` }
-      );
-    }
-  }
+  // ── Time-of-day greetings with personality ──
 
-  // 6. Market-based greetings (if they have favorite markets)
-  if (userPreferences?.favorite_markets && userPreferences.favorite_markets.length > 0) {
-    const market = userPreferences.favorite_markets[Math.floor(Math.random() * userPreferences.favorite_markets.length)];
-    contextAwareGreetings.push(
-      { title: '', tagline: `${namePrefix}explore new listings in ${market}` },
-      { title: '', tagline: `${market} market insights at your fingertips${userName ? ', ' + userName : ''}` }
+  const timeGreetings: G[] = [];
+  if (hour >= 5 && hour < 12) {
+    timeGreetings.push(
+      { title: '', tagline: `Good morning${name ? ', ' + name : ''} — the early investor gets the deal`, subtitle: 'New listings from overnight are ready for analysis.' },
+      { title: '', tagline: `Morning${name ? ', ' + name : ''}. Coffee and cap rates?`, subtitle: 'Tell me a city and I\'ll pull the best opportunities.' },
+      { title: '', tagline: `Rise and grind${name ? ', ' + name : ''} — markets are open`, subtitle: 'What neighborhood should we scout today?' },
+    );
+  } else if (hour >= 12 && hour < 17) {
+    timeGreetings.push(
+      { title: '', tagline: `Afternoon${name ? ', ' + name : ''}. Let's make moves`, subtitle: 'I\'m ready to analyze deals, compare properties, or scout markets.' },
+      { title: '', tagline: `Happy ${day}${name ? ', ' + name : ''} — what are we building today?`, subtitle: 'Ask me anything about real estate investing.' },
+      { title: '', tagline: `${name ? name + ', t' : 'T'}he market doesn't take lunch breaks`, subtitle: 'Neither do I. What can I research for you?' },
+    );
+  } else if (hour >= 17 && hour < 21) {
+    timeGreetings.push(
+      { title: '', tagline: `Evening${name ? ', ' + name : ''}. Prime time for deal hunting`, subtitle: 'Sellers often update listings after business hours.' },
+      { title: '', tagline: `Wind down with some market research${name ? ', ' + name : ''}?`, subtitle: 'I can run numbers while you relax.' },
+      { title: '', tagline: `${name ? name + ', l' : 'L'}et's end the day with a smart find`, subtitle: 'Tell me your criteria and I\'ll do the heavy lifting.' },
+    );
+  } else {
+    timeGreetings.push(
+      { title: '', tagline: `Burning the midnight oil${name ? ', ' + name : ''}?`, subtitle: 'Late-night research sessions build empires. How can I help?' },
+      { title: '', tagline: `Night owl mode${name ? ', ' + name : ''} — let's find something good`, subtitle: 'Less competition at this hour. What market interests you?' },
     );
   }
 
-  // Generic time-based greetings (fallback/mix-in)
-  const genericGreetings = [
-    { title: '', tagline: `${namePrefix}your AI-powered real estate intelligence` },
-    { title: '', tagline: `${namePrefix}ready to find your next investment?` },
-    { title: '', tagline: `${namePrefix}let's analyze some deals today` },
-    { title: '', tagline: `What property questions can I help with${userName ? ', ' + userName : ''}?` },
-    { title: '', tagline: `${namePrefix}discover opportunities, backed by data` },
-    { title: '', tagline: `${namePrefix}your investment research partner` },
-    { title: '', tagline: `${namePrefix}data-driven insights for smarter investing` },
-    { title: '', tagline: `${namePrefix}find hidden gems in the market` },
+  // ── Generic greetings — engaging, not boring ──
+
+  const genericGreetings: G[] = [
+    { title: '', tagline: n('what deal are we chasing today?'), subtitle: 'Search a city, analyze a property, or compare investments.' },
+    { title: '', tagline: n('your real estate research starts here'), subtitle: 'I crunch numbers, scout markets, and find what others miss.' },
+    { title: '', tagline: n('tell me a market and I\'ll tell you the truth'), subtitle: 'No fluff — just data, comps, and honest analysis.' },
+    { title: '', tagline: n('let\'s turn data into deals'), subtitle: 'Ask me to scout properties, run P&L, or analyze any neighborhood.' },
+    { title: '', tagline: n('every great portfolio starts with a question'), subtitle: 'What\'s on your mind? I can search, analyze, or compare.' },
+    { title: '', tagline: n('the smartest investors ask the most questions'), subtitle: 'I\'m here to answer all of them. Fire away.' },
+    { title: '', tagline: n('ready to outsmart the market?'), subtitle: 'I analyze thousands of listings so you don\'t have to.' },
+    { title: '', tagline: n('think of me as your deal analyst on speed dial'), subtitle: 'Comps, cap rates, cash flow — just ask.' },
+    { title: '', tagline: n('where should we invest next?'), subtitle: 'Give me a city, budget, or strategy and I\'ll get to work.' },
+    { title: '', tagline: n('your unfair advantage in real estate'), subtitle: 'AI-powered research that would take humans weeks.' },
+    { title: '', tagline: n('from market scan to offer — I\'ve got you'), subtitle: 'Scout, analyze, compare, report. What\'s first?' },
+    { title: '', tagline: n('let\'s find the deal everyone else is missing'), subtitle: 'I dig through data that most investors never see.' },
   ];
 
-  // Time-based personal touch
-  let timeGreeting: string;
-  if (hour < 12) {
-    timeGreeting = userPreferences?.last_search_city
-      ? `Good morning${userName ? ', ' + userName : ''}! New listings in ${userPreferences.last_search_city} are waiting`
-      : `Good morning${userName ? ', ' + userName : ''}! Ready to explore?`;
-  } else if (hour < 17) {
-    timeGreeting = `Good afternoon${userName ? ', ' + userName : ''}! What can I find for you?`;
-  } else {
-    timeGreeting = `Good evening${userName ? ', ' + userName : ''}! Time to discover deals?`;
-  }
-
-  // Combine pools: 50% context-aware (if available), 30% generic, 20% time-based
-  const allGreetings = [
-    ...contextAwareGreetings,
-    ...contextAwareGreetings, // Double weight for context-aware
+  // ── Selection logic ──
+  // Combine: 2x context-aware, 1x time, 1x generic
+  const all: G[] = [
+    ...pool, ...pool,
+    ...timeGreetings,
     ...genericGreetings,
   ];
 
-  const rand = Math.random();
-
-  // 20% chance for time-based greeting with personal touch
-  if (rand < 0.2) {
-    return { title: '', tagline: timeGreeting };
+  if (all.length === 0) {
+    return { title: '', tagline: n('your real estate intelligence platform'), subtitle: 'Ask me anything about property investing.' };
   }
 
-  // 80% chance: pick from combined pool (with session-based consistency)
-  if (allGreetings.length > 0) {
-    const sessionIndex = Math.floor(Date.now() / 3600000) % allGreetings.length;
-    return allGreetings[sessionIndex];
-  }
-
-  // Ultimate fallback
-  return { title: '', tagline: `${namePrefix}your AI-powered real estate intelligence` };
+  // Session-stable pick (changes roughly every hour)
+  const idx = Math.floor(Date.now() / 3600000) % all.length;
+  return all[idx];
 };
 
 export const ChatTabView: React.FC<ChatTabViewProps> = ({
   messages,
   isLoading,
   userName,
+  userAvatar,
   selectedState: _selectedState,
   onSendMessage,
   onAction,
@@ -287,7 +287,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     userName
   ]);
 
-  const suggestions = useSmartSuggestions({ messages, completedTools, isLoading });
+  const suggestions = useSmartSuggestions({ messages, completedTools, isLoading, mode: currentMode });
 
   // Detect preference suggestions from new AI responses
   useEffect(() => {
@@ -438,13 +438,20 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           <div className="h-full flex flex-col items-center justify-center px-4 py-6">
             <div className="w-full max-w-[680px] mx-auto space-y-5">
               {/* Avatar + Greeting */}
-              <div className="text-center space-y-3.5">
+              <div className="text-center space-y-3">
                 <div className="relative inline-block">
                   <AgentAvatar size="lg" className="relative" status={agentStatus} />
                 </div>
-                <h1 className="text-[24px] md:text-[28px] font-semibold text-white/95 tracking-tight px-4">
-                  {greeting.tagline}
-                </h1>
+                <div className="space-y-1.5 px-4">
+                  <h1 className="text-[22px] md:text-[26px] font-semibold text-white/95 tracking-tight leading-snug">
+                    {greeting.tagline}
+                  </h1>
+                  {greeting.subtitle && (
+                    <p className="text-[13px] text-white/40 font-normal leading-relaxed max-w-md mx-auto">
+                      {greeting.subtitle}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Composer - Main focus */}
@@ -481,20 +488,20 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                         <button
                           key={key}
                           onClick={() => handleSendMessage(query)}
-                          className="group flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all duration-200"
+                          className="group flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                         >
-                          <span className="text-sm opacity-70 group-hover:scale-110 transition-transform">{icon}</span>
-                          <span className="text-xs text-white/70 group-hover:text-white/95 font-medium">{label}</span>
+                          <span className="text-[10px] opacity-60 group-hover:opacity-90 transition-opacity">{icon}</span>
+                          <span className="text-[10px] text-white/50 group-hover:text-white/80 font-medium leading-none">{label}</span>
                         </button>
                       );
                     })}
                     {/* Close button for suggestions */}
                     <button
                       onClick={() => setShowSuggestionChips(false)}
-                      className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 text-white/30 hover:text-white/70 transition-all"
+                      className="flex items-center justify-center w-5 h-5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-white/25 hover:text-white/60 transition-all"
                       title="Hide suggestions"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -527,6 +534,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 thinking={thinking}
                 completedTools={completedTools}
                 userName={userName}
+                userAvatar={userAvatar}
                 onRefresh={onRefresh}
                 onViewDetails={onViewDetails}
                 onEdit={onEditMessage}

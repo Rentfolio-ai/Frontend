@@ -186,7 +186,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                             placeholder="Search by keyword, property, or topic..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#C08B5C]/50 focus:ring-2 focus:ring-[#C08B5C]/20 transition-all"
                         />
                     </div>
 
@@ -195,7 +195,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                         <button
                             onClick={() => toggleFilter('today')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('today')
-                                ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                                ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
                                 : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                                 }`}
                         >
@@ -205,7 +205,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                         <button
                             onClick={() => toggleFilter('week')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('week')
-                                ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                                ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
                                 : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                                 }`}
                         >
@@ -214,7 +214,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                         <button
                             onClick={() => toggleFilter('bookmarked')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('bookmarked')
-                                ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                                ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
                                 : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                                 }`}
                         >
@@ -223,7 +223,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                         <button
                             onClick={() => toggleFilter('analyzed')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('analyzed')
-                                ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                                ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
                                 : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                                 }`}
                         >
@@ -243,7 +243,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                             {activeFilters.length > 0 && (
                                 <button
                                     onClick={() => setActiveFilters([])}
-                                    className="text-teal-400 hover:text-teal-300 transition-colors font-medium"
+                                    className="text-[#D4A27F] hover:text-[#D4A27F] transition-colors font-medium"
                                 >
                                     Clear filters
                                 </button>
@@ -276,16 +276,16 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                                     <button
                                         onClick={() => handleChatClick(chat.id)}
                                         className={`w-full p-4  rounded-lg text-left transition-all ${isActive
-                                            ? 'bg-teal-500/10 border border-teal-500/30'
+                                            ? 'bg-[#C08B5C]/10 border border-[#C08B5C]/30'
                                             : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20'
                                             }`}
                                     >
                                         <div className="flex items-start gap-3">
                                             {/* Icon */}
-                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${hasProperty ? 'bg-teal-500/20' : 'bg-white/10'
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${hasProperty ? 'bg-[#C08B5C]/20' : 'bg-white/10'
                                                 }`}>
                                                 {hasProperty ? (
-                                                    <MapPin className="w-5 h-5 text-teal-400" />
+                                                    <MapPin className="w-5 h-5 text-[#D4A27F]" />
                                                 ) : (
                                                     <span className="text-lg">💬</span>
                                                 )}
@@ -315,7 +315,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                                                     {hasProperty && (
                                                         <>
                                                             <span>•</span>
-                                                            <span className="text-teal-400">Property Analysis</span>
+                                                            <span className="text-[#D4A27F]">Property Analysis</span>
                                                         </>
                                                     )}
                                                 </div>
@@ -345,7 +345,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                                                     <button
                                                         key={msg.id}
                                                         onClick={() => handleChatClick(chat.id, msg.id)}
-                                                        className="w-full px-3 py-2 text-left text-xs rounded bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] hover:border-teal-500/30 transition-all group"
+                                                        className="w-full px-3 py-2 text-left text-xs rounded bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] hover:border-[#C08B5C]/30 transition-all group"
                                                     >
                                                         <div className="flex items-start gap-2">
                                                             <span className="text-[10px] text-white/30 mt-0.5">↳</span>

@@ -1,57 +1,57 @@
-import { useState, useEffect } from 'react';
-import type { SubscriptionStatus } from '../services/subscriptionService';
+import { useState, useEffect, useCallback } from 'react';
+import { subscriptionService, type SubscriptionStatus } from '../services/subscriptionService';
 
-// Default free tier - used as fallback
+// Default free tier — used as fallback when billing isn't reachable
 const DEFAULT_FREE_TIER: SubscriptionStatus = {
     tier: 'free',
     status: 'active',
     limits: {
-        analyses_per_month: 5,
+        analyses_per_month: 2,
         reports_per_month: 2,
-        watchlist_properties: 10
-    }
+        watchlist_properties: 10,
+    },
 };
 
 export function useSubscription() {
     const [subscription, setSubscription] = useState<SubscriptionStatus>(DEFAULT_FREE_TIER);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchSubscription = async () => {
+    const fetchSubscription = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
-
-            // Dynamically import to avoid crashes if auth isn't set up
-            const { subscriptionService } = await import('../services/subscriptionService');
             const data = await subscriptionService.getSubscription();
             setSubscription(data);
         } catch (err) {
             console.warn('Failed to fetch subscription, using free tier:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch subscription');
-            // Keep default free tier on error - app still works
+            // Keep free tier fallback so the app still works
             setSubscription(DEFAULT_FREE_TIER);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        // Don't fetch if we're in development without auth
-        if (import.meta.env.VITE_FIREBASE_API_KEY) {
-            fetchSubscription().catch(err => {
-                console.error('useSubscription mount error:', err);
-            });
+        // Only fetch if user is logged in (has a token)
+        const token =
+            localStorage.getItem('civitas-token') ||
+            sessionStorage.getItem('civitas-token');
+
+        if (token) {
+            fetchSubscription();
         } else {
-            console.log('Firebase not configured, using free tier');
             setLoading(false);
         }
-    }, []);
+    }, [fetchSubscription]);
 
     return {
         subscription,
         loading,
         error,
-        refetch: fetchSubscription
+        isPro: subscription.tier === 'pro' || subscription.tier === 'enterprise',
+        isFree: subscription.tier === 'free',
+        refetch: fetchSubscription,
     };
 }

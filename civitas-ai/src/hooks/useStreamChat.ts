@@ -20,7 +20,7 @@ console.log('[useStreamChat] API Key loaded:', CIVITAS_API_KEY ? `${CIVITAS_API_
 
 interface UseStreamChatOptions {
   onContent?: (content: string) => void;
-  onComplete?: (content: string, threadId: string | null) => void;
+  onComplete?: (content: string, threadId: string | null, tools?: CompletedTool[]) => void;
   onError?: (error: string) => void;
   onToolComplete?: (tool: CompletedTool) => void;
 }
@@ -34,6 +34,7 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
     error: null,
     threadId: null,
     contextSources: [],
+    toolBatch: [], // 🚀 PHASE 2A: Initialize toolBatch
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -49,6 +50,7 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
       error: null,
       threadId: null,
       contextSources: [],
+      toolBatch: [], // Reset toolBatch
     });
   }, []);
 
@@ -66,15 +68,35 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
         break;
 
       case 'thinking':
-        setStreamState(prev => ({
-          ...prev,
-          thinking: {
-            status: event.status,
-            source: event.source,
-            icon: event.icon,
-            tool: event.tool,
-          },
-        }));
+        // V2 uses 'message' field, V1 uses 'status' field
+        const thinkingStatusText = event.status || event.message || 'Thinking';
+        const shouldAccum = event.source === 'Agent Reasoning' || event.progress !== undefined;
+        
+        setStreamState(prev => {
+          if (shouldAccum && prev.thinking) {
+            const alreadyHas = (prev.thinking.status || '').includes(thinkingStatusText);
+            if (!alreadyHas) {
+              return {
+                ...prev,
+                thinking: {
+                  ...prev.thinking,
+                  status: prev.thinking.status + '\n' + thinkingStatusText,
+                },
+              };
+            }
+            return prev;
+          } else {
+            return {
+              ...prev,
+              thinking: {
+                status: thinkingStatusText,
+                source: event.source,
+                icon: event.icon,
+                tool: event.tool,
+              },
+            };
+          }
+        });
         break;
 
       case 'tool_start':
@@ -102,9 +124,12 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
             options.onToolComplete?.(newTool);
           }
 
+          // IMPROVED PROMPTS V2: Don't clear Agent Reasoning thinking
+          const shouldKeepThinking = prev.thinking && prev.thinking.source === 'Agent Reasoning';
+
           return {
             ...prev,
-            thinking: null,
+            thinking: shouldKeepThinking ? prev.thinking : null,
             completedTools: newTool
               ? [...prev.completedTools, newTool]
               : prev.completedTools,
@@ -197,6 +222,27 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
           content: '',
         }));
         options.onContent?.('');
+        break;
+
+      // 🚀 PHASE 2A: Handle Batch Start
+      case 'tools_batch_start':
+        setStreamState(prev => ({
+          ...prev,
+          toolBatch: event.tools.map(t => ({
+            ...t,
+            status: 'pending'
+          }))
+        }));
+        break;
+
+      // 🚀 PHASE 2A: Handle Tool Result
+      case 'tool_result':
+        setStreamState(prev => ({
+          ...prev,
+          toolBatch: prev.toolBatch?.map(t =>
+            t.id === event.id || t.name === event.tool ? { ...t, status: 'complete', result: event.data } : t
+          )
+        }));
         break;
     }
   }, [options, streamState.threadId]);

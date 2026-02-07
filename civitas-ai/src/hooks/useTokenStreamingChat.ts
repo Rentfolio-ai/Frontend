@@ -151,11 +151,28 @@ export const useTokenStreamingChat = (options: UseTokenStreamingChatOptions = {}
                   break;
                 
                 case 'thinking':
-                  // Update thinking state
-                  setThinking({
-                    status: data.status || 'Thinking...',
-                    explanation: data.explanation,
-                    source: data.source
+                  // V2 uses 'message' field, V1 uses 'status' field
+                  const thinkingText = data.status || data.message || 'Thinking...';
+                  const shouldAccumulate = data.source === 'Agent Reasoning' || data.progress !== undefined;
+                  
+                  setThinking(prev => {
+                    if (shouldAccumulate && prev) {
+                      const alreadyHas = (prev.status || '').includes(thinkingText);
+                      if (!alreadyHas) {
+                        return {
+                          ...prev,
+                          status: prev.status + '\n' + thinkingText,
+                          explanation: data.explanation || prev.explanation,
+                        };
+                      }
+                      return prev;
+                    } else {
+                      return {
+                        status: thinkingText,
+                        explanation: data.explanation,
+                        source: data.source
+                      };
+                    }
                   });
                   break;
                 
@@ -169,6 +186,14 @@ export const useTokenStreamingChat = (options: UseTokenStreamingChatOptions = {}
                 
                 case 'tool_end':
                   // Tool completed
+                  // IMPROVED PROMPTS V2: Don't clear Agent Reasoning thinking
+                  setThinking(prev => {
+                    if (prev && prev.source === 'Agent Reasoning') {
+                      return prev; // Keep Agent Reasoning thinking
+                    }
+                    return null; // Clear other thinking
+                  });
+                  
                   setCompletedTools(prev => [
                     ...prev,
                     {

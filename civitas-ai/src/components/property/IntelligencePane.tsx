@@ -85,8 +85,8 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
     return (
       <div className="h-full flex items-center justify-center p-8">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-teal-500/20 to-purple-500/20 border border-teal-500/30 flex items-center justify-center">
-            <Building2 className="w-10 h-10 text-teal-400" />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[#C08B5C]/20 to-purple-500/20 border border-[#C08B5C]/30 flex items-center justify-center">
+            <Building2 className="w-10 h-10 text-[#D4A27F]" />
           </div>
           <h3 className="text-xl font-bold text-white mb-3">
             Property Intelligence
@@ -98,8 +98,8 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
           {/* Quick Tips */}
           <div className="space-y-2 text-left">
             <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-teal-400 text-xs font-bold">1</span>
+              <div className="w-6 h-6 rounded-full bg-[#C08B5C]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-[#D4A27F] text-xs font-bold">1</span>
               </div>
               <p className="text-white/70 text-sm">
                 <span className="font-semibold text-white">Click</span> a property card to view details
@@ -114,8 +114,8 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
               </p>
             </div>
             <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-teal-400 text-xs font-bold">3</span>
+              <div className="w-6 h-6 rounded-full bg-[#C08B5C]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-[#D4A27F] text-xs font-bold">3</span>
               </div>
               <p className="text-white/70 text-sm">
                 <span className="font-semibold text-white">Right-click</span> for quick actions
@@ -173,7 +173,7 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
                     className={cn(
                       'p-2 rounded-lg transition-all',
                       isPinned
-                        ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                        ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
                         : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'
                     )}
                     title={isPinned ? 'Unpin property' : 'Pin property'}
@@ -231,7 +231,7 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
               
               {/* Holographic Active Indicator */}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-teal-400 to-purple-500 shadow-lg shadow-teal-500/50" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4A27F] to-purple-500 shadow-lg shadow-[#C08B5C]/50" />
               )}
             </button>
           ))}
@@ -265,7 +265,7 @@ const OverviewTab: React.FC<{ property: ScoutedProperty; onOpenDealAnalyzer?: an
     {onOpenDealAnalyzer && (
       <button
         onClick={() => onOpenDealAnalyzer(property.listing_id, 'STR', property.price, property.address)}
-        className="w-full py-3 px-4 bg-gradient-to-r from-teal-500 to-purple-600 hover:from-teal-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all shadow-lg shadow-teal-500/20"
+        className="w-full py-3 px-4 bg-gradient-to-r from-[#C08B5C] to-purple-600 hover:from-[#A8734A] hover:to-purple-700 text-white font-semibold rounded-lg transition-all shadow-lg shadow-[#C08B5C]/20"
       >
         Open Deal Analyzer
       </button>
@@ -306,7 +306,7 @@ const AIInsightsTab: React.FC<{ property: ScoutedProperty }> = ({ property }) =>
           <div className={cn(
             'p-4 rounded-lg border',
             property.financial_snapshot.status === 'positive'
-              ? 'bg-teal-500/10 border-teal-500/30 text-teal-400'
+              ? 'bg-[#C08B5C]/10 border-[#C08B5C]/30 text-[#D4A27F]'
               : 'bg-red-500/10 border-red-500/30 text-red-400'
           )}>
             <p className="text-sm font-medium">
@@ -328,7 +328,7 @@ const AIInsightsTab: React.FC<{ property: ScoutedProperty }> = ({ property }) =>
 
 const ThreeDViewTab: React.FC<{ property: ScoutedProperty }> = ({ property }) => (
   <div className="space-y-6">
-    <div className="rounded-xl overflow-hidden bg-slate-950/50 border border-teal-500/20">
+    <div className="rounded-xl overflow-hidden bg-slate-950/50 border border-[#C08B5C]/20">
       <HolographicPropertyView
         property={{
           bedrooms: property.bedrooms || 0,
@@ -350,7 +350,7 @@ const ThreeDViewTab: React.FC<{ property: ScoutedProperty }> = ({ property }) =>
 const InfoSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => (
   <div className="space-y-4">
     <div className="flex items-center gap-2 text-white font-semibold">
-      <div className="text-teal-400">{icon}</div>
+      <div className="text-[#D4A27F]">{icon}</div>
       {title}
     </div>
     <div className="space-y-3 pl-7">
@@ -367,7 +367,7 @@ const InfoRow: React.FC<{ label: string; value: string; icon?: React.ReactNode; 
     </span>
     <span className={cn(
       'text-sm font-medium',
-      highlight ? 'text-teal-400' : 'text-white/90'
+      highlight ? 'text-[#D4A27F]' : 'text-white/90'
     )}>
       {value}
     </span>
@@ -378,7 +378,7 @@ const InfoRow: React.FC<{ label: string; value: string; icon?: React.ReactNode; 
 const ComparisonMatrix: React.FC<{ properties: ScoutedProperty[] }> = ({ properties }) => (
   <div className="p-6">
     <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-      <GitCompare className="w-6 h-6 text-teal-400" />
+      <GitCompare className="w-6 h-6 text-[#D4A27F]" />
       Property Comparison
     </h2>
     

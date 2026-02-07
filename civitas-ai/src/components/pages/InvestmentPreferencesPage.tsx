@@ -1,12 +1,12 @@
 /**
- * Investment Preferences Page - Full Static Page
- * Comprehensive investment preferences management
+ * Investment Preferences Page — Redesigned
+ * Compact, organized investment criteria management
  */
 
 import React, { useState, useEffect } from 'react';
 import {
-    ArrowLeft, Home, DollarSign, TrendingUp, Target, 
-    Building2, MapPin, Plus, X, Info, Save, Check
+    ArrowLeft, Home, DollarSign, TrendingUp, Target,
+    Building2, MapPin, Plus, X, Save, Check, Loader2
 } from 'lucide-react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { cn } from '../../lib/utils';
@@ -15,7 +15,6 @@ interface InvestmentPreferencesPageProps {
     onBack: () => void;
 }
 
-// Popular US markets for autocomplete
 const POPULAR_MARKETS = [
     'Austin, TX', 'Nashville, TN', 'Raleigh, NC', 'Charlotte, NC', 'Phoenix, AZ',
     'Tampa, FL', 'Dallas, TX', 'Houston, TX', 'Atlanta, GA', 'Orlando, FL',
@@ -28,25 +27,81 @@ const POPULAR_MARKETS = [
 
 const PROPERTY_TYPES = ['Single Family', 'Multi-Family', 'Condo', 'Townhouse', 'Land'];
 
+/* ── Reusable Components ── */
+
+const Section: React.FC<{
+    icon: React.ElementType;
+    title: string;
+    subtitle: string;
+    children: React.ReactNode;
+}> = ({ icon: Icon, title, subtitle, children }) => (
+    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+        <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-7 h-7 rounded-md bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-3.5 h-3.5 text-[#D4A27F]" />
+            </div>
+            <div>
+                <h3 className="text-[13px] font-semibold text-white/85">{title}</h3>
+                <p className="text-[10px] text-white/35">{subtitle}</p>
+            </div>
+        </div>
+        {children}
+    </div>
+);
+
+const InputField: React.FC<{
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    prefix?: string;
+    suffix?: string;
+}> = ({ label, value, onChange, prefix, suffix }) => (
+    <div>
+        <label className="block text-[11px] font-medium text-white/40 mb-1.5">{label}</label>
+        <div className="relative">
+            {prefix && <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">{prefix}</span>}
+            <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className={cn(
+                    'w-full py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[13px] text-white/80 focus:outline-none focus:border-[#C08B5C]/30 transition-colors',
+                    prefix ? 'pl-6 pr-3' : suffix ? 'pl-3 pr-8' : 'px-3'
+                )}
+            />
+            {suffix && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">{suffix}</span>}
+        </div>
+    </div>
+);
+
+const Chip: React.FC<{
+    label: string;
+    selected: boolean;
+    onClick: () => void;
+}> = ({ label, selected, onClick }) => (
+    <button
+        onClick={onClick}
+        className={cn(
+            'px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all',
+            selected
+                ? 'bg-[#C08B5C]/10 border-[#C08B5C]/25 text-[#D4A27F]'
+                : 'bg-white/[0.03] border-white/[0.06] text-white/45 hover:bg-white/[0.05]'
+        )}
+    >
+        {label}
+    </button>
+);
+
+/* ── Main Component ── */
+
 export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps> = ({ onBack }) => {
     const {
-        defaultStrategy,
-        budgetRange,
-        preferredBedrooms,
-        preferredPropertyTypes,
-        financialDna,
-        investmentCriteria,
-        favoriteMarkets,
-        setDefaultStrategy,
-        setBudgetRange,
-        setPreferredBedrooms,
-        setFinancialDna,
-        setInvestmentCriteria,
-        toggleFavoriteMarket,
-        togglePropertyType
+        defaultStrategy, budgetRange, preferredBedrooms, preferredPropertyTypes,
+        financialDna, investmentCriteria, favoriteMarkets,
+        setDefaultStrategy, setBudgetRange, setPreferredBedrooms, setFinancialDna,
+        setInvestmentCriteria, toggleFavoriteMarket, togglePropertyType
     } = usePreferencesStore();
 
-    // Form state
     const [strategy, setStrategy] = useState<'STR' | 'LTR' | 'FLIP' | null>(defaultStrategy);
     const [minBudget, setMinBudget] = useState(budgetRange?.min?.toString() || '200000');
     const [maxBudget, setMaxBudget] = useState(budgetRange?.max?.toString() || '400000');
@@ -54,7 +109,6 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
     const [propertyTypes, setPropertyTypes] = useState<string[]>(preferredPropertyTypes);
     const [bedrooms, setBedrooms] = useState<string>(preferredBedrooms?.toString() || 'any');
 
-    // Financial DNA
     const [downPayment, setDownPayment] = useState(financialDna?.down_payment_pct ? (financialDna.down_payment_pct * 100).toString() : '20');
     const [interestRate, setInterestRate] = useState(financialDna?.interest_rate_annual ? (financialDna.interest_rate_annual * 100).toString() : '7.0');
     const [loanTerm, setLoanTerm] = useState(financialDna?.loan_term_years?.toString() || '30');
@@ -64,366 +118,185 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
     const [vacancy, setVacancy] = useState(financialDna?.vacancy_rate_pct ? (financialDna.vacancy_rate_pct * 100).toString() : '5');
     const [closingCost, setClosingCost] = useState(financialDna?.closing_cost_pct ? (financialDna.closing_cost_pct * 100).toString() : '3');
 
-    // Investment Criteria
     const [minCashFlow, setMinCashFlow] = useState(investmentCriteria?.min_cash_flow?.toString() || '200');
     const [minCoC, setMinCoC] = useState(investmentCriteria?.min_coc_pct ? (investmentCriteria.min_coc_pct * 100).toString() : '8');
     const [minCapRate, setMinCapRate] = useState(investmentCriteria?.min_cap_rate_pct ? (investmentCriteria.min_cap_rate_pct * 100).toString() : '6');
     const [maxRehab, setMaxRehab] = useState(investmentCriteria?.max_rehab_cost?.toString() || '50000');
 
-    // Market search
     const [marketSearch, setMarketSearch] = useState('');
-    const [showMarketDropdown, setShowMarketDropdown] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
     const [filteredMarkets, setFilteredMarkets] = useState<string[]>(POPULAR_MARKETS);
-
-    // Saving state
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Filter markets based on search
     useEffect(() => {
-        if (marketSearch) {
-            const filtered = POPULAR_MARKETS.filter(m =>
-                m.toLowerCase().includes(marketSearch.toLowerCase()) &&
-                !markets.includes(m)
-            );
-            setFilteredMarkets(filtered);
-        } else {
-            setFilteredMarkets(POPULAR_MARKETS.filter(m => !markets.includes(m)));
-        }
+        const q = marketSearch.toLowerCase();
+        setFilteredMarkets(
+            POPULAR_MARKETS.filter(m => (!q || m.toLowerCase().includes(q)) && !markets.includes(m))
+        );
     }, [marketSearch, markets]);
 
-    const formatCurrency = (value: string) => {
-        const num = parseInt(value.replace(/,/g, ''));
-        if (isNaN(num)) return '';
-        return num.toLocaleString();
-    };
-
-    const handleAddMarket = (market: string) => {
-        if (!markets.includes(market) && markets.length < 10) {
-            setMarkets([...markets, market]);
-            setMarketSearch('');
-            setShowMarketDropdown(false);
-        }
-    };
-
-    const handleRemoveMarket = (market: string) => {
-        setMarkets(markets.filter(m => m !== market));
-    };
-
-    const togglePropertyTypeLocal = (type: string) => {
-        if (propertyTypes.includes(type)) {
-            setPropertyTypes(propertyTypes.filter(t => t !== type));
-        } else {
-            setPropertyTypes([...propertyTypes, type]);
-        }
-    };
+    const fmtCurrency = (v: string) => { const n = parseInt(v.replace(/,/g, '')); return isNaN(n) ? '' : n.toLocaleString(); };
 
     const handleSave = () => {
         setIsSaving(true);
-
-        // Save to store
         if (strategy) setDefaultStrategy(strategy);
-        
-        const min = parseInt(minBudget.replace(/,/g, ''));
-        const max = parseInt(maxBudget.replace(/,/g, ''));
-        setBudgetRange(min, max);
-
+        setBudgetRange(parseInt(minBudget.replace(/,/g, '')), parseInt(maxBudget.replace(/,/g, '')));
         setPreferredBedrooms(bedrooms === 'any' ? null : parseInt(bedrooms));
 
-        // Update markets
-        const currentMarkets = favoriteMarkets;
-        markets.forEach(m => {
-            if (!currentMarkets.includes(m)) toggleFavoriteMarket(m);
-        });
-        currentMarkets.forEach(m => {
-            if (!markets.includes(m)) toggleFavoriteMarket(m);
-        });
+        const curMarkets = favoriteMarkets;
+        markets.forEach(m => { if (!curMarkets.includes(m)) toggleFavoriteMarket(m); });
+        curMarkets.forEach(m => { if (!markets.includes(m)) toggleFavoriteMarket(m); });
 
-        // Update property types
-        const currentTypes = preferredPropertyTypes;
-        propertyTypes.forEach(t => {
-            if (!currentTypes.includes(t)) togglePropertyType(t);
-        });
-        currentTypes.forEach(t => {
-            if (!propertyTypes.includes(t)) togglePropertyType(t);
-        });
+        const curTypes = preferredPropertyTypes;
+        propertyTypes.forEach(t => { if (!curTypes.includes(t)) togglePropertyType(t); });
+        curTypes.forEach(t => { if (!propertyTypes.includes(t)) togglePropertyType(t); });
 
-        // Save financial DNA
         setFinancialDna({
-            down_payment_pct: parseFloat(downPayment) / 100,
-            interest_rate_annual: parseFloat(interestRate) / 100,
-            loan_term_years: parseInt(loanTerm),
-            property_management_pct: parseFloat(mgmtFee) / 100,
-            maintenance_pct: parseFloat(maintenance) / 100,
-            capex_reserve_pct: parseFloat(capex) / 100,
-            vacancy_rate_pct: parseFloat(vacancy) / 100,
-            closing_cost_pct: parseFloat(closingCost) / 100
+            down_payment_pct: parseFloat(downPayment) / 100, interest_rate_annual: parseFloat(interestRate) / 100,
+            loan_term_years: parseInt(loanTerm), property_management_pct: parseFloat(mgmtFee) / 100,
+            maintenance_pct: parseFloat(maintenance) / 100, capex_reserve_pct: parseFloat(capex) / 100,
+            vacancy_rate_pct: parseFloat(vacancy) / 100, closing_cost_pct: parseFloat(closingCost) / 100,
         });
 
-        // Save investment criteria
         setInvestmentCriteria({
-            min_cash_flow: parseInt(minCashFlow),
-            min_coc_pct: parseFloat(minCoC) / 100,
-            min_cap_rate_pct: parseFloat(minCapRate) / 100,
-            max_rehab_cost: parseInt(maxRehab)
+            min_cash_flow: parseInt(minCashFlow), min_coc_pct: parseFloat(minCoC) / 100,
+            min_cap_rate_pct: parseFloat(minCapRate) / 100, max_rehab_cost: parseInt(maxRehab),
         });
 
-        // Show success
-        setTimeout(() => {
-            setIsSaving(false);
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 2000);
-        }, 500);
+        setTimeout(() => { setIsSaving(false); setShowSuccess(true); setTimeout(() => setShowSuccess(false), 2000); }, 500);
     };
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#334155' }}>
+        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
             {/* Header */}
-            <div
-                className="flex items-center gap-4 px-6 py-4 border-b"
-                style={{ borderColor: 'rgba(148, 163, 184, 0.15)' }}
-            >
-                <button
-                    onClick={onBack}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
-                    style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: '#E2E8F0',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
-                >
-                    <ArrowLeft className="w-5 h-5" />
+            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
+                <button onClick={onBack} className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
+                    <ArrowLeft className="w-4 h-4 text-white/60" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>
-                        Investment Preferences
-                    </h1>
-                    <p className="text-sm" style={{ color: '#94A3B8' }}>
-                        Set your buy box, strategy, and investment criteria
-                    </p>
+                    <h1 className="text-lg font-semibold text-white/90">Investment Preferences</h1>
+                    <p className="text-[11px] text-white/35">Buy box, strategy, and criteria</p>
                 </div>
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2"
-                    style={{
-                        backgroundColor: showSuccess ? '#10B981' : '#14B8A6',
-                        color: '#FFFFFF',
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!showSuccess) e.currentTarget.style.backgroundColor = '#0D9488';
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!showSuccess) e.currentTarget.style.backgroundColor = '#14B8A6';
-                    }}
+                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all flex items-center gap-1.5 ${
+                        showSuccess
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
+                            : 'bg-[#C08B5C] text-white hover:bg-[#A8734A]'
+                    }`}
                 >
-                    {isSaving ? (
-                        <>Saving...</>
-                    ) : showSuccess ? (
-                        <>
-                            <Check className="w-4 h-4" />
-                            Saved!
-                        </>
-                    ) : (
-                        <>
-                            <Save className="w-4 h-4" />
-                            Save Changes
-                        </>
-                    )}
+                    {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> :
+                     showSuccess ? <><Check className="w-3 h-3" /> Saved</> :
+                     <><Save className="w-3 h-3" /> Save</>}
                 </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-5xl mx-auto space-y-6">
-                    
-                    {/* Investment Strategy */}
-                    <Section
-                        icon={TrendingUp}
-                        title="Investment Strategy"
-                        description="Choose your primary investment strategy"
-                    >
-                        <div className="grid grid-cols-3 gap-3">
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="max-w-3xl mx-auto space-y-4">
+                    {/* Strategy */}
+                    <Section icon={TrendingUp} title="Investment Strategy" subtitle="Primary approach">
+                        <div className="grid grid-cols-3 gap-2">
                             {[
-                                { value: 'STR', label: 'Short-Term Rental', desc: 'Airbnb, VRBO' },
-                                { value: 'LTR', label: 'Long-Term Rental', desc: 'Traditional lease' },
-                                { value: 'FLIP', label: 'Fix & Flip', desc: 'Buy, renovate, sell' }
-                            ].map((strat) => (
+                                { v: 'STR', l: 'Short-Term Rental', d: 'Airbnb, VRBO' },
+                                { v: 'LTR', l: 'Long-Term Rental', d: 'Traditional lease' },
+                                { v: 'FLIP', l: 'Fix & Flip', d: 'Buy, renovate, sell' },
+                            ].map(s => (
                                 <button
-                                    key={strat.value}
-                                    onClick={() => setStrategy(strat.value as any)}
-                                    className="p-4 rounded-xl text-left transition-all"
-                                    style={{
-                                        backgroundColor: strategy === strat.value
-                                            ? 'rgba(20, 184, 166, 0.1)'
-                                            : 'rgba(255, 255, 255, 0.03)',
-                                        border: strategy === strat.value
-                                            ? '2px solid #14B8A6'
-                                            : '1px solid rgba(148, 163, 184, 0.12)',
-                                    }}
+                                    key={s.v}
+                                    onClick={() => setStrategy(s.v as 'STR' | 'LTR' | 'FLIP')}
+                                    className={cn(
+                                        'p-3 rounded-lg text-left border-2 transition-all',
+                                        strategy === s.v
+                                            ? 'border-[#C08B5C] bg-[#C08B5C]/10'
+                                            : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                                    )}
                                 >
-                                    <div className="text-base font-semibold text-white/90 mb-1">
-                                        {strat.label}
-                                    </div>
-                                    <div className="text-sm text-white/60">{strat.desc}</div>
+                                    <div className={`text-[12px] font-semibold mb-0.5 ${strategy === s.v ? 'text-[#D4A27F]' : 'text-white/70'}`}>{s.l}</div>
+                                    <div className="text-[10px] text-white/35">{s.d}</div>
                                 </button>
                             ))}
                         </div>
                     </Section>
 
-                    {/* Budget Range */}
-                    <Section
-                        icon={DollarSign}
-                        title="Budget Range"
-                        description="Your target property price range"
-                    >
-                        <div className="grid grid-cols-2 gap-4">
+                    {/* Budget */}
+                    <Section icon={DollarSign} title="Budget Range" subtitle="Target price range">
+                        <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">
-                                    Minimum
-                                </label>
+                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Minimum</label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">$</span>
-                                    <input
-                                        type="text"
-                                        value={formatCurrency(minBudget)}
-                                        onChange={(e) => setMinBudget(e.target.value.replace(/,/g, ''))}
-                                        className="w-full pl-7 pr-4 py-3 rounded-lg bg-white/[0.03] border border-white/[0.12] text-white/90 focus:outline-none focus:border-teal-400/30"
-                                    />
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">$</span>
+                                    <input type="text" value={fmtCurrency(minBudget)} onChange={(e) => setMinBudget(e.target.value.replace(/,/g, ''))}
+                                        className="w-full pl-6 pr-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[13px] text-white/80 focus:outline-none focus:border-[#C08B5C]/30" />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">
-                                    Maximum
-                                </label>
+                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Maximum</label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">$</span>
-                                    <input
-                                        type="text"
-                                        value={formatCurrency(maxBudget)}
-                                        onChange={(e) => setMaxBudget(e.target.value.replace(/,/g, ''))}
-                                        className="w-full pl-7 pr-4 py-3 rounded-lg bg-white/[0.03] border border-white/[0.12] text-white/90 focus:outline-none focus:border-teal-400/30"
-                                    />
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">$</span>
+                                    <input type="text" value={fmtCurrency(maxBudget)} onChange={(e) => setMaxBudget(e.target.value.replace(/,/g, ''))}
+                                        className="w-full pl-6 pr-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[13px] text-white/80 focus:outline-none focus:border-[#C08B5C]/30" />
                                 </div>
                             </div>
                         </div>
                     </Section>
 
                     {/* Property Criteria */}
-                    <Section
-                        icon={Home}
-                        title="Property Criteria"
-                        description="Bedroom count and property types"
-                    >
-                        <div className="space-y-4">
+                    <Section icon={Home} title="Property Criteria" subtitle="Type and bedroom count">
+                        <div className="space-y-3">
                             <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">
-                                    Bedrooms
-                                </label>
-                                <div className="grid grid-cols-6 gap-2">
-                                    {['any', '1', '2', '3', '4', '5+'].map((bed) => (
-                                        <button
-                                            key={bed}
-                                            onClick={() => setBedrooms(bed)}
-                                            className="p-3 rounded-lg text-sm font-medium transition-all"
-                                            style={{
-                                                backgroundColor: bedrooms === bed
-                                                    ? 'rgba(20, 184, 166, 0.1)'
-                                                    : 'rgba(255, 255, 255, 0.03)',
-                                                border: bedrooms === bed
-                                                    ? '2px solid #14B8A6'
-                                                    : '1px solid rgba(148, 163, 184, 0.12)',
-                                                color: bedrooms === bed ? '#14B8A6' : '#94A3B8'
-                                            }}
-                                        >
-                                            {bed}
-                                        </button>
+                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Bedrooms</label>
+                                <div className="grid grid-cols-6 gap-1.5">
+                                    {['any', '1', '2', '3', '4', '5+'].map(b => (
+                                        <Chip key={b} label={b} selected={bedrooms === b} onClick={() => setBedrooms(b)} />
                                     ))}
                                 </div>
                             </div>
-
                             <div>
-                                <label className="block text-sm font-medium text-white/70 mb-2">
-                                    Property Types
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {PROPERTY_TYPES.map((type) => (
-                                        <button
-                                            key={type}
-                                            onClick={() => togglePropertyTypeLocal(type)}
-                                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                                            style={{
-                                                backgroundColor: propertyTypes.includes(type)
-                                                    ? 'rgba(20, 184, 166, 0.1)'
-                                                    : 'rgba(255, 255, 255, 0.03)',
-                                                border: propertyTypes.includes(type)
-                                                    ? '2px solid #14B8A6'
-                                                    : '1px solid rgba(148, 163, 184, 0.12)',
-                                                color: propertyTypes.includes(type) ? '#14B8A6' : '#94A3B8'
-                                            }}
-                                        >
-                                            {type}
-                                        </button>
+                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Property Types</label>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {PROPERTY_TYPES.map(t => (
+                                        <Chip key={t} label={t} selected={propertyTypes.includes(t)}
+                                            onClick={() => setPropertyTypes(propertyTypes.includes(t) ? propertyTypes.filter(x => x !== t) : [...propertyTypes, t])} />
                                     ))}
                                 </div>
                             </div>
                         </div>
                     </Section>
 
-                    {/* Favorite Markets */}
-                    <Section
-                        icon={MapPin}
-                        title="Favorite Markets"
-                        description="Cities you're interested in (up to 10)"
-                    >
-                        <div className="space-y-3">
-                            {/* Market input */}
+                    {/* Markets */}
+                    <Section icon={MapPin} title="Favorite Markets" subtitle={`${markets.length}/10 cities`}>
+                        <div className="space-y-2">
                             <div className="relative">
                                 <input
-                                    type="text"
-                                    value={marketSearch}
-                                    onChange={(e) => {
-                                        setMarketSearch(e.target.value);
-                                        setShowMarketDropdown(true);
-                                    }}
-                                    onFocus={() => setShowMarketDropdown(true)}
+                                    type="text" value={marketSearch}
+                                    onChange={(e) => { setMarketSearch(e.target.value); setShowDropdown(true); }}
+                                    onFocus={() => setShowDropdown(true)}
                                     placeholder="Search cities..."
-                                    className="w-full px-4 py-3 pr-10 rounded-lg bg-white/[0.03] border border-white/[0.12] text-white/90 placeholder-white/40 focus:outline-none focus:border-teal-400/30"
                                     disabled={markets.length >= 10}
+                                    className="w-full px-3 py-2 pr-8 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[12px] text-white/80 placeholder-white/25 focus:outline-none focus:border-[#C08B5C]/30"
                                 />
-                                <Plus className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-
-                                {/* Dropdown */}
-                                {showMarketDropdown && marketSearch && filteredMarkets.length > 0 && (
-                                    <div className="absolute top-full mt-2 w-full max-h-60 overflow-y-auto bg-[#1f1f1f] border border-white/10 rounded-lg shadow-2xl z-10">
-                                        {filteredMarkets.slice(0, 10).map((market) => (
-                                            <button
-                                                key={market}
-                                                onClick={() => handleAddMarket(market)}
-                                                className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-white/5 transition-colors"
-                                            >
-                                                {market}
+                                <Plus className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
+                                {showDropdown && marketSearch && filteredMarkets.length > 0 && (
+                                    <div className="absolute top-full mt-1 w-full max-h-44 overflow-y-auto bg-[#1e1e24] border border-white/[0.08] rounded-lg shadow-2xl z-10">
+                                        {filteredMarkets.slice(0, 8).map(m => (
+                                            <button key={m} onClick={() => { setMarkets([...markets, m]); setMarketSearch(''); setShowDropdown(false); }}
+                                                className="w-full px-3 py-2 text-left text-[12px] text-white/65 hover:bg-white/[0.05] transition-colors">
+                                                {m}
                                             </button>
                                         ))}
                                     </div>
                                 )}
                             </div>
-
-                            {/* Selected markets */}
                             {markets.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                    {markets.map((market) => (
-                                        <div
-                                            key={market}
-                                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30"
-                                        >
-                                            <span className="text-sm text-teal-400">{market}</span>
-                                            <button
-                                                onClick={() => handleRemoveMarket(market)}
-                                                className="p-0.5 hover:bg-teal-500/20 rounded transition-colors"
-                                            >
-                                                <X className="w-3.5 h-3.5 text-teal-400" />
+                                <div className="flex flex-wrap gap-1.5">
+                                    {markets.map(m => (
+                                        <div key={m} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#C08B5C]/10 border border-[#C08B5C]/20">
+                                            <span className="text-[11px] text-[#D4A27F]">{m}</span>
+                                            <button onClick={() => setMarkets(markets.filter(x => x !== m))} className="p-0.5 hover:bg-[#C08B5C]/15 rounded transition-colors">
+                                                <X className="w-3 h-3 text-[#D4A27F]" />
                                             </button>
                                         </div>
                                     ))}
@@ -433,167 +306,30 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                     </Section>
 
                     {/* Financial Assumptions */}
-                    <Section
-                        icon={Building2}
-                        title="Financial Assumptions"
-                        description="Default underwriting parameters"
-                    >
-                        <div className="grid grid-cols-2 gap-4">
-                            <InputField
-                                label="Down Payment %"
-                                value={downPayment}
-                                onChange={setDownPayment}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Interest Rate %"
-                                value={interestRate}
-                                onChange={setInterestRate}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Loan Term (years)"
-                                value={loanTerm}
-                                onChange={setLoanTerm}
-                            />
-                            <InputField
-                                label="Property Mgmt %"
-                                value={mgmtFee}
-                                onChange={setMgmtFee}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Maintenance %"
-                                value={maintenance}
-                                onChange={setMaintenance}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="CapEx Reserve %"
-                                value={capex}
-                                onChange={setCapex}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Vacancy Rate %"
-                                value={vacancy}
-                                onChange={setVacancy}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Closing Costs %"
-                                value={closingCost}
-                                onChange={setClosingCost}
-                                suffix="%"
-                            />
+                    <Section icon={Building2} title="Financial Assumptions" subtitle="Default underwriting parameters">
+                        <div className="grid grid-cols-2 gap-3">
+                            <InputField label="Down Payment" value={downPayment} onChange={setDownPayment} suffix="%" />
+                            <InputField label="Interest Rate" value={interestRate} onChange={setInterestRate} suffix="%" />
+                            <InputField label="Loan Term" value={loanTerm} onChange={setLoanTerm} suffix="yrs" />
+                            <InputField label="Property Mgmt" value={mgmtFee} onChange={setMgmtFee} suffix="%" />
+                            <InputField label="Maintenance" value={maintenance} onChange={setMaintenance} suffix="%" />
+                            <InputField label="CapEx Reserve" value={capex} onChange={setCapex} suffix="%" />
+                            <InputField label="Vacancy Rate" value={vacancy} onChange={setVacancy} suffix="%" />
+                            <InputField label="Closing Costs" value={closingCost} onChange={setClosingCost} suffix="%" />
                         </div>
                     </Section>
 
                     {/* Investment Goals */}
-                    <Section
-                        icon={Target}
-                        title="Investment Goals"
-                        description="Minimum acceptable returns and criteria"
-                    >
-                        <div className="grid grid-cols-2 gap-4">
-                            <InputField
-                                label="Min Monthly Cash Flow"
-                                value={minCashFlow}
-                                onChange={setMinCashFlow}
-                                prefix="$"
-                            />
-                            <InputField
-                                label="Min Cash-on-Cash Return %"
-                                value={minCoC}
-                                onChange={setMinCoC}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Min Cap Rate %"
-                                value={minCapRate}
-                                onChange={setMinCapRate}
-                                suffix="%"
-                            />
-                            <InputField
-                                label="Max Rehab Budget"
-                                value={maxRehab}
-                                onChange={setMaxRehab}
-                                prefix="$"
-                            />
+                    <Section icon={Target} title="Investment Goals" subtitle="Minimum acceptable returns">
+                        <div className="grid grid-cols-2 gap-3">
+                            <InputField label="Min Monthly Cash Flow" value={minCashFlow} onChange={setMinCashFlow} prefix="$" />
+                            <InputField label="Min Cash-on-Cash" value={minCoC} onChange={setMinCoC} suffix="%" />
+                            <InputField label="Min Cap Rate" value={minCapRate} onChange={setMinCapRate} suffix="%" />
+                            <InputField label="Max Rehab Budget" value={maxRehab} onChange={setMaxRehab} prefix="$" />
                         </div>
                     </Section>
-
                 </div>
             </div>
         </div>
     );
 };
-
-// Section Component
-const Section: React.FC<{
-    icon: React.ElementType;
-    title: string;
-    description: string;
-    children: React.ReactNode;
-}> = ({ icon: Icon, title, description, children }) => (
-    <div
-        className="p-6 rounded-xl"
-        style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(148, 163, 184, 0.12)',
-        }}
-    >
-        <div className="flex items-start gap-3 mb-4">
-            <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{
-                    backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                    color: '#14B8A6',
-                }}
-            >
-                <Icon className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white/90 mb-1">{title}</h3>
-                <p className="text-sm text-white/60">{description}</p>
-            </div>
-        </div>
-        {children}
-    </div>
-);
-
-// Input Field Component
-const InputField: React.FC<{
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    prefix?: string;
-    suffix?: string;
-}> = ({ label, value, onChange, prefix, suffix }) => (
-    <div>
-        <label className="block text-sm font-medium text-white/70 mb-2">
-            {label}
-        </label>
-        <div className="relative">
-            {prefix && (
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50">
-                    {prefix}
-                </span>
-            )}
-            <input
-                type="text"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className={cn(
-                    "w-full py-3 rounded-lg bg-white/[0.03] border border-white/[0.12] text-white/90 focus:outline-none focus:border-teal-400/30",
-                    prefix ? "pl-7 pr-4" : suffix ? "pl-4 pr-10" : "px-4"
-                )}
-            />
-            {suffix && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50">
-                    {suffix}
-                </span>
-            )}
-        </div>
-    </div>
-);

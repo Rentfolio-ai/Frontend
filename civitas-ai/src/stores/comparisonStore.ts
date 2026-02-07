@@ -5,6 +5,7 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface ComparisonProperty {
     id: string;
@@ -40,54 +41,61 @@ interface ComparisonState {
     stopComparing: () => void;
 }
 
-export const useComparisonStore = create<ComparisonState>((set, get) => ({
-    selectedProperties: [],
-    isComparing: false,
-    maxProperties: 3,
+export const useComparisonStore = create<ComparisonState>()(
+    persist(
+        (set, get) => ({
+            selectedProperties: [],
+            isComparing: false,
+            maxProperties: 3,
 
-    addToComparison: (property) => set((state) => {
-        if (state.selectedProperties.length >= state.maxProperties) {
-            return state; // Don't add if at max
+            addToComparison: (property) => set((state) => {
+                if (state.selectedProperties.length >= state.maxProperties) {
+                    return state;
+                }
+                if (state.selectedProperties.some(p => p.id === property.id)) {
+                    return state;
+                }
+                return {
+                    selectedProperties: [...state.selectedProperties, property]
+                };
+            }),
+
+            removeFromComparison: (id) => set((state) => ({
+                selectedProperties: state.selectedProperties.filter(p => p.id !== id)
+            })),
+
+            clearComparison: () => set({
+                selectedProperties: [],
+                isComparing: false
+            }),
+
+            toggleComparison: (property) => {
+                const state = get();
+                if (state.isSelected(property.id)) {
+                    state.removeFromComparison(property.id);
+                } else {
+                    state.addToComparison(property);
+                }
+            },
+
+            isSelected: (id) => {
+                return get().selectedProperties.some(p => p.id === id);
+            },
+
+            canAddMore: () => {
+                const state = get();
+                return state.selectedProperties.length < state.maxProperties;
+            },
+
+            startComparing: () => set({ isComparing: true }),
+
+            stopComparing: () => set({ isComparing: false }),
+        }),
+        {
+            name: 'civitas-comparison',
+            partialize: (state) => ({
+                selectedProperties: state.selectedProperties,
+            }),
         }
-
-        // Don't add if already exists
-        if (state.selectedProperties.some(p => p.id === property.id)) {
-            return state;
-        }
-
-        return {
-            selectedProperties: [...state.selectedProperties, property]
-        };
-    }),
-
-    removeFromComparison: (id) => set((state) => ({
-        selectedProperties: state.selectedProperties.filter(p => p.id !== id)
-    })),
-
-    clearComparison: () => set({
-        selectedProperties: [],
-        isComparing: false
-    }),
-
-    toggleComparison: (property) => {
-        const state = get();
-        if (state.isSelected(property.id)) {
-            state.removeFromComparison(property.id);
-        } else {
-            state.addToComparison(property);
-        }
-    },
-
-    isSelected: (id) => {
-        return get().selectedProperties.some(p => p.id === id);
-    },
-
-    canAddMore: () => {
-        const state = get();
-        return state.selectedProperties.length < state.maxProperties;
-    },
-
-    startComparing: () => set({ isComparing: true }),
-
-    stopComparing: () => set({ isComparing: false }),
-}));
+    )
+);

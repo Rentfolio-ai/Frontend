@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '../../../lib/utils';
-import { ChevronLeft, ChevronRight, Sparkles, GitCompare } from 'lucide-react';
+import {
+    ChevronLeft, ChevronRight, Sparkles, GitCompare,
+    Bed, Bath, Maximize2, TrendingUp, TrendingDown,
+    DollarSign, Percent, BarChart3, Calendar, MapPin, ExternalLink
+} from 'lucide-react';
 import type { InvestmentStrategy } from '../../../types/pnl';
 import type { ScoutedProperty } from '../../../types/backendTools';
 import { getWinningHighlights } from '../../../utils/dealHighlights';
 import { usePreferencesStore } from '../../../stores/preferencesStore';
-import { useComparisonStore, type ComparisonProperty } from '../../../stores/comparisonStore';
+import { useComparisonStore } from '../../../stores/comparisonStore';
 import { HolographicPropertyModal } from './HolographicPropertyModal';
 import { PropertyComparisonModal } from '../../comparison/PropertyComparisonModal';
 
@@ -13,211 +17,104 @@ interface PropertyListCardProps {
     properties: ScoutedProperty[];
     onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
     onViewDetails?: (property: any) => void;
-    enableHolographicView?: boolean;  // New prop to enable holographic view
+    enableHolographicView?: boolean;
 }
 
-const PropertyCardItem: React.FC<{
-    property: ScoutedProperty;
-    onViewDetails?: (property: any) => void;
-    onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
-    criteria?: any; // InvestmentCriteria
-}> = ({ property, onViewDetails, criteria }) => {
-    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    const photos = property.photos && property.photos.length > 0
-        ? property.photos
-        : ["https://images.rentcast.io/s3/photo-placeholder.jpg"];
+/* ─────────────────────────────── helpers ─────────────────────────────── */
 
-    const financial = property.financial_snapshot;
-    const isPositive = financial?.status === 'positive';
-    const hasMultiplePhotos = photos.length > 1;
+const fmtPrice = (n?: number) => {
+    if (!n) return '—';
+    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
+    if (n >= 1_000) return `$${Math.round(n / 1_000)}K`;
+    return `$${n.toLocaleString()}`;
+};
 
-    // Pass criteria to helper
-    const highlights = getWinningHighlights(property, criteria);
+const fmtCurrency = (n?: number) => {
+    if (n == null) return '—';
+    return `$${Math.abs(n).toLocaleString()}`;
+};
 
-    const nextPhoto = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
-    };
+/* ───────────────────────────── score ring ────────────────────────────── */
 
-    const prevPhoto = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
-    };
+const ScoreRing: React.FC<{ score: number; max?: number; size?: number }> = ({
+    score, max = 100, size = 40
+}) => {
+    const pct = Math.min(score / max, 1);
+    const r = (size - 6) / 2;
+    const circ = 2 * Math.PI * r;
+    const offset = circ * (1 - pct);
+    const color = pct >= 0.8 ? '#34D399' : pct >= 0.6 ? '#FBBF24' : '#F87171';
 
     return (
-        <div className="min-w-[280px] w-[280px] snap-center bg-[#1E1E1E] rounded-xl border border-white/10 overflow-hidden hover:border-white/20 transition-all group">
-            {/* Image & Price Overlay */}
-            <div className="relative h-40 bg-gray-800 group/image">
-                <img
-                    src={photos[currentPhotoIndex]}
-                    alt={property.address}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                {/* Carousel Navigation */}
-                {hasMultiplePhotos && (
-                    <>
-                        <button
-                            onClick={prevPhoto}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={nextPhoto}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all"
-                        >
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
-
-                        {/* Dots Indicator */}
-                        <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-1">
-                            {photos.slice(0, 5).map((_, idx) => (
-                                <div
-                                    key={idx}
-                                    className={cn(
-                                        "w-1 h-1 rounded-full transition-all",
-                                        idx === currentPhotoIndex ? "bg-white w-2" : "bg-white/40"
-                                    )}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
-
-                <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <div className="text-lg font-bold">
-                        ${property.price?.toLocaleString()}
-                    </div>
-                    <div className="text-xs text-gray-300 truncate">
-                        {property.address}
-                    </div>
-                </div>
-
-                {/* Badges */}
-                <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
-                    {/* Winning Highlights */}
-                    {highlights.map((badge) => (
-                        <div
-                            key={badge.id}
-                            className={cn(
-                                "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 shadow-lg",
-                                badge.bgColor,
-                                badge.color,
-                                "border border-white/10"
-                            )}
-                        >
-                            <badge.icon className="w-3 h-3" />
-                            {badge.label}
-                        </div>
-                    ))}
-
-                    {property.value_score && (
-                        <div className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider backdrop-blur-md",
-                            property.value_grade === 'A' ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-                                property.value_grade === 'B' ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" :
-                                    "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                        )}>
-                            Details
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-3 space-y-3">
-                {/* Key Stats */}
-                <div className="flex items-center justify-between text-xs text-gray-400">
-                    <div className="flex gap-3">
-                        <span>{property.bedrooms} bd</span>
-                        <span>{property.bathrooms} ba</span>
-                        <span>{property.sqft?.toLocaleString()} sqft</span>
-                    </div>
-                </div>
-
-                {/* Financial Snapshot */}
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-white/5 rounded border border-white/5">
-                        <div className="text-[10px] text-gray-500 uppercase">Est. Rent</div>
-                        <div className="text-sm font-medium text-white">
-                            ${financial?.estimated_rent?.toLocaleString()}/mo
-                        </div>
-                    </div>
-                    <div className={cn(
-                        "p-2 rounded border border-white/5",
-                        isPositive ? "bg-emerald-500/10" : "bg-red-500/10"
-                    )}>
-                        <div className="text-[10px] text-gray-500 uppercase">Cash Flow</div>
-                        <div className={cn(
-                            "text-sm font-medium",
-                            isPositive ? "text-emerald-400" : "text-red-400"
-                        )}>
-                            {isPositive ? '+' : ''}${financial?.estimated_monthly_cash_flow?.toLocaleString()}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => onViewDetails?.(property)}
-                        className="flex-1 py-2 px-3 bg-white/[0.06] hover:bg-white/[0.12] text-white/90 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        View Details
-                    </button>
-                    <button
-                        onClick={() => onOpenDealAnalyzer?.(property.listing_id || null, 'LTR', property.price, property.address)}
-                        className="flex-1 py-2 px-3 bg-white/[0.06] hover:bg-white/[0.12] text-white/90 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Analyze
-                    </button>
-                </div>
+        <div className="relative" style={{ width: size, height: size }}>
+            <svg width={size} height={size} className="rotate-[-90deg]">
+                <circle cx={size / 2} cy={size / 2} r={r}
+                    fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3} />
+                <circle cx={size / 2} cy={size / 2} r={r}
+                    fill="none" stroke={color} strokeWidth={3}
+                    strokeDasharray={circ} strokeDashoffset={offset}
+                    strokeLinecap="round" className="transition-all duration-700" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[11px] font-bold text-white leading-none">{Math.round(score)}</span>
             </div>
         </div>
     );
 };
 
-const PropertyCardItemWithHolo: React.FC<{
+/* ──────────────────────── metric pill component ─────────────────────── */
+
+const MetricPill: React.FC<{
+    label: string;
+    value: string;
+    icon: React.ReactNode;
+    accent?: string;       // tailwind text color for value
+    bgTint?: string;       // rgba background
+}> = ({ label, value, icon, accent = 'text-white/80', bgTint }) => (
+    <div
+        className="flex-1 min-w-0 rounded-xl px-3 py-2.5 border border-white/[0.06]"
+        style={{ background: bgTint || 'rgba(255,255,255,0.02)' }}
+    >
+        <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-white/25">{icon}</span>
+            <span className="text-[8px] uppercase tracking-[0.08em] font-semibold text-white/30">{label}</span>
+        </div>
+        <div className={cn('text-[15px] font-bold leading-tight', accent)}>{value}</div>
+    </div>
+);
+
+/* ───────────────────── single property card (premium) ───────────────── */
+
+const PropertyCard: React.FC<{
     property: ScoutedProperty;
     onViewDetails?: (property: any) => void;
     onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
     criteria?: any;
     enableHolographicView?: boolean;
-}> = ({ property, onViewDetails, criteria, enableHolographicView }) => {
+}> = ({ property, onViewDetails, onOpenDealAnalyzer, criteria, enableHolographicView }) => {
     const [showHolographic, setShowHolographic] = useState(false);
-    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-
-    // Comparison store
+    const [photoIdx, setPhotoIdx] = useState(0);
+    const [imgLoaded, setImgLoaded] = useState(false);
     const { isSelected, toggleComparison } = useComparisonStore();
 
-    const photos = property.photos && property.photos.length > 0
-        ? property.photos
-        : ["https://images.rentcast.io/s3/photo-placeholder.jpg"];
-
+    const photos = property.photos?.length ? property.photos : ['https://images.rentcast.io/s3/photo-placeholder.jpg'];
     const financial = property.financial_snapshot;
     const isPositive = financial?.status === 'positive';
-    const hasMultiplePhotos = photos.length > 1;
-
+    const hasMulti = photos.length > 1;
     const highlights = getWinningHighlights(property, criteria);
 
-    const nextPhoto = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
-    };
+    const cashFlow = financial?.estimated_monthly_cash_flow;
+    const rent = financial?.estimated_rent;
+    const capRate = rent && property.price ? ((rent * 12 * 0.6) / property.price * 100) : null;
+    const score = property.value_score || (property as any).ai_score || (property as any).ai_match_score || null;
+    const selected = isSelected(property.listing_id || '');
 
-    const prevPhoto = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
-    };
+    const nextPhoto = (e: React.MouseEvent) => { e.stopPropagation(); setPhotoIdx(i => (i + 1) % photos.length); };
+    const prevPhoto = (e: React.MouseEvent) => { e.stopPropagation(); setPhotoIdx(i => (i - 1 + photos.length) % photos.length); };
 
-    // Convert to ComparisonProperty
-    const handleToggleComparison = () => {
-        const comparisonProperty = {
+    const handleToggleComparison = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        toggleComparison({
             id: property.listing_id || '',
             address: property.address || '',
             price: property.price || 0,
@@ -227,163 +124,245 @@ const PropertyCardItemWithHolo: React.FC<{
             yearBuilt: property.year_built,
             monthlyRent: financial?.estimated_rent,
             cashFlow: financial?.estimated_monthly_cash_flow,
-            cocReturn: undefined, // Not available in current type
-            capRate: undefined, // Not available in current type
+            cocReturn: undefined,
+            capRate: capRate ?? undefined,
             thumbnail: photos[0],
             city: property.city,
             state: property.state,
-        };
-
-        toggleComparison(comparisonProperty);
+        });
     };
 
     return (
         <>
-            <div className="min-w-[280px] w-[280px] snap-center bg-[#1E1E1E] rounded-xl border border-white/10 overflow-hidden hover:border-white/20 transition-all group">
-                {/* Image & Price Overlay */}
-                <div className="relative h-40 bg-gray-800 group/image">
+            <div
+                className={cn(
+                    'min-w-[330px] w-[330px] snap-center rounded-[20px] overflow-hidden transition-all duration-300 group cursor-pointer',
+                    'hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-black/40',
+                    selected && 'ring-2 ring-[#C08B5C]/50'
+                )}
+                style={{
+                    background: 'linear-gradient(165deg, rgba(30,28,36,0.95) 0%, rgba(18,17,22,0.98) 100%)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                }}
+                onClick={() => onViewDetails?.(property)}
+            >
+                {/* ──── Image Section ──── */}
+                <div className="relative h-[195px] overflow-hidden group/img">
+                    {/* Shimmer placeholder */}
+                    {!imgLoaded && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] via-white/[0.06] to-white/[0.02] animate-pulse" />
+                    )}
                     <img
-                        src={photos[currentPhotoIndex]}
+                        src={photos[photoIdx]}
                         alt={property.address}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onLoad={() => setImgLoaded(true)}
+                        className={cn(
+                            'w-full h-full object-cover transition-all duration-700',
+                            'group-hover:scale-[1.05] group-hover:brightness-110',
+                            imgLoaded ? 'opacity-100' : 'opacity-0'
+                        )}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    {/* Deep gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121116] via-[#121116]/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#121116]/20 to-transparent" />
 
-                    {/* Carousel Navigation */}
-                    {hasMultiplePhotos && (
+                    {/* Photo navigation */}
+                    {hasMulti && (
                         <>
-                            <button
-                                onClick={prevPhoto}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
+                            <button onClick={prevPhoto}
+                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white/80 opacity-0 group-hover/img:opacity-100 hover:bg-black/60 transition-all flex items-center justify-center">
+                                <ChevronLeft className="w-3.5 h-3.5" />
                             </button>
-                            <button
-                                onClick={nextPhoto}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all"
-                            >
-                                <ChevronRight className="w-4 h-4" />
+                            <button onClick={nextPhoto}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white/80 opacity-0 group-hover/img:opacity-100 hover:bg-black/60 transition-all flex items-center justify-center">
+                                <ChevronRight className="w-3.5 h-3.5" />
                             </button>
-
-                            {/* Dots Indicator */}
-                            <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-1">
-                                {photos.slice(0, 5).map((_, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={cn(
-                                            "w-1 h-1 rounded-full transition-all",
-                                            idx === currentPhotoIndex ? "bg-white w-2" : "bg-white/40"
-                                        )}
-                                    />
+                            {/* Dot indicators */}
+                            <div className="absolute bottom-[72px] left-0 right-0 flex justify-center gap-1.5">
+                                {photos.slice(0, 6).map((_, i) => (
+                                    <div key={i} className={cn(
+                                        'rounded-full transition-all duration-300',
+                                        i === photoIdx ? 'bg-white w-4 h-[3px]' : 'bg-white/30 w-[5px] h-[3px]'
+                                    )} />
                                 ))}
                             </div>
                         </>
                     )}
 
-                    <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <div className="text-lg font-bold">
-                            ${property.price?.toLocaleString()}
+                    {/* ─── Top-left: AI Score ring ─── */}
+                    {score != null && score > 0 && (
+                        <div className="absolute top-3 left-3">
+                            <ScoreRing score={score} max={score > 100 ? 150 : 100} size={42} />
                         </div>
-                        <div className="text-xs text-gray-300 truncate">
-                            {property.address}
+                    )}
+
+                    {/* ─── Top-right: Spec pills ─── */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white/80 text-[10px] font-medium">
+                            <Bed className="w-3 h-3 text-white/50" />
+                            {property.bedrooms}
                         </div>
-                    </div>
-
-                    {/* Badges */}
-                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
-                        {highlights.map((badge) => (
-                            <div
-                                key={badge.id}
-                                className={cn(
-                                    "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 shadow-lg",
-                                    badge.bgColor,
-                                    badge.color,
-                                    "border border-white/10"
-                                )}
-                            >
-                                <badge.icon className="w-3 h-3" />
-                                {badge.label}
-                            </div>
-                        ))}
-
-                        {property.value_score && (
-                            <div className={cn(
-                                "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider backdrop-blur-md",
-                                property.value_grade === 'A' ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-                                    property.value_grade === 'B' ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" :
-                                        "bg-gray-500/20 text-gray-400 border border-gray-500/30"
-                            )}>
-                                Details
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white/80 text-[10px] font-medium">
+                            <Bath className="w-3 h-3 text-white/50" />
+                            {property.bathrooms}
+                        </div>
+                        {property.sqft && (
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white/80 text-[10px] font-medium">
+                                <Maximize2 className="w-3 h-3 text-white/50" />
+                                {property.sqft >= 1000
+                                    ? `${(property.sqft / 1000).toFixed(1)}K`
+                                    : property.sqft}
                             </div>
                         )}
                     </div>
+
+                    {/* ─── Bottom overlay: Price + Address ─── */}
+                    <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">
+                        {/* Price badge with gradient */}
+                        <div className="inline-flex items-center mb-1.5">
+                            <span className="text-[22px] font-extrabold text-white tracking-tight drop-shadow-lg">
+                                ${property.price?.toLocaleString()}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-white/45">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{property.address}</span>
+                        </div>
+                    </div>
+
+                    {/* ─── Compare checkbox ─── */}
+                    <button
+                        onClick={handleToggleComparison}
+                        className={cn(
+                            'absolute bottom-3 right-3 w-7 h-7 rounded-lg border transition-all flex items-center justify-center text-[11px] font-bold',
+                            selected
+                                ? 'bg-[#C08B5C] border-[#C08B5C] text-white shadow-lg shadow-[#C08B5C]/20'
+                                : 'bg-black/30 backdrop-blur-md border-white/15 text-transparent opacity-0 group-hover:opacity-100 hover:border-[#C08B5C]/40'
+                        )}
+                        title="Add to compare"
+                    >
+                        ✓
+                    </button>
+
+                    {/* ─── Highlight badges ─── */}
+                    {highlights.length > 0 && (
+                        <div className="absolute top-3 left-[52px] flex items-center gap-1">
+                            {highlights.slice(0, 2).map((badge) => (
+                                <div key={badge.id}
+                                    className={cn(
+                                        'px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1',
+                                        badge.bgColor, badge.color,
+                                        'border border-white/10'
+                                    )}>
+                                    <badge.icon className="w-2.5 h-2.5" />
+                                    {badge.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* Content */}
-                <div className="p-3 space-y-3">
-                    {/* Key Stats */}
-                    <div className="flex items-center justify-between text-xs text-gray-400">
-                        <div className="flex gap-3">
-                            <span>{property.bedrooms} bd</span>
-                            <span>{property.bathrooms} ba</span>
-                            <span>{property.sqft?.toLocaleString()} sqft</span>
-                        </div>
-                    </div>
-
-                    {/* Financial Snapshot */}
-                    <div className="grid grid-cols-2 gap-2">
-                        <div className="p-2 bg-white/5 rounded border border-white/5">
-                            <div className="text-[10px] text-gray-500 uppercase">Est. Rent</div>
-                            <div className="text-sm font-medium text-white">
-                                ${financial?.estimated_rent?.toLocaleString()}/mo
-                            </div>
-                        </div>
-                        <div className={cn(
-                            "p-2 rounded border border-white/5",
-                            isPositive ? "bg-emerald-500/10" : "bg-red-500/10"
-                        )}>
-                            <div className="text-[10px] text-gray-500 uppercase">Cash Flow</div>
-                            <div className={cn(
-                                "text-sm font-medium",
-                                isPositive ? "text-emerald-400" : "text-red-400"
+                {/* ──── Content Section ──── */}
+                <div className="px-4 pt-3.5 pb-4 space-y-3">
+                    {/* Location & Year */}
+                    <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-white/35 flex items-center gap-1">
+                            {property.city}, {property.state}
+                            {property.year_built && (
+                                <>
+                                    <span className="text-white/15 mx-1">·</span>
+                                    <Calendar className="w-3 h-3 text-white/20" />
+                                    Built {property.year_built}
+                                </>
+                            )}
+                        </span>
+                        {property.days_on_market != null && (
+                            <span className={cn(
+                                'text-[10px] font-medium px-2 py-0.5 rounded-md',
+                                property.days_on_market <= 7
+                                    ? 'text-emerald-400/80 bg-emerald-500/10'
+                                    : property.days_on_market <= 30
+                                        ? 'text-amber-400/80 bg-amber-500/10'
+                                        : 'text-white/30 bg-white/[0.03]'
                             )}>
-                                {isPositive ? '+' : ''}${financial?.estimated_monthly_cash_flow?.toLocaleString()}
-                            </div>
-                        </div>
+                                {property.days_on_market}d on market
+                            </span>
+                        )}
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    {/* ─── Financial Metrics: 3-column grid ─── */}
+                    <div className="grid grid-cols-3 gap-2">
+                        <MetricPill
+                            label="Rent"
+                            value={rent ? `${fmtCurrency(rent)}/mo` : '—'}
+                            icon={<DollarSign className="w-3 h-3" />}
+                            accent="text-white/80"
+                            bgTint="rgba(255,255,255,0.025)"
+                        />
+                        <MetricPill
+                            label="Cap Rate"
+                            value={capRate ? `${capRate.toFixed(1)}%` : '—'}
+                            icon={<Percent className="w-3 h-3" />}
+                            accent={capRate && capRate >= 6 ? 'text-emerald-400' : 'text-white/60'}
+                            bgTint={capRate && capRate >= 6 ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.025)'}
+                        />
+                        <MetricPill
+                            label="Cash Flow"
+                            value={cashFlow != null ? `${isPositive ? '+' : '-'}${fmtCurrency(cashFlow)}/mo` : '—'}
+                            icon={isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            accent={isPositive ? 'text-emerald-400' : 'text-rose-400'}
+                            bgTint={isPositive ? 'rgba(16,185,129,0.05)' : 'rgba(239,68,68,0.04)'}
+                        />
+                    </div>
+
+                    {/* ─── Action Row ─── */}
+                    <div className="flex gap-2 pt-1">
                         {enableHolographicView && (
                             <button
-                                onClick={() => setShowHolographic(true)}
-                                className="flex-1 py-2 px-2 bg-gradient-to-r from-teal-500/20 to-purple-500/20 hover:from-teal-500/30 hover:to-purple-500/30 border border-teal-500/30 text-teal-300 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5"
+                                onClick={(e) => { e.stopPropagation(); setShowHolographic(true); }}
+                                className="w-9 h-9 rounded-xl flex items-center justify-center text-[#D4A27F]/60 hover:text-[#D4A27F] hover:bg-[#C08B5C]/10 transition-all border border-white/[0.04]"
                             >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                3D View
+                                <Sparkles className="w-4 h-4" />
                             </button>
                         )}
                         <button
-                            onClick={() => onViewDetails?.(property)}
-                            className="flex-1 py-2 px-3 bg-white/[0.06] hover:bg-white/[0.12] text-white/90 text-xs font-medium rounded-lg transition-colors"
+                            onClick={(e) => { e.stopPropagation(); onViewDetails?.(property); }}
+                            className="flex-1 h-9 text-[11px] font-medium text-white/50 rounded-xl transition-all border border-white/[0.05] hover:bg-white/[0.05] hover:text-white/70 hover:border-white/[0.08]"
                         >
-                            Details
+                            View Details
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onOpenDealAnalyzer?.(property.listing_id || null, 'LTR', property.price, property.address); }}
+                            className="flex-1 h-9 text-[11px] font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(192,139,92,0.15), rgba(212,162,127,0.08))',
+                                color: '#D4A27F',
+                                border: '1px solid rgba(192,139,92,0.2)',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(192,139,92,0.25), rgba(212,162,127,0.15))';
+                                e.currentTarget.style.borderColor = 'rgba(192,139,92,0.35)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(192,139,92,0.15), rgba(212,162,127,0.08))';
+                                e.currentTarget.style.borderColor = 'rgba(192,139,92,0.2)';
+                            }}
+                        >
+                            <BarChart3 className="w-3.5 h-3.5" />
+                            Analyze Deal
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Holographic Modal */}
             {showHolographic && (
-                <HolographicPropertyModal
-                    isOpen={showHolographic}
-                    onClose={() => setShowHolographic(false)}
-                    property={property}
-                />
+                <HolographicPropertyModal isOpen={showHolographic} onClose={() => setShowHolographic(false)} property={property} />
             )}
         </>
     );
 };
+
+/* ─────────────────────────── main list card ──────────────────────────── */
 
 export const PropertyListCard: React.FC<PropertyListCardProps> = ({
     properties,
@@ -391,15 +370,11 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
     onViewDetails,
     enableHolographicView: enableHolographicViewProp = false,
 }) => {
-    // Access Stores
     const { investmentCriteria } = usePreferencesStore();
     const { selectedProperties, startComparing } = useComparisonStore();
-
-    // Local state for holographic toggle
     const [holographicMode, setHolographicMode] = useState(enableHolographicViewProp);
     const [showComparison, setShowComparison] = useState(false);
 
-    // Update when prop changes
     useEffect(() => {
         setHolographicMode(enableHolographicViewProp);
     }, [enableHolographicViewProp]);
@@ -413,42 +388,36 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
 
     return (
         <>
-            <div className="space-y-4">
-                {/* Toolbar: Holographic View & Compare */}
-                <div className="flex items-center justify-between px-4">
-                    <div className="text-sm text-white/60">
-                        {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
+            <div className="space-y-3">
+                {/* Toolbar */}
+                <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[12px] text-white/30 font-medium">
+                            {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
+                        </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        {/* Compare Button */}
                         {selectedProperties.length > 0 && (
                             <button
                                 onClick={handleCompare}
-                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 hover:from-blue-500/30 hover:to-indigo-500/30 border border-blue-500/40 text-blue-300 rounded-lg font-medium text-sm transition-all shadow-lg shadow-blue-500/10"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all hover:scale-[1.02]"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(192,139,92,0.15), rgba(212,162,127,0.08))',
+                                    color: '#D4A27F',
+                                    border: '1px solid rgba(192,139,92,0.25)'
+                                }}
                             >
-                                <GitCompare className="w-4 h-4" />
+                                <GitCompare className="w-3.5 h-3.5" />
                                 Compare ({selectedProperties.length})
                             </button>
                         )}
-
-                        {/* Holographic Toggle */}
-                        <button
-                            onClick={() => setHolographicMode(!holographicMode)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${holographicMode
-                                ? 'bg-gradient-to-r from-teal-500/20 to-purple-500/20 border border-teal-500/40 text-teal-300 shadow-lg shadow-teal-500/20'
-                                : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
-                                }`}
-                        >
-                            <Sparkles className={`w-4 h-4 ${holographicMode ? 'animate-pulse' : ''}`} />
-                            {holographicMode ? 'Holographic View Active' : 'Enable Holographic View'}
-                        </button>
                     </div>
                 </div>
 
-                {/* Property Cards */}
-                <div className="flex overflow-x-auto gap-4 py-4 -mx-4 px-4 scrollbar-hide snap-x">
+                {/* Card carousel */}
+                <div className="flex overflow-x-auto gap-4 py-1 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
                     {properties.map((property) => (
-                        <PropertyCardItemWithHolo
+                        <PropertyCard
                             key={property.listing_id}
                             property={property}
                             onViewDetails={onViewDetails}
@@ -460,11 +429,7 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
                 </div>
             </div>
 
-            {/* Comparison Modal */}
-            <PropertyComparisonModal
-                isOpen={showComparison}
-                onClose={() => setShowComparison(false)}
-            />
+            <PropertyComparisonModal isOpen={showComparison} onClose={() => setShowComparison(false)} />
         </>
     );
 };

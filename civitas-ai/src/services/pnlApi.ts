@@ -6,7 +6,7 @@ import type {
 } from '../types/pnl';
 import { logger } from '../utils/logger';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { API_BASE_URL, API_KEY } from './apiConfig';
 
 interface PnLApiResponse<T> {
     success: boolean;
@@ -46,8 +46,8 @@ export async function calculatePropertyPnL(
 ): Promise<PnLApiResponse<PnLOutput>> {
     try {
         const endpoint = propertyId
-            ? `${API_BASE_URL}/api/calculate/${propertyId}`
-            : `${API_BASE_URL}/api/calculate`;
+            ? `${API_BASE_URL}/api/calculate/pnl?property_id=${propertyId}`
+            : `${API_BASE_URL}/api/calculate/pnl`;
 
         // Convert camelCase request to snake_case for backend
         const snakeCaseRequest: any = {};
@@ -60,6 +60,7 @@ export async function calculatePropertyPnL(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
             },
             body: JSON.stringify(snakeCaseRequest),
         });
@@ -96,10 +97,11 @@ export async function explainPnL(
     context?: PnLRequest
 ): Promise<ExplanationResponse> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/explain`, {
+        const response = await fetch(`${API_BASE_URL}/api/calculate/explain`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(API_KEY ? { 'X-API-Key': API_KEY } : {}),
             },
             body: JSON.stringify({
                 pnl_data: pnlOutput, // Backend expects snake_case but we'll send what we have, robust backend should handle or we adapt

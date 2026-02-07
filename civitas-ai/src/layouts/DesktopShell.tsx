@@ -18,8 +18,6 @@
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-// PortfolioProvider removed - not needed without portfolio views
-// import { PortfolioProvider } from '../contexts/PortfolioContext';
 import { useDesktopShell, type TabType } from '../hooks/useDesktopShell';
 import { useThemeState } from '../hooks/useThemeState';
 
@@ -27,7 +25,6 @@ import { useToast } from '../hooks/useToast';
 import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
-import { PortfolioTabView } from '../components/desktop-shell';
 import { ReportsPage } from '../components/reports/ReportsPage';
 import { CommandCenterChatView } from '../components/desktop-shell/CommandCenterChatView';
 import { SimpleSidebar } from '../components/desktop-shell/SimpleSidebar';
@@ -48,7 +45,9 @@ import { NotificationsPage } from '../components/pages/NotificationsPage';
 import { AppearancePage } from '../components/pages/AppearancePage';
 import { LanguageRegionPage } from '../components/pages/LanguageRegionPage';
 import { InvestmentPreferencesPage } from '../components/pages/InvestmentPreferencesPage';
-import { DealAnalyzerPage } from '../components/pages/DealAnalyzerPage';
+import { ContactSupportPage } from '../components/pages/ContactSupportPage';
+import { PrivacySecurityPage } from '../components/pages/PrivacySecurityPage';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -282,7 +281,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
 
   return (
-    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: '#334155' }}>
+    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: '#111114' }}>
       {/* Simple Left Sidebar with integrated chat history */}
       <SimpleSidebar
         onNewChat={() => {
@@ -297,11 +296,20 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         onUpgradeClick={() => setActiveTab('upgrade')}
         onAboutClick={() => setActiveTab('about')}
         chatHistory={chatHistory}
-        activeChatId={activeChatId}
+        activeChatId={activeChatId || ''}
         onLoadChat={handleLoadChat}
-        onDeleteChat={handleDeleteChat}
-        onPinChat={handlePinChat}
-        onArchiveChat={handleArchiveChat}
+        onDeleteChat={(id: string, e: React.MouseEvent) => {
+          e.stopPropagation();
+          handleDeleteChat(id);
+        }}
+        onPinChat={(id: string, e: React.MouseEvent) => {
+          e.stopPropagation();
+          handlePinChat(id);
+        }}
+        onArchiveChat={(id: string, e: React.MouseEvent) => {
+          e.stopPropagation();
+          handleArchiveChat(id);
+        }}
         hideHamburger={activeTab === 'chat' && isScrollingDown}
         isCurrentChatTemporary={isCurrentChatTemporary}
       />
@@ -320,6 +328,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   messages={messages}
                   isLoading={isLoading}
                   userName={user?.name?.split(' ')[0]}
+                  userAvatar={user?.avatar}
                   selectedState={selectedState}
                   onSendMessage={sendMessageWithStream}
                   onAction={handleAction}
@@ -366,55 +375,89 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
               );
             })()}
             {activeTab === 'reports' && (
-              <ReportsPage />
-            )}
-            {activeTab === 'portfolio' && (
-              <PortfolioTabView />
+              <ErrorBoundary pageName="Reports">
+                <ReportsPage />
+              </ErrorBoundary>
             )}
             {activeTab === 'files' && (
-              <FilesPage />
+              <ErrorBoundary pageName="Files">
+                <FilesPage />
+              </ErrorBoundary>
             )}
             {activeTab === 'settings' && (
-              <SettingsPage
-                onBack={() => setActiveTab('chat')}
-                onNavigateToProfile={() => setActiveTab('profile')}
-                onNavigateToNotifications={() => setActiveTab('notifications')}
-                onNavigateToAppearance={() => setActiveTab('appearance')}
-                onNavigateToLanguageRegion={() => setActiveTab('language_region')}
-                onNavigateToInvestmentPreferences={() => setActiveTab('investment_preferences')}
-              />
+              <ErrorBoundary pageName="Settings">
+                <SettingsPage
+                  onBack={() => setActiveTab('chat')}
+                  onNavigateToProfile={() => setActiveTab('profile')}
+                  onNavigateToNotifications={() => setActiveTab('notifications')}
+                  onNavigateToAppearance={() => setActiveTab('appearance')}
+                  onNavigateToLanguageRegion={() => setActiveTab('language_region')}
+                  onNavigateToInvestmentPreferences={() => setActiveTab('investment_preferences')}
+                  onNavigateToPrivacySecurity={() => setActiveTab('privacy_security')}
+                />
+              </ErrorBoundary>
             )}
             {activeTab === 'profile' && (
-              <ProfilePage onBack={() => setActiveTab('settings')} />
+              <ErrorBoundary pageName="Profile">
+                <ProfilePage onBack={() => setActiveTab('settings')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'notifications' && (
-              <NotificationsPage onBack={() => setActiveTab('settings')} />
+              <ErrorBoundary pageName="Notifications">
+                <NotificationsPage onBack={() => setActiveTab('settings')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'appearance' && (
-              <AppearancePage onBack={() => setActiveTab('settings')} />
+              <ErrorBoundary pageName="Appearance">
+                <AppearancePage onBack={() => setActiveTab('settings')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'language_region' && (
-              <LanguageRegionPage onBack={() => setActiveTab('settings')} />
+              <ErrorBoundary pageName="Language & Region">
+                <LanguageRegionPage onBack={() => setActiveTab('settings')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'investment_preferences' && (
-              <InvestmentPreferencesPage onBack={() => setActiveTab('settings')} />
+              <ErrorBoundary pageName="Investment Preferences">
+                <InvestmentPreferencesPage onBack={() => setActiveTab('settings')} />
+              </ErrorBoundary>
+            )}
+            {activeTab === 'privacy_security' && (
+              <ErrorBoundary pageName="Privacy & Security">
+                <PrivacySecurityPage onBack={() => setActiveTab('settings')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'help' && (
-              <HelpPage onBack={() => setActiveTab('chat')} />
+              <ErrorBoundary pageName="Help">
+                <HelpPage
+                  onBack={() => setActiveTab('chat')}
+                  onNavigateToContact={() => setActiveTab('contact_support')}
+                />
+              </ErrorBoundary>
+            )}
+            {activeTab === 'contact_support' && (
+              <ErrorBoundary pageName="Contact Support">
+                <ContactSupportPage onBack={() => setActiveTab('help')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'upgrade' && (
-              <UpgradePage onBack={() => setActiveTab('chat')} />
+              <ErrorBoundary pageName="Upgrade">
+                <UpgradePage onBack={() => setActiveTab('chat')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'about' && (
-              <AboutPage onBack={() => setActiveTab('chat')} />
+              <ErrorBoundary pageName="About">
+                <AboutPage onBack={() => setActiveTab('chat')} />
+              </ErrorBoundary>
             )}
             {activeTab === 'analysis' && activeProperty && (
-              <PropertyAnalysisPage
-                property={activeProperty}
-                onBack={() => setActiveTab('chat')}
-              />
+              <ErrorBoundary pageName="Property Analysis">
+                <PropertyAnalysisPage
+                  property={activeProperty}
+                  onBack={() => setActiveTab('chat')}
+                />
+              </ErrorBoundary>
             )}
-            {/* Deal Analyzer now only uses Drawer - no duplicate page */}
           </div>
         </div>
 

@@ -38,7 +38,7 @@
   right: 20px;
   width: 4px;
   height: 20px;
-  background: linear-gradient(180deg, #14B8A6 0%, #0D9488 100%);
+  background: linear-gradient(180deg, #C08B5C 0%, #A8734A 100%);
   animation: pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   border-radius: 2px;
 }
@@ -55,13 +55,13 @@
 @layer base {
   :root {
     /* Vasthu - Luxury Real Estate Color System */
-    /* Deep charcoal base with emerald/teal accents and warm gold highlights */
-    --primary: 160 84% 39%;
-    /* Emerald #10B981 */
-    --accent-from: 160 84% 39%;
-    /* Emerald */
-    --accent-to: 173 80% 40%;
-    /* Teal #14B8A6 */
+    /* Warm obsidian base with copper/bronze accents */
+    --primary: 27 41% 55%;
+    /* Copper #C08B5C */
+    --accent-from: 27 41% 55%;
+    /* Copper */
+    --accent-to: 30 55% 62%;
+    /* Bronze */
     --highlight: 45 93% 47%;
     /* Warm Gold #EAB308 */
     --success: 160 84% 39%;
@@ -98,49 +98,54 @@
   }
 
   .dark {
-    /* Clean Dark Theme - Keep teal branding, minimal design */
+    /* Obsidian + Copper — Premium Real Estate Dark Theme */
 
-    /* Base: Pure neutral grays */
-    --background: 0 0% 13%;
-    /* #212121 - Clean dark gray */
-    --surface: 0 0% 12%;
-    /* #1F1F1F - Cards */
-    --surface-elevated: 0 0% 14%;
-    /* #242424 - Elevated UI */
-    --muted: 0 0% 15%;
-    --border: 0 0% 15%;
+    /* Base: Warm near-blacks */
+    --background: 240 7% 7%;
+    /* #111114 - Obsidian shell */
+    --surface: 240 6% 9%;
+    /* #18181c - Sidebar/surface */
+    --surface-elevated: 240 6% 12%;
+    /* #1e1e24 - Elevated cards */
+    --muted: 240 5% 14%;
+    --border: 240 5% 14%;
     /* Subtle borders */
-    --border-subtle: 0 0% 12%;
+    --border-subtle: 240 5% 11%;
     /* Even more subtle */
     --foreground: 0 0% 90%;
     /* #E5E5E5 - Primary text */
-    --text-muted: 0 0% 65%;
-    /* Clean gray for secondary text */
+    --text-muted: 0 0% 55%;
+    /* Warm gray for secondary text */
 
-    /* Keep Vibrant Teal Branding */
-    --primary: 173 80% 50%;
-    --accent-from: 173 80% 50%;
-    --accent-to: 280 65% 60%;
-    --highlight: 45 100% 60%;
-    --success: 160 90% 50%;
+    /* Copper / Bronze Accent System */
+    --primary: 27 41% 55%;
+    /* #C08B5C - Copper */
+    --accent-from: 27 41% 55%;
+    /* Copper */
+    --accent-to: 30 55% 62%;
+    /* Warm bronze */
+    --highlight: 27 60% 65%;
+    /* Light copper */
+    --success: 160 84% 39%;
     --warning: 38 95% 58%;
-    --danger: 0 90% 65%;
+    --danger: 0 84% 60%;
     --info: 199 89% 66%;
-    --neutral: 0 0% 50%;
+    --neutral: 240 3% 50%;
 
     /* Component colors */
-    --card: 0 0% 10%;
+    --card: 240 7% 5%;
+    /* #0c0c10 */
     --card-foreground: 0 0% 90%;
-    --popover: 0 0% 12%;
+    --popover: 240 6% 9%;
     --popover-foreground: 0 0% 90%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 18%;
+    --secondary: 240 5% 14%;
     --secondary-foreground: 0 0% 90%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 173 80% 20%;
-    --accent-foreground: 173 80% 95%;
-    --ring: 173 80% 50%;
-    --input: 0 0% 16%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 27 41% 18%;
+    --accent-foreground: 27 41% 90%;
+    --ring: 27 41% 55%;
+    --input: 240 5% 13%;
   }
 }
 
@@ -298,11 +303,11 @@
 
   .dark .bg-gradient-animated {
     background: linear-gradient(135deg,
-        hsl(220 15% 8%) 0%,
-        hsl(220 18% 10%) 25%,
-        hsl(220 20% 12%) 50%,
-        hsl(220 18% 10%) 75%,
-        hsl(220 15% 8%) 100%);
+        #111114 0%,
+        #18181c 25%,
+        #1e1e24 50%,
+        #18181c 75%,
+        #111114 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }
@@ -338,15 +343,15 @@
   /* Mesh gradient overlay */
   .bg-mesh {
     background-image:
-      radial-gradient(at 0% 0%, hsl(160 84% 39% / 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsl(173 80% 40% / 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsl(45 93% 47% / 0.08) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsl(160 84% 39% / 0.1) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(192, 139, 92, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(168, 115, 74, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(212, 162, 127, 0.06) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(192, 139, 92, 0.08) 0px, transparent 50%);
   }
 
   /* Glow effects */
   .glow-emerald {
-    box-shadow: 0 0 40px hsl(160 84% 39% / 0.3), 0 0 80px hsl(160 84% 39% / 0.15);
+    box-shadow: 0 0 40px rgba(192, 139, 92, 0.3), 0 0 80px rgba(192, 139, 92, 0.15);
   }
 
   .glow-gold {
@@ -499,14 +504,14 @@
   /* Premium button styles */
   .btn-primary {
     @apply px-6 py-3 rounded-xl font-semibold text-white;
-    background: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(173 80% 40%) 100%);
-    box-shadow: 0 4px 20px hsl(160 84% 39% / 0.3), inset 0 1px 0 hsl(160 84% 60% / 0.3);
+    background: linear-gradient(135deg, #C08B5C 0%, #A8734A 100%);
+    box-shadow: 0 4px 20px rgba(192, 139, 92, 0.3), inset 0 1px 0 rgba(212, 162, 127, 0.3);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px hsl(160 84% 39% / 0.4), inset 0 1px 0 hsl(160 84% 60% / 0.4);
+    box-shadow: 0 8px 30px rgba(192, 139, 92, 0.4), inset 0 1px 0 rgba(212, 162, 127, 0.4);
   }
 
   .btn-primary:active {
@@ -580,105 +585,111 @@
   animation: scan 3s ease-in-out infinite;
 }
 
-/* Message Content Highlighting */
+/* ===== AI Message Prose Overrides ===== */
+
+/* Reset prose defaults for dark theme */
+.prose {
+  --tw-prose-body: rgba(226, 232, 240, 0.7);
+  --tw-prose-headings: rgba(255, 255, 255, 0.95);
+  --tw-prose-bold: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== Message Content Highlighting ===== */
 .prose mark {
   background-color: transparent;
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.375rem;
   font-weight: 600;
   transition: all 0.2s ease;
+  display: inline;
+  line-height: inherit;
 }
 
 .prose mark:hover {
-  transform: translateY(-1px);
+  transform: translateY(-0.5px);
 }
 
-/* Currency highlights - Green/teal for money */
+/* Currency - Emerald */
 .prose .highlight-currency {
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.1);
-  border-bottom: 2px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.06));
+  border-bottom: 1.5px solid rgba(16, 185, 129, 0.25);
 }
-
 .prose .highlight-currency:hover {
-  background-color: rgba(16, 185, 129, 0.2);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
 }
 
-/* Percentage highlights - Blue for percentages */
+/* Percentages - Blue */
 .prose .highlight-percentage {
-  color: #3b82f6;
-  background-color: rgba(59, 130, 246, 0.1);
-  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.06));
+  border-bottom: 1.5px solid rgba(59, 130, 246, 0.25);
 }
-
 .prose .highlight-percentage:hover {
-  background-color: rgba(59, 130, 246, 0.2);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
 }
 
-/* Property metrics - Purple for specs */
+/* Property metrics - Violet */
 .prose .highlight-metric {
   color: #a78bfa;
-  background-color: rgba(167, 139, 250, 0.1);
-  border-bottom: 2px solid rgba(167, 139, 250, 0.3);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.12), rgba(167, 139, 250, 0.06));
+  border-bottom: 1.5px solid rgba(167, 139, 250, 0.25);
 }
-
 .prose .highlight-metric:hover {
-  background-color: rgba(167, 139, 250, 0.2);
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.2);
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(167, 139, 250, 0.1));
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.15);
 }
 
-/* Financial metrics - Amber/gold for ROI, cap rate, etc. */
+/* Financial metrics - Amber */
 .prose .highlight-financial {
-  color: #f59e0b;
-  background-color: rgba(245, 158, 11, 0.1);
-  border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.06));
+  border-bottom: 1.5px solid rgba(245, 158, 11, 0.25);
 }
-
 .prose .highlight-financial:hover {
-  background-color: rgba(245, 158, 11, 0.2);
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
 }
 
-/* Address highlights - Cyan for locations */
+/* Addresses - Cyan */
 .prose .highlight-address {
-  color: #06b6d4;
-  background-color: rgba(6, 182, 212, 0.1);
-  border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+  color: #22d3ee;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(6, 182, 212, 0.06));
+  border-bottom: 1.5px solid rgba(6, 182, 212, 0.25);
 }
-
 .prose .highlight-address:hover {
-  background-color: rgba(6, 182, 212, 0.2);
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.1));
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
 }
 
-/* ZIP code highlights */
+/* ZIP codes - Purple */
 .prose .highlight-zip {
-  color: #8b5cf6;
-  background-color: rgba(139, 92, 246, 0.1);
-  border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.06));
+  border-bottom: 1.5px solid rgba(139, 92, 246, 0.25);
 }
 
-/* Location highlights */
+/* Locations - Teal */
 .prose .highlight-location {
-  color: #14b8a6;
-  background-color: rgba(20, 184, 166, 0.1);
-  border-bottom: 2px solid rgba(20, 184, 166, 0.3);
+  color: #2dd4bf;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(20, 184, 166, 0.06));
+  border-bottom: 1.5px solid rgba(20, 184, 166, 0.25);
 }
 
-/* MLS number highlights */
+/* MLS numbers - Pink */
 .prose .highlight-mls {
-  color: #ec4899;
-  background-color: rgba(236, 72, 153, 0.1);
-  border-bottom: 2px solid rgba(236, 72, 153, 0.3);
+  color: #f472b6;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(236, 72, 153, 0.06));
+  border-bottom: 1.5px solid rgba(236, 72, 153, 0.25);
 }
 
-/* Year built highlights */
+/* Year built - Slate */
 .prose .highlight-year {
-  color: #64748b;
-  background-color: rgba(100, 116, 139, 0.1);
-  border-bottom: 2px solid rgba(100, 116, 139, 0.3);
+  color: #94a3b8;
+  background: linear-gradient(135deg, rgba(100, 116, 139, 0.12), rgba(100, 116, 139, 0.06));
+  border-bottom: 1.5px solid rgba(100, 116, 139, 0.25);
 }
 
 /* Message jump highlight animation */

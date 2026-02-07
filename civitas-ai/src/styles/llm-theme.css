@@ -41,21 +41,21 @@
 .ai-message {
   background: linear-gradient(
     135deg,
-    rgba(139, 92, 246, 0.1) 0%,
-    rgba(59, 130, 246, 0.1) 100%
+    rgba(192, 139, 92, 0.08) 0%,
+    rgba(168, 115, 74, 0.06) 100%
   );
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-left: 2px solid #8b5cf6;
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.1);
+  border-left: 2px solid #C08B5C;
+  box-shadow: 0 4px 16px rgba(192, 139, 92, 0.1);
 }
 
 .user-message {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-right: 2px solid #60a5fa;
-  box-shadow: 0 4px 16px rgba(96, 165, 250, 0.1);
+  border-right: 2px solid #D4A27F;
+  box-shadow: 0 4px 16px rgba(212, 162, 127, 0.08);
 }
 
 .system-message {
@@ -71,7 +71,7 @@
    ============================================================================ */
 
 .gradient-text {
-  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #C08B5C 0%, #D4A27F 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -95,7 +95,7 @@
 }
 
 .gradient-text-info {
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #06b6d4 0%, #C08B5C 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -114,9 +114,9 @@
 .animated-gradient {
   background: linear-gradient(
     270deg,
-    rgba(139, 92, 246, 0.1),
-    rgba(59, 130, 246, 0.1),
-    rgba(139, 92, 246, 0.1)
+    rgba(192, 139, 92, 0.08),
+    rgba(168, 115, 74, 0.06),
+    rgba(192, 139, 92, 0.08)
   );
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
@@ -125,9 +125,9 @@
 .animated-gradient-strong {
   background: linear-gradient(
     270deg,
-    rgba(139, 92, 246, 0.2),
-    rgba(59, 130, 246, 0.2),
-    rgba(139, 92, 246, 0.2)
+    rgba(192, 139, 92, 0.15),
+    rgba(168, 115, 74, 0.12),
+    rgba(192, 139, 92, 0.15)
   );
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
@@ -143,7 +143,7 @@
 
 .hover-lift:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 12px 24px rgba(192, 139, 92, 0.25);
 }
 
 .hover-glow {
@@ -151,7 +151,7 @@
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 20px rgba(192, 139, 92, 0.4);
 }
 
 .hover-scale {
@@ -169,11 +169,11 @@
 @keyframes pulse-glow {
   0%, 100% { 
     opacity: 1;
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+    box-shadow: 0 0 20px rgba(192, 139, 92, 0.4);
   }
   50% { 
     opacity: 0.7;
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
+    box-shadow: 0 0 30px rgba(192, 139, 92, 0.6);
   }
 }
 
@@ -250,19 +250,19 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.5);
+  background: rgba(192, 139, 92, 0.4);
   border-radius: 4px;
   transition: background 0.2s;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.8);
+  background: rgba(192, 139, 92, 0.7);
 }
 
 /* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.5) rgba(255, 255, 255, 0.05);
+  scrollbar-color: rgba(192, 139, 92, 0.4) rgba(255, 255, 255, 0.05);
 }
 
 /* ============================================================================
@@ -270,13 +270,13 @@
    ============================================================================ */
 
 .badge-ai {
-  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #C08B5C 0%, #A8734A 100%);
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(192, 139, 92, 0.3);
 }
 
 .badge-success {
@@ -304,7 +304,7 @@
 .border-gradient {
   border: 1px solid transparent;
   background: linear-gradient(var(--bg-primary), var(--bg-primary)) padding-box,
-              linear-gradient(135deg, #8b5cf6, #3b82f6) border-box;
+              linear-gradient(135deg, #C08B5C, #D4A27F) border-box;
 }
 
 .divider-gradient {
@@ -312,7 +312,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(139, 92, 246, 0.5),
+    rgba(192, 139, 92, 0.4),
     transparent
   );
 }
@@ -335,9 +335,9 @@
 .card-ai:hover {
   transform: translateY(-4px);
   box-shadow: 
-    0 12px 40px rgba(139, 92, 246, 0.3),
+    0 12px 40px rgba(192, 139, 92, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(192, 139, 92, 0.25);
 }
 
 /* ============================================================================

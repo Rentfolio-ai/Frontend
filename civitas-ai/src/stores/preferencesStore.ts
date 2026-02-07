@@ -79,6 +79,14 @@ export interface UserPreferences {
     showKeyboardHints: boolean;
     isWideMode: boolean;
     theme: 'light' | 'dark' | 'system';
+    accentColor: 'teal' | 'blue' | 'violet' | 'rose' | 'amber' | 'emerald';
+    fontSize: 'small' | 'medium' | 'large';
+    chatDensity: 'compact' | 'comfortable' | 'spacious';
+    reducedMotion: boolean;
+    highContrast: boolean;
+
+    // Agent mode preference
+    preferredMode: 'hunter' | 'research' | 'strategist';
 }
 
 export interface PreferencesState extends UserPreferences {
@@ -115,6 +123,12 @@ export interface PreferencesState extends UserPreferences {
     setShowKeyboardHints: (show: boolean) => void;
     setWideMode: (isWide: boolean) => void;
     setTheme: (theme: UserPreferences['theme']) => void;
+    setAccentColor: (color: UserPreferences['accentColor']) => void;
+    setFontSize: (size: UserPreferences['fontSize']) => void;
+    setChatDensity: (density: UserPreferences['chatDensity']) => void;
+    setReducedMotion: (enabled: boolean) => void;
+    setHighContrast: (enabled: boolean) => void;
+    setPreferredMode: (mode: UserPreferences['preferredMode']) => void;
 
 
     setAllPreferences: (prefs: Partial<UserPreferences>) => void;
@@ -139,6 +153,12 @@ const defaultPreferences: UserPreferences = {
     showKeyboardHints: true,
     isWideMode: false,
     theme: 'dark',
+    accentColor: 'teal',
+    fontSize: 'medium',
+    chatDensity: 'comfortable',
+    reducedMotion: false,
+    highContrast: false,
+    preferredMode: 'hunter',
     inferredPreferences: null,
     clientLocation: null
 };
@@ -218,6 +238,12 @@ export const usePreferencesStore = create<PreferencesState>()(
             setShowKeyboardHints: (show: boolean) => set({ showKeyboardHints: show }),
             setWideMode: (isWide: boolean) => set({ isWideMode: isWide }),
             setTheme: (theme: UserPreferences['theme']) => set({ theme }),
+            setAccentColor: (color: UserPreferences['accentColor']) => set({ accentColor: color }),
+            setFontSize: (size: UserPreferences['fontSize']) => set({ fontSize: size }),
+            setChatDensity: (density: UserPreferences['chatDensity']) => set({ chatDensity: density }),
+            setReducedMotion: (enabled: boolean) => set({ reducedMotion: enabled }),
+            setHighContrast: (enabled: boolean) => set({ highContrast: enabled }),
+            setPreferredMode: (mode: UserPreferences['preferredMode']) => set({ preferredMode: mode }),
 
 
 
@@ -228,22 +254,33 @@ export const usePreferencesStore = create<PreferencesState>()(
 
             resetPreferences: () => set(defaultPreferences),
 
-            // Backend Sync
+            // Backend Sync -- pull remote preferences and merge into local state
             sync: async () => {
                 const { user_id } = get();
                 if (!user_id || user_id === 'default') return;
 
                 try {
                     const api = await import('../services/preferencesApi');
-                    await api.getPreferences(user_id);
+                    const remote = await api.getPreferences(user_id);
 
-                    // Note: Preferences are synced to backend but state updates
-                    // are handled by the caller to avoid circular dependencies
-                    set((state) => ({
-                        ...state
-                        // State mapping handled by caller
-                    }));
+                    if (remote && typeof remote === 'object') {
+                        // Map backend snake_case fields to local store
+                        const mapped: Partial<UserPreferences> = {};
 
+                        if (remote.default_strategy) mapped.defaultStrategy = remote.default_strategy;
+                        if (remote.budget_range) mapped.budgetRange = remote.budget_range;
+                        if (remote.preferred_bedrooms != null) mapped.preferredBedrooms = remote.preferred_bedrooms;
+                        if (remote.preferred_property_types) mapped.preferredPropertyTypes = remote.preferred_property_types;
+                        if (remote.financial_dna) mapped.financialDna = remote.financial_dna;
+                        if (remote.investment_criteria) mapped.investmentCriteria = remote.investment_criteria;
+                        if (remote.interaction_profile) mapped.interactionProfile = remote.interaction_profile;
+                        if (remote.favorite_markets) mapped.favoriteMarkets = remote.favorite_markets;
+                        if (remote.recent_searches) mapped.recentSearches = remote.recent_searches;
+                        if (remote.last_search_city) mapped.lastSearchCity = remote.last_search_city;
+                        if (remote.inferred_preferences) mapped.inferredPreferences = remote.inferred_preferences;
+
+                        set((state) => ({ ...state, ...mapped }));
+                    }
                 } catch (err) {
                     console.error("Failed to sync preferences:", err);
                 }
@@ -285,6 +322,11 @@ export const usePreferencesStore = create<PreferencesState>()(
                 theme: state.theme,
                 isWideMode: state.isWideMode,
                 showKeyboardHints: state.showKeyboardHints,
+                accentColor: state.accentColor,
+                fontSize: state.fontSize,
+                chatDensity: state.chatDensity,
+                reducedMotion: state.reducedMotion,
+                highContrast: state.highContrast,
             })
         }
     )

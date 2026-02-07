@@ -142,7 +142,7 @@ export const LocationPermissionModal: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="bg-[#1E293B] border border-white/10 rounded-3xl shadow-2xl max-w-md w-full pointer-events-auto overflow-hidden"
+              className="bg-[#18181c] border border-white/10 rounded-3xl shadow-2xl max-w-md w-full pointer-events-auto overflow-hidden"
             >
               {/* Header */}
               <div className="relative p-6 pb-4">
@@ -154,8 +154,8 @@ export const LocationPermissionModal: React.FC = () => {
                 </button>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400/20 to-teal-500/20 flex items-center justify-center">
-                    <MapPin className="w-7 h-7 text-teal-400" />
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D4A27F]/20 to-[#C08B5C]/20 flex items-center justify-center">
+                    <MapPin className="w-7 h-7 text-[#D4A27F]" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-white">Enable Location</h3>
@@ -182,7 +182,7 @@ export const LocationPermissionModal: React.FC = () => {
                   <button
                     onClick={handleAllow}
                     disabled={isRequesting}
-                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-br from-teal-400 to-teal-500 hover:from-teal-300 hover:to-teal-400 text-white font-medium shadow-lg shadow-teal-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-br from-[#D4A27F] to-[#C08B5C] hover:from-[#D4A27F] hover:to-[#D4A27F] text-white font-medium shadow-lg shadow-[#C08B5C]/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isRequesting ? (
                       <span className="flex items-center justify-center gap-2">

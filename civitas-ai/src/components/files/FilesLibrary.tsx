@@ -129,7 +129,7 @@ export const FilesLibrary: React.FC = () => {
                                 </div>
 
                                 <div className="flex-1 z-10">
-                                    <h3 className="text-sm font-medium text-white group-hover:text-teal-400 transition-colors mb-1">
+                                    <h3 className="text-sm font-medium text-white group-hover:text-[#D4A27F] transition-colors mb-1">
                                         {folder.name}
                                     </h3>
                                     <div className="flex items-center gap-3 text-xs text-white/30">

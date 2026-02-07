@@ -7,7 +7,7 @@ import {
   MarketDataCard,
   PropertyBookmarkCard,
   AlertCard,
-  DealAnalyzerCard,
+  DealIntelligenceCard,
   ComplianceCard,
   ValuationCard,
 
@@ -181,8 +181,19 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         // TypeScript now knows tool.data is AlertData
         return <AlertCard data={tool.data} />;
       case 'deal_analyzer':
-        // TypeScript now knows tool.data is DealAnalyzerData
-        return <DealAnalyzerCard data={tool.data} onOpenAnalyzer={onOpenDealAnalyzer} />;
+        // Route to DealIntelligenceCard, mapping DealAnalyzerData to its expected shape
+        return (
+          <DealIntelligenceCard
+            data={{
+              propertyId: tool.data.propertyId,
+              propertyAddress: tool.data.propertyAddress,
+              strategy: tool.data.strategy,
+              fullOutput: tool.data.fullOutput,
+              pnlSummary: tool.data.pnlSummary,
+            }}
+            onOpenAnalyzer={onOpenDealAnalyzer}
+          />
+        );
       case 'compliance_check':
         return <ComplianceCard data={tool.data} />;
       case 'valuation':

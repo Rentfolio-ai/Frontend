@@ -43,6 +43,11 @@ export const InvestmentReportFormat = {
   ADU: 'adu',
   Flip: 'flip',
   Full: 'full',
+  // Mode-specific types
+  Portfolio: 'portfolio',
+  Strategy: 'strategy',
+  Market: 'market',
+  Comparison: 'comparison',
 } as const;
 export type InvestmentReportFormat = typeof InvestmentReportFormat[keyof typeof InvestmentReportFormat];
 

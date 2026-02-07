@@ -1,6 +1,8 @@
 // FILE: src/components/chat/ThinkingIndicator.tsx
 /**
- * Thinking indicator component showing AI processing status
+ * Thinking indicator component showing AI processing status.
+ * Simple, clean style — single status line with animated chevron,
+ * accumulated reasoning steps, completed tools, and cancel button.
  */
 
 import React from 'react';
@@ -8,7 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { X, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import type { ThinkingState, CompletedTool } from '@/types/stream';
-import { SourceBadge } from './SourceBadge';
 
 // Define ReasoningStep type inline since we only need it for props
 interface ReasoningStep {
@@ -21,7 +22,8 @@ interface ReasoningStep {
 interface ThinkingIndicatorProps {
   thinking: ThinkingState | null;
   completedTools?: CompletedTool[];
-  reasoningSteps?: ReasoningStep[]; // 🚀 NEW: Real-time reasoning steps
+  reasoningSteps?: ReasoningStep[];
+  partialContent?: string;
   className?: string;
   userQuery?: string;
   onCancel?: () => void;
@@ -30,23 +32,18 @@ interface ThinkingIndicatorProps {
   onOpenPreferences?: () => void;
 }
 
-import { usePreferencesStore } from '@/stores/preferencesStore';
-
 export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   thinking,
   completedTools = [],
   className,
-  userQuery,
+  userQuery: _userQuery,
   onCancel,
   error,
   onRetry,
-  onOpenPreferences,
-  reasoningSteps = [], // NEW: Receive reasoning steps
+  onOpenPreferences: _onOpenPreferences,
+  reasoningSteps = [],
+  partialContent = '',
 }) => {
-  const { interactionProfile, budgetRange, defaultStrategy, financialDna } = usePreferencesStore();
-  const dislikes = interactionProfile?.dislikes || [];
-  const riskProfile = interactionProfile?.risk_profile;
-
   // CRITICAL: Always ensure we have a thinking state to display
   const displayThinking: ThinkingState = thinking || { status: 'Thinking...' };
 
@@ -60,42 +57,29 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   // Helper to extract meaningful preview from tool data
   const getToolDataPreview = React.useCallback((tool: CompletedTool): string | null => {
     if (!tool.data) return null;
-
-    // Handle Deep Dive Web Search
     if (tool.tool === 'web_search') {
       const meta = tool.data.metadata;
-      if (meta && meta.deep_dive_count) {
-        return `${meta.deep_dive_count} pages read`;
-      }
+      if (meta && meta.deep_dive_count) return `${meta.deep_dive_count} pages read`;
       return `${tool.data.results?.length || 0} findings`;
     }
-
-    // Handle different data structures
     if (Array.isArray(tool.data)) {
       const count = tool.data.length;
       if (count === 0) return null;
-
-      // Try to identify what kind of items
       if (tool.tool?.toLowerCase().includes('property') ||
         tool.tool?.toLowerCase().includes('scout') ||
         tool.tool?.toLowerCase().includes('hunt') ||
-        tool.tool?.toLowerCase().includes('search')) {
+        tool.tool?.toLowerCase().includes('search'))
         return `${count} ${count === 1 ? 'property' : 'properties'}`;
-      }
-      if (tool.tool?.toLowerCase().includes('market')) {
+      if (tool.tool?.toLowerCase().includes('market'))
         return `${count} ${count === 1 ? 'market' : 'markets'}`;
-      }
       return `${count} ${count === 1 ? 'result' : 'results'}`;
     }
-
-    // Handle object with count/total
     if (typeof tool.data === 'object') {
       if (tool.data.count !== undefined) return `${tool.data.count} found`;
       if (tool.data.total !== undefined) return `${tool.data.total} total`;
       if (tool.data.properties?.length) return `${tool.data.properties.length} properties`;
       if (tool.data.results?.length) return `${tool.data.results.length} results`;
     }
-
     return null;
   }, []);
 
@@ -119,69 +103,8 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     return () => clearInterval(interval);
   }, [thinking]);
 
-  // Format preferences for display
-  const preferencesDisplay = React.useMemo(() => {
-    const parts: string[] = [];
-
-    // 1. Risk Profile (Highest Level)
-    if (riskProfile) {
-      parts.push(riskProfile);
-    }
-
-    // 2. Financial DNA (Key Constraints)
-    if (financialDna) {
-      const dnaParts: string[] = [];
-      if (financialDna.down_payment_pct != null) {
-        dnaParts.push(`${Math.round(financialDna.down_payment_pct * 100)}% Down`);
-      }
-      // Only show loan info if we have a loan
-      if (financialDna.down_payment_pct !== 1) {
-        if (financialDna.interest_rate_annual != null) {
-          dnaParts.push(`${financialDna.interest_rate_annual}% Rate`);
-        }
-      }
-
-      if (dnaParts.length > 0) {
-        parts.push(dnaParts.join(', '));
-      }
-    }
-
-    // 3. Budget
-    if (budgetRange?.max) {
-      const formatted = budgetRange.max >= 1000000
-        ? `$${(budgetRange.max / 1000000).toFixed(1)}M`
-        : `$${Math.round(budgetRange.max / 1000)}k`;
-      parts.push(`Max ${formatted}`);
-    }
-
-    // 4. Strategy
-    if (defaultStrategy) {
-      parts.push(defaultStrategy);
-    }
-
-    // 5. Filters
-    if (dislikes.length > 0) {
-      const dislikeStr = dislikes.slice(0, 2).join(', ');
-      parts.push(`No ${dislikeStr}`);
-    }
-
-    return parts.length > 0 ? parts.join(' • ') : null;
-  }, [budgetRange, defaultStrategy, dislikes, financialDna, riskProfile]);
-
-
   // ALWAYS prioritize backend status - NO auto-cycling
   const backendStatus = displayThinking.title || displayThinking.status || '';
-
-  // Debug: Log what we're receiving
-  React.useEffect(() => {
-    if (thinking) {
-      console.log('🎨 [ThinkingIndicator] Received thinking state:', {
-        title: thinking.title,
-        status: thinking.status,
-        backendStatus,
-      });
-    }
-  }, [thinking, backendStatus]);
 
   // BACKEND-FIRST: If backend provides filtersApplied, use that
   const backendFilters = displayThinking.filtersApplied || [];
@@ -189,87 +112,42 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     ? ` (${backendFilters.slice(0, 3).join(', ')})`
     : '';
 
-  // 🚀 NEW: Use reasoning steps if available, otherwise backend status
+  // V2 reasoning steps
   const runningStep = reasoningSteps.find(s => s.status === 'running');
   const currentStep = runningStep || reasoningSteps[reasoningSteps.length - 1];
 
-  let displayStatus = backendStatus || 'Thinking...';
+  // Extract thinking steps from status (V1 numbered steps + V2 progress messages)
+  const thinkingLines = React.useMemo(() => {
+    const status = backendStatus || '';
+    const lines = status.split('\n').filter(line => line.trim());
+    if (lines.length > 1) return lines;
+    return [];
+  }, [backendStatus]);
+
+  let displayStatus = 'Thinking...';
 
   // Override with current reasoning step if available
   if (currentStep) {
     displayStatus = currentStep.title;
-    // Add "..." suffix if still processing
-    if (currentStep.status === 'running') {
-      displayStatus += '...';
-    }
+    if (currentStep.status === 'running') displayStatus += '...';
+  } else if (thinkingLines.length > 0) {
+    const lastLine = thinkingLines[thinkingLines.length - 1];
+    displayStatus = lastLine.replace(/^\d+\.\s*/, '');
+  } else if (backendStatus) {
+    displayStatus = backendStatus;
   }
 
-  // Debug: Log what we're displaying
-  console.log('🖼️ [ThinkingIndicator] Displaying:', displayStatus, { currentStep, reasoningSteps: reasoningSteps.length });
-
-  // If backend has filters, append them to status (only if not using reasoning steps)
+  // If backend has filters, append them
   if (!currentStep && backendFilters.length > 0 && !displayStatus.includes('(')) {
     displayStatus = displayStatus.replace('...', `${backendFilterText}...`);
   }
 
-  const displayExplanation = displayThinking.explanation && !displayThinking.explanation.toLowerCase().includes('processing')
-    ? displayThinking.explanation
+  // Format elapsed time
+  const elapsedText = elapsedSeconds > 0
+    ? elapsedSeconds < 60 ? `${elapsedSeconds}s` : `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`
     : null;
 
-  // Pipeline steps logic
-  const pipelineSteps = React.useMemo(() => {
-    type StepStatus = 'pending' | 'active' | 'complete';
-    const steps: { id: string; label: string; icon: string; status: StepStatus }[] = [
-      { id: 'search', label: 'Search', icon: '🔍', status: 'pending' },
-      { id: 'analyze', label: 'Analyze', icon: '📊', status: 'pending' },
-      { id: 'compile', label: 'Compile', icon: '📝', status: 'pending' },
-    ];
-
-    // Map completed tools to pipeline steps
-    completedTools.forEach(tool => {
-      const toolLower = (tool.tool || '').toLowerCase();
-      const summaryLower = (tool.summary || '').toLowerCase();
-
-      // Search step: scan_market, hunt_deals, scout_properties
-      if (toolLower.includes('scan') || toolLower.includes('hunt') || toolLower.includes('scout') ||
-        summaryLower.includes('properties') || summaryLower.includes('search') ||
-        summaryLower.includes('no properties') || summaryLower.includes('found')) {
-        steps[0].status = 'complete';
-      }
-      // Analyze step: valuation, pnl, compliance, metrics
-      if (toolLower.includes('valuation') || toolLower.includes('pnl') || toolLower.includes('compliance') ||
-        toolLower.includes('metrics') || summaryLower.includes('value') || summaryLower.includes('cash flow')) {
-        steps[1].status = 'complete';
-      }
-    });
-
-    // Check thinking status for "no results" - marks search complete and skips analyze
-    const thinkingStatus = (thinking?.status || '').toLowerCase();
-    if (thinkingStatus.includes('no properties') || thinkingStatus.includes('not found') ||
-      thinkingStatus.includes('no results') || thinkingStatus.includes('no deals')) {
-      steps[0].status = 'complete';
-      // Skip analyze when no results - go straight to compile
-      steps[1].status = 'complete';
-    }
-
-    // Mark current step as active if thinking
-    if (thinking) {
-      const pendingStep = steps.find(s => s.status === 'pending');
-      if (pendingStep) {
-        pendingStep.status = 'active';
-      } else {
-        // All complete, mark last as active for "compiling"
-        steps[2].status = 'active';
-      }
-    }
-
-    return steps;
-  }, [completedTools, thinking]);
-
-  // Only show pipeline if there are completed tools or actively thinking
-  const showPipeline = thinking || completedTools.length > 0;
-
-  // Simple, clean thinking indicator like ChatGPT
+  // Simple, clean thinking indicator (original style with enhancements)
   return (
     <div className={cn('max-w-3xl mx-auto', className)}>
       <motion.div
@@ -284,21 +162,62 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
         </span>
         <motion.span
           animate={{ x: [0, 3, 0] }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
+          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
           className="text-white/60"
         >
           ›
         </motion.span>
+
+        {/* Elapsed time badge */}
+        {elapsedText && (
+          <span className="text-[10px] font-mono text-white/20 ml-1">
+            {elapsedText}
+          </span>
+        )}
       </motion.div>
+
+      {/* Show accumulated thinking steps (numbered reasoning lines) */}
+      {thinkingLines.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-2 space-y-1 pl-2 border-l-2 border-[#C08B5C]/30"
+        >
+          {thinkingLines.slice(-5).map((line, idx) => {
+            const stepNumber = line.match(/^(\d+)\./)?.[1];
+            const stepText = stepNumber ? line.replace(/^\d+\.\s*/, '') : line;
+            return (
+              <motion.div
+                key={`${idx}-${line.slice(0, 20)}`}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="flex items-start gap-2 text-[12px]"
+              >
+                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-[#C08B5C]/20 text-[#D4A27F] text-[10px] flex items-center justify-center font-bold">
+                  {stepNumber || (idx + 1)}
+                </span>
+                <span className="text-white/50 flex-1">{stepText}</span>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      )}
+
+      {/* Partial Content Preview - Show first 80 chars of streaming response */}
+      {partialContent && partialContent.length > 0 && partialContent.length < 100 && !thinkingLines.length && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-[13px] text-white/40 italic pl-1 mt-1"
+        >
+          &ldquo;{partialContent.slice(0, 80)}{partialContent.length > 80 ? '...' : ''}&rdquo;
+        </motion.div>
+      )}
 
       {/* Completed Tools - Enhanced with data preview and suggestions */}
       {completedTools.length > 0 && (
         <div className="space-y-1.5">
-          {/* Main tool summaries */}
           {completedTools.slice(-3).map((tool, index) => {
             const dataPreview = getToolDataPreview(tool);
             const hasNoResults = tool.reason || (tool.summary?.toLowerCase().includes('no ') && tool.summary?.toLowerCase().includes('found'));
@@ -405,7 +324,6 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
       {/* Cancel Button - Only show when actively thinking */}
       {thinking && (
         <div className="relative py-2">
-          {/* Cancel Button Only (no timer) */}
           {onCancel && (
             <div className="flex justify-end mt-2">
               <button
@@ -470,7 +388,7 @@ export const ThinkingIndicatorInline: React.FC<{ status: string; icon?: string }
     <div className="flex items-center gap-2 text-white/50 text-sm">
       <div className="relative w-4 h-4">
         <div className="absolute inset-0 rounded-full border-2 border-white/10" />
-        <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="absolute inset-0 rounded-full border-2 border-[#C08B5C] border-t-transparent animate-spin" />
       </div>
       {icon && <span>{icon}</span>}
       <span>{status}</span>

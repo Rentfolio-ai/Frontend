@@ -1,10 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const API_KEY = import.meta.env.VITE_CIVITAS_API_KEY || '';
-
-const getAuthHeaders = () => ({
-    'Content-Type': 'application/json',
-    'X-API-Key': API_KEY,
-});
+import { API_BASE_URL, jsonHeaders } from './apiConfig';
 
 /**
  * Submits user feedback (thumbs up/down) for a specific message.
@@ -20,9 +14,9 @@ export const submitFeedback = async (
     comment?: string
 ): Promise<void> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/feedback`, {
+        const response = await fetch(`${API_BASE_URL}/api/feedback`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: jsonHeaders(),
             body: JSON.stringify({
                 thread_id: threadId,
                 message_id: messageId,

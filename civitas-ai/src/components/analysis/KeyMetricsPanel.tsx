@@ -164,7 +164,7 @@ const ScenarioDropdown: React.FC<ScenarioDropdownProps> = ({ active, scenarios, 
               }}
               className={cn(
                 'w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors',
-                active === scenario ? 'text-teal-400 font-medium' : 'text-slate-300'
+                active === scenario ? 'text-[#D4A27F] font-medium' : 'text-slate-300'
               )}
             >
               {scenario}

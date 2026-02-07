@@ -31,6 +31,7 @@ interface CommandCenterChatViewProps {
   messages: Message[];
   isLoading: boolean;
   userName?: string;
+  userAvatar?: string;
   selectedState?: string;
   onSendMessage: (message: string) => void;
   onAction?: (actionValue: string, actionContext?: any) => void;
@@ -46,6 +47,7 @@ interface CommandCenterChatViewProps {
   onNewChat?: () => void;
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
+  reasoningSteps?: any[]; // 🚀 NEW: Real-time reasoning steps
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   onCancel?: () => void;

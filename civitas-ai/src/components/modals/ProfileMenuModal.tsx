@@ -178,7 +178,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
             )}
             {badge && (
                 <span className="px-1.5 py-0.5 text-[9px] font-bold rounded flex-shrink-0
-                       bg-gradient-to-r from-teal-500 to-purple-500 text-white">
+                       bg-gradient-to-r from-[#C08B5C] to-purple-500 text-white">
                     {badge}
                 </span>
             )}

@@ -21,7 +21,8 @@ export type ToolKind =
   | 'cashflow_timeseries'
   | 'renovation_analysis'
   | 'renovation_analysis'
-  | 'report';
+  | 'report'
+  | 'scout_properties';
 
 export type AgentMode = 'research' | 'strategist' | 'hunter';
 
@@ -47,6 +48,7 @@ export interface ToolCard {
   description: string;
   status: 'running' | 'completed' | 'error' | 'success' | 'warning';
   kind?: ToolKind;
+  priority?: 'high' | 'medium' | 'low';
   data?: any;
 }
 
@@ -66,6 +68,13 @@ export interface Action {
   };
 }
 
+export interface InlineAction {
+  label: string;
+  tool_name: string;
+  arguments: any;
+  style?: 'primary' | 'secondary' | 'danger';
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -80,8 +89,15 @@ export interface Message {
   };
   tools?: ToolCard[];
   action?: Action;
+  inlineActions?: InlineAction[]; // structured next steps from suggest_actions tool
   summary_markdown?: string;
   contextSources?: string[]; // Badges for context attribution
+  /** Persisted AI reasoning trace (populated after stream completes) */
+  thinkingTrace?: {
+    steps: { text: string; source: string }[];
+    durationMs: number;
+    toolsUsed: string[];
+  };
   data?: {
     presentation?: PresentationBundle;
     compliance?: ComplianceResult;

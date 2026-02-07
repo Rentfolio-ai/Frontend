@@ -10,6 +10,8 @@ export * from './PropertyListCard';
 export { AlertCard } from './AlertCard';
 export { DealAnalyzerCard, pnlOutputToCardData } from './DealAnalyzerCard';
 export type { DealAnalyzerData } from './DealAnalyzerCard';
+export { DealIntelligenceCard } from './DealIntelligenceCard';
+export type { DealIntelligenceData } from './DealIntelligenceCard';
 export { ComplianceCard } from './ComplianceCard';
 export { ValuationCard, valuationResponseToCardData } from './ValuationCard';
 export type { ValuationData, ValuationExpenseBreakdown, AppreciationData, ValuationRiskFactors } from './ValuationCard';

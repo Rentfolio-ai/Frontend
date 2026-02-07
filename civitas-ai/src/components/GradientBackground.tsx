@@ -244,7 +244,7 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({
       background: 'hsl(220, 30%, 8%)',
     },
     aurora: {
-      background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
+      background: 'linear-gradient(135deg, #0F172A 0%, #18181c 50%, #0F172A 100%)',
     },
     'real-estate': {
       background: 'linear-gradient(135deg, #0A1628 0%, #1A2744 25%, #0F2847 50%, #1A2744 75%, #0A1628 100%)',

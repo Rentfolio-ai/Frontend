@@ -13,12 +13,16 @@ export interface StreamInitEvent {
 export interface StreamThinkingEvent {
   type: 'thinking';
   title?: string;        // Main action title (e.g., "Searching for properties")
-  status: string;        // Status text (e.g., "Searching for properties...")
+  status?: string;       // Status text (V1 chat endpoint)
+  message?: string;      // Message text (V2 property endpoint)
   explanation?: string;  // Why this is happening (e.g., "I need to find properties...")
   source?: string;
   icon?: string;
   tool?: string;
   mode?: 'quick' | 'smart' | 'deep';  // Reasoning mode from backend
+  progress?: number;     // V2: Progress indicator (0-1)
+  step_number?: number;  // V2: Step number for ordering
+  total_steps?: number;  // V2: Total number of steps
   filters_applied?: string[];  // Filters being applied (e.g., ["Max $400k", "Excluding HOA"])
   user_context?: {             // User preferences context
     budget_max?: number;
@@ -114,6 +118,54 @@ export interface StreamClarificationEvent {
   data: any; // Raw tool output
 }
 
+// 🚀 V2: Property search events
+export interface StreamPropertiesEvent {
+  type: 'properties';
+  properties: any[];
+  total_found?: number;
+  market_context?: any;
+}
+
+export interface StreamAiChunkEvent {
+  type: 'ai_chunk';
+  text: string;
+}
+
+export interface StreamCompleteEvent {
+  type: 'complete';
+  message?: string;
+}
+
+// 🚀 PHASE 2A: Parallel Tool Events
+export interface StreamToolsBatchStartEvent {
+  type: 'tools_batch_start';
+  tools: Array<{
+    id: string;
+    name: string;
+    priority: 'high' | 'medium' | 'low';
+    args?: any;
+  }>;
+}
+
+export interface StreamToolResultEvent {
+  type: 'tool_result';
+  id: string;
+  tool: string;
+  data: any;
+  priority: string;
+}
+
+export interface StreamInlineActionsEvent {
+  type: 'inline_actions';
+  actions: Array<{
+    label: string;
+    tool_name: string;
+    arguments?: Record<string, unknown>;
+    style?: 'primary' | 'secondary' | 'danger';
+  }>;
+  context?: string;
+}
+
 export type StreamEvent =
   | StreamInitEvent
   | StreamThinkingEvent
@@ -128,9 +180,14 @@ export type StreamEvent =
   | StreamReasoningStepEvent
   | StreamConfidenceEvent
   | StreamDataSourcesEvent
-  | StreamDataSourcesEvent
   | StreamClarificationEvent
-  | StreamClearContentEvent;
+  | StreamClearContentEvent
+  | StreamPropertiesEvent
+  | StreamAiChunkEvent
+  | StreamCompleteEvent
+  | StreamToolsBatchStartEvent
+  | StreamToolResultEvent
+  | StreamInlineActionsEvent;
 
 export interface StreamClearContentEvent {
   type: 'clear_content';
@@ -186,4 +243,15 @@ export interface StreamState {
     status?: 'live' | 'cached' | 'recent';
   }>;
   clarificationRequest?: ClarificationRequest;
+
+  // 🚀 PHASE 2A: Tool Batch State
+  toolBatch?: ToolBatchItem[];
+}
+
+export interface ToolBatchItem {
+  id: string;
+  name: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'pending' | 'running' | 'complete';
+  result?: any;
 }

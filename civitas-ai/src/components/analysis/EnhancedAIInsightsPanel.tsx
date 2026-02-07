@@ -82,11 +82,11 @@ const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
 const QuickQuestion: React.FC<{ question: string; onClick: () => void }> = ({ question, onClick }) => (
   <button
     onClick={onClick}
-    className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-teal-500/50 hover:bg-white/10 transition-all text-left text-sm text-slate-300 group"
+    className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all text-left text-sm text-slate-300 group"
   >
     <div className="flex items-center justify-between">
       <span>{question}</span>
-      <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-teal-400 transition-colors" />
+      <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#D4A27F] transition-colors" />
     </div>
   </button>
 );
@@ -205,17 +205,17 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                 {toonInsights.observations && toonInsights.observations.length > 0 && (
                   <div className="p-5 rounded-xl bg-white/5 border border-white/10">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-teal-500/20">
-                        <Eye className="w-4 h-4 text-teal-400" />
+                      <div className="p-2 rounded-lg bg-[#C08B5C]/20">
+                        <Eye className="w-4 h-4 text-[#D4A27F]" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-3">
+                        <div className="text-xs font-semibold text-[#D4A27F] uppercase tracking-wider mb-3">
                           Observations
                         </div>
                         <ul className="space-y-2">
                           {toonInsights.observations.map((obs, index) => (
                             <li key={index} className="flex items-start gap-2 text-sm text-slate-300">
-                              <span className="text-teal-400 mt-0.5">•</span>
+                              <span className="text-[#D4A27F] mt-0.5">•</span>
                               <span>{obs}</span>
                             </li>
                           ))}
@@ -307,12 +307,12 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                       }
                     }}
                     placeholder="Ask a custom question..."
-                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 text-sm text-white placeholder:text-slate-500 transition-all"
+                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 focus:border-[#C08B5C]/50 focus:ring-2 focus:ring-[#C08B5C]/20 text-sm text-white placeholder:text-slate-500 transition-all"
                   />
                   <button
                     onClick={() => customQuestion.trim() && handleAskQuestion(customQuestion)}
                     disabled={!customQuestion.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-[#C08B5C] hover:bg-[#A8734A] disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors"
                   >
                     <Send className="w-4 h-4 text-white" />
                   </button>

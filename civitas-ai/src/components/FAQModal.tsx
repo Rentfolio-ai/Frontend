@@ -72,7 +72,7 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search help articles..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#C08B5C]/50 focus:border-transparent"
                         />
                     </div>
                 </div>
@@ -83,7 +83,7 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                         <button
                             onClick={() => setSelectedCategory(null)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === null
-                                ? 'bg-teal-500 text-white'
+                                ? 'bg-[#C08B5C] text-white'
                                 : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
                                 }`}
                         >
@@ -94,7 +94,7 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                                 key={id}
                                 onClick={() => setSelectedCategory(id)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === id
-                                    ? 'bg-teal-500 text-white'
+                                    ? 'bg-[#C08B5C] text-white'
                                     : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
@@ -142,7 +142,7 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                         </p>
                         <a
                             href="mailto:support@civitasai.com"
-                            className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors"
+                            className="px-4 py-2 bg-[#C08B5C] hover:bg-[#A8734A] text-white text-sm font-medium rounded-lg transition-colors"
                         >
                             Contact support
                         </a>

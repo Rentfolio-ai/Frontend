@@ -77,9 +77,9 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
       <div className={cn('fixed bottom-4 left-1/2 -translate-x-1/2 z-40', className)}>
         <button
           onClick={() => setIsCollapsed(false)}
-          className="px-6 py-3 bg-black/80 backdrop-blur-xl rounded-full border border-teal-500/30 text-white font-medium text-sm shadow-2xl hover:border-teal-500/50 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-black/80 backdrop-blur-xl rounded-full border border-[#C08B5C]/30 text-white font-medium text-sm shadow-2xl hover:border-[#C08B5C]/50 transition-all flex items-center gap-2"
           style={{
-            boxShadow: '0 0 40px rgba(20, 184, 166, 0.3)',
+            boxShadow: '0 0 40px rgba(192, 139, 92, 0.3)',
           }}
         >
           <ChevronUp className="w-4 h-4" />
@@ -102,7 +102,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
           isDragOver && !isFull && 'scale-105',
         )}
         style={{
-          boxShadow: '0 0 60px rgba(20, 184, 166, 0.4)',
+          boxShadow: '0 0 60px rgba(192, 139, 92, 0.4)',
         }}
       >
         {/* Holographic Border (Animated Gradient) */}
@@ -110,7 +110,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
           <div
             className="absolute inset-0 rounded-2xl opacity-75"
             style={{
-              background: 'linear-gradient(90deg, rgba(20, 184, 166, 0.6) 0%, rgba(168, 85, 247, 0.6) 50%, rgba(20, 184, 166, 0.6) 100%)',
+              background: 'linear-gradient(90deg, rgba(192, 139, 92, 0.6) 0%, rgba(168, 85, 247, 0.6) 50%, rgba(192, 139, 92, 0.6) 100%)',
               backgroundSize: '200% 100%',
               animation: 'gradient-shift 3s ease infinite',
             }}
@@ -122,8 +122,8 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500/20 to-purple-500/20 border border-teal-500/30">
-                <GitCompare className="w-5 h-5 text-teal-400" />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-[#C08B5C]/20 to-purple-500/20 border border-[#C08B5C]/30">
+                <GitCompare className="w-5 h-5 text-[#D4A27F]" />
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm">Comparison Dock</h3>
@@ -143,7 +143,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
                 className={cn(
                   'px-4 py-2 rounded-lg font-medium text-sm transition-all',
                   canCompare
-                    ? 'bg-gradient-to-r from-teal-500 to-purple-600 hover:from-teal-600 hover:to-purple-700 text-white shadow-lg shadow-teal-500/20'
+                    ? 'bg-gradient-to-r from-[#C08B5C] to-purple-600 hover:from-[#A8734A] hover:to-purple-700 text-white shadow-lg shadow-[#C08B5C]/20'
                     : 'bg-white/5 text-white/30 cursor-not-allowed'
                 )}
               >
@@ -197,8 +197,8 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
 
       {/* Drag Over Indicator */}
       {isDragOver && !isFull && (
-        <div className="absolute inset-0 rounded-2xl border-4 border-dashed border-teal-400 bg-teal-500/10 pointer-events-none flex items-center justify-center">
-          <div className="text-teal-400 font-semibold text-lg flex items-center gap-2">
+        <div className="absolute inset-0 rounded-2xl border-4 border-dashed border-[#D4A27F] bg-[#C08B5C]/10 pointer-events-none flex items-center justify-center">
+          <div className="text-[#D4A27F] font-semibold text-lg flex items-center gap-2">
             <GitCompare className="w-6 h-6" />
             Drop to add to comparison
           </div>
@@ -217,7 +217,7 @@ const PropertySlot: React.FC<{
 
   return (
     <div className="relative group">
-      <div className="bg-slate-800/50 rounded-lg overflow-hidden border border-white/10 hover:border-teal-500/30 transition-all">
+      <div className="bg-slate-800/50 rounded-lg overflow-hidden border border-white/10 hover:border-[#C08B5C]/30 transition-all">
         {/* Image */}
         <div className="relative h-24 bg-slate-900">
           <img
@@ -273,7 +273,7 @@ const EmptySlot: React.FC<{
       className={cn(
         'rounded-lg border-2 border-dashed transition-all flex items-center justify-center',
         isDragOver
-          ? 'border-teal-500/50 bg-teal-500/10'
+          ? 'border-[#C08B5C]/50 bg-[#C08B5C]/10'
           : 'border-white/10 bg-white/5'
       )}
     >
@@ -281,14 +281,14 @@ const EmptySlot: React.FC<{
         <div className={cn(
           'w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center text-sm font-bold',
           isDragOver
-            ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+            ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
             : 'bg-white/10 text-white/40 border border-white/10'
         )}>
           {slotNumber}
         </div>
         <p className={cn(
           'text-xs',
-          isDragOver ? 'text-teal-400' : 'text-white/40'
+          isDragOver ? 'text-[#D4A27F]' : 'text-white/40'
         )}>
           {isDragOver ? 'Drop here' : 'Empty'}
         </p>

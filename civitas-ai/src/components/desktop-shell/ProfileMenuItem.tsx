@@ -33,7 +33,7 @@ export const ProfileMenuItem: React.FC<MenuItemProps> = ({
             )}
             {badge && (
                 <span className="px-1.5 py-0.5 text-[10px] font-bold rounded 
-                         bg-gradient-to-r from-teal-500 to-purple-500 text-white">
+                         bg-gradient-to-r from-[#C08B5C] to-purple-500 text-white">
                     {badge}
                 </span>
             )}

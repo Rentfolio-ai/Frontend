@@ -54,7 +54,7 @@ export const PresentationSummary: React.FC<PresentationSummaryProps> = ({
   const negativeCashflow = hasNegativeCashflowInsight(presentation);
   const containerClasses = variant === 'compact'
     ? 'rounded-2xl border border-border/60 bg-background shadow-sm space-y-4 p-4'
-    : 'p-5 rounded-2xl border border-border/60 bg-gradient-to-br from-primary/5 via-transparent to-teal-500/5 space-y-5';
+    : 'p-5 rounded-2xl border border-border/60 bg-gradient-to-br from-primary/5 via-transparent to-[#C08B5C]/5 space-y-5';
 
   return (
     <div className={cn(containerClasses, className)}>

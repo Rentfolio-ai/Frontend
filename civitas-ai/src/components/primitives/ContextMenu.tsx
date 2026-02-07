@@ -134,7 +134,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                       ? 'text-white/30 cursor-not-allowed'
                       : item.danger
                       ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                      : 'text-white/90 hover:bg-teal-500/10 hover:text-teal-400'
+                      : 'text-white/90 hover:bg-[#C08B5C]/10 hover:text-[#D4A27F]'
                   )}
                 >
                   <span className={cn(

@@ -42,6 +42,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Copper accent scale
+        copper: {
+          300: '#E0C4A8',
+          400: '#D4A27F',
+          500: '#C08B5C',
+          600: '#A8734A',
+          700: '#8A5D3B',
+        },
         // Design System
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",

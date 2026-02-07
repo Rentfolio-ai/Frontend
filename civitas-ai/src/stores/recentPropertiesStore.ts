@@ -13,7 +13,8 @@ export interface RecentProperty {
     city?: string;
     state?: string;
     thumbnail?: string;
-    analyzedAt: Date;
+    /** ISO-8601 string for safe JSON serialization */
+    analyzedAt: string;
     chatId: string;
     price?: number;
 }

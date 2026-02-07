@@ -24,17 +24,20 @@ export const EnhancedPropertyCard: React.FC<EnhancedPropertyCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Calculate derived values
+  // Use backend calculated metrics when available, fallback to rough estimates
+  const metrics = property.calculated_metrics;
   const estimatedRent = property.estimated_rent || (property.price * 0.008);
-  const estimatedMortgage = property.price ? (property.price * 0.8 * 0.006) : 0;
-  const monthlyCashFlow = estimatedRent - estimatedMortgage - 500;
+  const estimatedMortgage = metrics?.monthly_mortgage || (property.price ? (property.price * 0.8 * 0.006) : 0);
+  const monthlyCashFlow = metrics?.monthly_cash_flow ?? (estimatedRent - estimatedMortgage - 500);
   const isPositiveCashFlow = monthlyCashFlow > 0;
   
-  const capRate = property.price && estimatedRent 
-    ? (((estimatedRent * 12) * 0.6) / property.price * 100).toFixed(1)
-    : null;
+  const capRate = metrics?.cap_rate?.toFixed(1) || (
+    property.price && estimatedRent 
+      ? (((estimatedRent * 12) * 0.6) / property.price * 100).toFixed(1)
+      : null
+  );
   
-  const aiScore = property.ai_score || Math.round(Math.random() * 30 + 70); // Fallback score
+  const aiScore = property.ai_score || property.ai_match_score || Math.round(Math.random() * 30 + 70);
 
   return (
     <motion.div

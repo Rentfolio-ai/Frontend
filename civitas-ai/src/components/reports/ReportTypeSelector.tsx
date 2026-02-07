@@ -1,60 +1,44 @@
-// FILE: src/components/reports/ReportTypeSelector.tsx
 /**
- * Report Type Selector Component
- * Allows users to select the format/type of investment report to generate
+ * Report Type Selector — Redesigned with dark theme + mode-aware types
  */
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  Building2,
-  Home,
-  Layers,
-  RefreshCw,
-  FileText,
-  Check,
+  Building2, Home, Layers, RefreshCw, FileText, Check,
+  Briefcase, Target, BookOpen, Scale,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { InvestmentReportFormat } from '../../types/enums';
 
 interface ReportTypeOption {
-  value: InvestmentReportFormat;
+  value: string;
   label: string;
   description: string;
   icon: React.ReactNode;
+  color: string;
+  group: 'deal' | 'strategy' | 'research';
 }
 
 const REPORT_TYPE_OPTIONS: ReportTypeOption[] = [
-  {
-    value: 'str',
-    label: 'Short-Term Rental',
-    description: 'Vacation rental / Airbnb analysis',
-    icon: <Building2 className="w-5 h-5" />,
-  },
-  {
-    value: 'ltr',
-    label: 'Long-Term Rental',
-    description: 'Traditional rental analysis',
-    icon: <Home className="w-5 h-5" />,
-  },
-  {
-    value: 'adu',
-    label: 'ADU Analysis',
-    description: 'Accessory dwelling unit strategy',
-    icon: <Layers className="w-5 h-5" />,
-  },
-  {
-    value: 'flip',
-    label: 'Flip Analysis',
-    description: 'Fix & flip ROI projection',
-    icon: <RefreshCw className="w-5 h-5" />,
-  },
-  {
-    value: 'full',
-    label: 'Full Report',
-    description: 'Comprehensive multi-strategy report',
-    icon: <FileText className="w-5 h-5" />,
-  },
+  // Deal Analysis (Hunter)
+  { value: 'str', label: 'Short-Term Rental', description: 'Vacation rental / Airbnb analysis', icon: <Building2 className="w-4 h-4" />, color: 'text-amber-400', group: 'deal' },
+  { value: 'ltr', label: 'Long-Term Rental', description: 'Traditional rental underwriting', icon: <Home className="w-4 h-4" />, color: 'text-emerald-400', group: 'deal' },
+  { value: 'adu', label: 'ADU Analysis', description: 'Accessory dwelling unit strategy', icon: <Layers className="w-4 h-4" />, color: 'text-sky-400', group: 'deal' },
+  { value: 'flip', label: 'Flip Analysis', description: 'Fix & flip ROI projection', icon: <RefreshCw className="w-4 h-4" />, color: 'text-orange-400', group: 'deal' },
+  { value: 'full', label: 'Full Report', description: 'Comprehensive multi-strategy report', icon: <FileText className="w-4 h-4" />, color: 'text-violet-400', group: 'deal' },
+  // Strategy (Strategist)
+  { value: 'portfolio', label: 'Portfolio Strategy', description: 'Portfolio-level analysis & allocation', icon: <Briefcase className="w-4 h-4" />, color: 'text-purple-400', group: 'strategy' },
+  { value: 'strategy', label: 'Investment Thesis', description: 'Buy box & target market rationale', icon: <Target className="w-4 h-4" />, color: 'text-indigo-400', group: 'strategy' },
+  // Research
+  { value: 'market', label: 'Market Research', description: 'Comprehensive market study', icon: <BookOpen className="w-4 h-4" />, color: 'text-cyan-400', group: 'research' },
+  { value: 'comparison', label: 'Comparative Analysis', description: 'Side-by-side market comparison', icon: <Scale className="w-4 h-4" />, color: 'text-[#D4A27F]', group: 'research' },
 ];
+
+const GROUP_LABELS: Record<string, string> = {
+  deal: 'Deal Analysis',
+  strategy: 'Strategy',
+  research: 'Research',
+};
 
 interface ReportTypeSelectorProps {
   selectedType: InvestmentReportFormat | null;
@@ -73,12 +57,11 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
   disabled = false,
   compact = false,
 }) => {
-  // Use inferred type as visual hint
   const effectiveDefault = defaultType || inferredType;
 
   if (compact) {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {REPORT_TYPE_OPTIONS.map((option) => {
           const isSelected = selectedType === option.value;
           const isInferred = !selectedType && effectiveDefault === option.value;
@@ -86,23 +69,22 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
           return (
             <button
               key={option.value}
-              onClick={() => onSelect(option.value)}
+              onClick={() => onSelect(option.value as InvestmentReportFormat)}
               disabled={disabled}
               className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                'border',
+                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border',
                 isSelected
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? 'bg-violet-500/15 text-violet-300 border-violet-500/25'
                   : isInferred
-                  ? 'bg-primary/10 text-primary border-primary/30'
-                  : 'bg-muted/50 text-foreground/70 border-border/50 hover:bg-muted hover:border-border',
-                disabled && 'opacity-50 cursor-not-allowed'
+                  ? 'bg-white/[0.06] text-white/60 border-violet-500/15'
+                  : 'bg-white/[0.03] text-white/40 border-white/[0.06] hover:bg-white/[0.05] hover:text-white/55',
+                disabled && 'opacity-40 cursor-not-allowed'
               )}
             >
-              {option.icon}
+              <span className={option.color}>{option.icon}</span>
               <span>{option.label}</span>
               {isInferred && !isSelected && (
-                <span className="text-[10px] opacity-70">(suggested)</span>
+                <span className="text-[9px] text-violet-400/60">(suggested)</span>
               )}
             </button>
           );
@@ -111,76 +93,84 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
     );
   }
 
+  // Grouped layout
+  const groups = ['deal', 'strategy', 'research'] as const;
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-foreground">
-          Report Type
-        </label>
+        <label className="text-[12px] font-medium text-white/60">Report Type</label>
         {inferredType && !selectedType && (
-          <span className="text-xs text-foreground/60">
+          <span className="text-[10px] text-white/30">
             Auto-detected: {REPORT_TYPE_OPTIONS.find(o => o.value === inferredType)?.label}
           </span>
         )}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {REPORT_TYPE_OPTIONS.map((option) => {
-          const isSelected = selectedType === option.value;
-          const isInferred = !selectedType && effectiveDefault === option.value;
 
-          return (
-            <motion.button
-              key={option.value}
-              onClick={() => onSelect(option.value)}
-              disabled={disabled}
-              whileHover={{ scale: disabled ? 1 : 1.02 }}
-              whileTap={{ scale: disabled ? 1 : 0.98 }}
-              className={cn(
-                'relative flex flex-col items-start gap-2 p-4 rounded-xl border transition-all text-left',
-                isSelected
-                  ? 'bg-primary/10 border-primary shadow-sm'
-                  : isInferred
-                  ? 'bg-muted/50 border-primary/30'
-                  : 'bg-background border-border/50 hover:bg-muted/50 hover:border-border',
-                disabled && 'opacity-50 cursor-not-allowed'
-              )}
-            >
-              {/* Selection indicator */}
-              {isSelected && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
-                >
-                  <Check className="w-3 h-3 text-primary-foreground" />
-                </motion.div>
-              )}
+      {groups.map(group => {
+        const options = REPORT_TYPE_OPTIONS.filter(o => o.group === group);
+        if (options.length === 0) return null;
 
-              {/* Inferred badge */}
-              {isInferred && !isSelected && (
-                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/20 text-primary">
-                  Suggested
-                </div>
-              )}
+        return (
+          <div key={group}>
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-white/20 mb-2 block">
+              {GROUP_LABELS[group]}
+            </span>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+              {options.map(option => {
+                const isSelected = selectedType === option.value;
+                const isInferred = !selectedType && effectiveDefault === option.value;
 
-              <div
-                className={cn(
-                  'p-2 rounded-lg',
-                  isSelected
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-foreground/70'
-                )}
-              >
-                {option.icon}
-              </div>
-              <div>
-                <p className="font-medium text-foreground">{option.label}</p>
-                <p className="text-xs text-foreground/60">{option.description}</p>
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
+                return (
+                  <motion.button
+                    key={option.value}
+                    onClick={() => onSelect(option.value as InvestmentReportFormat)}
+                    disabled={disabled}
+                    whileHover={{ scale: disabled ? 1 : 1.02 }}
+                    whileTap={{ scale: disabled ? 1 : 0.98 }}
+                    className={cn(
+                      'relative flex items-start gap-2.5 p-3 rounded-xl border transition-all text-left',
+                      isSelected
+                        ? 'bg-violet-500/10 border-violet-500/25 shadow-sm shadow-violet-500/5'
+                        : isInferred
+                        ? 'bg-white/[0.03] border-violet-500/15'
+                        : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.08]',
+                      disabled && 'opacity-40 cursor-not-allowed'
+                    )}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 right-2 w-4 h-4 rounded-full bg-violet-500 flex items-center justify-center"
+                      >
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      </motion.div>
+                    )}
+
+                    {isInferred && !isSelected && (
+                      <div className="absolute top-1.5 right-1.5 px-1 py-0.5 rounded text-[8px] font-semibold bg-violet-500/15 text-violet-400/70">
+                        Suggested
+                      </div>
+                    )}
+
+                    <div className={cn(
+                      'p-1.5 rounded-lg flex-shrink-0',
+                      isSelected ? 'bg-violet-500/20' : 'bg-white/[0.04]'
+                    )}>
+                      <span className={option.color}>{option.icon}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-medium text-white/80">{option.label}</p>
+                      <p className="text-[10px] text-white/30 mt-0.5 leading-tight">{option.description}</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

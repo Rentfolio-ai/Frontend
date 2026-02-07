@@ -8,6 +8,7 @@ interface User {
   email: string;
   avatar: string;
   provider?: string;
+  subscriptionTier?: 'free' | 'pro' | 'enterprise';
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
   resumeSession: () => Promise<boolean>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -188,6 +190,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return false;
   };
 
+  const updateProfile = async (data: Partial<User>): Promise<void> => {
+    if (!user) return;
+
+    const updatedUser = { ...user, ...data };
+    setUser(updatedUser);
+    localStorage.setItem('civitas-user', JSON.stringify(updatedUser));
+
+    // In a real app, you would call API here:
+    // await authAPI.updateProfile(data);
+  };
+
   const value = {
     user,
     isLoading,
@@ -196,6 +209,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     refreshUser,
     resumeSession,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

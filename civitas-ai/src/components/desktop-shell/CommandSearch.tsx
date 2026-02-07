@@ -406,7 +406,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                                 onClick={() => handleChatClick(chat.id)}
                                                 className={cn(
                                                     'w-full p-3 rounded-lg text-left transition-all border',
-                                                    isActive && 'bg-teal-500/[0.10] border-teal-500/[0.30]',
+                                                    isActive && 'bg-[#C08B5C]/[0.10] border-[#C08B5C]/[0.30]',
                                                     !isActive && isSelected && 'bg-white/[0.08] border-white/[0.15]',
                                                     !isActive && !isSelected && 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.05]'
                                                 )}
@@ -415,9 +415,9 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                                     {/* Icon */}
                                                     <div className={cn(
                                                         'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-lg',
-                                                        hasAnalysis ? 'bg-teal-500/20' : 'bg-white/[0.08]'
+                                                        hasAnalysis ? 'bg-[#C08B5C]/20' : 'bg-white/[0.08]'
                                                     )}>
-                                                        {hasAnalysis ? <MapPin className="w-4 h-4 text-teal-400" /> : '💬'}
+                                                        {hasAnalysis ? <MapPin className="w-4 h-4 text-[#D4A27F]" /> : '💬'}
                                                     </div>
 
                                                     {/* Content */}
@@ -448,7 +448,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                                                 </span>
                                                             )}
                                                             {hasAnalysis && (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-teal-500/10 border border-teal-500/20 rounded-full text-[10px] font-medium text-teal-400">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C08B5C]/10 border border-[#C08B5C]/20 rounded-full text-[10px] font-medium text-[#D4A27F]">
                                                                     <TrendingUp className="w-2.5 h-2.5" />
                                                                     Analysis
                                                                 </span>

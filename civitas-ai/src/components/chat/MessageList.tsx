@@ -25,6 +25,7 @@ interface MessageListProps {
   completedTools?: CompletedTool[];
   reasoningSteps?: any[]; // 🚀 NEW: Real-time reasoning steps
   userName?: string;
+  userAvatar?: string;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   onEdit?: (messageId: string, content: string) => void;
@@ -52,6 +53,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   thinking,
   completedTools = [],
   userName,
+  userAvatar,
   onRefresh,
   onViewDetails,
   onEdit,
@@ -89,11 +91,11 @@ export const MessageList: React.FC<MessageListProps> = ({
   const lastMessage = messages[messages.length - 1];
   const isLastMessageAssistant = lastMessage?.role === 'assistant';
   const isStreaming = lastMessage?.isStreaming;
-  
+
   // Debug logging with timestamp
-  console.log(`[MessageList] ${new Date().toLocaleTimeString()} State:`, { 
-    isLoading, 
-    showThinkingState, 
+  console.log(`[MessageList] ${new Date().toLocaleTimeString()} State:`, {
+    isLoading,
+    showThinkingState,
     hasThinking: !!thinking,
     thinkingStatus: thinking?.status,
     isStreaming,
@@ -102,6 +104,11 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   // Find the last user message for context-aware thinking
   const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+
+  // Extract partial content from last streaming message (for preview in thinking indicator)
+  const partialContent = (isLoading && isLastMessageAssistant && isStreaming)
+    ? lastMessage.content
+    : '';
 
   // Filter messages to hide the last assistant message while it's being generated (loading)
   // This ensures we only show the ThinkingIndicator until the full message is ready
@@ -134,6 +141,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               onNavigateToReports={onNavigateToReports}
               reasoningSteps={steps}
               userName={userName}
+              userAvatar={userAvatar}
               onRefresh={onRefresh}
               onViewDetails={onViewDetails}
               onEdit={(content) => onEdit?.(message.id, content)}
@@ -154,6 +162,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                 thinking={thinking || { status: 'Thinking' }}
                 completedTools={completedTools}
                 reasoningSteps={reasoningSteps} // 🚀 NEW: Pass reasoning steps
+                partialContent={partialContent} // 🚀 NEW: Pass partial streaming content
                 userQuery={lastUserMessage?.content}
                 onCancel={onCancel}
                 error={error}

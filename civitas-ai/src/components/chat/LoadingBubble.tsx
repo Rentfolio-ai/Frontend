@@ -7,7 +7,7 @@ export const LoadingBubble: React.FC = () => {
       {/* AI Agent Avatar with professional pulse */}
       <div className="flex-shrink-0 pt-1 relative">
         <AgentAvatar size="md" />
-        <div className="absolute inset-0 rounded-full bg-teal-400/15 animate-pulse" style={{ animationDuration: '2s' }} />
+        <div className="absolute inset-0 rounded-full bg-[#D4A27F]/15 animate-pulse" style={{ animationDuration: '2s' }} />
       </div>
       
       {/* Real Estate Intelligence - Professional glassmorphic loading card */}
@@ -20,7 +20,7 @@ export const LoadingBubble: React.FC = () => {
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-2 h-2 rounded-full bg-gradient-to-tr from-teal-500 to-cyan-400"
+                  className="w-2 h-2 rounded-full bg-gradient-to-tr from-[#C08B5C] to-cyan-400"
                   style={{
                     animation: 'wave 1.2s ease-in-out infinite',
                     animationDelay: `${i * 0.15}s`

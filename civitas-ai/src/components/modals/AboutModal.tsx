@@ -35,7 +35,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 <div className="p-8">
                     {/* App Info */}
                     <div className="text-center mb-8">
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-teal-500 to-purple-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#C08B5C] to-purple-500 flex items-center justify-center shadow-lg shadow-[#C08B5C]/20">
                             <span className="text-3xl font-bold text-white">A</span>
                         </div>
                         <h3 className="text-2xl font-bold text-white mb-1">Civitas AI</h3>

@@ -137,7 +137,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
                   <div className="text-sm font-medium text-white/60">Cash Flow</div>
                 </div>
                 <div className="text-3xl font-semibold text-white tracking-tight">
-                  <span className="text-emerald-400">$</span>{Math.round((pnlOutput.year1?.cashflow_before_taxes || 0) / 12).toLocaleString()}
+                  <span className="text-emerald-400">$</span>{Math.round((pnlOutput.year1?.cashflowBeforeTaxes || 0) / 12).toLocaleString()}
                   <span className="text-lg text-white/40 font-normal ml-1">/mo</span>
                 </div>
               </div>
@@ -147,7 +147,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
                   <div className="text-sm font-medium text-white/60">Cap Rate</div>
                 </div>
                 <div className="text-3xl font-semibold text-white tracking-tight">
-                  {((pnlOutput.year1?.cap_rate || 0) * 100).toFixed(2)}
+                  {((pnlOutput.year1?.capRate || 0) * 100).toFixed(2)}
                   <span className="text-lg text-blue-400/80 font-normal ml-0.5">%</span>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
                   <div className="text-sm font-medium text-white/60">CoC ROI</div>
                 </div>
                 <div className="text-3xl font-semibold text-white tracking-tight">
-                  {((pnlOutput.year1?.cash_on_cash_return || 0) * 100).toFixed(2)}
+                  {((pnlOutput.year1?.cashOnCash || 0) * 100).toFixed(2)}
                   <span className="text-lg text-purple-400/80 font-normal ml-0.5">%</span>
                 </div>
               </div>

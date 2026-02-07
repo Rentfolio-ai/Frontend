@@ -1,290 +1,378 @@
 /**
- * Appearance Page - Theme and display preferences
- * Theme, font size, layout customization
+ * Appearance Page — Refined
+ *
+ * Persists to preferencesStore. Organized into:
+ *   1. Theme — visual mini-previews of light / dark / system
+ *   2. Accent Color — pick the UI accent
+ *   3. Font Size — segmented control with live preview
+ *   4. Chat Display — density & bubble style
+ *   5. Accessibility — reduced motion, high contrast, keyboard hints
  */
 
-import React, { useState } from 'react';
-import { ArrowLeft, Palette, Sun, Moon, Monitor, Type, Layout, Eye } from 'lucide-react';
+import React from 'react';
+import {
+    ArrowLeft,
+    Sun,
+    Moon,
+    Monitor,
+    Layout,
+    Eye,
+    Keyboard,
+    Type,
+    MessageSquare,
+    Sparkles,
+    Check,
+    Minus,
+    AlignLeft,
+    AlignJustify,
+} from 'lucide-react';
+import { usePreferencesStore } from '../../stores/preferencesStore';
 
 interface AppearancePageProps {
     onBack: () => void;
 }
 
+// ── Toggle ────────────────────────────────────────────────────────────────────
+
+const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled, onToggle }) => (
+    <button
+        onClick={onToggle}
+        className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${enabled ? 'bg-[#C08B5C]' : 'bg-white/[0.12]'}`}
+    >
+        <div className={`absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-[22px]' : 'translate-x-[2px]'}`} />
+    </button>
+);
+
+// ── Accent colors ─────────────────────────────────────────────────────────────
+
+const ACCENT_COLORS = [
+    { id: 'copper', label: 'Copper', swatch: 'bg-[#C08B5C]', ring: 'ring-[#C08B5C]' },
+    { id: 'blue', label: 'Blue', swatch: 'bg-blue-500', ring: 'ring-blue-500' },
+    { id: 'violet', label: 'Violet', swatch: 'bg-violet-500', ring: 'ring-violet-500' },
+    { id: 'rose', label: 'Rose', swatch: 'bg-rose-500', ring: 'ring-rose-500' },
+    { id: 'amber', label: 'Amber', swatch: 'bg-amber-500', ring: 'ring-amber-500' },
+    { id: 'emerald', label: 'Emerald', swatch: 'bg-emerald-500', ring: 'ring-emerald-500' },
+] as const;
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
-    const [appearance, setAppearance] = useState({
-        theme: 'dark', // 'light' | 'dark' | 'system'
-        fontSize: 'medium', // 'small' | 'medium' | 'large'
-        compactMode: false,
-        reducedMotion: false,
-        highContrast: false,
-    });
+    // All preferences persisted via Zustand + localStorage
+    const {
+        theme, setTheme,
+        isWideMode, setWideMode,
+        showKeyboardHints, setShowKeyboardHints,
+        accentColor, setAccentColor,
+        fontSize, setFontSize,
+        chatDensity, setChatDensity,
+        reducedMotion, setReducedMotion,
+        highContrast, setHighContrast,
+    } = usePreferencesStore();
 
-    const ThemeOption: React.FC<{
-        icon: React.ElementType;
-        title: string;
-        description: string;
-        value: string;
-        selected: boolean;
-        onClick: () => void;
-    }> = ({ icon: Icon, title, description, value, selected, onClick }) => (
-        <button
-            onClick={onClick}
-            className="p-4 rounded-xl text-left transition-all w-full"
-            style={{
-                backgroundColor: selected ? 'rgba(20, 184, 166, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                border: selected ? '2px solid #14B8A6' : '1px solid rgba(148, 163, 184, 0.12)',
-            }}
-        >
-            <div className="flex items-start gap-3">
-                <div
-                    className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{
-                        backgroundColor: selected ? 'rgba(20, 184, 166, 0.2)' : 'rgba(148, 163, 184, 0.1)',
-                        color: selected ? '#14B8A6' : '#94A3B8',
-                    }}
-                >
-                    <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                    <h4 className="text-base font-semibold mb-1" style={{ color: '#F1F5F9' }}>
-                        {title}
-                    </h4>
-                    <p className="text-sm" style={{ color: '#94A3B8' }}>
-                        {description}
-                    </p>
-                </div>
-            </div>
-        </button>
-    );
+    // ── Theme data ────────────────────────────────────────────────────────────
 
-    const ToggleOption: React.FC<{
-        icon: React.ElementType;
-        title: string;
-        description: string;
-        enabled: boolean;
-        onToggle: () => void;
-    }> = ({ icon: Icon, title, description, enabled, onToggle }) => (
-        <div
-            className="p-4 rounded-xl flex items-start gap-4"
-            style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(148, 163, 184, 0.12)',
-            }}
-        >
-            <div
-                className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{
-                    backgroundColor: enabled ? 'rgba(20, 184, 166, 0.1)' : 'rgba(148, 163, 184, 0.1)',
-                    color: enabled ? '#14B8A6' : '#94A3B8',
-                }}
-            >
-                <Icon className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-                <h4 className="text-base font-semibold mb-1" style={{ color: '#F1F5F9' }}>
-                    {title}
-                </h4>
-                <p className="text-sm" style={{ color: '#94A3B8' }}>
-                    {description}
-                </p>
-            </div>
-            <button
-                onClick={onToggle}
-                className="flex-shrink-0 relative w-12 h-6 rounded-full transition-colors"
-                style={{
-                    backgroundColor: enabled ? '#14B8A6' : 'rgba(148, 163, 184, 0.3)',
-                }}
-            >
-                <div
-                    className="absolute top-0.5 w-5 h-5 rounded-full transition-transform"
-                    style={{
-                        backgroundColor: '#FFFFFF',
-                        transform: enabled ? 'translateX(26px)' : 'translateX(2px)',
-                    }}
-                />
-            </button>
-        </div>
-    );
+    const themes = [
+        {
+            id: 'light' as const,
+            label: 'Light',
+            icon: Sun,
+            sidebar: 'bg-slate-100',
+            bg: 'bg-white',
+            text: 'bg-slate-300',
+            accent: 'bg-[#D4A27F]',
+            bubble: 'bg-slate-200',
+        },
+        {
+            id: 'dark' as const,
+            label: 'Dark',
+            icon: Moon,
+            sidebar: 'bg-slate-800',
+            bg: 'bg-slate-700',
+            text: 'bg-slate-600',
+            accent: 'bg-[#C08B5C]',
+            bubble: 'bg-slate-600',
+        },
+        {
+            id: 'system' as const,
+            label: 'Auto',
+            icon: Monitor,
+            sidebar: 'bg-gradient-to-b from-slate-100 to-slate-800',
+            bg: 'bg-gradient-to-b from-white to-slate-700',
+            text: 'bg-slate-400',
+            accent: 'bg-[#C08B5C]',
+            bubble: 'bg-gradient-to-b from-slate-200 to-slate-600',
+        },
+    ];
 
-    const FontSizeOption: React.FC<{
-        size: string;
-        label: string;
-        selected: boolean;
-        onClick: () => void;
-    }> = ({ size, label, selected, onClick }) => (
-        <button
-            onClick={onClick}
-            className="px-6 py-3 rounded-lg transition-all font-semibold"
-            style={{
-                backgroundColor: selected ? '#14B8A6' : 'rgba(148, 163, 184, 0.1)',
-                color: selected ? '#FFFFFF' : '#CBD5E1',
-                fontSize: size === 'small' ? '14px' : size === 'large' ? '18px' : '16px',
-            }}
-        >
-            {label}
-        </button>
-    );
+    const fontSizes = [
+        { id: 'small' as const, label: 'S', desc: 'Small', px: '12px' },
+        { id: 'medium' as const, label: 'M', desc: 'Default', px: '14px' },
+        { id: 'large' as const, label: 'L', desc: 'Large', px: '16px' },
+    ];
+
+    const densities = [
+        { id: 'compact' as const, label: 'Compact', icon: AlignJustify, gap: 'gap-0.5' },
+        { id: 'comfortable' as const, label: 'Comfortable', icon: AlignLeft, gap: 'gap-1' },
+        { id: 'spacious' as const, label: 'Spacious', icon: Minus, gap: 'gap-2' },
+    ];
+
+    // ── Render ────────────────────────────────────────────────────────────────
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#334155' }}>
+        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
             {/* Header */}
-            <div
-                className="flex items-center gap-4 px-6 py-4 border-b"
-                style={{ borderColor: 'rgba(148, 163, 184, 0.15)' }}
-            >
+            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
                 <button
                     onClick={onBack}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
-                    style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: '#E2E8F0',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
+                    className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors"
                 >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4 text-white/60" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>
-                        Appearance
-                    </h1>
-                    <p className="text-sm" style={{ color: '#94A3B8' }}>
-                        Customize how the app looks and feels
-                    </p>
+                    <h1 className="text-lg font-semibold text-white/90">Appearance</h1>
+                    <p className="text-[11px] text-white/35">Customize how Vasthu looks and feels</p>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-3xl mx-auto space-y-8">
-                    {/* Theme Selection */}
-                    <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <Palette className="w-5 h-5" style={{ color: '#14B8A6' }} />
-                            <h2 className="text-lg font-semibold" style={{ color: '#F1F5F9' }}>
-                                Theme
-                            </h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <ThemeOption
-                                icon={Sun}
-                                title="Light"
-                                description="Light color scheme"
-                                value="light"
-                                selected={appearance.theme === 'light'}
-                                onClick={() => setAppearance({ ...appearance, theme: 'light' })}
-                            />
-                            <ThemeOption
-                                icon={Moon}
-                                title="Dark"
-                                description="Dark color scheme"
-                                value="dark"
-                                selected={appearance.theme === 'dark'}
-                                onClick={() => setAppearance({ ...appearance, theme: 'dark' })}
-                            />
-                            <ThemeOption
-                                icon={Monitor}
-                                title="System"
-                                description="Match system theme"
-                                value="system"
-                                selected={appearance.theme === 'system'}
-                                onClick={() => setAppearance({ ...appearance, theme: 'system' })}
-                            />
-                        </div>
-                    </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="max-w-2xl mx-auto space-y-6">
 
-                    {/* Font Size */}
+                    {/* ── Theme ── */}
                     <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <Type className="w-5 h-5" style={{ color: '#14B8A6' }} />
-                            <h2 className="text-lg font-semibold" style={{ color: '#F1F5F9' }}>
-                                Font Size
-                            </h2>
-                        </div>
-                        <div className="flex gap-3">
-                            <FontSizeOption
-                                size="small"
-                                label="Small"
-                                selected={appearance.fontSize === 'small'}
-                                onClick={() => setAppearance({ ...appearance, fontSize: 'small' })}
-                            />
-                            <FontSizeOption
-                                size="medium"
-                                label="Medium"
-                                selected={appearance.fontSize === 'medium'}
-                                onClick={() => setAppearance({ ...appearance, fontSize: 'medium' })}
-                            />
-                            <FontSizeOption
-                                size="large"
-                                label="Large"
-                                selected={appearance.fontSize === 'large'}
-                                onClick={() => setAppearance({ ...appearance, fontSize: 'large' })}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Display Options */}
-                    <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <Eye className="w-5 h-5" style={{ color: '#14B8A6' }} />
-                            <h2 className="text-lg font-semibold" style={{ color: '#F1F5F9' }}>
-                                Display Options
-                            </h2>
-                        </div>
-                        <div className="space-y-3">
-                            <ToggleOption
-                                icon={Layout}
-                                title="Compact Mode"
-                                description="Show more content with tighter spacing"
-                                enabled={appearance.compactMode}
-                                onToggle={() => setAppearance({ ...appearance, compactMode: !appearance.compactMode })}
-                            />
-                            <ToggleOption
-                                icon={Eye}
-                                title="Reduced Motion"
-                                description="Minimize animations and transitions"
-                                enabled={appearance.reducedMotion}
-                                onToggle={() => setAppearance({ ...appearance, reducedMotion: !appearance.reducedMotion })}
-                            />
-                            <ToggleOption
-                                icon={Palette}
-                                title="High Contrast"
-                                description="Increase contrast for better readability"
-                                enabled={appearance.highContrast}
-                                onToggle={() => setAppearance({ ...appearance, highContrast: !appearance.highContrast })}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Preview */}
-                    <div>
-                        <h2 className="text-lg font-semibold mb-4" style={{ color: '#F1F5F9' }}>
-                            Preview
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                            Theme
                         </h2>
-                        <div
-                            className="p-6 rounded-xl"
-                            style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                                border: '1px solid rgba(148, 163, 184, 0.12)',
-                            }}
-                        >
-                            <h3 className="text-xl font-bold mb-2" style={{ color: '#F1F5F9' }}>
-                                Sample Heading
-                            </h3>
-                            <p className="text-base mb-4" style={{ color: '#CBD5E1' }}>
-                                This is how text will appear with your current settings. Adjust the options above to see changes in real-time.
-                            </p>
-                            <button
-                                className="px-4 py-2 rounded-lg"
-                                style={{
-                                    backgroundColor: '#14B8A6',
-                                    color: '#FFFFFF',
-                                }}
-                            >
-                                Sample Button
-                            </button>
+                        <div className="grid grid-cols-3 gap-2.5">
+                            {themes.map((t) => {
+                                const Icon = t.icon;
+                                const selected = theme === t.id;
+                                return (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setTheme(t.id)}
+                                        className={`relative rounded-xl border-2 transition-all overflow-hidden ${
+                                            selected
+                                                ? 'border-[#C08B5C] shadow-lg shadow-[#C08B5C]/10'
+                                                : 'border-white/[0.06] hover:border-white/[0.12]'
+                                        }`}
+                                    >
+                                        {/* Mini app preview */}
+                                        <div className="p-2 pb-0">
+                                            <div className="rounded-t-lg overflow-hidden flex h-[52px]">
+                                                {/* Mini sidebar */}
+                                                <div className={`w-[18px] ${t.sidebar} flex flex-col items-center pt-1.5 gap-1`}>
+                                                    <div className="w-2 h-2 rounded-sm bg-white/20" />
+                                                    <div className="w-2 h-2 rounded-sm bg-white/10" />
+                                                    <div className="w-2 h-2 rounded-sm bg-white/10" />
+                                                </div>
+                                                {/* Mini main area */}
+                                                <div className={`flex-1 ${t.bg} p-1.5 flex flex-col gap-1`}>
+                                                    <div className={`h-1.5 w-8 rounded-full ${t.text} opacity-60`} />
+                                                    <div className={`h-3 w-full rounded ${t.bubble} opacity-50`} />
+                                                    <div className={`h-2 w-10 rounded-full ${t.accent} opacity-70 self-end`} />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Label */}
+                                        <div className={`px-2 py-2 flex items-center justify-center gap-1.5 ${
+                                            selected ? 'bg-[#C08B5C]/10' : 'bg-white/[0.02]'
+                                        }`}>
+                                            <Icon className={`w-3 h-3 ${selected ? 'text-[#D4A27F]' : 'text-white/35'}`} />
+                                            <span className={`text-[11px] font-medium ${selected ? 'text-[#D4A27F]' : 'text-white/50'}`}>
+                                                {t.label}
+                                            </span>
+                                        </div>
+
+                                        {/* Check badge */}
+                                        {selected && (
+                                            <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#C08B5C] flex items-center justify-center">
+                                                <Check className="w-2.5 h-2.5 text-white" />
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
+
+                    {/* ── Accent Color ── */}
+                    <div>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                            Accent Color
+                        </h2>
+                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3">
+                            <div className="flex items-center gap-3">
+                                {ACCENT_COLORS.map((c) => {
+                                    const selected = accentColor === c.id;
+                                    return (
+                                        <button
+                                            key={c.id}
+                                            onClick={() => setAccentColor(c.id)}
+                                            className="flex flex-col items-center gap-1.5 group"
+                                            title={c.label}
+                                        >
+                                            <div className={`w-7 h-7 rounded-full ${c.swatch} transition-all flex items-center justify-center ${
+                                                selected ? `ring-2 ${c.ring} ring-offset-2 ring-offset-[#111114] scale-110` : 'opacity-60 group-hover:opacity-90'
+                                            }`}>
+                                                {selected && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            <span className={`text-[9px] font-medium ${selected ? 'text-white/70' : 'text-white/25'}`}>
+                                                {c.label}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Font Size ── */}
+                    <div>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                            Font Size
+                        </h2>
+                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3 space-y-3">
+                            {/* Segmented control */}
+                            <div className="flex gap-1.5 p-1 rounded-lg bg-white/[0.04]">
+                                {fontSizes.map((f) => {
+                                    const selected = fontSize === f.id;
+                                    return (
+                                        <button
+                                            key={f.id}
+                                            onClick={() => setFontSize(f.id)}
+                                            className={`flex-1 py-2 rounded-md text-center transition-all ${
+                                                selected
+                                                    ? 'bg-[#C08B5C] text-white shadow-sm'
+                                                    : 'text-white/40 hover:text-white/60 hover:bg-white/[0.04]'
+                                            }`}
+                                        >
+                                            <span className="text-[13px] font-bold">{f.label}</span>
+                                            <span className={`block text-[9px] mt-0.5 ${selected ? 'text-white/70' : 'text-white/25'}`}>
+                                                {f.desc}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Live preview */}
+                            <div className="rounded-lg bg-white/[0.04] border border-white/[0.04] p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <Type className="w-3 h-3 text-white/25" />
+                                    <span className="text-[9px] uppercase tracking-wider text-white/25 font-semibold">Preview</span>
+                                </div>
+                                <p style={{ fontSize: fontSizes.find((f) => f.id === fontSize)?.px }} className="text-white/70 leading-relaxed">
+                                    This property at 123 Main St has a projected cash flow of $450/mo with a 7.2% cap rate.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Chat Display ── */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-2.5 px-1">
+                            <MessageSquare className="w-3 h-3 text-white/25" />
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                                Chat Display
+                            </h2>
+                        </div>
+                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3 space-y-3">
+                            {/* Message density */}
+                            <div>
+                                <p className="text-[11px] text-white/45 mb-2">Message spacing</p>
+                                <div className="flex gap-1.5">
+                                    {densities.map((d) => {
+                                        const Icon = d.icon;
+                                        const selected = chatDensity === d.id;
+                                        return (
+                                            <button
+                                                key={d.id}
+                                                onClick={() => setChatDensity(d.id)}
+                                                className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-lg border transition-all ${
+                                                    selected
+                                                        ? 'border-[#C08B5C]/30 bg-[#C08B5C]/[0.06]'
+                                                        : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                                                }`}
+                                            >
+                                                {/* Mini density preview */}
+                                                <div className={`flex flex-col ${d.gap} w-8`}>
+                                                    <div className="h-1 w-full rounded-full bg-white/15" />
+                                                    <div className="h-1 w-5 rounded-full bg-[#C08B5C]/40 self-end" />
+                                                    <div className="h-1 w-full rounded-full bg-white/15" />
+                                                </div>
+                                                <span className={`text-[10px] font-medium ${selected ? 'text-[#D4A27F]' : 'text-white/40'}`}>
+                                                    {d.label}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Wide mode toggle */}
+                            <div className="flex items-center gap-3 pt-2 border-t border-white/[0.04]">
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${isWideMode ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
+                                    <Layout className={`w-3.5 h-3.5 ${isWideMode ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-[12px] font-medium text-white/75">Wide Mode</h4>
+                                    <p className="text-[10px] text-white/30">Expand chat to full width</p>
+                                </div>
+                                <Toggle enabled={isWideMode} onToggle={() => setWideMode(!isWideMode)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Accessibility ── */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-2.5 px-1">
+                            <Sparkles className="w-3 h-3 text-white/25" />
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                                Accessibility
+                            </h2>
+                        </div>
+                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                            {/* Reduced Motion */}
+                            <div className="flex items-center gap-3 px-3.5 py-2.5">
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${reducedMotion ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
+                                    <Eye className={`w-3.5 h-3.5 ${reducedMotion ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-[12px] font-medium text-white/75">Reduced Motion</h4>
+                                    <p className="text-[10px] text-white/30">Minimize animations and transitions</p>
+                                </div>
+                                <Toggle enabled={reducedMotion} onToggle={() => setReducedMotion(!reducedMotion)} />
+                            </div>
+
+                            {/* High Contrast */}
+                            <div className="flex items-center gap-3 px-3.5 py-2.5">
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${highContrast ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
+                                    <Sun className={`w-3.5 h-3.5 ${highContrast ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-[12px] font-medium text-white/75">High Contrast</h4>
+                                    <p className="text-[10px] text-white/30">Increase text and border contrast</p>
+                                </div>
+                                <Toggle enabled={highContrast} onToggle={() => setHighContrast(!highContrast)} />
+                            </div>
+
+                            {/* Keyboard Hints */}
+                            <div className="flex items-center gap-3 px-3.5 py-2.5">
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${showKeyboardHints ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
+                                    <Keyboard className={`w-3.5 h-3.5 ${showKeyboardHints ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-[12px] font-medium text-white/75">Keyboard Shortcuts</h4>
+                                    <p className="text-[10px] text-white/30">Show shortcut hints in the UI</p>
+                                </div>
+                                <Toggle enabled={showKeyboardHints} onToggle={() => setShowKeyboardHints(!showKeyboardHints)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom spacer */}
+                    <div className="h-4" />
                 </div>
             </div>
         </div>

@@ -55,12 +55,12 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
 
     if (variant === 'compact') {
         return (
-            <div className="relative w-full aspect-video bg-gradient-to-br from-gray-900 to-black rounded-xl overflow-hidden border border-teal-500/30">
+            <div className="relative w-full aspect-video bg-gradient-to-br from-gray-900 to-black rounded-xl overflow-hidden border border-[#C08B5C]/30">
                 {/* Holographic Grid */}
                 <div className="absolute inset-0" style={{
                     backgroundImage: `
-            linear-gradient(rgba(20, 184, 166, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(20, 184, 166, 0.1) 1px, transparent 1px)
+            linear-gradient(rgba(192, 139, 92, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(192, 139, 92, 0.1) 1px, transparent 1px)
           `,
                     backgroundSize: '20px 20px'
                 }} />
@@ -68,7 +68,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                 {/* Compact Stats */}
                 <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                        <div className="text-4xl font-bold text-teal-400 mb-2">
+                        <div className="text-4xl font-bold text-[#D4A27F] mb-2">
                             {property.bedrooms}BD / {property.bathrooms}BA
                         </div>
                         <div className="text-xl text-white/70">
@@ -79,19 +79,19 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
 
                 {/* Scan Line */}
                 {isScanning && (
-                    <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-teal-500 to-transparent animate-scan" />
+                    <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C08B5C] to-transparent animate-scan" />
                 )}
             </div>
         );
     }
 
     return (
-        <div className="relative w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl overflow-hidden border border-teal-500/30 shadow-2xl shadow-teal-500/10">
+        <div className="relative w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl overflow-hidden border border-[#C08B5C]/30 shadow-2xl shadow-[#C08B5C]/10">
             {/* Holographic Grid Background */}
             <div className="absolute inset-0 opacity-30" style={{
                 backgroundImage: `
-          linear-gradient(rgba(20, 184, 166, 0.2) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(20, 184, 166, 0.2) 1px, transparent 1px)
+          linear-gradient(rgba(192, 139, 92, 0.2) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(192, 139, 92, 0.2) 1px, transparent 1px)
         `,
                 backgroundSize: '30px 30px',
                 transform: 'perspective(500px) rotateX(60deg)',
@@ -100,7 +100,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
 
             {/* Scan Line Effect */}
             {isScanning && (
-                <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-80 blur-sm animate-scan" style={{ animationDuration: '3s' }} />
+                <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4A27F] to-transparent opacity-80 blur-sm animate-scan" style={{ animationDuration: '3s' }} />
             )}
 
             {/* Content */}
@@ -109,8 +109,8 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <Zap className="w-5 h-5 text-teal-400" />
-                            <span className="text-xs font-semibold text-teal-400 uppercase tracking-wider">
+                            <Zap className="w-5 h-5 text-[#D4A27F]" />
+                            <span className="text-xs font-semibold text-[#D4A27F] uppercase tracking-wider">
                                 AI-Generated Visualization
                             </span>
                         </div>
@@ -118,8 +118,8 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                             <h3 className="text-xl font-bold text-white">{property.address}</h3>
                         )}
                     </div>
-                    <div className="px-3 py-1 rounded-lg bg-teal-500/20 border border-teal-500/30">
-                        <span className="text-sm font-medium text-teal-300">Procedural Model</span>
+                    <div className="px-3 py-1 rounded-lg bg-[#C08B5C]/20 border border-[#C08B5C]/30">
+                        <span className="text-sm font-medium text-[#D4A27F]">Procedural Model</span>
                     </div>
                 </div>
 
@@ -136,7 +136,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                                 }}
                             >
                                 {/* Floor base */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-gray-700/50 to-gray-800/50 border border-teal-500/30 rounded-lg backdrop-blur-sm" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-gray-700/50 to-gray-800/50 border border-[#C08B5C]/30 rounded-lg backdrop-blur-sm" />
 
                                 {/* Room blocks */}
                                 <div className="absolute inset-4 grid grid-cols-3 gap-2">
@@ -158,7 +158,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                                 {[...Array(8)].map((_, i) => (
                                     <div
                                         key={i}
-                                        className="absolute w-1 h-1 bg-teal-400 rounded-full opacity-60"
+                                        className="absolute w-1 h-1 bg-[#D4A27F] rounded-full opacity-60"
                                         style={{
                                             left: `${Math.random() * 100}%`,
                                             top: `${Math.random() * 100}%`,
@@ -171,10 +171,10 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                         </div>
 
                         {/* Corner Markers */}
-                        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-teal-500" />
-                        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-teal-500" />
-                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-teal-500" />
-                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-teal-500" />
+                        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#C08B5C]" />
+                        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#C08B5C]" />
+                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#C08B5C]" />
+                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#C08B5C]" />
                     </div>
 
                     {/* Right: Property Stats */}
@@ -217,7 +217,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                                     {property.amenities.slice(0, 6).map((amenity, idx) => (
                                         <span
                                             key={idx}
-                                            className="px-2 py-1 text-xs rounded bg-teal-500/20 text-teal-300 border border-teal-500/30"
+                                            className="px-2 py-1 text-xs rounded bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30"
                                         >
                                             {amenity}
                                         </span>
@@ -247,11 +247,11 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                 {/* Bottom Status Bar */}
                 <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 text-white/40">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse" />
+                        <div className="w-2 h-2 bg-[#C08B5C] rounded-full animate-pulse" />
                         <span>Live property data visualization</span>
                     </div>
                     <div className="flex gap-4 text-white/40">
-                        <span>Confidence: <span className="text-teal-400 font-semibold">94%</span></span>
+                        <span>Confidence: <span className="text-[#D4A27F] font-semibold">94%</span></span>
                         <span>Updated: Just now</span>
                     </div>
                 </div>

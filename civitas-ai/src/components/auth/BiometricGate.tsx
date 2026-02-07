@@ -34,7 +34,7 @@ export const BiometricGate: React.FC<BiometricGateProps> = ({
             <div className="max-w-md w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center shadow-2xl shadow-black/50">
 
                 {/* Icon Circle */}
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-500/20 to-purple-500/20 flex items-center justify-center mb-6 ring-1 ring-white/10 relative">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C08B5C]/20 to-purple-500/20 flex items-center justify-center mb-6 ring-1 ring-white/10 relative">
                     {isSetupMode ? (
                         <ShieldCheck className="w-8 h-8 text-white/80" />
                     ) : (

@@ -22,7 +22,9 @@ const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
 const CIVITAS_API_BASE = (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.startsWith('http')) ? envApiUrl : 'http://localhost:8001';
 const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
+
 export type AgentMode = 'research' | 'strategist' | 'hunter';
+
 
 export interface ChatSession {
   id: string;
@@ -38,7 +40,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'dealAnalyzer';
+export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -80,6 +82,8 @@ export function useDesktopShell() {
   const { showToast } = useToast();
   const {
     sync,
+    preferredMode,
+    setPreferredMode,
   } = usePreferencesStore();
 
   // ... existing code ...
@@ -124,8 +128,8 @@ export function useDesktopShell() {
   // Temporary chat state - not persisted to localStorage
   const [isCurrentChatTemporary, setIsCurrentChatTemporary] = useState(false);
 
-  // Agent Mode
-  const [currentMode, setCurrentMode] = useState<AgentMode>('hunter');
+  // Agent Mode State — initialized from persisted preference
+  const [currentMode, setCurrentMode] = useState<AgentMode>(preferredMode || 'hunter');
 
   // UI state
   const [isRailCollapsed, setIsRailCollapsed] = useState(() => {
@@ -220,6 +224,25 @@ export function useDesktopShell() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamContentRef = useRef<string>('');
   const currentToolsRef = useRef<CompletedTool[]>([]);
+  const inlineActionsRef = useRef<any[]>([]);
+
+  // --- Accumulated thinking trace (persisted to final message) ---
+  const thinkingTraceRef = useRef<{ text: string; source: string }[]>([]);
+  const thinkingStartTimeRef = useRef<number | null>(null);
+
+  // --- Typewriter word-buffer system ---
+  const wordBufferRef = useRef<string[]>([]);       // incoming words waiting to be displayed
+  const displayedContentRef = useRef<string>('');    // what the user actually sees
+  const rafIdRef = useRef<number | null>(null);      // setTimeout id for drain loop
+  const isStreamingRef = useRef<boolean>(false);     // whether we're actively streaming
+  // --- Drain loop timing ---
+  // Fixed interval: fires every 30ms.  Each tick drains a small number of words.
+  // Target: ~60-80 words/sec (GPT-like).  A 300-word response streams over ~4-5 seconds.
+  // NEVER ramp up aggressively — that's what made it look like "all at once."
+  const DRAIN_TICK_MS = 30;
+  // Pending finalization: when done/complete fires, we store the callback here
+  // and let the drain loop apply it after the buffer is empty (preserving typewriter effect)
+  const pendingFinalizationRef = useRef<((msgId: string) => void) | null>(null);
 
   // Cancel active stream
   const cancelStream = useCallback(() => {
@@ -230,6 +253,75 @@ export function useDesktopShell() {
     setThinking(null);
     setIsLoading(false);
     // Note: _setStreamError is available for future error handling
+  }, []);
+
+  // --- Typewriter drain helpers ---
+  // Push incoming text into word buffer (split on whitespace boundaries, preserving spaces)
+  const pushToWordBuffer = useCallback((text: string) => {
+    if (!text) return;
+    // Split into tokens that preserve whitespace as separate entries
+    const tokens = text.split(/(\s+)/);
+    wordBufferRef.current.push(...tokens);
+  }, []);
+
+  // Flush all remaining buffer content immediately (safety escape hatch)
+  const _flushWordBuffer = useCallback((messageId: string) => {
+    if (wordBufferRef.current.length > 0) {
+      displayedContentRef.current += wordBufferRef.current.join('');
+      wordBufferRef.current = [];
+    }
+    // Cancel any pending drain timer
+    if (rafIdRef.current !== null) {
+      clearTimeout(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    isStreamingRef.current = false;
+    // Final update to displayed content
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, content: displayedContentRef.current } : m
+    ));
+  }, []);
+
+  // Start the drain loop that moves words from buffer → displayed content.
+  // Uses a FIXED rate so text always streams visibly (like ChatGPT).
+  //
+  // Key design decisions:
+  //  • Fixed 2 words per 30ms tick = ~66 words/sec.
+  //  • When streaming is DONE but buffer has leftover, allow 3 words/tick to
+  //    catch up gently (still perceivable at ~100 words/sec).
+  //  • NEVER go faster than 3 words/tick — that's what caused the "all at once" bug.
+  const startDrainLoop = useCallback((messageId: string) => {
+    if (rafIdRef.current !== null) return; // Already running
+
+    const drain = () => {
+      if (wordBufferRef.current.length > 0) {
+        // Fixed speed: 2 words/tick while streaming, 3 words/tick when catching up after done
+        const wordsThisTick = isStreamingRef.current ? 2 : 3;
+        const batch = wordBufferRef.current.splice(0, wordsThisTick);
+        displayedContentRef.current += batch.join('');
+
+        // Update message in state
+        setMessages(prev => prev.map(m =>
+          m.id === messageId
+            ? { ...m, content: displayedContentRef.current, isStreaming: true }
+            : m
+        ));
+      }
+
+      // Continue loop while streaming or buffer still has content
+      if (isStreamingRef.current || wordBufferRef.current.length > 0) {
+        rafIdRef.current = window.setTimeout(drain, DRAIN_TICK_MS) as unknown as number;
+      } else {
+        // Buffer empty and streaming done — apply pending finalization if any
+        rafIdRef.current = null;
+        if (pendingFinalizationRef.current) {
+          pendingFinalizationRef.current(messageId);
+          pendingFinalizationRef.current = null;
+        }
+      }
+    };
+
+    rafIdRef.current = window.setTimeout(drain, DRAIN_TICK_MS) as unknown as number;
   }, []);
 
   // Refs for cleanup
@@ -423,10 +515,137 @@ export function useDesktopShell() {
     setReasoningSteps([]); // NEW: Reset reasoning steps
     streamContentRef.current = '';
     currentToolsRef.current = [];
+    inlineActionsRef.current = [];
+    thinkingTraceRef.current = [];
+    thinkingStartTimeRef.current = Date.now();
+    pendingFinalizationRef.current = null;
+    // Reset typewriter state
+    wordBufferRef.current = [];
+    displayedContentRef.current = '';
+    isStreamingRef.current = false;
+    if (rafIdRef.current !== null) {
+      clearTimeout(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+  }, []);
+
+  // Auto-generate inline actions based on completed tools and current mode
+  const generateInlineActions = useCallback((tools: CompletedTool[], mode: AgentMode) => {
+    if (tools.length === 0) return [];
+
+    const toolNames = tools.map(t => t.tool);
+    const actions: Array<{ label: string; tool_name: string; arguments: Record<string, unknown>; style?: string }> = [];
+
+    // Detect what tools were used and suggest contextual next steps
+    const hadPropertySearch = toolNames.some(t =>
+      ['Property Search', 'scan_market', 'Deal Hunter', 'hunt_deals'].includes(t)
+    );
+    const hadAnalysis = toolNames.some(t =>
+      ['Financial Analysis', 'request_financial_analysis', 'Metrics Calculation', 'request_metrics_calculation'].includes(t)
+    );
+    const hadMarketStats = toolNames.some(t =>
+      ['Market Analysis', 'get_market_stats', 'Market Research', 'research_new_market'].includes(t)
+    );
+    const hadComps = toolNames.some(t =>
+      ['find_comps_with_intel', 'Property Comparison', 'compare_properties'].includes(t)
+    );
+    const hadReport = toolNames.some(t =>
+      ['Report Generation', 'Generate Report', 'generate_report'].includes(t)
+    );
+    const hadPortfolio = toolNames.some(t =>
+      ['Portfolio Analysis', 'portfolio_analyzer_tool', 'Cashflow Projection', 'cashflow_timeseries_tool'].includes(t)
+    );
+
+    if (mode === 'hunter') {
+      if (hadReport) {
+        // After report → suggest next deal actions
+        actions.push({ label: 'Analyze another property', tool_name: 'scan_market', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Compare top picks', tool_name: 'find_comps_with_intel', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Search new market', tool_name: 'research_new_market', arguments: {}, style: 'secondary' });
+      } else if (hadPropertySearch) {
+        actions.push({ label: 'Deep-dive top pick', tool_name: 'request_financial_analysis', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Check deal killers', tool_name: 'detect_deal_killers', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Pull comps', tool_name: 'find_comps_with_intel', arguments: {}, style: 'secondary' });
+      } else if (hadAnalysis) {
+        actions.push({ label: 'Generate report', tool_name: 'generate_report', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Draft offer strategy', tool_name: 'generate_offer_strategy', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Check deal killers', tool_name: 'detect_deal_killers', arguments: {}, style: 'secondary' });
+      } else if (hadComps) {
+        actions.push({ label: 'Make an offer', tool_name: 'generate_offer_strategy', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Generate report', tool_name: 'generate_report', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Neighborhood trajectory', tool_name: 'analyze_neighborhood_trajectory', arguments: {}, style: 'secondary' });
+      } else if (hadMarketStats) {
+        actions.push({ label: 'Hunt deals here', tool_name: 'scan_market', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Compare another market', tool_name: 'get_market_stats', arguments: {}, style: 'secondary' });
+      }
+    } else if (mode === 'strategist') {
+      if (hadReport) {
+        // After strategy report → suggest next strategic actions
+        actions.push({ label: 'Refine strategy', tool_name: 'ask_clarifying_questions', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Find matching properties', tool_name: 'scan_market', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Review risk exposure', tool_name: 'detect_portfolio_vulnerabilities', arguments: {}, style: 'secondary' });
+      } else if (hadPortfolio) {
+        actions.push({ label: 'Generate strategy report', tool_name: 'generate_report', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Stress test scenarios', tool_name: 'simulate_portfolio_scenarios', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Tax optimization', tool_name: 'generate_tax_strategy', arguments: {}, style: 'secondary' });
+      } else if (hadPropertySearch) {
+        actions.push({ label: 'Portfolio fit analysis', tool_name: 'portfolio_analyzer_tool', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Stress test scenarios', tool_name: 'simulate_portfolio_scenarios', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Tax implications', tool_name: 'generate_tax_strategy', arguments: {}, style: 'secondary' });
+      } else if (hadAnalysis) {
+        actions.push({ label: 'Generate strategy report', tool_name: 'generate_report', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Simulate scenarios', tool_name: 'simulate_portfolio_scenarios', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Check portfolio risk', tool_name: 'detect_portfolio_vulnerabilities', arguments: {}, style: 'secondary' });
+      } else if (hadMarketStats) {
+        actions.push({ label: 'Find matching properties', tool_name: 'scan_market', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Compare markets', tool_name: 'get_market_stats', arguments: {}, style: 'secondary' });
+      } else {
+        actions.push({ label: 'Review my portfolio', tool_name: 'portfolio_analyzer_tool', arguments: {}, style: 'primary' });
+        actions.push({ label: 'Define buy box', tool_name: 'ask_clarifying_questions', arguments: {}, style: 'secondary' });
+      }
+    } else {
+      // Research mode
+      if (hadReport) {
+        // After research report → suggest further research
+        actions.push({ label: 'Compare to another market', tool_name: 'get_market_stats', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Dig deeper into trends', tool_name: 'analyze_market_trend_depth', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Apply to my portfolio', tool_name: 'portfolio_analyzer_tool', arguments: {}, style: 'secondary' });
+      } else if (hadMarketStats) {
+        actions.push({ label: 'Generate research report', tool_name: 'generate_report', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Dig deeper into trends', tool_name: 'analyze_market_trend_depth', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Compare to another market', tool_name: 'get_market_stats', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Economic drivers', tool_name: 'research_economic_drivers', arguments: {}, style: 'secondary' });
+      } else if (hadPropertySearch) {
+        actions.push({ label: 'Market context', tool_name: 'get_market_stats', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Rental demand analysis', tool_name: 'analyze_rental_demand_depth', arguments: {}, style: 'secondary' });
+      } else {
+        actions.push({ label: 'Explore a market', tool_name: 'research_new_market', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Check regulations', tool_name: 'forecast_regulatory_changes', arguments: {}, style: 'secondary' });
+      }
+    }
+
+    return actions.slice(0, 4); // Max 4 actions
   }, []);
 
   // Handle SSE stream event
   const handleStreamEvent = useCallback((event: StreamEvent, messageId: string) => {
+    // Handle inline_actions event (from suggest_actions tool)
+    const eventAny = event as any;
+    if (eventAny.type === 'inline_actions' && eventAny.actions && Array.isArray(eventAny.actions)) {
+      inlineActionsRef.current = eventAny.actions;
+      logger.info('[useDesktopShell] Received inline_actions event', {
+        count: eventAny.actions.length,
+        context: eventAny.context,
+      });
+      // Immediately attach to current message
+      setMessages(prev => prev.map(m =>
+        m.id === messageId
+          ? { ...m, inlineActions: eventAny.actions }
+          : m
+      ));
+      return;
+    }
+
     switch (event.type) {
       case 'init':
         if (event.thread_id) {
@@ -437,7 +656,8 @@ export function useDesktopShell() {
       // V2 Event: properties received
       case 'properties':
         console.log('🏠 [V2-SSE] PROPERTIES EVENT:', event);
-        setThinking(null); // Clear searching indicator
+        // DON'T clear thinking here - more thinking events come after properties
+        // Thinking will be cleared by 'complete' or 'ai_chunk' when AI starts streaming
 
         // Extract key info
         const propertyCount = event.total_found || event.properties?.length || 0;
@@ -452,21 +672,57 @@ export function useDesktopShell() {
 
         // 🚀 NO HEADER - Let AI response speak for itself
         streamContentRef.current = '';
+        displayedContentRef.current = '';
+        wordBufferRef.current = [];
 
-        // Enhance property data with AI scoring (this would come from backend in production)
+        // Use backend calculated_metrics when available, fallback to rough estimates
         const enhancedProperties = properties.map((prop: any, idx: number) => {
-          // Simple scoring based on price and estimated rent
           const price = prop.price || prop.current_value_estimate || 0;
           const rent = prop.estimated_rent || prop.current_rent_estimate || 0;
-          const capRate = price > 0 && rent > 0 ? ((rent * 12) / price) * 100 : 0;
-          const cashflow = rent > 0 ? rent - (price * 0.007) : 0; // Rough estimate
-          const matchScore = 85 + (idx * -5); // Simulated match score
+          const metrics = prop.calculated_metrics;
+          
+          // Use backend metrics if available, otherwise rough fallback
+          const capRate = metrics?.cap_rate ?? (price > 0 && rent > 0 ? ((rent * 12) / price) * 100 : 0);
+          const cashflow = metrics?.monthly_cash_flow ?? (rent > 0 ? rent - (price * 0.007) : 0);
+          const cashOnCash = metrics?.cash_on_cash_roi ?? 0;
+          const monthlyMortgage = metrics?.monthly_mortgage ?? 0;
+          const monthlyExpenses = metrics?.monthly_expenses ?? 0;
+          const annualNoi = metrics?.annual_noi ?? 0;
+          const totalRoi = metrics?.total_roi ?? 0;
+          
+          // Use backend ai_score, not fake hardcoded score
+          const matchScore = prop.ai_score ?? (85 + (idx * -5));
 
           return {
             ...prop,
             ai_match_score: matchScore,
             cap_rate: capRate,
             monthly_cashflow: cashflow,
+            cash_on_cash_roi: cashOnCash,
+            monthly_mortgage: monthlyMortgage,
+            monthly_expenses: monthlyExpenses,
+            annual_noi: annualNoi,
+            total_roi: totalRoi,
+            // Keep calculated_metrics for components that read it directly
+            calculated_metrics: metrics || {
+              monthly_mortgage: monthlyMortgage,
+              monthly_expenses: monthlyExpenses,
+              monthly_cash_flow: cashflow,
+              annual_noi: annualNoi,
+              cap_rate: capRate,
+              cash_on_cash_roi: cashOnCash,
+              total_roi: totalRoi,
+            },
+            // financial_snapshot for PropertyListCard compatibility
+            financial_snapshot: {
+              estimated_monthly_cash_flow: Math.round(cashflow),
+              estimated_rent: Math.round(rent),
+              monthly_mortgage: Math.round(monthlyMortgage),
+              monthly_expenses: Math.round(monthlyExpenses),
+              cap_rate: capRate,
+              cash_on_cash_roi: cashOnCash,
+              status: cashflow > 0 ? 'positive' : 'negative',
+            },
             ai_badge: idx === 0 ? '🌟 AI TOP PICK' : idx === 1 ? '💰 BEST VALUE' : idx === 2 ? '📈 HIGH GROWTH' : null,
             ai_reason: idx === 0 ? 'Perfect match for your LTR strategy' :
               idx === 1 ? `Undervalued by ~15%` :
@@ -479,6 +735,9 @@ export function useDesktopShell() {
 
         // Convert to tool card format with enhanced data
         const propertyToolCard = {
+          tool: 'scout_properties',
+          summary: `${propertyCount} Properties Found · AI-ranked by match score · ${location}`,
+          icon: '🏠',
           id: `properties-${Date.now()}`,
           title: `${propertyCount} Properties Found`,
           description: `AI-ranked by match score · ${location}`,
@@ -523,36 +782,61 @@ export function useDesktopShell() {
       case 'ai_chunk':
         console.log('🤖 [V2-SSE] AI_CHUNK:', event.text?.substring(0, 50));
 
-        // 🚀 NO HEADERS - Just stream the AI response directly
+        // Accumulate full content for reference (used by complete/done)
         streamContentRef.current += event.text || '';
 
-        // Clear thinking after first chunk
-        if (streamContentRef.current.length > 10) {
+        // Clear thinking once AI response has substantial content
+        if (streamContentRef.current.length > 100) {
           setThinking(null);
         }
 
-        // Update message content with streaming AI insights
-        setMessages(prev => prev.map(m =>
-          m.id === messageId
-            ? { ...m, content: streamContentRef.current, isStreaming: true }
-            : m
-        ));
+        // Push into typewriter word buffer for smooth animation
+        isStreamingRef.current = true;
+        pushToWordBuffer(event.text || '');
+        startDrainLoop(messageId);
         break;
 
       // V2 Event: search complete
-      case 'complete':
+      case 'complete': {
         console.log('✅ [V2-SSE] COMPLETE:', event.message);
         setThinking(null);
         setIsLoading(false);
 
-        // No footer needed - keep it clean and concise
+        // Signal no more chunks — let drain loop finish naturally
+        isStreamingRef.current = false;
 
-        setMessages(prev => prev.map(m =>
-          m.id === messageId
-            ? { ...m, content: streamContentRef.current, isStreaming: false }
-            : m
-        ));
+        // Capture finalization data
+        const v2Duration = thinkingStartTimeRef.current
+          ? Date.now() - thinkingStartTimeRef.current
+          : 0;
+        const v2Steps = thinkingTraceRef.current.length > 0
+          ? [...thinkingTraceRef.current]
+          : undefined;
+        const v2Tools = currentToolsRef.current.map(t => t.tool).filter(Boolean);
+        const v2Trace = v2Steps
+          ? { steps: v2Steps, durationMs: v2Duration, toolsUsed: v2Tools }
+          : undefined;
+        const v2Content = streamContentRef.current;
+
+        pendingFinalizationRef.current = (mId: string) => {
+          setMessages(prev => prev.map(m =>
+            m.id === mId
+              ? {
+                  ...m,
+                  content: v2Content,
+                  isStreaming: false,
+                  ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
+                }
+              : m
+          ));
+        };
+
+        if (rafIdRef.current === null) {
+          pendingFinalizationRef.current(messageId);
+          pendingFinalizationRef.current = null;
+        }
         break;
+      }
 
       // 🚀 NEW: Handle reasoning step events
       case 'reasoning_step':
@@ -572,43 +856,85 @@ export function useDesktopShell() {
         });
         break;
 
-      case 'thinking':
-        console.log('🧠 [SSE] THINKING EVENT:', event.status || event.title, 'at', new Date().toLocaleTimeString());
-        console.log('📦 [SSE] Full event data:', JSON.stringify(event, null, 2));
-        const newThinking = {
-          title: event.title,
-          status: event.status || 'Thinking',
-          explanation: event.explanation,
-          source: event.source,
-          icon: event.icon,
-          tool: event.tool,
-          mode: event.mode,
-          filtersApplied: event.filters_applied,
-          userContext: event.user_context ? {
-            budgetMax: event.user_context.budget_max,
-            dislikes: event.user_context.dislikes,
-            favoriteMarkets: event.user_context.favorite_markets,
-            strategy: event.user_context.strategy,
-          } : undefined,
-        };
-        console.log('🧠 Setting thinking to:', newThinking);
-        console.log('✅ [SSE] Status will be:', newThinking.status);
-        setThinking(newThinking);
-        break;
+      case 'thinking': {
+        // V2 uses 'message' field, V1 uses 'status' field
+        const thinkingStatus = event.status || event.message || 'Thinking';
+        console.log('🧠 [SSE] THINKING EVENT:', thinkingStatus, 'at', new Date().toLocaleTimeString());
+        
+        // --- Persist to structured trace for post-response display ---
+        const traceSource = event.source || event.tool || 'AI';
+        const alreadyInTrace = thinkingTraceRef.current.some(s => s.text === thinkingStatus);
+        if (!alreadyInTrace && thinkingStatus !== 'Thinking') {
+          thinkingTraceRef.current.push({ text: thinkingStatus, source: traceSource });
+        }
 
-      case 'tool_start':
-        setThinking({
-          title: event.title,
-          status: event.thinking,
-          explanation: event.explanation,
-          source: event.source,
-          icon: event.icon,
-          tool: event.tool,
+        // Accumulate ALL thinking events from every source into multi-line display.
+        // Previously only 'Agent Reasoning' accumulated — now every source does,
+        // so users see a growing numbered list of what the AI is doing.
+        setThinking(prev => {
+          if (prev && prev.status) {
+            // Avoid duplicate lines
+            const alreadyHasThisLine = prev.status.includes(thinkingStatus);
+            if (alreadyHasThisLine) return prev;
+            
+            const newStatus = prev.status + '\n' + thinkingStatus;
+            return {
+              ...prev,
+              status: newStatus,
+              explanation: event.explanation || prev.explanation,
+            };
+          }
+          // First thinking event — set initial state
+          return {
+            title: event.title,
+            status: thinkingStatus,
+            explanation: event.explanation,
+            source: event.source || 'V2 Property Intelligence',
+            icon: event.icon,
+            tool: event.tool,
+            mode: event.mode,
+            filtersApplied: event.filters_applied,
+            userContext: event.user_context ? {
+              budgetMax: event.user_context.budget_max,
+              dislikes: event.user_context.dislikes,
+              favoriteMarkets: event.user_context.favorite_markets,
+              strategy: event.user_context.strategy,
+            } : undefined,
+          };
         });
         break;
+      }
+
+      case 'tool_start': {
+        const toolStartStatus = event.thinking || event.title || `Running ${event.tool}...`;
+        // Persist to trace
+        thinkingTraceRef.current.push({ text: toolStartStatus, source: event.tool || 'Tool' });
+        // Always accumulate tool_start into the thinking status
+        setThinking(prev => {
+          if (prev && prev.status) {
+            const alreadyHas = prev.status.includes(toolStartStatus);
+            if (alreadyHas) return prev;
+            return {
+              ...prev,
+              status: prev.status + '\n' + toolStartStatus,
+            };
+          }
+          return {
+            title: event.title,
+            status: toolStartStatus,
+            explanation: event.explanation,
+            source: event.source,
+            icon: event.icon,
+            tool: event.tool,
+          };
+        });
+        break;
+      }
 
       case 'tool_end':
-        setThinking(null);
+        // Never clear thinking — keep accumulated steps visible until streaming starts
+        // (thinking is cleared by 'ai_chunk'/'content' events once the AI starts responding)
+        
         if (event.summary) {
           const newTool: CompletedTool = {
             tool: event.tool,
@@ -618,6 +944,19 @@ export function useDesktopShell() {
             reason: event.reason,
             suggestion: event.suggestion,
           };
+
+          // Detect suggest_actions tool and extract inline actions
+          if (
+            (event.tool === 'suggest_actions' || event.tool === 'Suggest Actions') &&
+            event.data?.type === 'inline_actions' &&
+            Array.isArray(event.data?.actions)
+          ) {
+            inlineActionsRef.current = event.data.actions;
+            logger.info('[useDesktopShell] Captured inline actions from suggest_actions', {
+              count: event.data.actions.length,
+              context: event.data.context,
+            });
+          }
 
           setCompletedTools(prev => [...prev, newTool]);
           currentToolsRef.current = [...currentToolsRef.current, newTool];
@@ -681,63 +1020,108 @@ export function useDesktopShell() {
       case 'content':
         console.log('📝 [SSE] CONTENT at', new Date().toLocaleTimeString(), '- length:', streamContentRef.current.length);
         // Clear thinking state after a few content chunks (not immediately)
-        // This ensures smooth transition from thinking to content
         if (streamContentRef.current.length > 20) {
           console.log('✂️ Clearing thinking (content > 20)');
           setThinking(null);
         }
         streamContentRef.current += event.content;
-        setMessages(prev => {
-          const filtered = prev.filter(m => m.id !== messageId);
 
-          // Map completed tools to ToolCards
-          const toolCards = currentToolsRef.current.map(t => ({
-            id: `${t.tool}-${Date.now()}`,
-            title: t.tool,
-            description: t.summary,
-            status: 'success',
-            kind: 'generic',
-            data: t.data,
-            ...(t.tool === 'Property Search' || t.tool === 'scan_market' ? { kind: 'scout_properties', name: 'scout_properties', data: t.data } : {}),
-            ...(t.tool === 'Property Comparison' ? { kind: 'property_comparison_table', name: 'compare_properties' } : {}),
-            ...(t.tool === 'Deal Hunter' ? {
-              kind: 'scout_properties',
-              name: 'hunt_deals',
-              data: {
-                ...t.data,
-                properties: t.data?.vetted_deals?.map((deal: any) => ({
-                  ...deal.details,
-                  ...deal,
-                  financial_snapshot: {
-                    estimated_monthly_cash_flow: deal.estimated_rent ? (deal.estimated_rent - (deal.list_price * 0.007)) : 0, // Rough estimate if missing
-                    status: (deal.estimated_rent && (deal.estimated_rent > (deal.list_price * 0.007))) ? 'positive' : 'negative',
-                    estimated_rent: deal.estimated_rent
-                  }
-                }))
-              }
-            } : {}),
-            ...(['Report Generation', 'Generate Report', 'generate_report'].includes(t.tool) ? { kind: 'generated_report', name: 'generate_report' } : {})
-          }));
+        // Push into typewriter word buffer
+        isStreamingRef.current = true;
+        pushToWordBuffer(event.content);
 
-          return [...filtered, {
-            id: messageId,
-            content: streamContentRef.current,
-            role: 'assistant',
-            type: 'assistant',
-            timestamp: new Date(),
-            isStreaming: true,
-            tools: toolCards.length > 0 ? toolCards : undefined
-          } as Message];
-        });
+        // Ensure message exists with tool cards (only needed on first content event)
+        if (displayedContentRef.current.length === 0) {
+          setMessages(prev => {
+            const filtered = prev.filter(m => m.id !== messageId);
+            const toolCards = currentToolsRef.current.map(t => ({
+              id: `${t.tool}-${Date.now()}`,
+              title: t.tool,
+              description: t.summary,
+              status: 'success',
+              kind: 'generic',
+              data: t.data,
+              ...(t.tool === 'Property Search' || t.tool === 'scan_market' ? { kind: 'scout_properties', name: 'scout_properties', data: t.data } : {}),
+              ...(t.tool === 'Property Comparison' ? { kind: 'property_comparison_table', name: 'compare_properties' } : {}),
+              ...(t.tool === 'Deal Hunter' ? {
+                kind: 'scout_properties',
+                name: 'hunt_deals',
+                data: {
+                  ...t.data,
+                  properties: t.data?.vetted_deals?.map((deal: any) => ({
+                    ...deal.details,
+                    ...deal,
+                    financial_snapshot: {
+                      estimated_monthly_cash_flow: deal.estimated_rent ? (deal.estimated_rent - (deal.list_price * 0.007)) : 0,
+                      status: (deal.estimated_rent && (deal.estimated_rent > (deal.list_price * 0.007))) ? 'positive' : 'negative',
+                      estimated_rent: deal.estimated_rent
+                    }
+                  }))
+                }
+              } : {}),
+              ...(['Report Generation', 'Generate Report', 'generate_report'].includes(t.tool) ? { kind: 'generated_report', name: 'generate_report' } : {})
+            }));
+
+            return [...filtered, {
+              id: messageId,
+              content: '',
+              role: 'assistant',
+              type: 'assistant',
+              timestamp: new Date(),
+              isStreaming: true,
+              tools: toolCards.length > 0 ? toolCards : undefined
+            } as Message];
+          });
+        }
+
+        startDrainLoop(messageId);
         break;
 
-      case 'done':
+      case 'done': {
         setThinking(null);
         setIsLoading(false);
-        setMessages(prev => prev.map(m =>
-          m.id === messageId ? { ...m, isStreaming: false } : m
-        ));
+
+        // Signal that no more chunks are coming — drain loop will finish naturally
+        isStreamingRef.current = false;
+
+        // Capture finalization data now (refs may change)
+        const doneInlineActions = inlineActionsRef.current.length > 0
+          ? [...inlineActionsRef.current]
+          : generateInlineActions([...currentToolsRef.current], currentMode);
+        const doneDuration = thinkingStartTimeRef.current
+          ? Date.now() - thinkingStartTimeRef.current
+          : 0;
+        const doneTraceSteps = thinkingTraceRef.current.length > 0
+          ? [...thinkingTraceRef.current]
+          : undefined;
+        const doneToolsUsed = currentToolsRef.current.map(t => t.tool).filter(Boolean);
+        const doneThinkingTrace = doneTraceSteps
+          ? { steps: doneTraceSteps, durationMs: doneDuration, toolsUsed: doneToolsUsed }
+          : undefined;
+        const doneFinalContent = streamContentRef.current;
+
+        // Store finalization callback — drain loop will call it when buffer is empty
+        pendingFinalizationRef.current = (mId: string) => {
+          setMessages(prev => prev.map(m =>
+            m.id === mId
+              ? {
+                  ...m,
+                  content: doneFinalContent,
+                  isStreaming: false,
+                  ...(doneInlineActions.length > 0 ? { inlineActions: doneInlineActions } : {}),
+                  ...(doneThinkingTrace ? { thinkingTrace: doneThinkingTrace } : {}),
+                }
+              : m
+          ));
+        };
+
+        // If drain loop is not running (e.g. no content was streamed), finalize now
+        if (rafIdRef.current === null) {
+          pendingFinalizationRef.current(messageId);
+          pendingFinalizationRef.current = null;
+        }
         break;
+      }
 
 
       case 'suggestions':
@@ -809,9 +1193,9 @@ export function useDesktopShell() {
           chatTitle: chatTitle,
           conversationTopic: trimmedMessage || undefined,
         });
-        logger.info('[useDesktopShell] File uploaded to vault (streaming):', currentAttachment.name);
+        logger.info(`[useDesktopShell] File uploaded to vault (streaming): ${currentAttachment.name}`);
       } catch (error) {
-        logger.error('[useDesktopShell] Failed to upload file to vault (streaming):', error);
+        logger.error(`[useDesktopShell] Failed to upload file to vault (streaming): ${error}`);
         // Don't block the chat if upload fails
       }
     }
@@ -837,12 +1221,12 @@ export function useDesktopShell() {
         : `${CIVITAS_API_BASE}/api/stream`;
 
       const requestBody = shouldUseV2
-        ? parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation })
+        ? parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation }, currentMode)
         : {
           message: trimmedMessage,
           stream: true,
           thread_id: effectiveThreadId,
-          mode: currentMode, // Pass current mode to backend
+          mode: currentMode,
           user_preferences: {
             budget: budgetRange ? `up to $${budgetRange.max.toLocaleString()}` : undefined,
             strategy: defaultStrategy || undefined,
@@ -1081,16 +1465,15 @@ export function useDesktopShell() {
           chatTitle: chatTitle,
           conversationTopic: trimmedMessage || undefined,
         });
-        logger.info('[useDesktopShell] File uploaded to vault:', currentAttachment.name);
+        logger.info(`[useDesktopShell] File uploaded to vault: ${currentAttachment.name}`);
       } catch (error) {
-        logger.error('[useDesktopShell] Failed to upload file to vault:', error);
+        logger.error(`[useDesktopShell] Failed to upload file to vault: ${error}`);
         // Don't block the chat if upload fails
       }
     }
 
     // Get AI response from Civitas API
-    const delay = 1000 + Math.random() * 1000;
-    setTimeout(async () => {
+    const fetchResponse = async () => {
       try {
         let fullResponse = '';
         let navigate: string | undefined;
@@ -1144,8 +1527,10 @@ export function useDesktopShell() {
             trimmedMessage,
             userContext,
             messages,
-            undefined,
-            currentThreadId || undefined
+            undefined, // actionContext
+            undefined, // attachment
+            currentThreadId || undefined, // threadId
+            currentMode // mode
           );
           fullResponse = response.content;
           navigate = response.navigate;
@@ -1165,36 +1550,6 @@ export function useDesktopShell() {
           console.log(`🎯 Tour navigation: Jumping to ${navigate} FIRST`);
           setActiveTab(navigate as TabType);
         }
-
-        // Auto-track properties from search results (temporarily disabled)
-        /*
-        if (metadata?.properties && Array.isArray(metadata.properties)) {
-          metadata.properties.forEach((prop: any) => {
-            try {
-              addProperty({
-                address: prop.address || prop.full_address || 'Unknown Address',
-                city: prop.city || extractCity(prop.location),
-                state: prop.state || extractState(prop.location),
-                zip: prop.zip || prop.zipcode || '',
-                type: 'searched',
-                metadata: {
-                  price: prop.price || prop.list_price,
-                  bedrooms: prop.bedrooms || prop.beds,
-                  bathrooms: prop.bathrooms || prop.baths,
-                  sqft: prop.sqft || prop.square_feet,
-                }
-              });
-              console.log('✅ Auto-tracked property:', prop.address || prop.location);
-            } catch (error) {
-              console.error('Failed to track property:', error);
-            }
-          });
-        }
-        
-        // Helper functions for extracting location
-        const extractCity = (location: string) => location?.split(',')[0]?.trim() || '';
-        const extractState = (location: string) => location?.split(',')[1]?.trim() || '';
-        */
 
         const { intervalId } = ChatService.streamResponse(
           fullResponse,
@@ -1299,7 +1654,8 @@ export function useDesktopShell() {
         };
         setMessages(prev => [...prev, errorMessage]);
       }
-    }, delay);
+    };
+    fetchResponse();
   };
 
   const handleNewChat = () => {
@@ -1368,8 +1724,18 @@ export function useDesktopShell() {
     e?.stopPropagation();
     if (chatHistory.length === 1) return;
 
+    // Grab the thread ID before removing from state so we can call the backend
+    const threadIdToDelete = threadMap[chatId];
+
     const updatedHistory = chatHistory.filter(c => c.id !== chatId);
     setChatHistory(updatedHistory);
+
+    // Remove from thread map
+    setThreadMap(prev => {
+      const next = { ...prev };
+      delete next[chatId];
+      return next;
+    });
 
     if (chatId === activeChatId) {
       const nextChat = updatedHistory[0];
@@ -1381,6 +1747,17 @@ export function useDesktopShell() {
       if (nextThreadId) {
         refreshToolResults({ threadId: nextThreadId });
       }
+    }
+
+    // Delete backend conversation data (fire-and-forget)
+    if (threadIdToDelete) {
+      fetch(`${CIVITAS_API_BASE}/api/threads/${threadIdToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(CIVITAS_API_KEY ? { 'X-API-Key': CIVITAS_API_KEY } : {}),
+        },
+      }).catch(err => console.warn('Failed to delete thread from backend:', err));
     }
   };
 
@@ -1546,14 +1923,25 @@ export function useDesktopShell() {
     }
 
     if (actionValue === 'eli5') {
-      // Send a hidden prompt or explicit prompt
       sendMessageWithStream("Explain that to me like I'm 5 years old.");
       return;
     }
 
-    if (actionValue === 'skip') {
-      console.log('User skipped action');
+    if (actionValue === 'skip' || actionValue === 'dismiss') {
+      logger.info('User skipped/dismissed action');
+      return;
     }
+
+    // Fallback: Treat any unrecognized action as a natural language query
+    // This powers inline actions from suggest_actions tool — the label or value
+    // is sent as a message, which the LLM then processes with the right tools
+    if (actionValue && actionValue.length > 3) {
+      logger.info(`[handleAction] Sending action as message: "${actionValue}"`);
+      sendMessageWithStream(actionValue);
+      return;
+    }
+
+    logger.warn(`[handleAction] Unhandled action: "${actionValue}"`);
   };
 
   // Handle viewing property details
@@ -1629,6 +2017,38 @@ export function useDesktopShell() {
     }));
   }, []);
 
+  // Mode transition handler — injects a brief context message when switching modes
+  const handleModeChange = useCallback((newMode: AgentMode) => {
+    if (newMode === currentMode) return;
+
+    const modeLabels: Record<AgentMode, string> = {
+      hunter: 'Hunter',
+      research: 'Research',
+      strategist: 'Strategist',
+    };
+    const modeDescriptions: Record<AgentMode, string> = {
+      hunter: 'I\'m now in **Deal Hunter** mode — focused on finding, vetting, and acting on deals. Give me an address or a city and I\'ll get to work.',
+      research: 'I\'m now in **Research** mode — focused on education, market analysis, and deep understanding. Ask me about any market, concept, or trend.',
+      strategist: 'I\'m now in **Strategist** mode — focused on portfolio planning, risk management, and long-term wealth building. Let\'s talk about your goals and strategy.',
+    };
+
+    // Only inject transition message if there are existing messages in the conversation
+    if (messages.length > 0) {
+      const transitionMessage: Message = {
+        id: `mode-transition-${Date.now()}`,
+        role: 'assistant',
+        type: 'assistant',
+        content: modeDescriptions[newMode],
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, transitionMessage]);
+    }
+
+    setCurrentMode(newMode);
+    setPreferredMode(newMode);
+    logger.info(`Mode switched: ${modeLabels[currentMode]} → ${modeLabels[newMode]}`);
+  }, [currentMode, messages.length, setPreferredMode]);
+
   return {
     // State
     chatHistory,
@@ -1696,7 +2116,7 @@ export function useDesktopShell() {
     isCurrentChatTemporary,
     setIsCurrentChatTemporary,
     currentMode,
-    setCurrentMode,
+    setCurrentMode: handleModeChange,
 
     // Command Center
     commandCenter,

@@ -200,7 +200,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           className={cn(
             'relative flex items-center rounded-xl border transition-all',
             isFocused 
-              ? 'border-teal-500/50 ring-2 ring-teal-500/20' 
+              ? 'border-[#C08B5C]/50 ring-2 ring-[#C08B5C]/20' 
               : error 
               ? 'border-red-500/50' 
               : 'border-white/10 hover:border-white/20',

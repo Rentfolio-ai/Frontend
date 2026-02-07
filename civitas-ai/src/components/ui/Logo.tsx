@@ -20,17 +20,15 @@ export const Logo: React.FC<LogoProps> = ({
         <div className={`flex items-center gap-3 ${className}`}>
             {showIcon && (
                 <svg
-                    width="48"
-                    height="48"
                     viewBox="0 0 100 100"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="shrink-0"
+                    className="w-12 h-12 shrink-0 max-w-full max-h-full"
                 >
                     <defs>
                         <linearGradient id="ribbonGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
                             <stop offset="0%" stopColor="#115E59" /> {/* Deep Teal */}
-                            <stop offset="50%" stopColor="#0D9488" /> {/* Main Teal */}
+                            <stop offset="50%" stopColor="#A8734A" /> {/* Main Teal */}
                             <stop offset="100%" stopColor="#134E4A" /> {/* Darker End */}
                         </linearGradient>
 

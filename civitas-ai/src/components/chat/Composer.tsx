@@ -265,7 +265,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
         </div>
       )}
 
-      <div className="relative rounded-2xl backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] hover:border-white/[0.18] focus-within:border-teal-400/30 transition-all duration-200 shadow-2xl shadow-black/20">
+      <div className="relative rounded-2xl backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] hover:border-white/[0.18] focus-within:border-[#C08B5C]/30 transition-all duration-200 shadow-2xl shadow-black/20">
 
         {attachment && (
           <div className="mx-4 mt-4">
@@ -317,7 +317,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
                     } ${(!onModeChange || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title="Select Agent Mode"
                 >
-                  <span className={`${currentMode === 'hunter' ? 'text-teal-400' : currentMode === 'strategist' ? 'text-purple-400' : 'text-blue-400'}`}>
+                  <span className={`${currentMode === 'hunter' ? 'text-[#C08B5C]' : currentMode === 'strategist' ? 'text-purple-400' : 'text-blue-400'}`}>
                     {currentModeData.icon}
                   </span>
                   <span className="text-xs font-medium">{currentModeData.label}</span>
@@ -351,7 +351,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
                               setShowModeMenu(false);
                             }}
                           >
-                            <div className={`${currentMode === mode.id ? (mode.id === 'hunter' ? 'text-teal-400' : mode.id === 'strategist' ? 'text-purple-400' : 'text-blue-400') : 'text-current'}`}>
+                            <div className={`${currentMode === mode.id ? (mode.id === 'hunter' ? 'text-[#C08B5C]' : mode.id === 'strategist' ? 'text-purple-400' : 'text-blue-400') : 'text-current'}`}>
                               {mode.icon}
                             </div>
                             <div className="flex flex-col">

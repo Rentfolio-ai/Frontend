@@ -109,7 +109,7 @@ export const CommandCenterLayout: React.FC<CommandCenterLayoutProps> = ({
           onMouseDown={handleMouseDown}
           className={cn(
             'relative w-1 cursor-col-resize group flex-shrink-0 transition-colors',
-            isDragging ? 'bg-teal-500/50' : 'bg-white/10 hover:bg-teal-500/30'
+            isDragging ? 'bg-[#C08B5C]/50' : 'bg-white/10 hover:bg-[#C08B5C]/30'
           )}
         >
           {/* Holographic Glow Effect */}
@@ -119,8 +119,8 @@ export const CommandCenterLayout: React.FC<CommandCenterLayoutProps> = ({
               isDragging || 'opacity-0 group-hover:opacity-100'
             )}
             style={{
-              background: 'linear-gradient(180deg, rgba(20, 184, 166, 0.4) 0%, rgba(168, 85, 247, 0.4) 100%)',
-              boxShadow: '0 0 20px rgba(20, 184, 166, 0.4)',
+              background: 'linear-gradient(180deg, rgba(192, 139, 92, 0.4) 0%, rgba(168, 85, 247, 0.4) 100%)',
+              boxShadow: '0 0 20px rgba(192, 139, 92, 0.4)',
             }}
           />
 
@@ -129,8 +129,8 @@ export const CommandCenterLayout: React.FC<CommandCenterLayoutProps> = ({
             className={cn(
               'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-20 rounded-full transition-all duration-300',
               isDragging
-                ? 'bg-gradient-to-b from-teal-400 to-purple-500 shadow-lg shadow-teal-500/50'
-                : 'bg-white/20 group-hover:bg-gradient-to-b group-hover:from-teal-400 group-hover:to-purple-500'
+                ? 'bg-gradient-to-b from-[#D4A27F] to-purple-500 shadow-lg shadow-[#C08B5C]/50'
+                : 'bg-white/20 group-hover:bg-gradient-to-b group-hover:from-[#D4A27F] group-hover:to-purple-500'
             )}
           />
         </div>

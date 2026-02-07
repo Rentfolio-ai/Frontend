@@ -19,16 +19,16 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
   const isGrid = variant === 'grid';
   const isCarousel = variant === 'carousel';
 
-  let containerClass = "flex flex-wrap gap-2 mt-4";
+  let containerClass = "flex flex-wrap gap-1.5 mt-2";
   if (isGrid) {
-    containerClass = "grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto w-full px-4";
+    containerClass = "grid grid-cols-1 md:grid-cols-2 gap-2.5 max-w-2xl mx-auto w-full px-4";
   } else if (isCarousel) {
     containerClass = "flex gap-2 overflow-x-auto pb-2 scrollbar-none snap-x";
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       className={containerClass}
     >
@@ -44,33 +44,19 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
             <motion.button
               key={key}
               onClick={() => onSelect(query)}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              whileHover={{ y: -4, scale: 1.02 }}
+              whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-3 p-5 rounded-2xl text-left transition-all group"
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: '1.5px solid rgba(148,163,184,0.3)',
-                boxShadow: '0 4px 16px rgba(15,23,42,0.12), 0 2px 8px rgba(15,23,42,0.08)',
-                backdropFilter: 'blur(8px)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#F0FDFA';
-                e.currentTarget.style.borderColor = 'rgba(20,184,166,0.4)';
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(13,148,136,0.20), 0 6px 16px rgba(13,148,136,0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#FFFFFF';
-                e.currentTarget.style.borderColor = 'rgba(148,163,184,0.3)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(15,23,42,0.12), 0 2px 8px rgba(15,23,42,0.08)';
-              }}
+              className="flex items-center gap-3 p-4 rounded-xl text-left transition-all duration-200 group
+                         bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm
+                         hover:bg-white/[0.06] hover:border-[#C08B5C]/20 hover:shadow-lg hover:shadow-[#C08B5C]/[0.05]"
             >
-              <span className="text-2xl group-hover:scale-110 transition-transform">{icon}</span>
-              <div className="flex-1">
-                <div className="font-semibold" style={{ color: '#0F172A' }}>{label}</div>
-                <div className="text-xs truncate max-w-[200px]" style={{ color: '#64748B' }}>{query}</div>
+              <span className="text-xl group-hover:scale-110 transition-transform">{icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-[13px] text-white/80 group-hover:text-white transition-colors">{label}</div>
+                <div className="text-[11px] text-white/30 truncate max-w-[220px] mt-0.5">{query}</div>
               </div>
             </motion.button>
           );
@@ -80,39 +66,23 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
           <motion.button
             key={key}
             onClick={() => onSelect(query)}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            whileHover={{ y: -4, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`group flex items-center gap-2 px-5 py-3 rounded-full text-sm transition-all whitespace-nowrap ${isCarousel ? 'flex-shrink-0 snap-start' : ''}`}
-            style={{
-              backgroundColor: '#FFFFFF',
-              border: '1.5px solid rgba(148,163,184,0.3)',
-              color: '#1E293B',
-              boxShadow: '0 4px 12px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.08)',
-              fontWeight: 500,
-              backdropFilter: 'blur(8px)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#F0FDFA';
-              e.currentTarget.style.borderColor = 'rgba(20,184,166,0.4)';
-              e.currentTarget.style.color = '#0D9488';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(13,148,136,0.20), 0 4px 12px rgba(13,148,136,0.12)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#FFFFFF';
-              e.currentTarget.style.borderColor = 'rgba(148,163,184,0.3)';
-              e.currentTarget.style.color = '#1E293B';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.08)';
-            }}
+            whileHover={{ y: -2, scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] transition-all duration-200 whitespace-nowrap
+                        bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm
+                        hover:bg-white/[0.08] hover:border-[#C08B5C]/20
+                        text-white/50 hover:text-white/80
+                        ${isCarousel ? 'flex-shrink-0 snap-start' : ''}`}
           >
             {icon ? (
-              <span className="text-base">{icon}</span>
+              <span className="text-xs">{icon}</span>
             ) : (
-              <Sparkles className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: '#14B8A6' }} />
+              <Sparkles className="w-3 h-3 text-[#C08B5C]/40 group-hover:text-[#C08B5C] transition-colors" />
             )}
-            <span>{label}</span>
+            <span className="font-medium">{label}</span>
           </motion.button>
         );
       })}

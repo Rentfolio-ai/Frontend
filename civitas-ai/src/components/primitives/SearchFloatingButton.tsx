@@ -9,7 +9,7 @@ export const SearchFloatingButton: React.FC<SearchFloatingButtonProps> = ({ onCl
     return (
         <button
             onClick={onClick}
-            className="fixed top-4 right-4 z-30 p-3 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full shadow-lg hover:shadow-teal-500/30 hover:scale-110 transition-all duration-200 group"
+            className="fixed top-4 right-4 z-30 p-3 bg-gradient-to-br from-[#C08B5C] to-[#A8734A] rounded-full shadow-lg hover:shadow-[#C08B5C]/30 hover:scale-110 transition-all duration-200 group"
             aria-label="Search chats"
         >
             <Search className="w-5 h-5 text-white" />
@@ -20,7 +20,7 @@ export const SearchFloatingButton: React.FC<SearchFloatingButtonProps> = ({ onCl
             </span>
 
             {/* Glow effect */}
-            <div className="absolute inset-0 rounded-full bg-teal-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
+            <div className="absolute inset-0 rounded-full bg-[#C08B5C]/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
         </button>
     );
 };

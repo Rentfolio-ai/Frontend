@@ -1,11 +1,12 @@
 // V2 Property Query Helpers
 // Separated to avoid React hooks issues
 
-export function parsePropertyQuery(msg: string, userPrefs?: any): any {
+export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string): any {
   const query: any = {
     limit: 7,
     include_ai: true,
-    property_types: ["SFH"]
+    property_types: ["SFH"],
+    mode: mode || 'hunter',
   };
 
   // Simple location extraction
@@ -18,7 +19,7 @@ export function parsePropertyQuery(msg: string, userPrefs?: any): any {
     query.max_price = userPrefs.budgetRange.max;
   }
 
-  console.log('[v2Helpers] Parsed query:', query);
+  console.log('[v2Helpers] Parsed query:', query, 'mode:', mode);
   return query;
 }
 

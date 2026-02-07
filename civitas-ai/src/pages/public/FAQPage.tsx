@@ -38,11 +38,11 @@ const FAQItem = ({ question, answer }: { question: string, answer: string }) => 
         onClick={() => setIsOpen(!isOpen)}
         className="w-full py-6 flex items-center justify-between text-left group"
       >
-        <span className="text-lg font-medium text-slate-900 group-hover:text-teal-700 transition-colors">
+        <span className="text-lg font-medium text-slate-900 group-hover:text-[#A8734A] transition-colors">
           {question}
         </span>
         <span className={`ml-6 flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
-          {isOpen ? <Minus className="w-5 h-5 text-teal-600" /> : <Plus className="w-5 h-5 text-slate-400" />}
+          {isOpen ? <Minus className="w-5 h-5 text-[#A8734A]" /> : <Plus className="w-5 h-5 text-slate-400" />}
         </span>
       </button>
       <div
@@ -58,7 +58,7 @@ const FAQItem = ({ question, answer }: { question: string, answer: string }) => 
 
 export const FAQPage: React.FC<FAQPageProps> = ({ onBackToHome }) => {
   return (
-    <div className="min-h-screen bg-[#FDFBF7] font-sans selection:bg-teal-100 selection:text-teal-900">
+    <div className="min-h-screen bg-[#FDFBF7] font-sans selection:bg-[#C08B5C]/20 selection:text-[#8A5D3B]">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#FDFBF7]/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -71,7 +71,7 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBackToHome }) => {
 
           <button
             onClick={onBackToHome}
-            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-teal-700 transition-colors group"
+            className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#A8734A] transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to Home

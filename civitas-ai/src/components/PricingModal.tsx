@@ -81,9 +81,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                         </div>
 
                         {/* Pro Tier */}
-                        <div className="relative p-6 rounded-xl border-2 border-teal-500/50 bg-gradient-to-br from-teal-500/10 to-purple-500/10">
+                        <div className="relative p-6 rounded-xl border-2 border-[#C08B5C]/50 bg-gradient-to-br from-[#C08B5C]/10 to-purple-500/10">
                             {/* Popular Badge */}
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-teal-500 rounded-full">
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#C08B5C] rounded-full">
                                 <span className="text-xs font-semibold text-white">RECOMMENDED</span>
                             </div>
 
@@ -93,7 +93,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                                     <span className="text-4xl font-bold text-white">$50</span>
                                     <span className="text-white/50">/month</span>
                                 </div>
-                                <div className="inline-block px-2.5 py-1 bg-teal-500/20 border border-teal-500/30 rounded text-xs font-medium text-teal-300 mb-1">
+                                <div className="inline-block px-2.5 py-1 bg-[#C08B5C]/20 border border-[#C08B5C]/30 rounded text-xs font-medium text-[#D4A27F] mb-1">
                                     First month only • Then $100/month
                                 </div>
                                 <p className="text-xs text-white/50 mt-1">Cancel anytime</p>
@@ -101,24 +101,24 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
 
                             <ul className="space-y-3 mb-6">
                                 <li className="flex items-start gap-2">
-                                    <Check className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
+                                    <Check className="w-5 h-5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
                                     <span className="text-sm text-white font-medium">Unlimited property queries</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <Check className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
+                                    <Check className="w-5 h-5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
                                     <span className="text-sm text-white font-medium">Advanced AI simulation</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <Check className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
+                                    <Check className="w-5 h-5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
                                     <span className="text-sm text-white font-medium">Investment-grade reports</span>
                                 </li>
                                 <li className="flex items-start gap-2">
-                                    <Check className="w-5 h-5 text-teal-400 flex-shrink-0 mt-0.5" />
+                                    <Check className="w-5 h-5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
                                     <span className="text-sm text-white font-medium">Priority support</span>
                                 </li>
                             </ul>
 
-                            <button className="w-full py-2.5 bg-teal-500 hover:bg-teal-600 rounded-lg text-white font-semibold transition-colors">
+                            <button className="w-full py-2.5 bg-[#C08B5C] hover:bg-[#A8734A] rounded-lg text-white font-semibold transition-colors">
                                 Upgrade now
                             </button>
                         </div>

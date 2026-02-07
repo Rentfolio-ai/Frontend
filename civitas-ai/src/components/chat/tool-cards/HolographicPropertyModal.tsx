@@ -42,7 +42,7 @@ export const HolographicPropertyModal: React.FC<HolographicModalProps> = ({
                 </button>
 
                 {/* Header */}
-                <div className="mb-4 flex items-center gap-2 text-teal-400">
+                <div className="mb-4 flex items-center gap-2 text-[#D4A27F]">
                     <Sparkles className="w-5 h-5" />
                     <span className="text-sm font-semibold uppercase tracking-wider">
                         Holographic Property Visualization

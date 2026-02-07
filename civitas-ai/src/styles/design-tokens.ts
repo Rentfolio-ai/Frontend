@@ -7,7 +7,7 @@
  * - Warm beige/cream instead of sterile white
  * - Higher contrast for better readability
  * - WCAG AAA compliant for accessibility
- * - Refined teal brand (#0D9488) for contrast
+ * - Refined copper brand (#A8734A) for contrast
  * - System fonts for performance & native feel
  */
 
@@ -24,13 +24,13 @@ export const designTokens = {
       hover: '#475569',         // Slate-600 (darker hover)
       popup: '#FFFFFF',         // White modals
       overlay: 'rgba(15,23,42,0.70)',  // Darker backdrop
-      border: '#334155',        // Slate-700 borders (very dark!)
+      border: '#111114',        // Slate-700 borders (very dark!)
     },
 
-    // Brand (Darker teal for warm backgrounds)
+    // Brand (Copper for warm backgrounds)
     brand: {
-      primary: '#0D9488',                 // Teal-600 (main brand)
-      light: '#14B8A6',                   // Teal-500 (highlights)
+      primary: '#A8734A',                 // Teal-600 (main brand)
+      light: '#C08B5C',                   // Teal-500 (highlights)
       dark: '#0F766E',                    // Teal-700 (depth)
       darker: '#115E59',                  // Teal-800 (backgrounds)
       glow: 'rgba(13,148,136,0.15)',      // Slightly stronger glow on cream
@@ -50,9 +50,9 @@ export const designTokens = {
     // Borders (Dark gray - very visible)
     border: {
       subtle: '#64748B',                      // Slate-500
-      default: '#334155',                     // Slate-700 (VERY DARK!)
-      emphasis: '#1E293B',                    // Slate-800 (even darker!)
-      focus: '#14B8A6',                       // Brighter teal for visibility
+      default: '#111114',                     // Slate-700 (VERY DARK!)
+      emphasis: '#18181c',                    // Slate-800 (even darker!)
+      focus: '#C08B5C',                       // Brighter copper for visibility
     },
 
     // Semantic colors (Slate theme)
@@ -79,14 +79,14 @@ export const designTokens = {
     sidebar: {
       bg: '#475569',                          // Slate-600 (DARKER!)
       surface: '#CBD5E1',                     // Slate-300 cards
-      hover: '#334155',                       // Slate-700 (darker hover)
-      border: '#1E293B',                      // Slate-800 (very dark border)
+      hover: '#111114',                       // Slate-700 (darker hover)
+      border: '#18181c',                      // Slate-800 (very dark border)
     },
     chat: {
       bg: '#64748B',                          // Slate-500 (DARKER!)
       surface: '#475569',                     // Slate-600
       elevated: '#CBD5E1',                    // Slate-300 for cards
-      border: '#1E293B',                      // Slate-800 (very dark border)
+      border: '#18181c',                      // Slate-800 (very dark border)
     },
   },
 

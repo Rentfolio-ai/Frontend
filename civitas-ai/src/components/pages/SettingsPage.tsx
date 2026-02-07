@@ -1,10 +1,10 @@
 /**
- * Settings Page - Full Page View
- * Clean, comprehensive settings interface
+ * Settings Page — Redesigned
+ * Clean iOS-style grouped settings hub
  */
 
 import React from 'react';
-import { ArrowLeft, User, Bell, Shield, Palette, Database, Key, Globe } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, Palette, Database, Globe, ChevronRight } from 'lucide-react';
 
 interface SettingsPageProps {
     onBack: () => void;
@@ -13,150 +13,77 @@ interface SettingsPageProps {
     onNavigateToAppearance?: () => void;
     onNavigateToLanguageRegion?: () => void;
     onNavigateToInvestmentPreferences?: () => void;
+    onNavigateToPrivacySecurity?: () => void;
 }
 
-export const SettingsPage: React.FC<SettingsPageProps> = ({ 
-    onBack, 
+interface SettingsRowProps {
+    icon: React.ElementType;
+    title: string;
+    subtitle: string;
+    onClick?: () => void;
+}
+
+const SettingsRow: React.FC<SettingsRowProps> = ({ icon: Icon, title, subtitle, onClick }) => (
+    <button
+        onClick={onClick}
+        className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg transition-colors hover:bg-white/[0.05] group"
+    >
+        <div className="w-8 h-8 rounded-lg bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
+            <Icon className="w-4 h-4 text-[#D4A27F]" />
+        </div>
+        <div className="flex-1 text-left min-w-0">
+            <h3 className="text-[13px] font-medium text-white/85">{title}</h3>
+            <p className="text-[11px] text-white/40 truncate">{subtitle}</p>
+        </div>
+        <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
+    </button>
+);
+
+export const SettingsPage: React.FC<SettingsPageProps> = ({
+    onBack,
     onNavigateToProfile,
     onNavigateToNotifications,
     onNavigateToAppearance,
     onNavigateToLanguageRegion,
     onNavigateToInvestmentPreferences,
+    onNavigateToPrivacySecurity,
 }) => {
-
-    const SettingsSection: React.FC<{
-        icon: React.ElementType;
-        title: string;
-        description: string;
-        onClick?: () => void;
-    }> = ({ icon: Icon, title, description, onClick }) => (
-        <button
-            onClick={onClick}
-            className="w-full flex items-start gap-4 p-4 rounded-xl transition-all"
-            style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(148, 163, 184, 0.12)',
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
-                e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.12)';
-            }}
-        >
-            <div
-                className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{
-                    backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                    color: '#14B8A6',
-                }}
-            >
-                <Icon className="w-5 h-5" />
-            </div>
-            <div className="flex-1 text-left">
-                <h3 className="text-base font-semibold mb-1" style={{ color: '#F1F5F9' }}>
-                    {title}
-                </h3>
-                <p className="text-sm" style={{ color: '#94A3B8' }}>
-                    {description}
-                </p>
-            </div>
-        </button>
-    );
-
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#334155' }}>
+        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
             {/* Header */}
-            <div
-                className="flex items-center gap-4 px-6 py-4 border-b"
-                style={{ borderColor: 'rgba(148, 163, 184, 0.15)' }}
-            >
+            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
                 <button
                     onClick={onBack}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
-                    style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: '#E2E8F0',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                    }}
+                    className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors"
                 >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4 text-white/60" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>
-                        Settings
-                    </h1>
-                    <p className="text-sm" style={{ color: '#94A3B8' }}>
-                        Manage your account and preferences
-                    </p>
+                    <h1 className="text-lg font-semibold text-white/90">Settings</h1>
+                    <p className="text-[11px] text-white/35">Manage your account and preferences</p>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-4xl mx-auto space-y-8">
-                    {/* Account Settings */}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="max-w-2xl mx-auto space-y-5">
+                    {/* Account */}
                     <div>
-                        <h2 className="text-lg font-semibold mb-4" style={{ color: '#F1F5F9' }}>
-                            Account
-                        </h2>
-                        <div className="space-y-3">
-                            <SettingsSection
-                                icon={User}
-                                title="Profile"
-                                description="Manage your personal information and profile details"
-                                onClick={onNavigateToProfile}
-                            />
-                            <SettingsSection
-                                icon={Shield}
-                                title="Privacy & Security"
-                                description="Control your data, privacy settings, and security options"
-                            />
-                            <SettingsSection
-                                icon={Key}
-                                title="API Keys"
-                                description="Manage API keys and integrations"
-                            />
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Account</h2>
+                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                            <SettingsRow icon={User} title="Profile" subtitle="Personal information and avatar" onClick={onNavigateToProfile} />
+                            <SettingsRow icon={Shield} title="Privacy & Security" subtitle="Data, privacy, and security settings" onClick={onNavigateToPrivacySecurity} />
                         </div>
                     </div>
 
                     {/* Preferences */}
                     <div>
-                        <h2 className="text-lg font-semibold mb-4" style={{ color: '#F1F5F9' }}>
-                            Preferences
-                        </h2>
-                        <div className="space-y-3">
-                            <SettingsSection
-                                icon={Database}
-                                title="Investment Preferences"
-                                description="Set your buy box, budget, strategy, and investment criteria"
-                                onClick={onNavigateToInvestmentPreferences}
-                            />
-                            <SettingsSection
-                                icon={Bell}
-                                title="Notifications"
-                                description="Configure email, push, and in-app notifications"
-                                onClick={onNavigateToNotifications}
-                            />
-                            <SettingsSection
-                                icon={Palette}
-                                title="Appearance"
-                                description="Customize theme, layout, and display preferences"
-                                onClick={onNavigateToAppearance}
-                            />
-                            <SettingsSection
-                                icon={Globe}
-                                title="Language & Region"
-                                description="Set language, timezone, and currency preferences"
-                                onClick={onNavigateToLanguageRegion}
-                            />
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Preferences</h2>
+                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                            <SettingsRow icon={Database} title="Investment Preferences" subtitle="Buy box, budget, strategy, criteria" onClick={onNavigateToInvestmentPreferences} />
+                            <SettingsRow icon={Bell} title="Notifications" subtitle="Email, push, and in-app alerts" onClick={onNavigateToNotifications} />
+                            <SettingsRow icon={Palette} title="Appearance" subtitle="Theme, font size, display options" onClick={onNavigateToAppearance} />
+                            <SettingsRow icon={Globe} title="Language & Region" subtitle="Language, timezone, currency" onClick={onNavigateToLanguageRegion} />
                         </div>
                     </div>
                 </div>

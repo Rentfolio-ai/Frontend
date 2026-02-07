@@ -74,7 +74,7 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleExportPDF}
-                            className="px-4 py-2 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                            className="px-4 py-2 bg-[#C08B5C]/20 hover:bg-[#C08B5C]/30 border border-[#C08B5C]/30 text-[#D4A27F] rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                         >
                             <Download className="w-4 h-4" />
                             Export PDF
@@ -149,7 +149,7 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                                                         <div className={cn(
                                                             "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm",
                                                             isBest
-                                                                ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
+                                                                ? "bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30"
                                                                 : "bg-white/5 text-white"
                                                         )}>
                                                             {isBest && (
@@ -179,7 +179,7 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                 <div className="px-6 py-3 border-t border-white/10 bg-white/[0.02] flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs text-white/50">
                         <div className="flex items-center gap-1.5">
-                            <TrendingUp className="w-3.5 h-3.5 text-teal-400" />
+                            <TrendingUp className="w-3.5 h-3.5 text-[#D4A27F]" />
                             <span>= Best value</span>
                         </div>
                     </div>

@@ -11,7 +11,9 @@ import { useStreamChat } from '../../hooks/useStreamChat';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { ClarificationForm } from './ClarificationForm';
 import { AgentModeSelector } from './AgentModeSelector';
-import type { AgentMode } from '../../types/chat';
+import { ToolGrid } from './ToolGrid'; // 🚀 Import ToolGrid
+import { SimplePropertyResults } from './tool-cards/SimplePropertyResults';
+import type { Message as ChatMessage, AgentMode } from '../../types/chat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../../styles/llm-theme.css';
@@ -28,15 +30,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [currentMode, setCurrentMode] = useState<AgentMode>('hunter');
 
-
-
-  const [messages, setMessages] = useState<Array<{
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-    streaming?: boolean;
-  }>>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -49,7 +43,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
     onContent: (content) => {
       setMessages(prev => {
         const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.streaming) {
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.isStreaming) {
           return [
             ...prev.slice(0, -1),
             { ...lastMessage, content }
@@ -58,13 +52,24 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
         return prev;
       });
     },
-    onComplete: (_content, threadId) => {
+    onComplete: (_content, threadId, tools) => {
       setMessages(prev => {
         const lastMessage = prev[prev.length - 1];
         if (lastMessage && lastMessage.role === 'assistant') {
+          // Convert CompletedTool to ToolCard format
+          const toolCards = tools?.map((t: any) => ({
+            id: Math.random().toString(36).substr(2, 9),
+            title: t.tool,
+            description: t.summary,
+            status: 'success' as const,
+            kind: (t.tool === 'Property Scout' || t.tool === 'scout_properties' || (t.data && t.data.properties)) ? 'scout_properties' as const : 'generic' as const,
+            data: t.data,
+            priority: 'medium' as const
+          })) || [];
+
           return [
             ...prev.slice(0, -1),
-            { ...lastMessage, streaming: false }
+            { ...lastMessage, isStreaming: false, tools: toolCards }
           ];
         }
         return prev;
@@ -88,13 +93,14 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
     return () => clearTimeout(timer);
   }, [messages, streamState.thinking, streamState.clarificationRequest]);
 
-  const submitMessage = async () => {
-    if (!inputValue.trim() || !streamState.isComplete) return;
+  const submitMessage = async (overrideContent?: string) => {
+    const content = overrideContent || inputValue;
+    if (!content.trim() || !streamState.isComplete) return;
 
     const userMessage = {
       id: Date.now().toString(),
       role: 'user' as const,
-      content: inputValue.trim(),
+      content: content.trim(),
       timestamp: new Date()
     };
 
@@ -105,10 +111,12 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
       role: 'assistant' as const,
       content: '',
       timestamp: new Date(),
-      streaming: true
+      isStreaming: true
     }]);
 
-    setInputValue('');
+    if (!overrideContent) {
+      setInputValue('');
+    }
 
     // Cast userPreferences only effectively when calling, ensuring it's safe
     // If backend requires strict type, useStreamChat should define it
@@ -161,7 +169,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
                   : 'ai-message'
                   }`}
               >
-                {message.streaming ? (
+                {message.isStreaming ? (
                   <div className="flex items-baseline gap-2">
                     <div className="text-white/90 whitespace-pre-wrap">
                       {message.content}
@@ -183,6 +191,25 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
                     </ReactMarkdown>
                   </div>
                 )}
+
+                {/* 🚀 Render Persisted Tool Results (History) */}
+                {message.tools?.map((tool, idx) => {
+                  const isPropertyTool = tool.kind === 'scout_properties' ||
+                    tool.title === 'Property Scout' ||
+                    (tool.data && tool.data.properties);
+
+                  if (isPropertyTool) {
+                    return (
+                      <div key={`hist-tool-${idx}`} className="mt-4 w-full">
+                        <SimplePropertyResults
+                          properties={tool.data?.properties || tool.data?.results || []}
+                          onAction={(query) => submitMessage(query)}
+                        />
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
               </div>
             </motion.div>
           ))}
@@ -208,6 +235,43 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
               </div>
             </motion.div>
           )}
+
+          {/* 🚀 Render ToolGrid for Parallel Tools */}
+          {streamState.toolBatch && streamState.toolBatch.length > 0 && !streamState.isComplete && (
+            <motion.div
+              key="tool-grid"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex justify-start w-full px-4"
+            >
+              <div className="max-w-[80%] w-full">
+                <ToolGrid tools={streamState.toolBatch} />
+              </div>
+            </motion.div>
+          )}
+
+          {/* 🚀 REAL-TIME RICH TOOL RESULTS (Hunter Mode) */}
+          {streamState.toolBatch?.map(tool => {
+            if (tool.status === 'complete' && tool.result &&
+              (tool.name === 'Property Scout' || tool.name === 'scout_properties' ||
+                (tool.result.properties && tool.result.properties.length > 0))) {
+              return (
+                <motion.div
+                  key={`rich-${tool.id}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="w-full px-4 mb-4"
+                >
+                  <SimplePropertyResults
+                    properties={tool.result.properties || tool.result || []}
+                    onAction={(query) => submitMessage(query)}
+                  />
+                </motion.div>
+              );
+            }
+            return null;
+          })}
 
           {streamState.clarificationRequest && (
             <motion.div

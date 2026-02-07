@@ -85,22 +85,22 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                                 <h4 className="text-sm font-semibold text-white/80">How it works</h4>
                                 <ol className="space-y-2 text-sm text-white/60">
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-500/20 
-                                     text-teal-400 text-xs flex items-center justify-center font-bold">
+                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#C08B5C]/20 
+                                     text-[#D4A27F] text-xs flex items-center justify-center font-bold">
                                             1
                                         </span>
                                         <span>Share your unique referral link</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-500/20 
-                                     text-teal-400 text-xs flex items-center justify-center font-bold">
+                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#C08B5C]/20 
+                                     text-[#D4A27F] text-xs flex items-center justify-center font-bold">
                                             2
                                         </span>
                                         <span>Your friend signs up and upgrades to Pro</span>
                                     </li>
                                     <li className="flex gap-3">
-                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-500/20 
-                                     text-teal-400 text-xs flex items-center justify-center font-bold">
+                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#C08B5C]/20 
+                                     text-[#D4A27F] text-xs flex items-center justify-center font-bold">
                                             3
                                         </span>
                                         <span>You both receive $20 in account credits</span>
@@ -119,14 +119,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                                         value={referralLink}
                                         className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg 
                                px-3 py-2.5 text-white text-sm focus:outline-none 
-                               focus:border-teal-500/30 focus:ring-2 focus:ring-teal-500/20"
+                               focus:border-[#C08B5C]/30 focus:ring-2 focus:ring-[#C08B5C]/20"
                                     />
                                     <button
                                         onClick={handleCopy}
-                                        className="px-4 py-2.5 bg-gradient-to-r from-teal-500 to-purple-500 
-                               hover:from-teal-400 hover:to-purple-400 
+                                        className="px-4 py-2.5 bg-gradient-to-r from-[#C08B5C] to-purple-500 
+                               hover:from-[#D4A27F] hover:to-purple-400 
                                rounded-lg text-white font-medium text-sm 
-                               transition-all shadow-lg shadow-teal-500/20
+                               transition-all shadow-lg shadow-[#C08B5C]/20
                                flex items-center gap-2"
                                     >
                                         {copied ? (
@@ -151,7 +151,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ isOpen, onClose })
                                     <div className="text-xs text-white/50 mt-1">Referrals</div>
                                 </div>
                                 <div className="bg-white/[0.02] rounded-lg p-3 text-center border border-white/5">
-                                    <div className="text-2xl font-bold text-teal-400">$0</div>
+                                    <div className="text-2xl font-bold text-[#D4A27F]">$0</div>
                                     <div className="text-xs text-white/50 mt-1">Earned</div>
                                 </div>
                             </div>

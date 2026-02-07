@@ -84,7 +84,7 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
         <div className="flex flex-col h-full bg-background">
             {/* Header */}
             <div className="flex-shrink-0 px-6 py-5 border-b border-white/10 bg-slate-900 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-teal-500/10" />
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-[#C08B5C]/10" />
 
                 <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -315,7 +315,7 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                                     className={cn(
                                         'relative overflow-hidden rounded-2xl border p-5 transition-all duration-500 shadow-xl',
                                         aiVerdict === 'Black'
-                                            ? 'bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20 shadow-emerald-500/5'
+                                            ? 'bg-gradient-to-br from-emerald-500/10 to-[#C08B5C]/10 border-emerald-500/20 shadow-emerald-500/5'
                                             : 'bg-gradient-to-br from-rose-500/10 to-orange-500/10 border-rose-500/20 shadow-rose-500/5'
                                     )}
                                 >
@@ -387,7 +387,7 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
             </div>
 
             {/* AI Chat Section */}
-            <div className="flex-shrink-0 border-t border-border/50 bg-gradient-to-r from-blue-50/30 to-teal-50/30 dark:from-blue-950/20 dark:to-teal-950/20">
+            <div className="flex-shrink-0 border-t border-border/50 bg-gradient-to-r from-blue-50/30 to-[#D4A27F]/30 dark:from-blue-950/20 dark:to-[#8A5D3B]/20">
                 <button
                     onClick={() => setShowAIChat(!showAIChat)}
                     className="w-full px-6 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"

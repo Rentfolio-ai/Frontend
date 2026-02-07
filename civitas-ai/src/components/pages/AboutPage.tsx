@@ -1,282 +1,141 @@
 /**
- * About Page - Full Page View
- * Information about Vasthu and the team
+ * About Page — Redesigned
+ * Compact, elegant brand and team page
  */
 
 import React from 'react';
-import { ArrowLeft, Home, Github, Twitter, Linkedin, Mail, Heart } from 'lucide-react';
+import { ArrowLeft, Home, Github, Twitter, Linkedin, Mail, Heart, Zap, Brain, Target } from 'lucide-react';
 
 interface AboutPageProps {
     onBack: () => void;
 }
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
-    const TeamMember: React.FC<{
-        name: string;
-        role: string;
-        bio: string;
-    }> = ({ name, role, bio }) => (
-        <div
-            className="p-5 rounded-xl"
-            style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(148, 163, 184, 0.12)',
-            }}
-        >
-            <div className="flex items-center gap-4 mb-3">
-                <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold"
-                    style={{
-                        background: 'linear-gradient(135deg, #0D9488, #14B8A6)',
-                        color: '#FFFFFF',
-                    }}
-                >
-                    {name.charAt(0)}
-                </div>
-                <div>
-                    <h3 className="text-base font-semibold" style={{ color: '#F1F5F9' }}>
-                        {name}
-                    </h3>
-                    <p className="text-sm" style={{ color: '#14B8A6' }}>
-                        {role}
-                    </p>
-                </div>
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: '#94A3B8' }}>
-                {bio}
-            </p>
-        </div>
-    );
+    const stats = [
+        { value: '10K+', label: 'Active Users' },
+        { value: '50K+', label: 'Properties Analyzed' },
+        { value: '$2B+', label: 'Investment Volume' },
+    ];
 
-    const StatCard: React.FC<{
-        value: string;
-        label: string;
-    }> = ({ value, label }) => (
-        <div
-            className="p-5 rounded-xl text-center"
-            style={{
-                backgroundColor: 'rgba(20, 184, 166, 0.1)',
-                border: '1px solid rgba(20, 184, 166, 0.2)',
-            }}
-        >
-            <div className="text-3xl font-bold mb-1" style={{ color: '#14B8A6' }}>
-                {value}
-            </div>
-            <div className="text-sm" style={{ color: '#CBD5E1' }}>
-                {label}
-            </div>
-        </div>
-    );
+    const team = [
+        { name: 'Sheenka K', role: 'Founder & CEO', bio: 'Passionate about leveraging AI to transform real estate investing. Former tech lead with 10+ years of experience.' },
+        { name: 'AI Team', role: 'AI & Engineering', bio: 'World-class engineers building the next generation of real estate intelligence.' },
+    ];
+
+    const techFeatures = [
+        { icon: Zap, label: 'Quick Mode', desc: 'Instant responses' },
+        { icon: Brain, label: 'Smart Mode', desc: 'Standard analysis' },
+        { icon: Target, label: 'Deep Mode', desc: 'Strategic planning' },
+    ];
+
+    const socials = [
+        { icon: Github, href: 'https://github.com' },
+        { icon: Twitter, href: 'https://twitter.com' },
+        { icon: Linkedin, href: 'https://linkedin.com' },
+        { icon: Mail, href: 'mailto:hello@vasthu.ai' },
+    ];
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#334155' }}>
-            {/* Header */}
-            <div
-                className="flex items-center gap-4 px-6 py-4 border-b"
-                style={{ borderColor: 'rgba(148, 163, 184, 0.15)' }}
-            >
-                <button
-                    onClick={onBack}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
-                    style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: '#E2E8F0',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
-                >
-                    <ArrowLeft className="w-5 h-5" />
+        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
+            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
+                <button onClick={onBack} className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
+                    <ArrowLeft className="w-4 h-4 text-white/60" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>
-                        About Vasthu
-                    </h1>
-                    <p className="text-sm" style={{ color: '#94A3B8' }}>
-                        AI-powered real estate investment platform
-                    </p>
+                    <h1 className="text-lg font-semibold text-white/90">About Vasthu</h1>
+                    <p className="text-[11px] text-white/35">AI-powered real estate platform</p>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-4xl mx-auto space-y-8">
-                    {/* Hero Section */}
-                    <div className="text-center py-8">
-                        <div
-                            className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center"
-                            style={{
-                                background: 'linear-gradient(135deg, #0D9488, #14B8A6)',
-                            }}
-                        >
-                            <Home className="w-10 h-10 text-white" />
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="max-w-2xl mx-auto space-y-5">
+                    {/* Hero */}
+                    <div className="text-center py-5">
+                        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#A8734A] to-[#C08B5C] flex items-center justify-center shadow-lg shadow-[#C08B5C]/20">
+                            <Home className="w-7 h-7 text-white" />
                         </div>
-                        <h2 className="text-3xl font-bold mb-4" style={{ color: '#F1F5F9' }}>
-                            Making Real Estate Investing Simple
-                        </h2>
-                        <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#94A3B8' }}>
-                            Vasthu combines AI technology with real estate expertise to help you find, analyze,
-                            and invest in properties with confidence.
+                        <h2 className="text-xl font-bold text-white/90 mb-2">Making Real Estate Investing Simple</h2>
+                        <p className="text-[13px] text-white/45 leading-relaxed max-w-md mx-auto">
+                            Vasthu combines AI with real estate expertise to help you find, analyze, and invest in properties with confidence.
                         </p>
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <StatCard value="10K+" label="Active Users" />
-                        <StatCard value="50K+" label="Properties Analyzed" />
-                        <StatCard value="$2B+" label="Investment Volume" />
+                    <div className="grid grid-cols-3 gap-2.5">
+                        {stats.map(s => (
+                            <div key={s.label} className="text-center py-3.5 rounded-xl bg-[#C08B5C]/[0.06] border border-[#C08B5C]/15">
+                                <div className="text-xl font-bold text-[#D4A27F] mb-0.5">{s.value}</div>
+                                <div className="text-[10px] text-white/40">{s.label}</div>
+                            </div>
+                        ))}
                     </div>
 
                     {/* Mission */}
-                    <div
-                        className="p-6 rounded-xl"
-                        style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(148, 163, 184, 0.12)',
-                        }}
-                    >
-                        <h3 className="text-xl font-semibold mb-3" style={{ color: '#F1F5F9' }}>
-                            Our Mission
-                        </h3>
-                        <p className="text-base leading-relaxed" style={{ color: '#CBD5E1' }}>
-                            We believe real estate investing should be accessible to everyone. Vasthu leverages
-                            cutting-edge AI to democratize access to professional-grade investment analysis,
-                            empowering both novice and experienced investors to make informed decisions.
+                    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
+                        <h3 className="text-[13px] font-semibold text-white/80 mb-2">Our Mission</h3>
+                        <p className="text-[12px] text-white/45 leading-relaxed">
+                            We believe real estate investing should be accessible to everyone. Vasthu leverages cutting-edge AI to democratize access to professional-grade investment analysis.
                         </p>
                     </div>
 
                     {/* Team */}
                     <div>
-                        <h3 className="text-xl font-semibold mb-4" style={{ color: '#F1F5F9' }}>
-                            Meet the Team
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <TeamMember
-                                name="Sheenka K"
-                                role="Founder & CEO"
-                                bio="Passionate about leveraging AI to transform real estate investing. Former tech lead with 10+ years of experience."
-                            />
-                            <TeamMember
-                                name="AI Team"
-                                role="AI & Engineering"
-                                bio="World-class engineers and researchers building the next generation of real estate intelligence."
-                            />
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Team</h2>
+                        <div className="grid grid-cols-2 gap-2.5">
+                            {team.map(t => (
+                                <div key={t.name} className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5">
+                                    <div className="flex items-center gap-2.5 mb-2">
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#A8734A] to-[#C08B5C] flex items-center justify-center text-sm font-bold text-white">
+                                            {t.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-[12px] font-semibold text-white/80">{t.name}</h3>
+                                            <p className="text-[10px] text-[#D4A27F]">{t.role}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-[11px] text-white/40 leading-relaxed">{t.bio}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
                     {/* Technology */}
-                    <div
-                        className="p-6 rounded-xl"
-                        style={{
-                            backgroundColor: 'rgba(20, 184, 166, 0.05)',
-                            border: '1px solid rgba(20, 184, 166, 0.1)',
-                        }}
-                    >
-                        <h3 className="text-xl font-semibold mb-3" style={{ color: '#F1F5F9' }}>
-                            Powered by Advanced AI
-                        </h3>
-                        <p className="text-base leading-relaxed mb-4" style={{ color: '#CBD5E1' }}>
-                            Vasthu uses Google's Gemini 2.5 Pro and Flash models with a three-tier reasoning system:
-                        </p>
-                        <ul className="space-y-2">
-                            {['Quick Mode for instant responses', 'Smart Mode for standard analysis', 'Deep Mode for comprehensive strategic planning'].map((item, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#CBD5E1' }}>
-                                    <span style={{ color: '#14B8A6' }}>•</span>
-                                    {item}
-                                </li>
-                            ))}
-                        </ul>
+                    <div>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Technology</h2>
+                        <div className="rounded-xl bg-[#C08B5C]/[0.04] border border-[#C08B5C]/10 p-4">
+                            <h3 className="text-[13px] font-semibold text-white/80 mb-3">Powered by Advanced AI</h3>
+                            <div className="grid grid-cols-3 gap-2">
+                                {techFeatures.map(tf => {
+                                    const Icon = tf.icon;
+                                    return (
+                                        <div key={tf.label} className="text-center p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.04]">
+                                            <Icon className="w-4 h-4 text-[#D4A27F] mx-auto mb-1.5" />
+                                            <div className="text-[11px] font-medium text-white/70">{tf.label}</div>
+                                            <div className="text-[10px] text-white/30">{tf.desc}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Social Links */}
-                    <div className="flex items-center justify-center gap-4">
-                        <a
-                            href="https://github.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
-                            style={{
-                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                                color: '#94A3B8',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)';
-                                e.currentTarget.style.color = '#CBD5E1';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
-                                e.currentTarget.style.color = '#94A3B8';
-                            }}
-                        >
-                            <Github className="w-5 h-5" />
-                        </a>
-                        <a
-                            href="https://twitter.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
-                            style={{
-                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                                color: '#94A3B8',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)';
-                                e.currentTarget.style.color = '#CBD5E1';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
-                                e.currentTarget.style.color = '#94A3B8';
-                            }}
-                        >
-                            <Twitter className="w-5 h-5" />
-                        </a>
-                        <a
-                            href="https://linkedin.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
-                            style={{
-                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                                color: '#94A3B8',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)';
-                                e.currentTarget.style.color = '#CBD5E1';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
-                                e.currentTarget.style.color = '#94A3B8';
-                            }}
-                        >
-                            <Linkedin className="w-5 h-5" />
-                        </a>
-                        <a
-                            href="mailto:hello@vasthu.ai"
-                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors"
-                            style={{
-                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
-                                color: '#94A3B8',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)';
-                                e.currentTarget.style.color = '#CBD5E1';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.1)';
-                                e.currentTarget.style.color = '#94A3B8';
-                            }}
-                        >
-                            <Mail className="w-5 h-5" />
-                        </a>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="text-center py-4">
-                        <p className="text-sm flex items-center justify-center gap-2" style={{ color: '#94A3B8' }}>
-                            Made with <Heart className="w-4 h-4" style={{ color: '#EF4444' }} /> for real estate investors
+                    {/* Social + Footer */}
+                    <div className="text-center py-3">
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                            {socials.map(s => {
+                                const Icon = s.icon;
+                                return (
+                                    <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer"
+                                       className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
+                                        <Icon className="w-3.5 h-3.5 text-white/40 hover:text-white/60" />
+                                    </a>
+                                );
+                            })}
+                        </div>
+                        <p className="text-[11px] text-white/30 flex items-center justify-center gap-1">
+                            Made with <Heart className="w-3 h-3 text-rose-400" /> for real estate investors
                         </p>
-                        <p className="text-xs mt-2" style={{ color: '#64748B' }}>
-                            © 2026 Vasthu AI. All rights reserved.
-                        </p>
+                        <p className="text-[10px] text-white/20 mt-1">&copy; 2026 Vasthu AI. All rights reserved.</p>
                     </div>
                 </div>
             </div>

@@ -21,15 +21,13 @@ export class ChatService {
   static async generateSTRResponse(
     userMessage: string,
     userContext?: { name?: string; onboarding_completed?: boolean },
-    _conversationHistory?: Message[],
+    previousMessages: Message[] = [],
     actionContext?: any,
-    threadIdOverride?: string
+    attachment?: File,
+    threadId?: string,
+    mode: 'research' | 'strategist' | 'hunter' = 'hunter'
   ): Promise<{ content: string; navigate?: string; toolCalls?: ToolCall[]; action?: any; tool_results?: any; tour?: any; threadId?: string }> {
     try {
-      // Get current settings context for chat API
-      const chatContext = buildChatContext();
-
-      const threadId = threadIdOverride;
       // REMOVED localStorage fallback to prevent stuck state
       // const threadId = threadIdOverride || (
       //   typeof window !== 'undefined'
@@ -41,11 +39,17 @@ export class ChatService {
       const requestBody = {
         message: userMessage,
         thread_id: threadId,
+        previous_messages: previousMessages,
+        attachment: attachment,
         // Use conversation_history from args if needed, but backend might handle thread history separately
         context: {
-          user_context: { ...userContext, ...chatContext },
+          user_preferences: {
+            ...userContext,
+            // Add other preferences here if needed
+          },
           action_context: actionContext,
         },
+        mode: mode
       };
 
       // Call new Vasthu agents API for chat
@@ -179,10 +183,10 @@ export class ChatService {
         message: err.message,
         stack: err.stack?.split('\n').slice(0, 5).join('\n'), // First 5 lines of stack
         userMessage: userMessage.substring(0, 100),
-        threadId: threadIdOverride,
+        threadId: threadId,
       });
 
-      return this.generateFallbackSTRResponse(userMessage, threadIdOverride);
+      return this.generateFallbackSTRResponse(userMessage, threadId);
     }
   }
 
@@ -348,15 +352,17 @@ export class ChatService {
     const streamId = `${Date.now() + 1}`;
 
     const interval = setInterval(() => {
-      i++;
-      current = fullResponse.slice(0, i);
+      // Speed up: process 2 characters per tick every 8ms
+      // This is ~250 chars per second, much snappier ⚡️
+      i += 2;
+      current = fullResponse.slice(0, Math.min(i, fullResponse.length));
       onUpdate(current, streamId);
 
       if (i >= fullResponse.length) {
         clearInterval(interval);
         onComplete();
       }
-    }, 20);
+    }, 8);
 
     return { intervalId: interval, streamId };
   }

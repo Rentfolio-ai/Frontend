@@ -406,7 +406,7 @@ export const TabbedAssumptionsPanel: React.FC<TabbedAssumptionsPanelProps> = ({
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all',
                 isActive
-                  ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
+                  ? 'bg-[#C08B5C] text-white shadow-lg shadow-[#C08B5C]/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
               )}
             >

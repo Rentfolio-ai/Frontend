@@ -23,8 +23,10 @@ export interface SavedSearch {
     name: string;
     query: string;
     filters: SearchFilters;
-    createdAt: Date;
-    lastRun?: Date;
+    /** ISO-8601 string for safe JSON serialization */
+    createdAt: string;
+    /** ISO-8601 string for safe JSON serialization */
+    lastRun?: string;
     notificationsEnabled: boolean;
 }
 
@@ -50,7 +52,7 @@ export const useSavedSearchesStore = create<SavedSearchesState>()(
                     {
                         ...search,
                         id: `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                        createdAt: new Date(),
+                        createdAt: new Date().toISOString(),
                     }
                 ]
             })),
@@ -70,7 +72,7 @@ export const useSavedSearchesStore = create<SavedSearchesState>()(
             },
 
             markAsRun: (id) => {
-                get().updateSearch(id, { lastRun: new Date() });
+                get().updateSearch(id, { lastRun: new Date().toISOString() });
             },
 
             toggleNotifications: (id) => {
