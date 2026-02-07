@@ -410,9 +410,10 @@ export function isPropertyQuery(message: string): boolean {
     'find', 'search', 'show me', 'looking for'
   ];
 
+  // Location detection uses preposition patterns — the backend LLM handles
+  // actual city/state extraction, so we don't need a hardcoded city list here.
   const locationKeywords = [
-    'in', 'near', 'around', 'austin', 'dallas', 'houston', 'san antonio',
-    'texas', 'tx'
+    'in', 'near', 'around',
   ];
 
   const messageLower = message.toLowerCase();

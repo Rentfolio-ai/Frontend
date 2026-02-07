@@ -1,5 +1,8 @@
 // V2 Property Query Helpers
 // Separated to avoid React hooks issues
+//
+// Location extraction is handled by the backend LLM — the frontend
+// just passes the raw user query and optional budget/preferences.
 
 export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string): any {
   const query: any = {
@@ -7,12 +10,8 @@ export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string):
     include_ai: true,
     property_types: ["SFH"],
     mode: mode || 'hunter',
+    raw_query: msg, // Let the backend LLM extract the location
   };
-
-  // Simple location extraction
-  const msgLower = msg.toLowerCase();
-  const locationMatch = msg.match(/\b(austin|dallas|houston|san antonio|fort worth|el paso)[,\s]?/i);
-  query.location = locationMatch ? locationMatch[1] : "Austin, TX";
 
   // Use user budget if available
   if (userPrefs?.budgetRange?.max) {
@@ -41,11 +40,22 @@ export function isPropertyQuery(msg: string): boolean {
   const hasPropertyKeyword = (
     msgLower.includes('property') || msgLower.includes('properties') ||
     msgLower.includes('home') || msgLower.includes('homes') ||
-    msgLower.includes('house') || msgLower.includes('houses')
+    msgLower.includes('house') || msgLower.includes('houses') ||
+    msgLower.includes('rental') || msgLower.includes('rentals') ||
+    msgLower.includes('investment') || msgLower.includes('condo') ||
+    msgLower.includes('apartment')
   );
-  const hasLocationKeyword = (
-    msgLower.includes('austin') || msgLower.includes('dallas') ||
-    msgLower.includes('houston') || msgLower.includes('in ')
+
+  // Generic location preposition pattern (e.g. "in San Francisco", "near Denver")
+  const hasLocationPreposition = /\b(?:in|near|around)\s+[A-Z]/.test(msg);
+
+  // "find" / "search" / "show me" intent
+  const hasSearchIntent = (
+    msgLower.includes('find') ||
+    msgLower.includes('search') ||
+    msgLower.includes('show me') ||
+    msgLower.includes('looking for')
   );
-  return hasPropertyKeyword || hasLocationKeyword || msgLower.includes('show me');
+
+  return hasPropertyKeyword || (hasSearchIntent && hasLocationPreposition) || msgLower.includes('show me');
 }
