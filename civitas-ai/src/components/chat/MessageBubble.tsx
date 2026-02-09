@@ -19,7 +19,7 @@ import type { CompletedTool } from '../../types/stream';
 import {
   Copy, RotateCcw, Check, ThumbsUp, ThumbsDown, Pencil,
   Clipboard, FileSpreadsheet, ChevronLeft,
-  ChevronRight, ChevronDown, ChevronUp
+  ChevronRight, ChevronDown, ChevronUp, Zap
 } from 'lucide-react';
 import { submitFeedback } from '../../services/feedbackApi';
 import { extractFirstTable, markdownTableToCsv, downloadCsv } from '../../lib/tableUtils';
@@ -90,6 +90,12 @@ interface MessageBubbleProps {
     dataCount?: number;
     status?: 'live' | 'cached' | 'recent';
   }>;
+  // Mode switch handler (for AI-suggested mode changes)
+  onModeSwitch?: (mode: string, autoQuery?: string) => void;
+  // Navigate to Investment Criteria / Preferences page
+  onNavigateToPreferences?: () => void;
+  // Navigate to Upgrade / Billing page
+  onNavigateToUpgrade?: () => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -112,7 +118,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   citations = [],
   aiReasoningSteps = [],
   confidence: _confidence,
-  dataSources = []
+  dataSources = [],
+  onModeSwitch,
+  onNavigateToPreferences,
+  onNavigateToUpgrade,
 }) => {
   const isUser = message.role === 'user' || message.type === 'user';
   const hasAttachment = !!message.attachment;
@@ -213,7 +222,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       )}
 
       <div className={cn(
-        "flex flex-col max-w-[85%] md:max-w-[75%]",
+        "flex flex-col max-w-[90%] md:max-w-[85%]",
         isUser ? "items-end" : "items-start"
       )}>
         {/* Branch Navigation */}
@@ -244,7 +253,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           "flex items-center gap-1.5 text-[10px] text-white/25 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
           isUser ? "flex-row-reverse" : "flex-row"
         )}>
-          <span className="font-medium text-white/35">{isUser ? (userName || 'You') : 'Vasthu AI'}</span>
+          <span className="font-medium text-white/35">{isUser ? (userName?.split(' ')[0] || 'You') : 'Vasthu AI'}</span>
           <span className="text-white/15">·</span>
           <span>{formatRelativeTime(message.timestamp)}</span>
         </div>
@@ -256,11 +265,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             message.isStreaming && "streaming-message",
             isUser && [
               "rounded-2xl rounded-br-md",
-              "bg-gradient-to-br from-[#C08B5C]/15 via-[#A8734A]/10 to-[#8A5D3B]/5",
+              "accent-user-bubble",
               "border border-white/[0.1]",
               "px-4 py-3",
               "text-[14px] leading-relaxed text-white/90",
-              "shadow-lg shadow-[#C08B5C]/[0.07]",
               "backdrop-blur-xl",
             ],
             !isUser && "text-[15px] leading-relaxed",
@@ -287,7 +295,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           {/* Content Area */}
           <div
             className={cn(
-              "prose prose-sm max-w-none relative z-10",
+              "prose prose-sm max-w-none relative z-10 chat-message-text",
               message.isStreaming && !isUser && "streaming-text",
               isUser ? "text-white/90" : "text-slate-200"
             )}
@@ -320,7 +328,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   <button
                     onClick={handleEditSubmit}
                     disabled={!editContent.trim() || editContent === message.content}
-                    className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-[#C08B5C] to-[#A8734A] text-white hover:from-[#D4A27F] hover:to-[#C08B5C] rounded-lg transition-all shadow-lg shadow-[#C08B5C]/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-xs font-semibold accent-btn text-white rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Save & Submit
                   </button>
@@ -335,7 +343,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     // --- Headings ---
                     h2: ({ children }) => (
                       <h2 className="ai-heading-2 flex items-center gap-2.5 text-[15px] font-bold text-white mt-3 -mb-1 pb-0.5 border-b border-white/[0.06]">
-                        <span className="inline-block w-1 h-4 rounded-full bg-gradient-to-b from-[#C08B5C] to-[#D4A27F] flex-shrink-0" />
+                        <span className="inline-block w-1 h-4 rounded-full accent-bar flex-shrink-0" />
                         {children}
                       </h2>
                     ),
@@ -399,8 +407,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                       return (
                         <code className={cn(
-                          "px-1.5 py-0.5 text-[0.88em] font-mono rounded-md",
-                          "bg-[#C08B5C]/[0.08] text-[#D4A27F] border border-[#C08B5C]/[0.1]",
+                          "px-1.5 py-0.5 text-[0.88em] font-mono rounded-md accent-code",
                           className
                         )} {...props}>
                           {children}
@@ -423,7 +430,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       </div>
                     ),
                     thead: ({ children }) => (
-                      <thead className="bg-gradient-to-r from-[#C08B5C]/[0.06] to-[#D4A27F]/[0.06] border-b border-white/[0.08]">
+                      <thead className="accent-thead border-b border-white/[0.08]">
                         {children}
                       </thead>
                     ),
@@ -455,13 +462,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     ),
                     li: ({ children, ordered, ...props }: any) => (
                       <li className="flex items-start gap-2.5 text-[13px] leading-[1.7] text-white/70 pl-1" {...props}>
-                        <span className="flex-shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[#C08B5C] to-[#D4A27F] opacity-60" />
+                        <span className="flex-shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full accent-dot opacity-60" />
                         <span className="flex-1">{children}</span>
                       </li>
                     ),
                     // --- Blockquotes ---
                     blockquote: ({ children }) => (
-                      <blockquote className="my-3 pl-4 py-2 pr-3 rounded-r-xl border-l-2 border-[#C08B5C]/40 bg-gradient-to-r from-[#C08B5C]/[0.05] to-transparent">
+                      <blockquote className="my-3 pl-4 py-2 pr-3 rounded-r-xl accent-blockquote">
                         <div className="text-[13px] text-white/50 italic">
                           {children}
                         </div>
@@ -705,11 +712,47 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <InlineActionsBar
               actions={message.inlineActions}
               onExecute={(action) => {
-                // Convert inline action to a natural language message
-                const query = `${action.label}${action.arguments?.address ? ` for ${action.arguments.address}` : ''}${action.arguments?.location ? ` in ${action.arguments.location}` : ''}`;
-                onAction?.(query);
+                // Navigate to Investment Criteria / Preferences page
+                if (action.tool_name === 'navigate_to_preferences') {
+                  onNavigateToPreferences?.();
+                  return;
+                }
+                // Navigate to Upgrade / Billing page
+                if (action.tool_name === 'navigate_to_upgrade') {
+                  onNavigateToUpgrade?.();
+                  return;
+                }
+                const query = action.query || action.label;
+                if (action.target_mode && onModeSwitch) {
+                  // Cross-mode action: switch mode first, then fire the query
+                  onModeSwitch(action.target_mode, query);
+                } else {
+                  onAction?.(query);
+                }
               }}
             />
+          </div>
+        )}
+
+        {/* Mode Switch Suggestion — Cursor-style minimal banner */}
+        {!isUser && message.modeSuggestion && !message.isStreaming && (
+          <div className="w-full mt-4 flex items-center gap-3 px-3 py-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03]">
+            <div className="flex-1 text-[13px] text-zinc-400">
+              {message.modeSuggestion.reason}
+            </div>
+            <button
+              onClick={() => onModeSwitch?.(
+                message.modeSuggestion!.suggestedMode,
+                message.modeSuggestion!.autoQuery
+              )}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[13px]
+                rounded-lg border border-white/[0.12] bg-white/[0.06]
+                text-zinc-300 hover:text-white hover:bg-white/[0.1] hover:border-white/[0.2]
+                transition-all duration-150 cursor-pointer"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              Switch to {message.modeSuggestion.suggestedMode.charAt(0).toUpperCase() + message.modeSuggestion.suggestedMode.slice(1)}
+            </button>
           </div>
         )}
 
@@ -857,7 +900,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 /* Gradient initials fallback */
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#C08B5C] to-[#8A5D3B]">
                   <span className="text-[11px] font-bold text-white/90 leading-none">
-                    {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                    {userName ? userName.split(' ')[0].charAt(0).toUpperCase() : 'U'}
                   </span>
                 </div>
               )}

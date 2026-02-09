@@ -46,6 +46,7 @@ export interface UserPreferences {
     default_strategy?: 'STR' | 'LTR' | 'FLIP' | null;
     budget_range?: BudgetRange | null;
     preferred_bedrooms?: number | null;
+    preferred_property_types?: string[];
     favorite_markets: string[];
     recent_searches: string[];
     last_search_city?: string | null;
@@ -54,6 +55,7 @@ export interface UserPreferences {
     financial_dna?: FinancialDNA | null;
     investment_criteria?: InvestmentCriteria | null;
     interaction_profile?: InteractionProfile | null;
+    inferred_preferences?: Record<string, any> | null;
 }
 
 /**

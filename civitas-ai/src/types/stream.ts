@@ -16,6 +16,7 @@ export interface StreamThinkingEvent {
   status?: string;       // Status text (V1 chat endpoint)
   message?: string;      // Message text (V2 property endpoint)
   explanation?: string;  // Why this is happening (e.g., "I need to find properties...")
+  replace?: boolean;     // If true, replace the status line instead of accumulating steps
   source?: string;
   icon?: string;
   tool?: string;
@@ -161,9 +162,19 @@ export interface StreamInlineActionsEvent {
     label: string;
     tool_name: string;
     arguments?: Record<string, unknown>;
+    query?: string;
+    target_mode?: 'hunter' | 'research' | 'strategist';
     style?: 'primary' | 'secondary' | 'danger';
   }>;
   context?: string;
+}
+
+// Mode suggestion: AI recommends switching to a different mode
+export interface StreamModeSuggestionEvent {
+  type: 'mode_suggestion';
+  suggested_mode: 'hunter' | 'research' | 'strategist';
+  reason: string;
+  auto_query?: string;  // Query to auto-run after switching
 }
 
 export type StreamEvent =
@@ -187,7 +198,8 @@ export type StreamEvent =
   | StreamCompleteEvent
   | StreamToolsBatchStartEvent
   | StreamToolResultEvent
-  | StreamInlineActionsEvent;
+  | StreamInlineActionsEvent
+  | StreamModeSuggestionEvent;
 
 export interface StreamClearContentEvent {
   type: 'clear_content';

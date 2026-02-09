@@ -1,5 +1,5 @@
 // FILE: src/components/desktop-shell/ChatTabView.tsx
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
@@ -16,14 +16,19 @@ import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceS
 import { uploadFile, ingestFileToBackend } from '../../services/fileStorage';
 
 import { checkHealth } from '../../services/agentsApi';
+import { useSubscription } from '../../hooks/useSubscription';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
 
 import { ScrollToBottomButton } from '../chat/ScrollToBottomButton';
 import { InConversationSearch } from '../chat/InConversationSearch';
-import { motion, AnimatePresence } from 'framer-motion';
 import { KeyboardShortcutsModal } from '../chat/KeyboardShortcutsModal';
+import { VoiceChatBar } from '../voice/VoiceChatBar';
+import { VoiceWaveform } from '../voice/VoiceWaveform';
+import { PersonaPickerModal } from '../voice/PersonaPickerModal';
+import { useVoiceSession } from '../../hooks/useVoiceSession';
+import { getPersonaById, type VoicePersona } from '../../config/voicePersonas';
 
 import type { AgentMode } from '../../types/chat';
 
@@ -43,6 +48,8 @@ interface ChatTabViewProps {
   bookmarks?: BookmarkedProperty[];
   onToggleBookmark?: (property: ScoutedProperty) => void;
   onNavigateToReports?: () => void;
+  onNavigateToInvestmentPreferences?: () => void;
+  onNavigateToUpgrade?: () => void;
   onOpenSidebar?: () => void;
   onNewChat?: () => void;
   // Thinking state
@@ -59,6 +66,10 @@ interface ChatTabViewProps {
   chatTitle?: string;
   currentMode: AgentMode;
   onModeChange: (mode: AgentMode) => void;
+  // Voice mode
+  onVoiceTurn?: (role: 'user' | 'assistant', content: string) => void;
+  onVoiceStart?: () => void;
+  conversationId?: string;
 }
 
 // Context-aware greeting with tagline + subtitle for a richer welcome
@@ -67,7 +78,7 @@ const getContextAwareGreeting = (
   userName?: string
 ): { title: string; tagline: string; subtitle: string } => {
   const hour = new Date().getHours();
-  const name = userName || '';
+  const name = userName?.split(' ')[0] || '';
   const n = (msg: string) => (name ? `${name}, ${msg}` : msg.charAt(0).toUpperCase() + msg.slice(1));
   const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
 
@@ -200,6 +211,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   bookmarks,
   onToggleBookmark,
   onNavigateToReports,
+  onNavigateToInvestmentPreferences,
+  onNavigateToUpgrade,
 
   thinking,
   completedTools = [],
@@ -212,7 +225,10 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onNavigateBranch,
   chatTitle,
   currentMode,
-  onModeChange
+  onModeChange,
+  onVoiceTurn,
+  onVoiceStart,
+  conversationId,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const [showPreferences, setShowPreferences] = useState(false);
@@ -224,12 +240,52 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showSuggestionChips, setShowSuggestionChips] = useState(true);
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [showPersonaPicker, setShowPersonaPicker] = useState(false);
+  const savedPersonaId = usePreferencesStore(s => s.voicePersona);
+  const setVoicePersonaPref = usePreferencesStore(s => s.setVoicePersona);
   const composerRef = useRef<ComposerRef>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const lastProcessedMessageId = useRef<string | null>(null);
 
   const prefsStore = usePreferencesStore();
-  const showEmptyState = messages.length === 0 && !isLoading;
+  const { isPro, isFree } = useSubscription();
+  const showEmptyState = messages.length === 0 && !isLoading && !voiceActive;
+
+  // Voice session hook — manages Gemini Live connection, audio, camera, turns
+  const voiceSession = useVoiceSession({
+    conversationId,
+    onTurn: onVoiceTurn,
+  });
+
+  // Streaming voice partials — cleaned for display
+  const voiceUserPartial = useMemo(() => {
+    if (!voiceActive) return '';
+    return voiceSession.partialUserTranscript
+      .trim()
+      .replace(/^[.,;:!?\s]+/, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }, [voiceActive, voiceSession.partialUserTranscript]);
+
+  const voiceAIPartial = useMemo(() => {
+    if (!voiceActive) return '';
+    return voiceSession.partialTranscript.trim();
+  }, [voiceActive, voiceSession.partialTranscript]);
+
+  // Auto-scroll when voice partials update (smooth)
+  useEffect(() => {
+    if ((voiceUserPartial || voiceAIPartial) && messageContainerRef.current) {
+      const el = messageContainerRef.current;
+      // Only auto-scroll if user is near the bottom (within 150px)
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+      if (isNearBottom) {
+        requestAnimationFrame(() => {
+          el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+        });
+      }
+    }
+  }, [voiceUserPartial, voiceAIPartial]);
 
   console.log('[ChatTabView] Render started', {
     isLoading,
@@ -237,6 +293,40 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     attachment: !!attachment,
     isUploading
   });
+
+  // Voice activation: show persona picker (or auto-connect with saved persona)
+  const handleVoiceActivate = useCallback(() => {
+    onVoiceStart?.();
+    // If user has a saved persona, skip the picker and connect directly
+    if (savedPersonaId) {
+      const persona = getPersonaById(savedPersonaId);
+      setVoiceActive(true);
+      voiceSession.connect(persona);
+      setVoicePersonaPref(persona.id);
+    } else {
+      setShowPersonaPicker(true);
+    }
+  }, [onVoiceStart, savedPersonaId, voiceSession, setVoicePersonaPref]);
+
+  // Handle persona selection from the picker modal
+  const handlePersonaSelect = useCallback((persona: VoicePersona) => {
+    setShowPersonaPicker(false);
+    setVoiceActive(true);
+    setVoicePersonaPref(persona.id);
+    voiceSession.connect(persona);
+  }, [voiceSession, setVoicePersonaPref]);
+
+  // End voice session
+  const handleVoiceEnd = useCallback(() => {
+    voiceSession.disconnect();
+    setVoiceActive(false);
+  }, [voiceSession]);
+
+  // Change persona mid-session
+  const handleChangePersona = useCallback(() => {
+    voiceSession.disconnect();
+    setShowPersonaPicker(true);
+  }, [voiceSession]);
 
   const handleSendMessage = async (text: string) => {
     if (attachment) {
@@ -268,6 +358,15 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
     }
   };
 
+
+  // Handle AI-suggested mode switch: switch mode and optionally re-send the query
+  const handleModeSwitch = useCallback((mode: string, autoQuery?: string) => {
+    onModeChange(mode as AgentMode);
+    // Auto-send the query in the new mode after a short delay (so mode state updates first)
+    if (autoQuery) {
+      setTimeout(() => onSendMessage(autoQuery), 300);
+    }
+  }, [onModeChange, onSendMessage]);
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
@@ -417,7 +516,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div className="h-full flex flex-col relative max-w-3xl mx-auto w-full">
 
 
 
@@ -436,7 +535,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         {showEmptyState ? (
           /* Notion-style: Avatar + Greeting + Composer + Cards below */
           <div className="h-full flex flex-col items-center justify-center px-4 py-6">
-            <div className="w-full max-w-[680px] mx-auto space-y-5">
+            <div className="w-full max-w-[580px] mx-auto space-y-5">
               {/* Avatar + Greeting */}
               <div className="text-center space-y-3">
                 <div className="relative inline-block">
@@ -467,6 +566,10 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   aria-label="Chat input"
                   currentMode={currentMode}
                   onModeChange={onModeChange}
+                  voiceActive={voiceActive}
+                  onVoiceActivate={handleVoiceActivate}
+                  isPro={isPro}
+                  onUpgradePrompt={onNavigateToUpgrade}
                 />
               </div>
 
@@ -513,7 +616,22 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         ) : (
           /* Chat Messages - Compact centered */
           <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
-            <div className="max-w-[800px] mx-auto px-4">
+            {/* Centered waveform + "Start talking" when voice is active with no content yet */}
+            {voiceActive && messages.length < 3 && !voiceUserPartial && !voiceAIPartial && (
+              <div className="flex flex-col items-center justify-center gap-4 py-16">
+                <VoiceWaveform
+                  active={voiceSession.isAISpeaking || !voiceSession.muted}
+                  size="md"
+                />
+                <p className="text-white/40 text-lg font-medium">
+                  {voiceSession.status === 'connecting' || voiceSession.status === 'idle'
+                    ? 'Connecting...'
+                    : 'Start talking'}
+                </p>
+              </div>
+            )}
+
+            <div className="max-w-[640px] mx-auto px-4">
               {/* In-Conversation Search */}
               <InConversationSearch
                 isOpen={showInConvoSearch}
@@ -545,7 +663,96 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 isWideMode={prefsStore.isWideMode}
                 onNavigateBranch={onNavigateBranch}
                 onSuggestionSelect={handleSendMessage}
+                onModeSwitch={handleModeSwitch}
+                onNavigateToPreferences={onNavigateToInvestmentPreferences}
+                onNavigateToUpgrade={onNavigateToUpgrade}
               />
+
+              {/* ── Voice Streaming Partials ── */}
+              {voiceActive && (
+                <div
+                  className={`${prefsStore.isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto flex flex-col`}
+                  style={{ gap: 'var(--chat-density, 24px)' }}
+                >
+                  {/* Listening indicator — shows immediately while waiting for transcription */}
+                  <div
+                    className="flex w-full mb-3 justify-end items-center"
+                    style={{
+                      opacity: !voiceUserPartial && !voiceAIPartial && voiceSession.status === 'listening' && !voiceSession.muted ? 1 : 0,
+                      maxHeight: !voiceUserPartial && !voiceAIPartial && voiceSession.status === 'listening' && !voiceSession.muted ? 40 : 0,
+                      overflow: 'hidden',
+                      transition: 'opacity 0.3s ease, max-height 0.3s ease',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06]">
+                      <div className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" style={{ animation: 'pulse 1.4s ease-in-out infinite' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" style={{ animation: 'pulse 1.4s ease-in-out 0.2s infinite' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" style={{ animation: 'pulse 1.4s ease-in-out 0.4s infinite' }} />
+                      </div>
+                      <span className="text-[11px] text-white/35 font-medium">Listening...</span>
+                    </div>
+                  </div>
+
+                  {/* Streaming user message — smooth opacity transition, no re-triggering animation */}
+                  <div
+                    className="flex w-full mb-4 justify-end"
+                    style={{
+                      opacity: voiceUserPartial ? 1 : 0,
+                      maxHeight: voiceUserPartial ? 500 : 0,
+                      overflow: 'hidden',
+                      transition: 'opacity 0.25s ease, max-height 0.3s ease',
+                    }}
+                  >
+                    <div className="flex flex-col max-w-[90%] md:max-w-[85%] items-end">
+                      <div
+                        className="relative whitespace-pre-wrap break-words overflow-hidden rounded-2xl rounded-br-md accent-user-bubble border border-white/[0.1] px-4 py-3 text-[14px] leading-relaxed backdrop-blur-xl"
+                        style={{ color: '#F0FDFA' }}
+                      >
+                        <div className="text-white/90">
+                          {voiceUserPartial || '\u00A0'}
+                          <span
+                            className="inline-block w-[2px] h-[1em] bg-white/50 ml-0.5 align-text-bottom"
+                            style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    {/* User avatar */}
+                    {userAvatar ? (
+                      <img src={userAvatar} alt="" className="w-7 h-7 rounded-full ml-3 mt-1 flex-shrink-0" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full ml-3 mt-1 flex-shrink-0 bg-[#C08B5C]/30 flex items-center justify-center text-[11px] font-semibold text-[#C08B5C]">
+                        {userName?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Streaming AI message — smooth opacity transition */}
+                  <div
+                    className="flex w-full mb-4 justify-start"
+                    style={{
+                      opacity: voiceAIPartial ? 1 : 0,
+                      maxHeight: voiceAIPartial ? 2000 : 0,
+                      overflow: 'hidden',
+                      transition: 'opacity 0.25s ease, max-height 0.3s ease',
+                    }}
+                  >
+                    <div className="flex-shrink-0 mr-4 mt-1">
+                      <AgentAvatar status={agentStatus} className="w-9 h-9 shadow-lg shadow-blue-500/10" />
+                    </div>
+                    <div className="flex flex-col max-w-[90%] md:max-w-[85%] items-start">
+                      <div className="text-[15px] leading-relaxed text-slate-200">
+                        {voiceAIPartial || '\u00A0'}
+                        <span
+                          className="inline-block w-[2px] h-[1em] bg-white/50 ml-0.5 align-text-bottom"
+                          style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Scroll to Bottom Button */}
               <ScrollToBottomButton containerRef={messageContainerRef} />
@@ -554,30 +761,57 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         )}
       </div>
 
-      {/* Composer - Only show when NOT empty state */}
+      {/* Bottom bar: VoiceChatBar (when voice active) or Composer */}
       {!showEmptyState && (
         <div className="flex-shrink-0 relative">
-
-
           <div className="px-4 md:px-6 pb-4 pt-3 relative z-20">
-            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-3xl' : 'max-w-[680px]'} mx-auto transition-all duration-200`}>
-              <Composer
-                ref={composerRef}
-                onSend={handleSendMessage}
-                onStop={onCancel}
-                onAttach={onAttach}
-                attachment={attachment}
-                onClearAttachment={onClearAttachment}
-                onOpenPreferences={() => setShowPreferences(true)}
-                aria-label="Chat input"
-                currentMode={currentMode}
-                onModeChange={onModeChange}
-              />
+            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto transition-all duration-200`}>
+              {voiceActive ? (
+                <VoiceChatBar
+                  session={voiceSession}
+                  onSend={handleSendMessage}
+                  onEnd={handleVoiceEnd}
+                  onChangePersona={handleChangePersona}
+                />
+              ) : (
+                <>
+                  <Composer
+                    ref={composerRef}
+                    onSend={handleSendMessage}
+                    onStop={onCancel}
+                    onAttach={onAttach}
+                    attachment={attachment}
+                    onClearAttachment={onClearAttachment}
+                    onOpenPreferences={() => setShowPreferences(true)}
+                    aria-label="Chat input"
+                    currentMode={currentMode}
+                    onModeChange={onModeChange}
+                    voiceActive={voiceActive}
+                    onVoiceActivate={handleVoiceActivate}
+                    isPro={isPro}
+                    onUpgradePrompt={onNavigateToUpgrade}
+                  />
 
-              {/* Minimal disclaimer */}
-              <p className="text-center text-[10.5px] text-white/25 mt-2.5">
-                Vasthu can make mistakes. Verify important information.
-              </p>
+                  {/* Minimal disclaimer */}
+                  <p className="text-center text-[10.5px] text-white/25 mt-2.5">
+                    Vasthu can make mistakes. Verify important information.
+                  </p>
+
+                  {/* Free plan usage indicator — hidden for Pro and in dev */}
+                  {isFree && !import.meta.env.DEV && (
+                    <div className="mt-1.5 flex items-center justify-center gap-3 text-[10px] text-white/30">
+                      <span>Free plan</span>
+                      <span className="w-px h-2.5 bg-white/10" />
+                      <button
+                        onClick={onNavigateToUpgrade}
+                        className="text-amber-400/60 hover:text-amber-400 transition-colors"
+                      >
+                        Upgrade to Pro
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -587,6 +821,14 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       <PreferenceSuggestionToast
         suggestion={preferenceSuggestion}
         onDismiss={() => setPreferenceSuggestion(null)}
+      />
+
+      {/* Persona Picker Modal */}
+      <PersonaPickerModal
+        isOpen={showPersonaPicker}
+        onSelect={handlePersonaSelect}
+        onClose={() => setShowPersonaPicker(false)}
+        currentPersonaId={savedPersonaId}
       />
     </div>
   );

@@ -1,12 +1,13 @@
 /**
  * Investment Preferences Page — Redesigned
- * Compact, organized investment criteria management
+ * Professional fintech-grade investment criteria management.
  */
 
 import React, { useState, useEffect } from 'react';
 import {
     ArrowLeft, Home, DollarSign, TrendingUp, Target,
-    Building2, MapPin, Plus, X, Save, Check, Loader2
+    Building2, MapPin, Plus, X, Save, Check, Loader2,
+    ChevronDown
 } from 'lucide-react';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { cn } from '../../lib/utils';
@@ -35,14 +36,14 @@ const Section: React.FC<{
     subtitle: string;
     children: React.ReactNode;
 }> = ({ icon: Icon, title, subtitle, children }) => (
-    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
-        <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-7 h-7 rounded-md bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-                <Icon className="w-3.5 h-3.5 text-[#D4A27F]" />
+    <div className="rounded bg-[#161618] border border-white/[0.08] p-6">
+        <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4 h-4 text-white/50" />
             </div>
             <div>
-                <h3 className="text-[13px] font-semibold text-white/85">{title}</h3>
-                <p className="text-[10px] text-white/35">{subtitle}</p>
+                <h3 className="text-sm font-medium font-sans text-white/90">{title}</h3>
+                <p className="text-xs font-sans text-white/40">{subtitle}</p>
             </div>
         </div>
         {children}
@@ -57,19 +58,19 @@ const InputField: React.FC<{
     suffix?: string;
 }> = ({ label, value, onChange, prefix, suffix }) => (
     <div>
-        <label className="block text-[11px] font-medium text-white/40 mb-1.5">{label}</label>
-        <div className="relative">
-            {prefix && <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">{prefix}</span>}
+        <label className="block text-xs font-medium font-sans text-white/40 mb-1.5">{label}</label>
+        <div className="relative group">
+            {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-sans text-white/30">{prefix}</span>}
             <input
                 type="text"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 className={cn(
-                    'w-full py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[13px] text-white/80 focus:outline-none focus:border-[#C08B5C]/30 transition-colors',
-                    prefix ? 'pl-6 pr-3' : suffix ? 'pl-3 pr-8' : 'px-3'
+                    'w-full py-2.5 rounded bg-[#0C0C0E] border border-white/[0.1] text-sm font-sans text-white focus:outline-none focus:border-[#C08B5C]/50 transition-colors placeholder-white/20',
+                    prefix ? 'pl-7 pr-3' : suffix ? 'pl-3 pr-8' : 'px-3'
                 )}
             />
-            {suffix && <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">{suffix}</span>}
+            {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-sans text-white/30">{suffix}</span>}
         </div>
     </div>
 );
@@ -82,10 +83,10 @@ const Chip: React.FC<{
     <button
         onClick={onClick}
         className={cn(
-            'px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all',
+            'px-3 py-1.5 rounded text-xs font-medium transition-all border',
             selected
-                ? 'bg-[#C08B5C]/10 border-[#C08B5C]/25 text-[#D4A27F]'
-                : 'bg-white/[0.03] border-white/[0.06] text-white/45 hover:bg-white/[0.05]'
+                ? 'bg-[#C08B5C] border-[#C08B5C] text-[#0C0C0E] shadow-sm'
+                : 'bg-[#0C0C0E] border-white/[0.1] text-white/50 hover:border-white/[0.2] hover:text-white/80'
         )}
     >
         {label}
@@ -138,7 +139,7 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
 
     const fmtCurrency = (v: string) => { const n = parseInt(v.replace(/,/g, '')); return isNaN(n) ? '' : n.toLocaleString(); };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setIsSaving(true);
         if (strategy) setDefaultStrategy(strategy);
         setBudgetRange(parseInt(minBudget.replace(/,/g, '')), parseInt(maxBudget.replace(/,/g, '')));
@@ -152,111 +153,193 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
         propertyTypes.forEach(t => { if (!curTypes.includes(t)) togglePropertyType(t); });
         curTypes.forEach(t => { if (!propertyTypes.includes(t)) togglePropertyType(t); });
 
-        setFinancialDna({
+        const financialDnaPayload = {
             down_payment_pct: parseFloat(downPayment) / 100, interest_rate_annual: parseFloat(interestRate) / 100,
             loan_term_years: parseInt(loanTerm), property_management_pct: parseFloat(mgmtFee) / 100,
             maintenance_pct: parseFloat(maintenance) / 100, capex_reserve_pct: parseFloat(capex) / 100,
             vacancy_rate_pct: parseFloat(vacancy) / 100, closing_cost_pct: parseFloat(closingCost) / 100,
-        });
+        };
+        setFinancialDna(financialDnaPayload);
 
-        setInvestmentCriteria({
+        const investmentGoalsPayload = {
             min_cash_flow: parseInt(minCashFlow), min_coc_pct: parseFloat(minCoC) / 100,
             min_cap_rate_pct: parseFloat(minCapRate) / 100, max_rehab_cost: parseInt(maxRehab),
-        });
+        };
+        setInvestmentCriteria(investmentGoalsPayload);
+
+        // Sync to backend Redis + PostgreSQL for agent use
+        try {
+            const apiBase = import.meta.env.VITE_DATALAYER_API_URL || 'http://localhost:8001';
+            const apiKey = import.meta.env.VITE_API_KEY;
+            const userId = usePreferencesStore.getState().user_id;
+            await fetch(`${apiBase}/api/investment-criteria/sync`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': userId || 'default',
+                    ...(apiKey ? { 'X-API-Key': apiKey } : {}),
+                },
+                body: JSON.stringify({
+                    strategy: strategy,
+                    budget_min: parseInt(minBudget.replace(/,/g, '')) || undefined,
+                    budget_max: parseInt(maxBudget.replace(/,/g, '')) || undefined,
+                    favorite_markets: markets,
+                    preferred_bedrooms: bedrooms === 'any' ? null : parseInt(bedrooms),
+                    preferred_property_types: propertyTypes,
+                    financial_dna: financialDnaPayload,
+                    investment_goals: investmentGoalsPayload,
+                }),
+            });
+        } catch (err) {
+            console.error('[InvestmentPreferences] Criteria sync failed (non-blocking):', err);
+        }
 
         setTimeout(() => { setIsSaving(false); setShowSuccess(true); setTimeout(() => setShowSuccess(false), 2000); }, 500);
     };
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
+        <div className="h-full flex flex-col bg-[#0C0C0E]">
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
-                <button onClick={onBack} className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
-                    <ArrowLeft className="w-4 h-4 text-white/60" />
+            <header className="flex items-center gap-4 px-8 py-6 border-b border-white/[0.08] bg-[#0C0C0E]/80 backdrop-blur-md sticky top-0 z-20">
+                <button
+                    onClick={onBack}
+                    className="w-8 h-8 rounded bg-transparent hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                >
+                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-semibold text-white/90">Investment Preferences</h1>
-                    <p className="text-[11px] text-white/35">Buy box, strategy, and criteria</p>
+                    <h1 className="text-xl font-display font-semibold text-white tracking-tight">Investment Preferences</h1>
                 </div>
+
+                {/* Save Button */}
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all flex items-center gap-1.5 ${
-                        showSuccess
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                            : 'bg-[#C08B5C] text-white hover:bg-[#A8734A]'
-                    }`}
+                    className={`px-4 py-2 rounded text-xs font-semibold transition-all flex items-center gap-2 ${showSuccess
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-[#C08B5C] text-[#0C0C0E] hover:bg-[#D4A27F] shadow-lg shadow-[#C08B5C]/20'
+                        }`}
                 >
-                    {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> :
-                     showSuccess ? <><Check className="w-3 h-3" /> Saved</> :
-                     <><Save className="w-3 h-3" /> Save</>}
+                    {isSaving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : showSuccess ? (
+                        <>
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Saved</span>
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Save Criteria</span>
+                        </>
+                    )}
                 </button>
-            </div>
+            </header>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="max-w-3xl mx-auto space-y-4">
-                    {/* Strategy */}
-                    <Section icon={TrendingUp} title="Investment Strategy" subtitle="Primary approach">
-                        <div className="grid grid-cols-3 gap-2">
+            <div className="flex-1 overflow-y-auto">
+                <div className="max-w-3xl mx-auto px-8 py-10 space-y-6">
+
+                    {/* Strategy Selection */}
+                    <Section icon={TrendingUp} title="Investment Strategy" subtitle="Select your primary investment approach">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {[
-                                { v: 'STR', l: 'Short-Term Rental', d: 'Airbnb, VRBO' },
-                                { v: 'LTR', l: 'Long-Term Rental', d: 'Traditional lease' },
-                                { v: 'FLIP', l: 'Fix & Flip', d: 'Buy, renovate, sell' },
+                                { v: 'STR', l: 'Short-Term Rental', d: 'Airbnb / VRBO' },
+                                { v: 'LTR', l: 'Long-Term Rental', d: 'Traditional Lease' },
+                                { v: 'FLIP', l: 'Fix & Flip', d: 'Renovate & Resell' },
                             ].map(s => (
                                 <button
                                     key={s.v}
                                     onClick={() => setStrategy(s.v as 'STR' | 'LTR' | 'FLIP')}
                                     className={cn(
-                                        'p-3 rounded-lg text-left border-2 transition-all',
+                                        'p-4 rounded text-left border transition-all duration-200 relative overflow-hidden group',
                                         strategy === s.v
-                                            ? 'border-[#C08B5C] bg-[#C08B5C]/10'
-                                            : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                                            ? 'bg-[#C08B5C] border-[#C08B5C] shadow-lg shadow-[#C08B5C]/10'
+                                            : 'bg-[#0C0C0E] border-white/[0.1] hover:border-white/[0.2]'
                                     )}
                                 >
-                                    <div className={`text-[12px] font-semibold mb-0.5 ${strategy === s.v ? 'text-[#D4A27F]' : 'text-white/70'}`}>{s.l}</div>
-                                    <div className="text-[10px] text-white/35">{s.d}</div>
+                                    <div className={cn("text-xs font-bold mb-1 font-display tracking-wide uppercase", strategy === s.v ? "text-[#0C0C0E]" : "text-white/80")}>
+                                        {s.l}
+                                    </div>
+                                    <div className={cn("text-[10px] font-sans", strategy === s.v ? "text-[#0C0C0E]/70" : "text-white/40")}>
+                                        {s.d}
+                                    </div>
+                                    {strategy === s.v && (
+                                        <div className="absolute top-2 right-2">
+                                            <Check className="w-3 h-3 text-[#0C0C0E]" />
+                                        </div>
+                                    )}
                                 </button>
                             ))}
                         </div>
                     </Section>
 
-                    {/* Budget */}
-                    <Section icon={DollarSign} title="Budget Range" subtitle="Target price range">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Minimum</label>
-                                <div className="relative">
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">$</span>
-                                    <input type="text" value={fmtCurrency(minBudget)} onChange={(e) => setMinBudget(e.target.value.replace(/,/g, ''))}
-                                        className="w-full pl-6 pr-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[13px] text-white/80 focus:outline-none focus:border-[#C08B5C]/30" />
+                    {/* Budget & Markets Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Budget */}
+                        <Section icon={DollarSign} title="Budget Range" subtitle="Target acquisition price">
+                            <div className="space-y-4">
+                                <InputField label="Minimum Price" value={fmtCurrency(minBudget)} onChange={(v) => setMinBudget(v.replace(/,/g, ''))} prefix="$" />
+                                <InputField label="Maximum Price" value={fmtCurrency(maxBudget)} onChange={(v) => setMaxBudget(v.replace(/,/g, ''))} prefix="$" />
+                            </div>
+                        </Section>
+
+                        {/* Markets */}
+                        <Section icon={MapPin} title="Target Markets" subtitle={`${markets.length}/10 selected`}>
+                            <div className="space-y-3">
+                                <div className="relative group">
+                                    <input
+                                        type="text" value={marketSearch}
+                                        onChange={(e) => { setMarketSearch(e.target.value); setShowDropdown(true); }}
+                                        onFocus={() => setShowDropdown(true)}
+                                        placeholder="Add a city..."
+                                        disabled={markets.length >= 10}
+                                        className="w-full px-3 py-2.5 pr-8 rounded bg-[#0C0C0E] border border-white/[0.1] text-sm font-sans text-white placeholder-white/20 focus:outline-none focus:border-[#C08B5C]/50 transition-colors"
+                                    />
+                                    <Plus className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-hover:text-white/40 transition-colors" />
+
+                                    {showDropdown && marketSearch && filteredMarkets.length > 0 && (
+                                        <div className="absolute top-full mt-1 w-full max-h-48 overflow-y-auto bg-[#1e1e24] border border-white/[0.1] rounded shadow-2xl z-20">
+                                            {filteredMarkets.slice(0, 8).map(m => (
+                                                <button key={m} onClick={() => { setMarkets([...markets, m]); setMarketSearch(''); setShowDropdown(false); }}
+                                                    className="w-full px-4 py-2.5 text-left text-xs font-sans text-white/70 hover:bg-white/[0.05] hover:text-white transition-colors border-b border-white/[0.02] last:border-0">
+                                                    {m}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {markets.map(m => (
+                                        <div key={m} className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded bg-white/[0.05] border border-white/[0.05] group hover:border-white/[0.1] transition-colors">
+                                            <span className="text-[11px] font-sans text-white/70">{m}</span>
+                                            <button onClick={() => setMarkets(markets.filter(x => x !== m))} className="p-0.5 hover:bg-white/[0.1] rounded transition-colors text-white/30 hover:text-white/50">
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {markets.length === 0 && (
+                                        <span className="text-[11px] font-sans text-white/30 italic px-1">No markets selected</span>
+                                    )}
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Maximum</label>
-                                <div className="relative">
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-white/35">$</span>
-                                    <input type="text" value={fmtCurrency(maxBudget)} onChange={(e) => setMaxBudget(e.target.value.replace(/,/g, ''))}
-                                        className="w-full pl-6 pr-3 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[13px] text-white/80 focus:outline-none focus:border-[#C08B5C]/30" />
-                                </div>
-                            </div>
-                        </div>
-                    </Section>
+                        </Section>
+                    </div>
 
                     {/* Property Criteria */}
-                    <Section icon={Home} title="Property Criteria" subtitle="Type and bedroom count">
-                        <div className="space-y-3">
+                    <Section icon={Home} title="Property Criteria" subtitle="Physical characteristics">
+                        <div className="space-y-5">
                             <div>
-                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Bedrooms</label>
-                                <div className="grid grid-cols-6 gap-1.5">
+                                <label className="block text-xs font-medium font-sans text-white/40 mb-2">Bedroom Count</label>
+                                <div className="flex flex-wrap gap-2">
                                     {['any', '1', '2', '3', '4', '5+'].map(b => (
-                                        <Chip key={b} label={b} selected={bedrooms === b} onClick={() => setBedrooms(b)} />
+                                        <Chip key={b} label={b === 'any' ? 'Any' : `${b}+ Beds`} selected={bedrooms === b} onClick={() => setBedrooms(b)} />
                                     ))}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[11px] font-medium text-white/40 mb-1.5">Property Types</label>
-                                <div className="flex flex-wrap gap-1.5">
+                                <label className="block text-xs font-medium font-sans text-white/40 mb-2">Property Types</label>
+                                <div className="flex flex-wrap gap-2">
                                     {PROPERTY_TYPES.map(t => (
                                         <Chip key={t} label={t} selected={propertyTypes.includes(t)}
                                             onClick={() => setPropertyTypes(propertyTypes.includes(t) ? propertyTypes.filter(x => x !== t) : [...propertyTypes, t])} />
@@ -266,68 +349,32 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                         </div>
                     </Section>
 
-                    {/* Markets */}
-                    <Section icon={MapPin} title="Favorite Markets" subtitle={`${markets.length}/10 cities`}>
-                        <div className="space-y-2">
-                            <div className="relative">
-                                <input
-                                    type="text" value={marketSearch}
-                                    onChange={(e) => { setMarketSearch(e.target.value); setShowDropdown(true); }}
-                                    onFocus={() => setShowDropdown(true)}
-                                    placeholder="Search cities..."
-                                    disabled={markets.length >= 10}
-                                    className="w-full px-3 py-2 pr-8 rounded-lg bg-white/[0.05] border border-white/[0.08] text-[12px] text-white/80 placeholder-white/25 focus:outline-none focus:border-[#C08B5C]/30"
-                                />
-                                <Plus className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25" />
-                                {showDropdown && marketSearch && filteredMarkets.length > 0 && (
-                                    <div className="absolute top-full mt-1 w-full max-h-44 overflow-y-auto bg-[#1e1e24] border border-white/[0.08] rounded-lg shadow-2xl z-10">
-                                        {filteredMarkets.slice(0, 8).map(m => (
-                                            <button key={m} onClick={() => { setMarkets([...markets, m]); setMarketSearch(''); setShowDropdown(false); }}
-                                                className="w-full px-3 py-2 text-left text-[12px] text-white/65 hover:bg-white/[0.05] transition-colors">
-                                                {m}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            {markets.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5">
-                                    {markets.map(m => (
-                                        <div key={m} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#C08B5C]/10 border border-[#C08B5C]/20">
-                                            <span className="text-[11px] text-[#D4A27F]">{m}</span>
-                                            <button onClick={() => setMarkets(markets.filter(x => x !== m))} className="p-0.5 hover:bg-[#C08B5C]/15 rounded transition-colors">
-                                                <X className="w-3 h-3 text-[#D4A27F]" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </Section>
-
-                    {/* Financial Assumptions */}
-                    <Section icon={Building2} title="Financial Assumptions" subtitle="Default underwriting parameters">
-                        <div className="grid grid-cols-2 gap-3">
+                    {/* Financial DNA */}
+                    <Section icon={Building2} title="Financial DNA" subtitle="Underwriting assumptions for analysis">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <InputField label="Down Payment" value={downPayment} onChange={setDownPayment} suffix="%" />
                             <InputField label="Interest Rate" value={interestRate} onChange={setInterestRate} suffix="%" />
                             <InputField label="Loan Term" value={loanTerm} onChange={setLoanTerm} suffix="yrs" />
-                            <InputField label="Property Mgmt" value={mgmtFee} onChange={setMgmtFee} suffix="%" />
+                            <InputField label="Closing Costs" value={closingCost} onChange={setClosingCost} suffix="%" />
+                            <InputField label="Management Fee" value={mgmtFee} onChange={setMgmtFee} suffix="%" />
                             <InputField label="Maintenance" value={maintenance} onChange={setMaintenance} suffix="%" />
                             <InputField label="CapEx Reserve" value={capex} onChange={setCapex} suffix="%" />
                             <InputField label="Vacancy Rate" value={vacancy} onChange={setVacancy} suffix="%" />
-                            <InputField label="Closing Costs" value={closingCost} onChange={setClosingCost} suffix="%" />
                         </div>
                     </Section>
 
                     {/* Investment Goals */}
-                    <Section icon={Target} title="Investment Goals" subtitle="Minimum acceptable returns">
-                        <div className="grid grid-cols-2 gap-3">
-                            <InputField label="Min Monthly Cash Flow" value={minCashFlow} onChange={setMinCashFlow} prefix="$" />
+                    <Section icon={Target} title="Investment Goals" subtitle="Minimum return requirements">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <InputField label="Min Cash Flow" value={minCashFlow} onChange={setMinCashFlow} prefix="$" />
                             <InputField label="Min Cash-on-Cash" value={minCoC} onChange={setMinCoC} suffix="%" />
                             <InputField label="Min Cap Rate" value={minCapRate} onChange={setMinCapRate} suffix="%" />
                             <InputField label="Max Rehab Budget" value={maxRehab} onChange={setMaxRehab} prefix="$" />
                         </div>
                     </Section>
+
+                    {/* Bottom Spacer */}
+                    <div className="h-4" />
                 </div>
             </div>
         </div>

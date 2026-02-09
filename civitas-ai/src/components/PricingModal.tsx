@@ -60,11 +60,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                             <ul className="space-y-3 mb-6">
                                 <li className="flex items-start gap-2">
                                     <Check className="w-5 h-5 text-white/40 flex-shrink-0 mt-0.5" />
-                                    <span className="text-sm text-white/70">1 property query per month</span>
+                                    <span className="text-sm text-white/70">2 property analyses / month</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <Check className="w-5 h-5 text-white/40 flex-shrink-0 mt-0.5" />
-                                    <span className="text-sm text-white/70">Basic yield report</span>
+                                    <span className="text-sm text-white/70">2 reports / month</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <Check className="w-5 h-5 text-white/40 flex-shrink-0 mt-0.5" />

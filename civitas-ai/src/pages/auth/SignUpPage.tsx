@@ -14,8 +14,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     phone: '',
   });
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
@@ -43,6 +45,12 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     }
+    if (!formData.password || formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    if (!acceptTerms) {
+      newErrors.terms = 'You must accept the Terms of Service and Privacy Policy';
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -52,10 +60,23 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
     setIsLoading(true);
 
     try {
-      // For now, simulate signup - in production this would call your API
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+
+      // Call backend signup API so user is persisted in the database
+      const response = await authAPI.signUp({
+        email: formData.email,
+        password: formData.password,
+        name: fullName,
+        accept_terms: true,
+      });
+
+      // Store token
+      if (response.token) {
+        localStorage.setItem('civitas-token', response.token);
+      }
+
       const userData = {
-        id: Date.now().toString(),
+        id: response.user.user_id,
         name: fullName,
         email: formData.email,
         avatar: `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase(),
@@ -97,87 +118,55 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: '#F1F5F9' }}>
-      <div className="w-full max-w-[520px]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#0C0C0E]">
+      <div className="w-full max-w-[480px]">
         {/* Back to Home Button */}
         {onNavigateToLanding && (
           <button
             onClick={onNavigateToLanding}
-            className="flex items-center gap-2 mb-6 transition-all"
-            style={{ color: '#475569' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#A8734A';
-              e.currentTarget.style.transform = 'translateX(-4px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#475569';
-              e.currentTarget.style.transform = 'translateX(0)';
-            }}
+            className="group flex items-center gap-2 mb-8 text-white/40 hover:text-[#C08B5C] transition-colors font-sans"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="font-medium text-sm">Back to Home</span>
+            <span className="font-medium text-sm tracking-tight">Back to Home</span>
           </button>
         )}
 
         {/* Main Auth Card */}
-        <div className="rounded-2xl p-10" style={{
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)'
-        }}>
+        <div className="rounded-2xl p-8 md:p-10 bg-[#161618] border border-white/[0.08] shadow-2xl">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <div className="absolute top-8 left-8">
-              <Logo />
-            </div>
+          <div className="flex justify-center mb-8">
+            <Logo variant="light" className="w-10 h-10" />
           </div>
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: '#18181c' }}>
+            <h1 className="text-3xl font-display font-bold text-[#FBF9F7] mb-3 tracking-tight">
               Start your journey
             </h1>
-            <p className="text-sm" style={{ color: '#64748B' }}>
+            <p className="text-white/50 font-sans text-[15px]">
               Join thousands making smarter rental investments
             </p>
           </div>
 
           {/* Error Message */}
           {errors.general && (
-            <div className="mb-6 p-3 rounded-lg text-sm" style={{
-              backgroundColor: '#FEF2F2',
-              border: '1px solid #FEE2E2',
-              color: '#DC2626'
-            }}>
+            <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-sans flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 block" />
               {errors.general}
             </div>
           )}
 
           {/* OAuth Buttons - Side by side */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-8">
             {/* Apple Button */}
             <button
               onClick={handleAppleSignUp}
               disabled={isAppleLoading}
-              className="h-12 rounded-lg font-medium flex items-center justify-center transition-all disabled:opacity-50"
-              style={{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                color: '#18181c',
-              }}
-              onMouseEnter={(e) => {
-                if (!isAppleLoading) {
-                  e.currentTarget.style.backgroundColor = '#F1F5F9';
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#F8FAFC';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
+              className="h-12 rounded-xl font-sans font-medium flex items-center justify-center transition-all disabled:opacity-50 bg-[#1A1A1C] hover:bg-[#222224] border border-white/[0.08] text-[#FBF9F7] focus:ring-2 focus:ring-[#C08B5C]/20 outline-none"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
               </svg>
             </button>
@@ -186,22 +175,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
             <button
               onClick={handleGoogleSignUp}
               disabled={isGoogleLoading}
-              className="h-12 rounded-lg font-medium flex items-center justify-center transition-all disabled:opacity-50"
-              style={{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                color: '#18181c',
-              }}
-              onMouseEnter={(e) => {
-                if (!isGoogleLoading) {
-                  e.currentTarget.style.backgroundColor = '#F1F5F9';
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#F8FAFC';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
+              className="h-12 rounded-xl font-sans font-medium flex items-center justify-center transition-all disabled:opacity-50 bg-[#1A1A1C] hover:bg-[#222224] border border-white/[0.08] text-[#FBF9F7] focus:ring-2 focus:ring-[#C08B5C]/20 outline-none"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -213,15 +187,12 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
           </div>
 
           {/* Divider */}
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" style={{ borderColor: '#E2E8F0' }}></div>
+              <div className="w-full border-t border-white/[0.08]"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3" style={{
-                backgroundColor: '#FFFFFF',
-                color: '#64748B'
-              }}>or</span>
+            <div className="relative flex justify-center text-xs uppercase tracking-wider font-mono">
+              <span className="px-3 bg-[#161618] text-white/30">or continue with email</span>
             </div>
           </div>
 
@@ -230,8 +201,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
             {/* First and Last Name */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
-                  First name <span style={{ color: '#DC2626' }}>*</span>
+                <label htmlFor="firstName" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                  First name <span className="text-red-500/80">*</span>
                 </label>
                 <input
                   id="firstName"
@@ -239,28 +210,16 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   placeholder="First name"
-                  className="w-full px-3 py-2.5 rounded-lg text-sm focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: errors.firstName ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                    color: '#18181c',
-                  }}
-                  onFocus={(e) => {
-                    if (!errors.firstName) {
-                      e.currentTarget.style.borderColor = '#A8734A';
-                      e.currentTarget.style.backgroundColor = '#FFFFFF';
-                    }
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = errors.firstName ? '#DC2626' : '#E2E8F0';
-                    e.currentTarget.style.backgroundColor = '#F8FAFC';
-                  }}
+                  className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.firstName
+                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                    }`}
                 />
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
-                  Last name <span style={{ color: '#DC2626' }}>*</span>
+                <label htmlFor="lastName" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                  Last name <span className="text-red-500/80">*</span>
                 </label>
                 <input
                   id="lastName"
@@ -268,30 +227,18 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   placeholder="Last name"
-                  className="w-full px-3 py-2.5 rounded-lg text-sm focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: errors.lastName ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                    color: '#18181c',
-                  }}
-                  onFocus={(e) => {
-                    if (!errors.lastName) {
-                      e.currentTarget.style.borderColor = '#A8734A';
-                      e.currentTarget.style.backgroundColor = '#FFFFFF';
-                    }
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = errors.lastName ? '#DC2626' : '#E2E8F0';
-                    e.currentTarget.style.backgroundColor = '#F8FAFC';
-                  }}
+                  className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.lastName
+                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                    }`}
                 />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
-                Email address <span style={{ color: '#DC2626' }}>*</span>
+              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                Email address <span className="text-red-500/80">*</span>
               </label>
               <input
                 id="email"
@@ -299,47 +246,40 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="Enter your email address"
-                className="w-full px-3 py-2.5 rounded-lg text-sm focus:outline-none transition-all"
-                style={{
-                  backgroundColor: '#F8FAFC',
-                  border: errors.email ? '1px solid #DC2626' : '1px solid #E2E8F0',
-                  color: '#18181c',
-                }}
-                onFocus={(e) => {
-                  if (!errors.email) {
-                    e.currentTarget.style.borderColor = '#A8734A';
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  }
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = errors.email ? '#DC2626' : '#E2E8F0';
-                  e.currentTarget.style.backgroundColor = '#F8FAFC';
-                }}
+                className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.email
+                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                    : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                  }`}
               />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                Password <span className="text-red-500/80">*</span>
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                placeholder="At least 8 characters"
+                className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.password
+                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                    : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                  }`}
+              />
+              {errors.password && <p className="mt-1 text-xs text-red-400 font-sans">{errors.password}</p>}
             </div>
 
             {/* Phone */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
-                Phone number <span className="font-normal" style={{ color: '#94A3B8' }}>(optional)</span>
+              <label htmlFor="phone" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                Phone number <span className="font-normal text-white/30">(optional)</span>
               </label>
               <div className="flex gap-2">
                 <select
-                  className="px-3 py-2.5 rounded-lg text-sm focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    color: '#18181c',
-                    width: '80px',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#A8734A';
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#E2E8F0';
-                    e.currentTarget.style.backgroundColor = '#F8FAFC';
-                  }}
+                  className="px-3 py-3 rounded-xl bg-[#1A1A1C] border border-white/[0.08] text-[#FBF9F7] text-sm focus:outline-none focus:border-[#C08B5C] focus:ring-1 focus:ring-[#C08B5C] transition-all font-sans w-20 appearance-none text-center"
                 >
                   <option value="US">US</option>
                   <option value="CA">CA</option>
@@ -352,56 +292,71 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+1 Enter your phone number"
-                  className="flex-1 px-3 py-2.5 rounded-lg text-sm focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    color: '#18181c',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#A8734A';
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#E2E8F0';
-                    e.currentTarget.style.backgroundColor = '#F8FAFC';
-                  }}
+                  className="flex-1 px-4 py-3 rounded-xl bg-[#1A1A1C] border border-white/[0.08] text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:border-[#C08B5C] focus:ring-1 focus:ring-[#C08B5C] transition-all font-sans text-[15px]"
                 />
               </div>
+            </div>
+
+            {/* Terms & Privacy Checkbox */}
+            <div className="mt-4">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => {
+                    setAcceptTerms(e.target.checked);
+                    if (errors.terms) setErrors((prev) => ({ ...prev, terms: '' }));
+                  }}
+                  className={`mt-1 w-4 h-4 rounded bg-[#1A1A1C] border cursor-pointer appearance-none checked:bg-[#C08B5C] checked:border-[#C08B5C] transition-colors relative flex-shrink-0
+                    ${errors.terms ? 'border-red-500/50' : 'border-white/[0.2] group-hover:border-white/[0.4]'}
+                  `}
+                  style={{
+                    backgroundImage: acceptTerms ? "url(\"data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e\")" : 'none'
+                  }}
+                />
+                <span className="text-xs leading-relaxed text-white/50 font-sans select-none">
+                  I agree to the{' '}
+                  <a
+                    href="/terms-of-service"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium text-[#C08B5C] hover:text-[#D4A27F] transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium text-[#C08B5C] hover:text-[#D4A27F] transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Privacy Policy
+                  </a>
+                </span>
+              </label>
+              {errors.terms && <p className="mt-1 text-xs text-red-400 font-sans ml-7">{errors.terms}</p>}
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-lg font-semibold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-              style={{
-                backgroundColor: '#18181c',
-                color: '#FFFFFF',
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.backgroundColor = '#111114';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#18181c';
-              }}
+              className="w-full h-12 rounded-xl font-semibold text-[15px] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 bg-[#C08B5C] hover:bg-[#D4A27F] text-[#0C0C0E] shadow-lg shadow-[#C08B5C]/10 font-sans"
             >
-              {isLoading ? 'Creating account...' : 'Continue'}
+              {isLoading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
         </div>
 
         {/* Sign In Link */}
-        <p className="text-center text-sm mt-6" style={{ color: '#64748B' }}>
+        <p className="text-center text-sm mt-8 text-white/40 font-sans">
           Already have an account?{' '}
           <button
             onClick={onNavigateToSignIn}
-            className="font-semibold transition-colors"
-            style={{ color: '#A8734A' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#0F766E'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#A8734A'}
+            className="font-semibold text-[#C08B5C] hover:text-[#D4A27F] transition-colors ml-1"
           >
             Sign in
           </button>

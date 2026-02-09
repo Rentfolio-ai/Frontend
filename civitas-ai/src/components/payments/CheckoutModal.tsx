@@ -207,7 +207,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
                             {/* ────── Terms ────── */}
                             <p className="text-[10px] text-center mt-4 text-white/25">
-                                By subscribing you agree to our Terms of Service and Privacy Policy. Cancel anytime.
+                                By subscribing you agree to our{' '}
+                                <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/40">Terms of Service</a>
+                                {' '}and{' '}
+                                <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/40">Privacy Policy</a>.
+                                {' '}Cancel anytime.
                             </p>
                         </>
                     )}

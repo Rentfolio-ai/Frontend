@@ -1,13 +1,12 @@
 // FILE: src/components/chat/InlineActionsBar.tsx
-// Renders structured inline actions returned by the suggest_actions tool.
-// Each action is a button that, when clicked, sends a tool call or message.
+// Cursor-style inline action chips — minimal, flat, monochrome.
+// Appear below AI responses as subtle follow-up suggestions.
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import {
   Search, TrendingUp, Calculator, FileText, Shield,
   BarChart3, Zap, Target, MapPin, Scale, Lightbulb,
-  ArrowRight
+  ArrowRight, ChevronRight, Settings
 } from 'lucide-react';
 import type { InlineAction } from '@/types/chat';
 
@@ -17,7 +16,7 @@ interface InlineActionsBarProps {
   context?: string;
 }
 
-// Map tool names to icons for visual recognition
+// Map tool names to icons
 const TOOL_ICON_MAP: Record<string, React.ReactNode> = {
   scan_market: <Search className="w-3.5 h-3.5" />,
   hunt_deals: <Target className="w-3.5 h-3.5" />,
@@ -30,7 +29,6 @@ const TOOL_ICON_MAP: Record<string, React.ReactNode> = {
   request_metrics_calculation: <Calculator className="w-3.5 h-3.5" />,
   calculate_rental_cash_flow: <Calculator className="w-3.5 h-3.5" />,
   generate_report: <FileText className="w-3.5 h-3.5" />,
-  generate_offer_strategy: <Zap className="w-3.5 h-3.5" />,
   portfolio_analyzer_tool: <Scale className="w-3.5 h-3.5" />,
   simulate_portfolio_scenarios: <BarChart3 className="w-3.5 h-3.5" />,
   web_search: <Search className="w-3.5 h-3.5" />,
@@ -43,61 +41,54 @@ const TOOL_ICON_MAP: Record<string, React.ReactNode> = {
   research_economic_drivers: <BarChart3 className="w-3.5 h-3.5" />,
   analyze_rental_demand_depth: <Search className="w-3.5 h-3.5" />,
   forecast_regulatory_changes: <FileText className="w-3.5 h-3.5" />,
-};
-
-// Style variants mapped from backend style field
-const STYLE_CLASSES: Record<string, string> = {
-  primary: 'bg-gradient-to-r from-[#C08B5C] to-[#A8734A] text-white shadow-lg shadow-[#C08B5C]/15 hover:from-[#D4A27F] hover:to-[#C08B5C] border-transparent',
-  secondary: 'bg-white/[0.06] text-white/70 border-white/[0.1] hover:bg-white/[0.1] hover:text-white/90',
-  danger: 'bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/15 hover:text-rose-300',
+  navigate_to_preferences: <Settings className="w-3.5 h-3.5" />,
+  navigate_to_upgrade: <Zap className="w-3.5 h-3.5" />,
 };
 
 export const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
   actions,
   onExecute,
-  context,
 }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   if (!actions || actions.length === 0) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: 0.1 }}
-      className="mt-3"
-    >
-      {/* Context label if provided */}
-      {context && (
-        <p className="text-[11px] text-white/30 font-medium mb-2 flex items-center gap-1.5">
-          <Zap className="w-3 h-3 text-[#C08B5C]/50" />
-          {context}
-        </p>
-      )}
+    <div className="mt-4 flex flex-wrap gap-2">
+      {actions.map((action, index) => {
+        const icon = TOOL_ICON_MAP[action.tool_name] || <ArrowRight className="w-3.5 h-3.5" />;
+        const isHovered = hoveredIndex === index;
 
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-1.5">
-        {actions.map((action, index) => {
-          const icon = TOOL_ICON_MAP[action.tool_name] || <ArrowRight className="w-3.5 h-3.5" />;
-          const styleClass = STYLE_CLASSES[action.style || 'secondary'] || STYLE_CLASSES.secondary;
-
-          return (
-            <motion.button
-              key={`${action.tool_name}-${index}`}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2, delay: 0.15 + index * 0.06 }}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => onExecute(action)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium
-                          border transition-all duration-200 ${styleClass}`}
-            >
+        return (
+          <button
+            key={`${action.tool_name}-${index}`}
+            onClick={() => onExecute(action)}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            className={`
+              group flex items-center gap-2 px-3 py-1.5
+              rounded-lg text-[13px]
+              border border-white/[0.08]
+              bg-white/[0.03]
+              text-zinc-400
+              hover:bg-white/[0.07] hover:text-zinc-200 hover:border-white/[0.15]
+              transition-all duration-150 ease-out
+              cursor-pointer
+            `}
+          >
+            <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors duration-150">
               {icon}
-              <span>{action.label}</span>
-            </motion.button>
-          );
-        })}
-      </div>
-    </motion.div>
+            </span>
+            <span>{action.label}</span>
+            <ChevronRight
+              className={`
+                w-3 h-3 text-zinc-600 transition-all duration-150
+                ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-1'}
+              `}
+            />
+          </button>
+        );
+      })}
+    </div>
   );
 };

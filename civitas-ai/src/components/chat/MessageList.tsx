@@ -38,6 +38,9 @@ interface MessageListProps {
   isWideMode?: boolean;
   onNavigateBranch?: (messageId: string, direction: 'prev' | 'next') => void;
   onSuggestionSelect?: (suggestion: string) => void;
+  onModeSwitch?: (mode: string, autoQuery?: string) => void;
+  onNavigateToPreferences?: () => void;
+  onNavigateToUpgrade?: () => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -64,6 +67,9 @@ export const MessageList: React.FC<MessageListProps> = ({
   isWideMode = false,
   onNavigateBranch,
   onSuggestionSelect,
+  onModeSwitch,
+  onNavigateToPreferences,
+  onNavigateToUpgrade,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -122,7 +128,10 @@ export const MessageList: React.FC<MessageListProps> = ({
       className="h-full overflow-y-auto chat-scroll relative"
       onScroll={handleScroll}
     >
-      <div className={`${isWideMode ? 'max-w-[95%]' : 'max-w-2xl'} mx-auto py-8 px-4 md:px-6 space-y-6 transition-all duration-300`}>
+      <div
+        className={`${isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto py-8 px-4 md:px-6 flex flex-col transition-all duration-300`}
+        style={{ gap: 'var(--chat-density, 24px)' }}
+      >
         {visibleMessages.map((message, index) => {
           const isLast = index === visibleMessages.length - 1;
           // Pass reasoning steps only to the last message if it's from assistant
@@ -147,6 +156,9 @@ export const MessageList: React.FC<MessageListProps> = ({
               onEdit={(content) => onEdit?.(message.id, content)}
               onNavigateBranch={onNavigateBranch}
               onSuggestionSelect={onSuggestionSelect}
+              onModeSwitch={onModeSwitch}
+              onNavigateToPreferences={onNavigateToPreferences}
+              onNavigateToUpgrade={onNavigateToUpgrade}
             />
           );
         })}

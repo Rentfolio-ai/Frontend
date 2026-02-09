@@ -61,22 +61,21 @@ class AnalyticsService {
       timestamp: new Date().toISOString(),
     };
 
-    // Send to backend (fire-and-forget; endpoint may not exist yet)
+    // Send to backend (fire-and-forget)
     try {
       const { API_BASE_URL: baseUrl, jsonHeaders: getHeaders } = await import('./apiConfig');
-      await fetch(`${baseUrl}/api/analytics/events`, {
+      const res = await fetch(`${baseUrl}/api/analytics/events`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(event),
       });
 
-      // Also log to console in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('📊 Analytics:', eventName, properties);
+      // Log in development only if successful
+      if (import.meta.env.DEV && res.ok) {
+        console.log('[Analytics]', eventName, properties);
       }
-    } catch (error) {
-      console.error('Analytics error:', error);
-      // Fail silently - don't impact user experience
+    } catch {
+      // Fail silently - analytics should never impact UX
     }
   }
 

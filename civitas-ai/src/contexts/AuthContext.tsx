@@ -37,15 +37,19 @@ interface AuthProviderProps {
 }
 
 // Helper to transform API user to app user format
-const transformUser = (apiUser: AuthResponse['user']): User => {
+const transformUser = (apiUser: any): User => {
+  // Handle both 'name' and 'full_name' keys from different API responses
+  const fullName: string = apiUser.name || apiUser.full_name || '';
+  const displayName = fullName || apiUser.email.split('@')[0];
+
   return {
     id: apiUser.user_id,
-    name: apiUser.name || apiUser.email.split('@')[0],
+    name: displayName,
     email: apiUser.email,
-    avatar: apiUser.name
-      ? apiUser.name
+    avatar: fullName
+      ? fullName
         .split(' ')
-        .map((n) => n[0])
+        .map((n: string) => n[0])
         .join('')
         .toUpperCase()
       : apiUser.email[0].toUpperCase(),

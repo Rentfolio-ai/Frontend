@@ -37,7 +37,7 @@ import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
 import { FilesPage } from '../components/files/FilesPage';
 import { SettingsPage } from '../components/pages/SettingsPage';
-import { HelpPage } from '../components/pages/HelpPage';
+import { HelpPopup } from '../components/help/HelpPopup';
 import { UpgradePage } from '../components/pages/UpgradePage';
 import { AboutPage } from '../components/pages/AboutPage';
 import { ProfilePage } from '../components/pages/ProfilePage';
@@ -45,7 +45,7 @@ import { NotificationsPage } from '../components/pages/NotificationsPage';
 import { AppearancePage } from '../components/pages/AppearancePage';
 import { LanguageRegionPage } from '../components/pages/LanguageRegionPage';
 import { InvestmentPreferencesPage } from '../components/pages/InvestmentPreferencesPage';
-import { ContactSupportPage } from '../components/pages/ContactSupportPage';
+// ContactSupportPage replaced by HelpPopup
 import { PrivacySecurityPage } from '../components/pages/PrivacySecurityPage';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
@@ -66,6 +66,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showHelpPopup, setShowHelpPopup] = useState(false);
 
   // Global ⌘K shortcut for search
   useEffect(() => {
@@ -132,6 +133,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Agent Mode
     currentMode,
     setCurrentMode,
+    // Voice mode
+    handleVoiceTurn,
+    handleVoiceStart,
   } = useDesktopShell();
 
   console.log('[DesktopShell] Render state:', {
@@ -292,7 +296,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         onAnalyticsClick={() => setActiveTab('portfolio')}
         onReportsClick={() => setActiveTab('reports')}
         onSettingsClick={() => setActiveTab('settings')}
-        onHelpClick={() => setActiveTab('help')}
+        onHelpClick={() => setShowHelpPopup(true)}
         onUpgradeClick={() => setActiveTab('upgrade')}
         onAboutClick={() => setActiveTab('about')}
         chatHistory={chatHistory}
@@ -340,6 +344,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   onToggleBookmark={handleToggleBookmark}
                   onNavigateToReports={handleNavigateToReportsAndRefresh}
                   onNavigateToInvestmentPreferences={() => setActiveTab('investment_preferences')}
+                  onNavigateToUpgrade={() => setActiveTab('billing')}
                   onOpenSidebar={() => setIsSidebarOpen(true)}
                   onNewChat={handleNewChat}
                   thinking={thinking}
@@ -371,6 +376,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   togglePanePin={togglePanePin}
                   currentMode={currentMode}
                   onModeChange={setCurrentMode}
+                  // Voice mode props
+                  onVoiceTurn={handleVoiceTurn}
+                  onVoiceStart={handleVoiceStart}
+                  conversationId={activeChatId || undefined}
                 />
               );
             })()}
@@ -427,19 +436,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 <PrivacySecurityPage onBack={() => setActiveTab('settings')} />
               </ErrorBoundary>
             )}
-            {activeTab === 'help' && (
-              <ErrorBoundary pageName="Help">
-                <HelpPage
-                  onBack={() => setActiveTab('chat')}
-                  onNavigateToContact={() => setActiveTab('contact_support')}
-                />
-              </ErrorBoundary>
-            )}
-            {activeTab === 'contact_support' && (
-              <ErrorBoundary pageName="Contact Support">
-                <ContactSupportPage onBack={() => setActiveTab('help')} />
-              </ErrorBoundary>
-            )}
+            {/* Help & Contact replaced by HelpPopup overlay */}
             {activeTab === 'upgrade' && (
               <ErrorBoundary pageName="Upgrade">
                 <UpgradePage onBack={() => setActiveTab('chat')} />
@@ -505,6 +502,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             setActiveTab('chat');
           }}
           activeChatId={activeChatId || ''}
+        />
+
+        {/* Help Popup */}
+        <HelpPopup
+          isOpen={showHelpPopup}
+          onClose={() => setShowHelpPopup(false)}
         />
 
         {/* Floating Search Button */}

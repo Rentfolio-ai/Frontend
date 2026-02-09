@@ -15,7 +15,7 @@ import type { ToolResultRecord } from '../types/toolResults';
 import { toolResultsToRecords, toolResultsToToolCards } from '../utils/toolResults';
 import { logger } from '../utils/logger';
 import { uploadFile } from '../services/fileStorage';
-import { parsePropertyQuery, isPropertyQuery as isPropertyQueryHelper } from '../utils/v2Helpers';
+import { parsePropertyQuery, parseChatQuery } from '../utils/v2Helpers';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
@@ -225,6 +225,9 @@ export function useDesktopShell() {
   const streamContentRef = useRef<string>('');
   const currentToolsRef = useRef<CompletedTool[]>([]);
   const inlineActionsRef = useRef<any[]>([]);
+
+  // --- Mode suggestion from AI (research/strategist → hunter switch) ---
+  const modeSuggestionRef = useRef<{ suggestedMode: string; reason: string; autoQuery: string } | null>(null);
 
   // --- Accumulated thinking trace (persisted to final message) ---
   const thinkingTraceRef = useRef<{ text: string; source: string }[]>([]);
@@ -516,6 +519,7 @@ export function useDesktopShell() {
     streamContentRef.current = '';
     currentToolsRef.current = [];
     inlineActionsRef.current = [];
+    modeSuggestionRef.current = null;
     thinkingTraceRef.current = [];
     thinkingStartTimeRef.current = Date.now();
     pendingFinalizationRef.current = null;
@@ -790,11 +794,45 @@ export function useDesktopShell() {
           setThinking(null);
         }
 
+        // Ensure the assistant message exists (research/strategist mode
+        // skips the `properties` event that normally creates it)
+        setMessages(prev => {
+          const exists = prev.some(m => m.id === messageId);
+          if (!exists) {
+            return [...prev, {
+              id: messageId,
+              content: '',
+              role: 'assistant',
+              type: 'assistant',
+              timestamp: new Date(),
+              isStreaming: true,
+            } as Message];
+          }
+          return prev;
+        });
+
         // Push into typewriter word buffer for smooth animation
         isStreamingRef.current = true;
         pushToWordBuffer(event.text || '');
         startDrainLoop(messageId);
         break;
+
+      // V2 Event: AI suggests switching modes (e.g. research → hunter)
+      case 'mode_suggestion': {
+        const suggestedMode = event.suggested_mode || 'hunter';
+        const reason = event.reason || 'Switch mode for better results.';
+        const autoQuery = event.auto_query || '';
+        
+        // Store the suggestion so the frontend can render a switch prompt
+        // We attach it as a special field on the current assistant message
+        modeSuggestionRef.current = { suggestedMode, reason, autoQuery };
+        
+        // Also inject a visible hint into the AI text stream
+        const switchHint = `\n\n---\n**Tip:** ${reason}\n`;
+        pushToWordBuffer(switchHint);
+        startDrainLoop(messageId);
+        break;
+      }
 
       // V2 Event: search complete
       case 'complete': {
@@ -817,18 +855,37 @@ export function useDesktopShell() {
           ? { steps: v2Steps, durationMs: v2Duration, toolsUsed: v2Tools }
           : undefined;
         const v2Content = streamContentRef.current;
+        const v2ModeSuggestion = modeSuggestionRef.current;
+        modeSuggestionRef.current = null; // Reset for next message
 
         pendingFinalizationRef.current = (mId: string) => {
-          setMessages(prev => prev.map(m =>
-            m.id === mId
-              ? {
-                  ...m,
-                  content: v2Content,
-                  isStreaming: false,
-                  ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
-                }
-              : m
-          ));
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === mId);
+            if (!exists) {
+              // Message was never created (e.g. research/strategist with all events in one chunk)
+              return [...prev, {
+                id: mId,
+                content: v2Content,
+                role: 'assistant',
+                type: 'assistant',
+                timestamp: new Date(),
+                isStreaming: false,
+                ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
+                ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
+              } as Message];
+            }
+            return prev.map(m =>
+              m.id === mId
+                ? {
+                    ...m,
+                    content: v2Content,
+                    isStreaming: false,
+                    ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
+                    ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
+                  }
+                : m
+            );
+          });
         };
 
         if (rafIdRef.current === null) {
@@ -859,8 +916,20 @@ export function useDesktopShell() {
       case 'thinking': {
         // V2 uses 'message' field, V1 uses 'status' field
         const thinkingStatus = event.status || event.message || 'Thinking';
-        console.log('🧠 [SSE] THINKING EVENT:', thinkingStatus, 'at', new Date().toLocaleTimeString());
+        console.log('🧠 [SSE] THINKING EVENT:', thinkingStatus, 'replace:', !!event.replace, 'at', new Date().toLocaleTimeString());
         
+        // If "replace" flag is set (V2 property search), update the status in-place
+        // instead of accumulating numbered steps. Skip trace too.
+        if (event.replace) {
+          setThinking(prev => ({
+            ...(prev || {}),
+            status: thinkingStatus,
+            explanation: event.explanation || prev?.explanation,
+            source: event.source || prev?.source || 'V2 Property Intelligence',
+          }));
+          break;
+        }
+
         // --- Persist to structured trace for post-response display ---
         const traceSource = event.source || event.tool || 'AI';
         const alreadyInTrace = thinkingTraceRef.current.some(s => s.text === thinkingStatus);
@@ -868,9 +937,7 @@ export function useDesktopShell() {
           thinkingTraceRef.current.push({ text: thinkingStatus, source: traceSource });
         }
 
-        // Accumulate ALL thinking events from every source into multi-line display.
-        // Previously only 'Agent Reasoning' accumulated — now every source does,
-        // so users see a growing numbered list of what the AI is doing.
+        // Accumulate thinking events into multi-line display (V1 agent flow).
         setThinking(prev => {
           if (prev && prev.status) {
             // Avoid duplicate lines
@@ -1148,7 +1215,7 @@ export function useDesktopShell() {
         });
         break;
     }
-  }, [activeChatId, updateThreadIdForChat]);
+  }, [activeChatId, currentMode, updateThreadIdForChat]);
 
   // Send message with SSE streaming
   const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }) => {
@@ -1157,17 +1224,8 @@ export function useDesktopShell() {
     const currentAttachment = attachment;
     const trimmedMessage = message.trim();
 
-    // 🔍 V2 ROUTING: Check if this is a property query
-    console.log('[useDesktopShell] 🔍 Analyzing message:', trimmedMessage);
-
-    const USE_V2_FOR_PROPERTIES = true;
-    const shouldUseV2 = USE_V2_FOR_PROPERTIES && isPropertyQueryHelper(trimmedMessage) && !currentAttachment;
-
-    if (shouldUseV2) {
-      console.log('[useDesktopShell] ✅ ✅ ✅ PROPERTY QUERY DETECTED! ROUTING TO V2! ✅ ✅ ✅');
-    } else {
-      console.log('[useDesktopShell] ℹ️  Not a property query or has attachment - routing to V1');
-    }
+    // All queries go through V2 (unless there's a file attachment which needs V1)
+    const shouldUseV2 = !currentAttachment;
 
     // Cancel any existing stream
     if (abortControllerRef.current) {
@@ -1212,22 +1270,25 @@ export function useDesktopShell() {
         interactionProfile,
         favoriteMarkets,
         financialDna,
-        clientLocation
+        clientLocation,
+        language
       } = usePreferencesStore.getState();
 
-      // Determine endpoint and payload based on query type
-      const endpoint = shouldUseV2
-        ? `${CIVITAS_API_BASE}/v2/property/search/stream`
-        : `${CIVITAS_API_BASE}/api/stream`;
+      // Determine endpoint and payload based on mode
+      let endpoint: string;
+      let requestBody: any;
 
-      const requestBody = shouldUseV2
-        ? parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation }, currentMode)
-        : {
+      if (!shouldUseV2) {
+        // V1 fallback (file attachment)
+        endpoint = `${CIVITAS_API_BASE}/api/stream`;
+        requestBody = {
           message: trimmedMessage,
           stream: true,
           thread_id: effectiveThreadId,
           mode: currentMode,
+          response_language: language && language !== 'en-US' ? language : undefined,
           user_preferences: {
+            user_id: user?.id || undefined,
             budget: budgetRange ? `up to $${budgetRange.max.toLocaleString()}` : undefined,
             strategy: defaultStrategy || undefined,
             dislikes: interactionProfile?.dislikes || [],
@@ -1236,20 +1297,39 @@ export function useDesktopShell() {
             client_location: clientLocation || undefined
           }
         };
+      } else if (currentMode === 'hunter') {
+        // Hunter mode → property search endpoint
+        endpoint = `${CIVITAS_API_BASE}/v2/property/search/stream`;
+        requestBody = parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation, language }, currentMode);
+      } else {
+        // Research / Strategist → chat endpoint
+        endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
+        requestBody = parseChatQuery(trimmedMessage, currentMode as 'research' | 'strategist', effectiveThreadId, language);
+      }
 
-      console.log(`[useDesktopShell] 📡 Calling ${shouldUseV2 ? 'V2' : 'V1'} endpoint:`, endpoint);
-      console.log('[useDesktopShell] 📦 Request body:', JSON.stringify(requestBody, null, 2));
+      console.log(`[useDesktopShell] Calling ${shouldUseV2 ? `V2 ${currentMode}` : 'V1'} endpoint:`, endpoint);
 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${CIVITAS_API_KEY}`,
-          'X-Api-Key': CIVITAS_API_KEY
+          'X-Api-Key': CIVITAS_API_KEY,
+          ...(user?.id ? { 'X-User-ID': user.id } : {}),
         },
         body: JSON.stringify(requestBody),
         signal: abortControllerRef.current?.signal
-      }); if (!response.ok) {
+      });
+      
+      if (!response.ok) {
+        // Parse plan enforcement 403 errors
+        if (response.status === 403) {
+          const { parseApiError } = await import('../utils/apiErrors');
+          const planErr = await parseApiError(response);
+          if (planErr) {
+            throw new Error(planErr.message);
+          }
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -1298,7 +1378,7 @@ export function useDesktopShell() {
         isStreaming: false,
       } as Message]);
     }
-  }, [currentThreadId, user, resetThinkingState, handleStreamEvent]);
+  }, [currentThreadId, currentMode, user, resetThinkingState, handleStreamEvent]);
 
   const handleRegenerate = useCallback((messageId: string) => {
     const messageIndex = messages.findIndex(m => m.id === messageId);
@@ -1695,6 +1775,22 @@ export function useDesktopShell() {
     updateThreadIdForChat(newId, null);
     setIsCurrentChatTemporary(false);
   };
+
+  // ── Voice mode helpers ──
+
+  /** Called when voice overlay opens — creates a fresh chat session for the voice conversation */
+  const handleVoiceStart = useCallback(() => {
+    handleNewChat();
+  }, [handleNewChat]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Called each time a voice turn (user or assistant) is transcribed */
+  const handleVoiceTurn = useCallback((role: 'user' | 'assistant', content: string) => {
+    if (!content.trim()) return;
+    const message: Message = role === 'user'
+      ? ChatService.createUserMessage(content)
+      : ChatService.createAssistantMessage(content);
+    setMessages(prev => [...prev, message]);
+  }, []);
 
   const handleLoadChat = (chatId: string) => {
     const chat = chatHistory.find(c => c.id === chatId);
@@ -2117,6 +2213,10 @@ export function useDesktopShell() {
     setIsCurrentChatTemporary,
     currentMode,
     setCurrentMode: handleModeChange,
+
+    // Voice mode
+    handleVoiceTurn,
+    handleVoiceStart,
 
     // Command Center
     commandCenter,

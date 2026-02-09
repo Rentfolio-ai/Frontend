@@ -54,112 +54,65 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: '#F1F5F9' }}>
-      <div className="w-full max-w-[520px]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#0C0C0E]">
+      <div className="w-full max-w-[480px]">
         {/* Back to Home Button */}
         {onNavigateToLanding && (
           <button
             onClick={onNavigateToLanding}
-            className="flex items-center gap-2 mb-6 transition-all"
-            style={{ color: '#475569' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#A8734A';
-              e.currentTarget.style.transform = 'translateX(-4px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#475569';
-              e.currentTarget.style.transform = 'translateX(0)';
-            }}
+            className="group flex items-center gap-2 mb-8 text-white/40 hover:text-[#C08B5C] transition-colors font-sans"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="font-medium text-sm">Back to Home</span>
+            <span className="font-medium text-sm tracking-tight">Back to Home</span>
           </button>
         )}
 
         {/* Main Auth Card */}
-        <div className="rounded-2xl p-10" style={{
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)'
-        }}>
+        <div className="rounded-2xl p-8 md:p-10 bg-[#161618] border border-white/[0.08] shadow-2xl">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <div className="absolute top-8 left-8">
-              <Logo />
-            </div>
+          <div className="flex justify-center mb-8">
+            <Logo variant="light" className="w-10 h-10" />
           </div>
 
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: '#18181c' }}>
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-display font-bold text-[#FBF9F7] mb-3 tracking-tight">
               Welcome back
             </h1>
-            <p className="text-sm" style={{ color: '#64748B' }}>
+            <p className="text-white/50 font-sans text-[15px]">
               Sign in to continue to Vasthu
             </p>
           </div>
 
           {/* Error Message */}
           {errors.general && (
-            <div className="mb-6 p-3 rounded-lg text-sm" style={{
-              backgroundColor: '#FEF2F2',
-              border: '1px solid #FEE2E2',
-              color: '#DC2626'
-            }}>
+            <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-sans flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 block" />
               {errors.general}
             </div>
           )}
 
-          {/* OAuth Buttons - Full width with labels */}
-          <div className="space-y-3 mb-6">
+          {/* OAuth Buttons */}
+          <div className="space-y-3 mb-8">
             {/* Apple Button */}
             <button
               onClick={handleAppleSignIn}
               disabled={isAppleLoading}
-              className="w-full h-12 rounded-lg font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-50"
-              style={{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                color: '#18181c',
-              }}
-              onMouseEnter={(e) => {
-                if (!isAppleLoading) {
-                  e.currentTarget.style.backgroundColor = '#F1F5F9';
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#F8FAFC';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
+              className="w-full h-12 rounded-xl font-sans font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-50 bg-[#1A1A1C] hover:bg-[#222224] border border-white/[0.08] text-[#FBF9F7] focus:ring-2 focus:ring-[#C08B5C]/20 outline-none"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
               </svg>
-              <span>Apple</span>
+              <span>Continue with Apple</span>
             </button>
 
             {/* Google Button */}
             <button
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
-              className="w-full h-12 rounded-lg font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-50"
-              style={{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                color: '#18181c',
-              }}
-              onMouseEnter={(e) => {
-                if (!isGoogleLoading) {
-                  e.currentTarget.style.backgroundColor = '#F1F5F9';
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#F8FAFC';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
+              className="w-full h-12 rounded-xl font-sans font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-50 bg-[#1A1A1C] hover:bg-[#222224] border border-white/[0.08] text-[#FBF9F7] focus:ring-2 focus:ring-[#C08B5C]/20 outline-none"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -167,20 +120,17 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              <span>Google</span>
+              <span>Continue with Google</span>
             </button>
           </div>
 
           {/* Divider */}
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" style={{ borderColor: '#E2E8F0' }}></div>
+              <div className="w-full border-t border-white/[0.08]"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3" style={{
-                backgroundColor: '#FFFFFF',
-                color: '#64748B'
-              }}>or</span>
+            <div className="relative flex justify-center text-xs uppercase tracking-wider font-mono">
+              <span className="px-3 bg-[#161618] text-white/30">or continue with</span>
             </div>
           </div>
 
@@ -188,68 +138,32 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
           {!showSSOInput ? (
             <button
               onClick={() => setShowSSOInput(true)}
-              className="w-full h-12 rounded-lg font-medium flex items-center justify-center gap-2 transition-all"
-              style={{
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                color: '#18181c',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#F1F5F9';
-                e.currentTarget.style.borderColor = '#CBD5E1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#F8FAFC';
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
+              className="w-full h-12 rounded-xl font-sans font-medium flex items-center justify-center gap-2 transition-all bg-transparent hover:bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] text-white/70"
             >
-              <Building2 className="w-5 h-5" />
-              <span>Sign in with SSO</span>
+              <Building2 className="w-5 h-5 opacity-70" />
+              <span>Use Single Sign-On (SSO)</span>
             </button>
           ) : (
             <form onSubmit={handleSSOSignIn} className="space-y-4">
               <div>
-                <label htmlFor="sso-email" className="block text-sm font-medium mb-2" style={{ color: '#111114' }}>
-                  Work email address
+                <label htmlFor="sso-email" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                  Work email
                 </label>
                 <input
                   id="sso-email"
                   type="email"
                   value={ssoEmail}
                   onChange={(e) => setSSOEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  className="w-full px-3 py-2.5 rounded-lg text-sm focus:outline-none transition-all"
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    color: '#18181c',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#A8734A';
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#E2E8F0';
-                    e.currentTarget.style.backgroundColor = '#F8FAFC';
-                  }}
+                  placeholder="name@company.com"
+                  className="w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border border-white/[0.08] text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:border-[#C08B5C] focus:ring-1 focus:ring-[#C08B5C] transition-all font-sans text-[15px]"
                   autoFocus
                 />
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 h-11 rounded-lg font-semibold text-sm transition-all"
-                  style={{
-                    backgroundColor: '#18181c',
-                    color: '#FFFFFF',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#111114';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#18181c';
-                  }}
+                  className="flex-1 h-11 rounded-xl font-semibold text-[15px] transition-all bg-[#C08B5C] hover:bg-[#D4A27F] text-[#0C0C0E] shadow-lg shadow-[#C08B5C]/10"
                 >
                   Continue
                 </button>
@@ -259,39 +173,25 @@ export const SignInPage: React.FC<SignInPageProps> = ({ onSignIn, onNavigateToSi
                     setShowSSOInput(false);
                     setSSOEmail('');
                   }}
-                  className="px-4 h-11 rounded-lg font-medium text-sm transition-all"
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    color: '#64748B',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F1F5F9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F8FAFC';
-                  }}
+                  className="px-6 h-11 rounded-xl font-medium text-[15px] transition-colors bg-transparent border border-white/[0.08] text-white/50 hover:text-white/80 hover:bg-white/[0.02]"
                 >
                   Cancel
                 </button>
               </div>
             </form>
           )}
-        </div>
 
-        {/* Sign Up Link */}
-        <p className="text-center text-sm mt-6" style={{ color: '#64748B' }}>
-          Don't have an account?{' '}
-          <button
-            onClick={onNavigateToSignUp}
-            className="font-semibold transition-colors"
-            style={{ color: '#A8734A' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#0F766E'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#A8734A'}
-          >
-            Sign up
-          </button>
-        </p>
+          {/* Sign Up Link */}
+          <p className="text-center text-sm mt-8 text-white/40 font-sans">
+            Don't have an account?{' '}
+            <button
+              onClick={onNavigateToSignUp}
+              className="font-semibold text-[#C08B5C] hover:text-[#D4A27F] transition-colors ml-1"
+            >
+              Sign up
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -27,10 +27,10 @@ interface ContactSupportPageProps {
 // ── Reason chips — what the user is filing about ──────────────────────────────
 
 const REASONS = [
-    { key: 'broken', label: 'Something is broken', icon: Bug, color: 'text-red-400', bg: 'bg-red-500/10' },
-    { key: 'bad_response', label: 'Bad AI response', icon: ThumbsDown, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { key: 'confusing', label: 'Confusing / hard to use', icon: Frown, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-    { key: 'other', label: 'Other feedback', icon: HelpCircle, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { key: 'broken', label: 'Something is broken', icon: Bug, color: 'text-white/70', bg: 'bg-white/[0.05]' },
+    { key: 'bad_response', label: 'Bad AI response', icon: ThumbsDown, color: 'text-white/70', bg: 'bg-white/[0.05]' },
+    { key: 'confusing', label: 'Confusing / hard to use', icon: Frown, color: 'text-white/70', bg: 'bg-white/[0.05]' },
+    { key: 'other', label: 'Other feedback', icon: HelpCircle, color: 'text-white/70', bg: 'bg-white/[0.05]' },
 ] as const;
 
 type ReasonKey = typeof REASONS[number]['key'];
@@ -88,7 +88,7 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
     };
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
+        <div className="h-full flex flex-col bg-[#0C0C0E]">
             {/* Header */}
             <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
                 <button
@@ -141,11 +141,10 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                                     <button
                                         key={r.key}
                                         onClick={() => setReason(r.key)}
-                                        className={`flex items-center gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
-                                            isActive
+                                        className={`flex items-center gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${isActive
                                                 ? 'border-[#C08B5C]/30 bg-[#C08B5C]/[0.06]'
                                                 : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
-                                        }`}
+                                            }`}
                                     >
                                         <div className={`w-8 h-8 rounded-lg ${r.bg} flex items-center justify-center flex-shrink-0`}>
                                             <Icon className={`w-4 h-4 ${r.color}`} />
@@ -170,10 +169,10 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                                     reason === 'broken'
                                         ? 'What happened? What were you trying to do?'
                                         : reason === 'bad_response'
-                                        ? 'What was wrong with the response? What did you expect?'
-                                        : reason === 'confusing'
-                                        ? 'What part was confusing? How can we make it clearer?'
-                                        : 'Share any feedback, questions, or suggestions...'
+                                            ? 'What was wrong with the response? What did you expect?'
+                                            : reason === 'confusing'
+                                                ? 'What part was confusing? How can we make it clearer?'
+                                                : 'Share any feedback, questions, or suggestions...'
                                 }
                                 rows={5}
                                 maxLength={5000}
@@ -197,11 +196,10 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                         <button
                             type="submit"
                             disabled={submitting || !message.trim()}
-                            className={`w-full py-2.5 rounded-xl text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${
-                                submitting || !message.trim()
+                            className={`w-full py-2.5 rounded-xl text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${submitting || !message.trim()
                                     ? 'bg-white/[0.06] text-white/30 cursor-not-allowed'
                                     : 'bg-[#C08B5C] text-white hover:bg-[#A8734A]'
-                            }`}
+                                }`}
                         >
                             {submitting ? (
                                 <>

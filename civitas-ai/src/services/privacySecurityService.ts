@@ -106,14 +106,14 @@ export const privacyService = {
         return res.json();
     },
 
-    /** Request account deletion (30-day grace period) */
-    deleteAccount: async (reason?: string): Promise<AccountDeletionResult> => {
+    /** Delete account. If immediate=true, deletes all data now. Otherwise 30-day grace period. */
+    deleteAccount: async (reason?: string, immediate = true): Promise<AccountDeletionResult> => {
         const res = await fetch(`${API_BASE_URL}/api/privacy/account`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ reason }),
+            body: JSON.stringify({ reason, immediate }),
         });
-        if (!res.ok) throw new Error('Failed to request account deletion');
+        if (!res.ok) throw new Error('Failed to delete account');
         return res.json();
     },
 

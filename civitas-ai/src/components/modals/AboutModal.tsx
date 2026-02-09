@@ -50,12 +50,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                         <LinkItem
                             icon={FileText}
                             label="Terms of Service"
-                            href="/terms"
+                            href="/terms-of-service"
                         />
                         <LinkItem
                             icon={Shield}
                             label="Privacy Policy"
-                            href="/privacy"
+                            href="/privacy-policy"
                         />
                         <LinkItem
                             icon={Book}

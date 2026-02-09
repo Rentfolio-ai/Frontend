@@ -71,7 +71,9 @@ export interface Action {
 export interface InlineAction {
   label: string;
   tool_name: string;
-  arguments: any;
+  arguments?: any;
+  query?: string;  // Pre-built contextual query (sent instead of label when clicked)
+  target_mode?: 'hunter' | 'research' | 'strategist';  // Mode to switch to before executing
   style?: 'primary' | 'secondary' | 'danger';
 }
 
@@ -97,6 +99,12 @@ export interface Message {
     steps: { text: string; source: string }[];
     durationMs: number;
     toolsUsed: string[];
+  };
+  /** Mode switch suggestion from AI (e.g. research → hunter) */
+  modeSuggestion?: {
+    suggestedMode: string;
+    reason: string;
+    autoQuery: string;
   };
   data?: {
     presentation?: PresentationBundle;

@@ -1,4 +1,9 @@
 // FILE: src/hooks/useThemeState.ts
+//
+// State theme colors (visual accent per US state).
+// Theme toggling is now handled by useAppearance hook.
+// This hook is kept for backward compatibility with state-based color theming.
+
 import { useState, useEffect } from 'react';
 
 // State theme colors
@@ -19,20 +24,12 @@ const DEFAULT_THEME = { primary: '#3b82f6', secondary: '#2563eb', gradient: 'lin
 export type StateTheme = keyof typeof STATE_THEMES;
 
 export function useThemeState() {
-  const [theme] = useState<'light' | 'dark'>('light'); // Force light theme
-
   const [selectedState, setSelectedState] = useState<string>(() => {
-    const saved = typeof window !== 'undefined' 
-      ? window.localStorage.getItem('civitas-selected-state') 
+    const saved = typeof window !== 'undefined'
+      ? window.localStorage.getItem('civitas-selected-state')
       : null;
     return saved || '';
   });
-
-  useEffect(() => {
-    // Always remove dark class for light theme
-    document.documentElement.classList.remove('dark');
-    window.localStorage.setItem('civitas-theme', 'light');
-  }, [theme]);
 
   useEffect(() => {
     if (selectedState) {
@@ -45,7 +42,6 @@ export function useThemeState() {
     : DEFAULT_THEME;
 
   return {
-    theme,
     selectedState,
     setSelectedState,
     currentTheme,

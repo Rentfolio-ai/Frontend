@@ -666,6 +666,19 @@ export interface AnalyzePropertyImageOutput {
   // Recommendations
   recommendations?: VisionRecommendation[];
 
+  // Investment Metrics (comprehensive analysis)
+  investment_metrics?: {
+    deal_score: number;
+    value_add_potential_pct: string;
+    rental_premium_pct: string;
+    brrrr_viability: 'yes' | 'maybe' | 'no';
+    brrrr_reasoning: string;
+    risk_level: 'low' | 'medium' | 'high';
+    risk_factors: string[];
+    recommended_strategy: 'buy-and-hold' | 'flip' | 'brrrr' | 'pass';
+    strategy_reasoning: string;
+  };
+
   // Narrative Summary
   summary: string;
 

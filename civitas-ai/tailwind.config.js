@@ -64,7 +64,9 @@ export default {
         highlight: "hsl(var(--highlight))",
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       fontSize: {
         'h1': ['2.25rem', { lineHeight: '2.5rem', fontWeight: '700', letterSpacing: '-0.025em' }],
@@ -132,11 +134,11 @@ export default {
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         pulseGlow: {
-          '0%, 100%': { 
+          '0%, 100%': {
             boxShadow: '0 0 20px hsl(var(--primary) / 0.2)',
             opacity: '1'
           },
-          '50%': { 
+          '50%': {
             boxShadow: '0 0 40px hsl(var(--primary) / 0.4)',
             opacity: '0.8'
           },

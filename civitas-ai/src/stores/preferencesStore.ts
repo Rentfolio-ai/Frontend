@@ -79,14 +79,26 @@ export interface UserPreferences {
     showKeyboardHints: boolean;
     isWideMode: boolean;
     theme: 'light' | 'dark' | 'system';
-    accentColor: 'teal' | 'blue' | 'violet' | 'rose' | 'amber' | 'emerald';
+    accentColor: 'copper' | 'blue' | 'violet' | 'rose' | 'amber' | 'emerald';
     fontSize: 'small' | 'medium' | 'large';
     chatDensity: 'compact' | 'comfortable' | 'spacious';
     reducedMotion: boolean;
     highContrast: boolean;
 
+    // Language & Region
+    language: string;       // e.g. 'en-US', 'es-ES', 'fr-FR'
+    timezone: string;       // e.g. 'America/New_York'
+    currency: string;       // e.g. 'USD', 'EUR'
+    dateFormat: string;     // e.g. 'MM/DD/YYYY'
+    timeFormat: '12h' | '24h';
+
     // Agent mode preference
     preferredMode: 'hunter' | 'research' | 'strategist';
+
+    // Voice preferences
+    voiceEnabled: boolean;
+    voiceAutoSend: boolean;
+    voicePersona: string; // persona id from voicePersonas.ts (default: 'vasthu')
 }
 
 export interface PreferencesState extends UserPreferences {
@@ -130,6 +142,18 @@ export interface PreferencesState extends UserPreferences {
     setHighContrast: (enabled: boolean) => void;
     setPreferredMode: (mode: UserPreferences['preferredMode']) => void;
 
+    // Language & Region setters
+    setLanguage: (lang: string) => void;
+    setTimezone: (tz: string) => void;
+    setCurrency: (currency: string) => void;
+    setDateFormat: (fmt: string) => void;
+    setTimeFormat: (fmt: '12h' | '24h') => void;
+
+
+    // Voice setters
+    setVoiceEnabled: (enabled: boolean) => void;
+    setVoiceAutoSend: (auto: boolean) => void;
+    setVoicePersona: (persona: string) => void;
 
     setAllPreferences: (prefs: Partial<UserPreferences>) => void;
 
@@ -153,14 +177,22 @@ const defaultPreferences: UserPreferences = {
     showKeyboardHints: true,
     isWideMode: false,
     theme: 'dark',
-    accentColor: 'teal',
+    accentColor: 'copper',
     fontSize: 'medium',
     chatDensity: 'comfortable',
     reducedMotion: false,
     highContrast: false,
+    language: 'en-US',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York',
+    currency: 'USD',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: '12h',
     preferredMode: 'hunter',
     inferredPreferences: null,
-    clientLocation: null
+    clientLocation: null,
+    voiceEnabled: true,
+    voiceAutoSend: true,
+    voicePersona: 'vasthu',
 };
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -245,7 +277,17 @@ export const usePreferencesStore = create<PreferencesState>()(
             setHighContrast: (enabled: boolean) => set({ highContrast: enabled }),
             setPreferredMode: (mode: UserPreferences['preferredMode']) => set({ preferredMode: mode }),
 
+            // Language & Region
+            setLanguage: (lang: string) => set({ language: lang }),
+            setTimezone: (tz: string) => set({ timezone: tz }),
+            setCurrency: (currency: string) => set({ currency }),
+            setDateFormat: (fmt: string) => set({ dateFormat: fmt }),
+            setTimeFormat: (fmt: '12h' | '24h') => set({ timeFormat: fmt }),
 
+            // Voice
+            setVoiceEnabled: (enabled: boolean) => set({ voiceEnabled: enabled }),
+            setVoiceAutoSend: (auto: boolean) => set({ voiceAutoSend: auto }),
+            setVoicePersona: (persona: string) => set({ voicePersona: persona }),
 
             setAllPreferences: (prefs: Partial<UserPreferences>) => set((state) => ({
                 ...state,
@@ -263,21 +305,26 @@ export const usePreferencesStore = create<PreferencesState>()(
                     const api = await import('../services/preferencesApi');
                     const remote = await api.getPreferences(user_id);
 
-                    if (remote && typeof remote === 'object') {
+                    if (remote) {
                         // Map backend snake_case fields to local store
                         const mapped: Partial<UserPreferences> = {};
 
-                        if (remote.default_strategy) mapped.defaultStrategy = remote.default_strategy;
-                        if (remote.budget_range) mapped.budgetRange = remote.budget_range;
-                        if (remote.preferred_bedrooms != null) mapped.preferredBedrooms = remote.preferred_bedrooms;
-                        if (remote.preferred_property_types) mapped.preferredPropertyTypes = remote.preferred_property_types;
-                        if (remote.financial_dna) mapped.financialDna = remote.financial_dna;
-                        if (remote.investment_criteria) mapped.investmentCriteria = remote.investment_criteria;
-                        if (remote.interaction_profile) mapped.interactionProfile = remote.interaction_profile;
-                        if (remote.favorite_markets) mapped.favoriteMarkets = remote.favorite_markets;
-                        if (remote.recent_searches) mapped.recentSearches = remote.recent_searches;
-                        if (remote.last_search_city) mapped.lastSearchCity = remote.last_search_city;
-                        if (remote.inferred_preferences) mapped.inferredPreferences = remote.inferred_preferences;
+                        // Explicitly cast remote to any to avoid strict type checking on optional fields if needed, 
+                        // but since we updated the interface, it should be fine. 
+                        // However, to be extra safe against "Property does not exist on type 'UserPreferences'" if imports are stale:
+                        const r = remote as any;
+
+                        if (r.default_strategy) mapped.defaultStrategy = r.default_strategy;
+                        if (r.budget_range) mapped.budgetRange = r.budget_range;
+                        if (r.preferred_bedrooms != null) mapped.preferredBedrooms = r.preferred_bedrooms;
+                        if (r.preferred_property_types) mapped.preferredPropertyTypes = r.preferred_property_types;
+                        if (r.financial_dna) mapped.financialDna = r.financial_dna;
+                        if (r.investment_criteria) mapped.investmentCriteria = r.investment_criteria;
+                        if (r.interaction_profile) mapped.interactionProfile = r.interaction_profile;
+                        if (r.favorite_markets) mapped.favoriteMarkets = r.favorite_markets;
+                        if (r.recent_searches) mapped.recentSearches = r.recent_searches;
+                        if (r.last_search_city) mapped.lastSearchCity = r.last_search_city;
+                        if (r.inferred_preferences) mapped.inferredPreferences = r.inferred_preferences;
 
                         set((state) => ({ ...state, ...mapped }));
                     }
@@ -327,6 +374,18 @@ export const usePreferencesStore = create<PreferencesState>()(
                 chatDensity: state.chatDensity,
                 reducedMotion: state.reducedMotion,
                 highContrast: state.highContrast,
+
+                // Language & Region
+                language: state.language,
+                timezone: state.timezone,
+                currency: state.currency,
+                dateFormat: state.dateFormat,
+                timeFormat: state.timeFormat,
+
+                // Voice
+                voiceEnabled: state.voiceEnabled,
+                voiceAutoSend: state.voiceAutoSend,
+                voicePersona: state.voicePersona,
             })
         }
     )

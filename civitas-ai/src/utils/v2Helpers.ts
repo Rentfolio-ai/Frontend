@@ -1,9 +1,15 @@
-// V2 Property Query Helpers
+// V2 Query Helpers
 // Separated to avoid React hooks issues
 //
-// Location extraction is handled by the backend LLM — the frontend
-// just passes the raw user query and optional budget/preferences.
+// Two query builders:
+// - parsePropertyQuery  → for hunter mode  (/v2/property/search/stream)
+// - parseChatQuery      → for research/strategist mode (/v2/chat/stream)
+//
+// Location extraction is handled by the backend LLM.
 
+/**
+ * Build request body for hunter mode (property search).
+ */
 export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string): any {
   const query: any = {
     limit: 7,
@@ -18,14 +24,44 @@ export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string):
     query.max_price = userPrefs.budgetRange.max;
   }
 
-  console.log('[v2Helpers] Parsed query:', query, 'mode:', mode);
+  // Include language preference so AI responds in the correct language
+  if (userPrefs?.language && userPrefs.language !== 'en-US') {
+    query.response_language = userPrefs.language;
+  }
+
+  console.log('[v2Helpers] Parsed hunter query:', query);
   return query;
 }
 
+/**
+ * Build request body for research/strategist mode (conversational AI).
+ * Includes thread_id for multi-turn conversation memory.
+ */
+export function parseChatQuery(msg: string, mode: 'research' | 'strategist', threadId?: string, language?: string): any {
+  const query: any = {
+    query: msg,
+    mode: mode,
+  };
+
+  if (threadId) {
+    query.thread_id = threadId;
+  }
+
+  // Include language preference so AI responds in the correct language
+  if (language && language !== 'en-US') {
+    query.response_language = language;
+  }
+
+  console.log('[v2Helpers] Parsed chat query:', query);
+  return query;
+}
+
+/**
+ * @deprecated All queries now route via V2; mode determines the endpoint.
+ */
 export function isPropertyQuery(msg: string): boolean {
   const msgLower = msg.toLowerCase();
 
-  // Explicitly EXCLUDE research/market analysis queries which should go to the Agent
   if (
     msgLower.includes('research') ||
     msgLower.includes('market') ||
@@ -46,10 +82,8 @@ export function isPropertyQuery(msg: string): boolean {
     msgLower.includes('apartment')
   );
 
-  // Generic location preposition pattern (e.g. "in San Francisco", "near Denver")
   const hasLocationPreposition = /\b(?:in|near|around)\s+[A-Z]/.test(msg);
 
-  // "find" / "search" / "show me" intent
   const hasSearchIntent = (
     msgLower.includes('find') ||
     msgLower.includes('search') ||

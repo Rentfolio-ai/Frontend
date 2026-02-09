@@ -43,6 +43,7 @@ interface CommandCenterChatViewProps {
   onToggleBookmark?: (property: ScoutedProperty) => void;
   onNavigateToReports?: () => void;
   onNavigateToInvestmentPreferences?: () => void;
+  onNavigateToUpgrade?: () => void;
   onOpenSidebar?: () => void;
   onNewChat?: () => void;
   thinking?: ThinkingState | null;
@@ -80,6 +81,10 @@ interface CommandCenterChatViewProps {
   togglePanePin: () => void;
   currentMode: any; // typed in ChatTabView
   onModeChange: (mode: any) => void;
+  // Voice mode
+  onVoiceTurn?: (role: 'user' | 'assistant', content: string) => void;
+  onVoiceStart?: () => void;
+  conversationId?: string;
 }
 
 export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (props) => {

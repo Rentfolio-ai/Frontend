@@ -68,7 +68,7 @@ export const visionService = {
     if (options.context) formData.append('context', options.context);
     if (options.thread_id) formData.append('thread_id', options.thread_id);
 
-    const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image`, {
+    const response = await fetch(`${CIVITAS_API_BASE}/api/vision/analyze`, {
       method: 'POST',
       headers: getHeaders(),
       body: formData,
@@ -109,7 +109,7 @@ export const visionService = {
       ...options,
     };
 
-    const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image/json`, {
+    const response = await fetch(`${CIVITAS_API_BASE}/api/vision/analyze/json`, {
       method: 'POST',
       headers: getHeaders(true),
       body: JSON.stringify(body),
@@ -145,19 +145,15 @@ export const visionService = {
       options,
     });
 
-    const formData = new FormData();
-    formData.append('image_url', imageUrl);
+    const body = {
+      image_url: imageUrl,
+      ...options,
+    };
 
-    if (options.analysis_type) formData.append('analysis_type', options.analysis_type);
-    if (options.room_type) formData.append('room_type', options.room_type);
-    if (options.property_address) formData.append('property_address', options.property_address);
-    if (options.context) formData.append('context', options.context);
-    if (options.thread_id) formData.append('thread_id', options.thread_id);
-
-    const response = await fetch(`${CIVITAS_API_BASE}/api/analyze/image`, {
+    const response = await fetch(`${CIVITAS_API_BASE}/api/vision/analyze/json`, {
       method: 'POST',
-      headers: getHeaders(),
-      body: formData,
+      headers: getHeaders(true),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

@@ -143,7 +143,7 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
           "text-xs text-white/30 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity",
           isUser ? "text-right" : "text-left"
         )}>
-          <span className="text-white/40">{isUser ? (userName || 'You') : 'Vasthu AI'}</span>
+          <span className="text-white/40">{isUser ? (userName?.split(' ')[0] || 'You') : 'Vasthu AI'}</span>
           <span className="mx-1">•</span>
           <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
         </div>

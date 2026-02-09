@@ -2,8 +2,7 @@
  * Privacy & Security Page
  *
  * Covers data privacy controls, security settings, active sessions,
- * and legal/policy links — modeled after best practices from apps
- * like ChatGPT, Notion, and Linear.
+ * and legal/policy links.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -39,6 +38,7 @@ import {
     securityService,
     type SessionInfo as SessionData,
 } from '../../services/privacySecurityService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PrivacySecurityPageProps {
     onBack: () => void;
@@ -49,12 +49,14 @@ interface PrivacySecurityPageProps {
 const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled, onToggle }) => (
     <button
         onClick={onToggle}
-        className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${enabled ? 'bg-[#C08B5C]' : 'bg-white/[0.12]'}`}
+        className={`relative w-9 h-5 rounded-full transition-all duration-200 flex-shrink-0 border ${enabled
+            ? 'bg-[#C08B5C] border-[#C08B5C]'
+            : 'bg-white/[0.05] border-white/[0.1] hover:border-white/[0.2]'
+            }`}
     >
         <div
-            className={`absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform ${
-                enabled ? 'translate-x-[22px]' : 'translate-x-[2px]'
-            }`}
+            className={`absolute top-[1px] left-[1px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-4' : 'translate-x-0'
+                }`}
         />
     </button>
 );
@@ -62,7 +64,7 @@ const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled,
 // ── Section Header ───────────────────────────────────────────────────────────
 
 const SectionHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">
+    <h2 className="text-xs font-medium font-sans text-white/40 mb-3 px-1 tracking-wide uppercase">
         {children}
     </h2>
 );
@@ -70,9 +72,9 @@ const SectionHeader: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 // ── Info Banner ──────────────────────────────────────────────────────────────
 
 const InfoBanner: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#C08B5C]/[0.06] border border-[#C08B5C]/15">
-        <ShieldCheck className="w-4 h-4 text-[#D4A27F] flex-shrink-0 mt-0.5" />
-        <p className="text-[11px] text-white/50 leading-relaxed">{children}</p>
+    <div className="flex items-start gap-3 p-4 rounded bg-[#161618] border border-white/[0.08]">
+        <ShieldCheck className="w-4 h-4 text-white/60 flex-shrink-0 mt-0.5" />
+        <p className="text-xs font-sans text-white/50 leading-relaxed">{children}</p>
     </div>
 );
 
@@ -87,13 +89,13 @@ interface ToggleRowProps {
 }
 
 const ToggleRow: React.FC<ToggleRowProps> = ({ icon: Icon, title, subtitle, enabled, onToggle }) => (
-    <div className="flex items-center gap-3 px-3.5 py-3">
-        <div className="w-8 h-8 rounded-lg bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-            <Icon className="w-4 h-4 text-[#D4A27F]" />
+    <div className="flex items-center gap-4 px-5 py-4 group hover:bg-white/[0.02] transition-colors">
+        <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.05] transition-colors">
+            <Icon className="w-4 h-4 text-white/50 group-hover:text-white/70" />
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className="text-[13px] font-medium text-white/85">{title}</h3>
-            <p className="text-[11px] text-white/40">{subtitle}</p>
+            <h3 className="text-sm font-medium font-sans text-white/90">{title}</h3>
+            <p className="text-xs font-sans text-white/40 mt-0.5">{subtitle}</p>
         </div>
         <Toggle enabled={enabled} onToggle={onToggle} />
     </div>
@@ -111,16 +113,15 @@ interface ActionRowProps {
 const ActionRow: React.FC<ActionRowProps> = ({ icon: Icon, title, subtitle, onClick, danger, external }) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center gap-3 px-3.5 py-3 rounded-lg transition-colors hover:bg-white/[0.05] group"
+        className="w-full flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02] group text-left"
     >
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            danger ? 'bg-red-500/10' : 'bg-[#C08B5C]/10'
-        }`}>
-            <Icon className={`w-4 h-4 ${danger ? 'text-red-400' : 'text-[#D4A27F]'}`} />
+        <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 transition-colors ${danger ? 'bg-red-500/10 group-hover:bg-red-500/20' : 'bg-white/[0.03] group-hover:bg-white/[0.05]'
+            }`}>
+            <Icon className={`w-4 h-4 ${danger ? 'text-red-400' : 'text-white/50 group-hover:text-white/70'}`} />
         </div>
-        <div className="flex-1 text-left min-w-0">
-            <h3 className={`text-[13px] font-medium ${danger ? 'text-red-400/85' : 'text-white/85'}`}>{title}</h3>
-            <p className="text-[11px] text-white/40">{subtitle}</p>
+        <div className="flex-1 min-w-0">
+            <h3 className={`text-sm font-medium font-sans ${danger ? 'text-red-400' : 'text-white/90'}`}>{title}</h3>
+            <p className="text-xs font-sans text-white/40 mt-0.5">{subtitle}</p>
         </div>
         {external ? (
             <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
@@ -142,8 +143,8 @@ interface SessionRowProps {
 }
 
 const SessionRow: React.FC<SessionRowProps> = ({ device, location, lastActive, isCurrent, deviceType, onRevoke }) => (
-    <div className="flex items-center gap-3 px-3.5 py-3">
-        <div className="w-8 h-8 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
+    <div className="flex items-center gap-4 px-5 py-4 group hover:bg-white/[0.02] transition-colors">
+        <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.05]">
             {deviceType === 'desktop' ? (
                 <Monitor className="w-4 h-4 text-white/40" />
             ) : (
@@ -152,19 +153,19 @@ const SessionRow: React.FC<SessionRowProps> = ({ device, location, lastActive, i
         </div>
         <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-                <h3 className="text-[13px] font-medium text-white/85">{device}</h3>
+                <h3 className="text-sm font-medium font-sans text-white/90">{device}</h3>
                 {isCurrent && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Current
                     </span>
                 )}
             </div>
-            <p className="text-[11px] text-white/40">{location} · {lastActive}</p>
+            <p className="text-xs font-sans text-white/40 mt-0.5">{location} • {lastActive}</p>
         </div>
         {!isCurrent && onRevoke && (
             <button
                 onClick={onRevoke}
-                className="px-2.5 py-1 rounded-md text-[11px] font-medium text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                className="px-3 py-1.5 rounded text-xs font-medium text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
             >
                 Revoke
             </button>
@@ -183,15 +184,15 @@ const ExpandableSection: React.FC<{
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] overflow-hidden">
+        <div className="rounded bg-[#161618] border border-white/[0.08] overflow-hidden">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-white/[0.03] transition-colors"
+                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors group"
             >
-                <div className="w-8 h-8 rounded-lg bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-[#D4A27F]" />
+                <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.05]">
+                    <Icon className="w-4 h-4 text-white/50 group-hover:text-white/70" />
                 </div>
-                <span className="flex-1 text-left text-[13px] font-medium text-white/85">{title}</span>
+                <span className="flex-1 text-left text-sm font-medium font-sans text-white/90">{title}</span>
                 <ChevronDown
                     className={`w-3.5 h-3.5 text-white/25 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                 />
@@ -205,7 +206,7 @@ const ExpandableSection: React.FC<{
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                     >
-                        <div className="px-3.5 pb-3.5 pt-1">{children}</div>
+                        <div className="px-5 pb-5 pt-1 border-t border-white/[0.04]">{children}</div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -231,34 +232,31 @@ const ConfirmDialog: React.FC<{
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative w-full max-w-sm rounded-2xl border border-white/[0.1] p-5"
-                style={{ backgroundColor: '#1c1c20' }}
+                className="relative w-full max-w-sm rounded-xl border border-white/[0.08] p-6 shadow-2xl bg-[#161618]"
             >
-                <div className="flex items-start gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        danger ? 'bg-red-500/15' : 'bg-amber-500/15'
-                    }`}>
-                        <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-amber-400'}`} />
+                <div className="flex items-start gap-4 mb-6">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${danger ? 'bg-red-500/10' : 'bg-[#C08B5C]/10'
+                        }`}>
+                        <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-[#C08B5C]'}`} />
                     </div>
                     <div>
-                        <h3 className="text-[15px] font-semibold text-white/90">{title}</h3>
-                        <p className="text-[12px] text-white/45 mt-1 leading-relaxed">{message}</p>
+                        <h3 className="text-base font-semibold font-sans text-white mb-1">{title}</h3>
+                        <p className="text-sm font-sans text-white/50 leading-relaxed">{message}</p>
                     </div>
                 </div>
-                <div className="flex gap-2 justify-end">
+                <div className="flex gap-3 justify-end">
                     <button
                         onClick={onCancel}
-                        className="px-4 py-2 rounded-lg text-[12px] font-medium text-white/50 hover:bg-white/[0.06] transition-colors"
+                        className="px-4 py-2 rounded text-xs font-medium text-white/50 hover:bg-white/[0.06] hover:text-white transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onConfirm}
-                        className={`px-4 py-2 rounded-lg text-[12px] font-semibold text-white transition-colors ${
-                            danger
-                                ? 'bg-red-500/80 hover:bg-red-500'
-                                : 'bg-[#C08B5C] hover:bg-[#A8734A]'
-                        }`}
+                        className={`px-4 py-2 rounded text-xs font-semibold text-white transition-all shadow-sm ${danger
+                            ? 'bg-red-500 hover:bg-red-600 border border-red-400/20'
+                            : 'bg-[#C08B5C] hover:bg-[#A8734A] border border-[#C08B5C]/20'
+                            }`}
                     >
                         {confirmLabel}
                     </button>
@@ -273,6 +271,8 @@ const ConfirmDialog: React.FC<{
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack }) => {
+    const { signOut } = useAuth();
+
     // ── Loading / feedback ───────────────────────────────────────────────────
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -304,6 +304,7 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
     useEffect(() => {
         const loadData = async () => {
             try {
+                // Mock data loading if services fail or for preview
                 const [prefs, sessionsData] = await Promise.allSettled([
                     privacyService.getPreferences(),
                     securityService.getSessions(),
@@ -425,12 +426,14 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         try {
             const result = await privacyService.deleteAccount();
             showToast(result.message);
+            // Sign out and redirect to landing page after account deletion
+            await signOut();
         } catch {
             showToast('Failed to request account deletion', 'error');
         } finally {
             setActionLoading(null);
         }
-    }, [showToast]);
+    }, [showToast, signOut]);
 
     // ── Session management ───────────────────────────────────────────────────
     const handleRevokeSession = useCallback(async (sessionId: string) => {
@@ -456,7 +459,7 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
     // ── Render ───────────────────────────────────────────────────────────────
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
+        <div className="h-full flex flex-col bg-[#0C0C0E]">
             {/* Toast notification */}
             <AnimatePresence>
                 {toast && (
@@ -464,52 +467,53 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg border ${
-                            toast.type === 'success'
-                                ? 'bg-emerald-500/15 border-emerald-500/25 text-emerald-300'
-                                : 'bg-red-500/15 border-red-500/25 text-red-300'
-                        }`}
-                        style={{ backgroundColor: toast.type === 'success' ? '#111814' : '#181114' }}
+                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'success'
+                            ? 'bg-[#161618] border-emerald-500/20 text-emerald-400'
+                            : 'bg-[#161618] border-red-500/20 text-red-400'
+                            }`}
                     >
                         {toast.type === 'success' ? (
                             <CheckCircle2 className="w-4 h-4" />
                         ) : (
                             <AlertTriangle className="w-4 h-4" />
                         )}
-                        <span className="text-[12px] font-medium">{toast.message}</span>
+                        <span className="text-sm font-medium font-sans">{toast.message}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
+            {/* Header - Minimal & Professional */}
+            <header className="flex items-center gap-4 px-8 py-6 border-b border-white/[0.08] bg-[#0C0C0E]/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded bg-transparent hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/60" />
+                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
                 </button>
-                <div>
-                    <h1 className="text-lg font-semibold text-white/90">Privacy & Security</h1>
-                    <p className="text-[11px] text-white/35">Control your data, privacy, and security settings</p>
+                <div className="flex-1">
+                    <h1 className="text-xl font-display font-semibold text-white tracking-tight">Privacy & Security</h1>
                 </div>
                 {loading && <Loader2 className="w-4 h-4 text-white/20 animate-spin ml-auto" />}
-            </div>
+            </header>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="max-w-2xl mx-auto space-y-5">
+            <div className="flex-1 overflow-y-auto">
+                <div className="max-w-3xl mx-auto px-8 py-10 space-y-10">
 
-                    {/* Trust banner */}
-                    <InfoBanner>
-                        Your data is encrypted in transit and at rest. We never sell your personal data
-                        to third parties. You have full control over what is stored and can delete it at any time.
-                    </InfoBanner>
+                    {/* Trust banner - Refined */}
+                    <div className="flex items-start gap-4 p-5 rounded bg-[#161618] border border-white/[0.08]">
+                        <ShieldCheck className="w-5 h-5 text-white/40 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-sans text-white/60 leading-relaxed">
+                            Your data is encrypted in transit and at rest. We strictly adhere to privacy standards and never sell your personal data to third parties. You maintain full control over your data retention.
+                        </p>
+                    </div>
 
                     {/* ── DATA PRIVACY ── */}
                     <div>
-                        <SectionHeader>Data Privacy</SectionHeader>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <SectionHeader>Data Privacy Controls</SectionHeader>
+                        </div>
+                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
                             <ToggleRow
                                 icon={History}
                                 title="Chat History"
@@ -520,7 +524,7 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                             <ToggleRow
                                 icon={BarChart3}
                                 title="Usage Analytics"
-                                subtitle="Help us improve by sharing anonymized usage data"
+                                subtitle="Share anonymized usage data to help us improve"
                                 enabled={analyticsEnabled}
                                 onToggle={() => handleToggle('analytics_enabled', analyticsEnabled, setAnalyticsEnabled)}
                             />
@@ -543,18 +547,20 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* ── SECURITY ── */}
                     <div>
-                        <SectionHeader>Security</SectionHeader>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <SectionHeader>Account Security</SectionHeader>
+                        </div>
+                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={Lock}
-                                title={actionLoading === 'password' ? 'Sending reset email…' : 'Change Password'}
+                                title={actionLoading === 'password' ? 'Sending reset email...' : 'Change Password'}
                                 subtitle="We'll send a password reset link to your email"
                                 onClick={handlePasswordReset}
                             />
                             <ToggleRow
                                 icon={KeyRound}
                                 title="Two-Factor Authentication"
-                                subtitle={twoFactorEnabled ? 'Enabled — your account is extra secure' : 'Add an extra layer of protection'}
+                                subtitle={twoFactorEnabled ? 'Active — your account is secured' : 'Add an extra layer of protection'}
                                 enabled={twoFactorEnabled}
                                 onToggle={handleToggle2FA}
                             />
@@ -563,10 +569,12 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* ── ACTIVE SESSIONS ── */}
                     <div>
-                        <SectionHeader>Active Sessions</SectionHeader>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <SectionHeader>Active Sessions</SectionHeader>
+                        </div>
+                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
                             {sessions.length === 0 && !loading && (
-                                <div className="px-3.5 py-4 text-center text-[12px] text-white/30">
+                                <div className="px-5 py-6 text-center text-sm text-white/30 font-sans">
                                     No active sessions found
                                 </div>
                             )}
@@ -584,81 +592,70 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                             {sessions.length > 1 && (
                                 <button
                                     onClick={handleRevokeAllOther}
-                                    className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-white/[0.05] transition-colors"
+                                    className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors border-t border-white/[0.04] group"
                                 >
-                                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-8 h-8 rounded bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
                                         <LogOut className="w-4 h-4 text-red-400" />
                                     </div>
-                                    <span className="text-[13px] font-medium text-red-400/70">Sign out all other sessions</span>
+                                    <span className="text-sm font-medium font-sans text-red-400">Sign out all other sessions</span>
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    {/* ── YOUR DATA ── */}
+                    {/* ── YOUR DATA & LEGAL ── */}
                     <div>
-                        <SectionHeader>Your Data</SectionHeader>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <SectionHeader>Data & Legal</SectionHeader>
+                        </div>
+                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={Download}
-                                title={actionLoading === 'export' ? 'Preparing export…' : 'Export My Data'}
+                                title={actionLoading === 'export' ? 'Preparing export...' : 'Export My Data'}
                                 subtitle="Download a copy of all your data (JSON)"
                                 onClick={handleExportData}
                             />
-                            <ActionRow
-                                icon={Trash2}
-                                title={actionLoading === 'clearHistory' ? 'Clearing…' : 'Clear Chat History'}
-                                subtitle="Delete all saved conversations"
-                                onClick={handleClearAllHistory}
-                                danger
-                            />
-                        </div>
-                    </div>
 
-                    {/* ── DATA HANDLING — expandable ── */}
-                    <ExpandableSection title="How We Handle Your Data" icon={Info} defaultOpen={false}>
-                        <div className="space-y-3 text-[11px] text-white/45 leading-relaxed">
-                            <div className="flex items-start gap-2">
-                                <Shield className="w-3.5 h-3.5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
-                                <p><strong className="text-white/60">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.</p>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <Lock className="w-3.5 h-3.5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
-                                <p><strong className="text-white/60">Access Control:</strong> Only you can access your conversations and analyses. Our support team cannot view your chat content.</p>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <Trash2 className="w-3.5 h-3.5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
-                                <p><strong className="text-white/60">Deletion:</strong> When you delete data, it is permanently removed from our servers within 30 days.</p>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <BarChart3 className="w-3.5 h-3.5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
-                                <p><strong className="text-white/60">Analytics:</strong> If enabled, we collect anonymized usage metrics (no personal data) to improve the product.</p>
-                            </div>
-                        </div>
-                    </ExpandableSection>
+                            {/* Expandable Data Handling Info */}
+                            <ExpandableSection title="How We Handle Data" icon={Info}>
+                                <div className="space-y-4 py-2">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-4 h-4 mt-0.5 flex-shrink-0 flex items-center justify-center">
+                                            <Shield className="w-3.5 h-3.5 text-white/30" />
+                                        </div>
+                                        <p className="text-xs font-sans text-white/50 leading-relaxed">
+                                            <strong className="text-white/80 font-medium">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-4 h-4 mt-0.5 flex-shrink-0 flex items-center justify-center">
+                                            <Lock className="w-3.5 h-3.5 text-white/30" />
+                                        </div>
+                                        <p className="text-xs font-sans text-white/50 leading-relaxed">
+                                            <strong className="text-white/80 font-medium">Access:</strong> Only you have access to your private data keys. Our support team cannot view your decrypted content.
+                                        </p>
+                                    </div>
+                                </div>
+                            </ExpandableSection>
 
-                    {/* ── LEGAL ── */}
-                    <div>
-                        <SectionHeader>Legal</SectionHeader>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={FileText}
                                 title="Privacy Policy"
-                                subtitle="How we collect, use, and protect your data"
+                                subtitle="Read our full privacy statement"
                                 onClick={() => window.open('/privacy-policy', '_blank')}
                                 external
                             />
                             <ActionRow
                                 icon={FileText}
                                 title="Terms of Service"
-                                subtitle="Rules and conditions for using Vasthu AI"
+                                subtitle="Read our terms of service"
                                 onClick={() => window.open('/terms-of-service', '_blank')}
                                 external
                             />
                             <ActionRow
                                 icon={Cookie}
                                 title="Cookie Policy"
-                                subtitle="How we use cookies and similar technologies"
+                                subtitle="Read our cookie policy"
                                 onClick={() => window.open('/cookie-policy', '_blank')}
                                 external
                             />
@@ -667,8 +664,17 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* ── DANGER ZONE ── */}
                     <div>
-                        <SectionHeader>Danger Zone</SectionHeader>
-                        <div className="rounded-xl bg-red-500/[0.03] border border-red-500/[0.12] overflow-hidden">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <SectionHeader>Danger Zone</SectionHeader>
+                        </div>
+                        <div className="rounded bg-red-500/[0.02] border border-red-500/10 divide-y divide-red-500/10 overflow-hidden">
+                            <ActionRow
+                                icon={Trash2}
+                                title={actionLoading === 'clearHistory' ? 'Clearing...' : 'Clear Chat History'}
+                                subtitle="Permanently delete all your conversation history"
+                                onClick={handleClearAllHistory}
+                                danger
+                            />
                             <ActionRow
                                 icon={UserX}
                                 title="Delete Account"
@@ -689,14 +695,14 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                 isOpen={showDeleteConfirm}
                 title="Delete Account?"
                 message="This action is permanent and cannot be undone. All your data, conversations, reports, and preferences will be permanently deleted."
-                confirmLabel="Delete My Account"
+                confirmLabel="Delete Account"
                 onConfirm={confirmDeleteAccount}
                 onCancel={() => setShowDeleteConfirm(false)}
                 danger
             />
             <ConfirmDialog
                 isOpen={showClearHistoryConfirm}
-                title="Clear All Chat History?"
+                title="Clear Chat History?"
                 message="This will permanently delete all your saved conversations. This action cannot be undone."
                 confirmLabel="Clear History"
                 onConfirm={confirmClearHistory}

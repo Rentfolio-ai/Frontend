@@ -410,27 +410,4 @@ export class ChatService {
   }
 }
 
-function buildChatContext() {
-  if (typeof window === 'undefined') {
-    return {};
-  }
 
-  try {
-    const userStr = window.localStorage.getItem('civitas-user');
-    if (!userStr) {
-      return {};
-    }
-
-    const parsed = JSON.parse(userStr);
-    return {
-      user: {
-        id: parsed.id,
-        name: parsed.name,
-        email: parsed.email,
-      },
-    };
-  } catch (error) {
-    console.error('Failed to read user context from localStorage:', error);
-    return {};
-  }
-}
