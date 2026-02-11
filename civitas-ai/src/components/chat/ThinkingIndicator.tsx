@@ -156,6 +156,13 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
         exit={{ opacity: 0 }}
         className="flex items-center gap-2 py-1"
       >
+        {/* Model source badge — shows which model is active (GPT-4o, Claude, etc.) */}
+        {displayThinking.source && displayThinking.source !== 'V2 Property Intelligence' && (
+          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[#C08B5C]/15 text-[#D4A27F]/80 flex-shrink-0">
+            {displayThinking.source}
+          </span>
+        )}
+
         {/* Simple text with chevron */}
         <span className="text-[15px] text-white/60 font-normal">
           {displayStatus}

@@ -161,6 +161,7 @@ export interface ReportResponse {
   success: boolean;
   report: string;
   report_id?: string;
+  view_url?: string;
   report_type?: 'str' | 'ltr' | 'adu' | 'flip' | 'full';
   strategy?: 'STR' | 'MTR' | 'LTR' | 'BRRRR' | 'FLIP';
   recommendation?: 'Buy' | 'Pass' | 'Negotiate';

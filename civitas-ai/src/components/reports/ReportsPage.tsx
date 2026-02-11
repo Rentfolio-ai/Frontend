@@ -241,6 +241,13 @@ export const ReportsPage: React.FC = () => {
     loadReports();
   }, [loadReports]);
 
+  // Auto-refresh when a new report is generated from the chat drawer
+  useEffect(() => {
+    const handler = () => loadReports(true);
+    window.addEventListener('reports-updated', handler);
+    return () => window.removeEventListener('reports-updated', handler);
+  }, [loadReports]);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');

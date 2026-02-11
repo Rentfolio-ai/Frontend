@@ -268,6 +268,7 @@ export function useDesktopShell() {
   }, []);
 
   // Flush all remaining buffer content immediately (safety escape hatch)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _flushWordBuffer = useCallback((messageId: string) => {
     if (wordBufferRef.current.length > 0) {
       displayedContentRef.current += wordBufferRef.current.join('');
@@ -410,9 +411,7 @@ export function useDesktopShell() {
           // Notify user
           showToast(
             'Your previous chat ended in an error, so we started a fresh one. The old chat is saved in your history.',
-            'info',
-            undefined,
-            6000
+            'info'
           );
         }
       }
@@ -684,7 +683,7 @@ export function useDesktopShell() {
           const price = prop.price || prop.current_value_estimate || 0;
           const rent = prop.estimated_rent || prop.current_rent_estimate || 0;
           const metrics = prop.calculated_metrics;
-          
+
           // Use backend metrics if available, otherwise rough fallback
           const capRate = metrics?.cap_rate ?? (price > 0 && rent > 0 ? ((rent * 12) / price) * 100 : 0);
           const cashflow = metrics?.monthly_cash_flow ?? (rent > 0 ? rent - (price * 0.007) : 0);
@@ -693,7 +692,7 @@ export function useDesktopShell() {
           const monthlyExpenses = metrics?.monthly_expenses ?? 0;
           const annualNoi = metrics?.annual_noi ?? 0;
           const totalRoi = metrics?.total_roi ?? 0;
-          
+
           // Use backend ai_score, not fake hardcoded score
           const matchScore = prop.ai_score ?? (85 + (idx * -5));
 
@@ -789,10 +788,12 @@ export function useDesktopShell() {
         // Accumulate full content for reference (used by complete/done)
         streamContentRef.current += event.text || '';
 
-        // Clear thinking once AI response has substantial content
-        if (streamContentRef.current.length > 100) {
-          setThinking(null);
-        }
+        // Don't clear thinking here — let the 'complete' event handle it.
+        // Clearing thinking mid-stream causes the indicator to flash/reset,
+        // especially when the backend sends interleaved thinking + ai_chunk
+        // events (e.g. from the ThinkingTagParser routing <thinking> content).
+        // The ThinkingIndicator stays visible while isLoading is true and
+        // gracefully fades on 'complete'.
 
         // Ensure the assistant message exists (research/strategist mode
         // skips the `properties` event that normally creates it)
@@ -822,15 +823,49 @@ export function useDesktopShell() {
         const suggestedMode = event.suggested_mode || 'hunter';
         const reason = event.reason || 'Switch mode for better results.';
         const autoQuery = event.auto_query || '';
-        
+
         // Store the suggestion so the frontend can render a switch prompt
         // We attach it as a special field on the current assistant message
         modeSuggestionRef.current = { suggestedMode, reason, autoQuery };
-        
+
         // Also inject a visible hint into the AI text stream
         const switchHint = `\n\n---\n**Tip:** ${reason}\n`;
         pushToWordBuffer(switchHint);
         startDrainLoop(messageId);
+        break;
+      }
+
+      // V2 Event: Backend auto-switched mode (high confidence mismatch)
+      case 'mode_switched': {
+        const eventData = event as any;
+        const toMode = eventData.to_mode || 'hunter';
+        const fromMode = eventData.from_mode || currentMode;
+        const reason = eventData.reason || 'Detected a better mode for your query.';
+        const autoQuery = eventData.auto_query || '';
+
+        logger.info(`[useDesktopShell] Mode auto-switched: ${fromMode} → ${toMode}`, { reason, autoQuery });
+
+        // Change mode immediately
+        setCurrentMode(toMode as AgentMode);
+
+        // Show toast notification
+        const modeLabels: Record<string, string> = {
+          hunter: 'Hunter',
+          research: 'Research',
+          strategist: 'Strategist',
+        };
+        showToast(
+          `Switched to ${modeLabels[toMode] || toMode} mode — ${reason}`,
+          'info'
+        );
+
+        // Re-send the query in the new mode after a short delay
+        // (so mode state updates and the correct endpoint is selected)
+        if (autoQuery) {
+          setTimeout(() => {
+            sendMessageWithStream(autoQuery, { skipUserMessage: true });
+          }, 400);
+        }
         break;
       }
 
@@ -877,12 +912,12 @@ export function useDesktopShell() {
             return prev.map(m =>
               m.id === mId
                 ? {
-                    ...m,
-                    content: v2Content,
-                    isStreaming: false,
-                    ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
-                    ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
-                  }
+                  ...m,
+                  content: v2Content,
+                  isStreaming: false,
+                  ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
+                  ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
+                }
                 : m
             );
           });
@@ -917,7 +952,7 @@ export function useDesktopShell() {
         // V2 uses 'message' field, V1 uses 'status' field
         const thinkingStatus = event.status || event.message || 'Thinking';
         console.log('🧠 [SSE] THINKING EVENT:', thinkingStatus, 'replace:', !!event.replace, 'at', new Date().toLocaleTimeString());
-        
+
         // If "replace" flag is set (V2 property search), update the status in-place
         // instead of accumulating numbered steps. Skip trace too.
         if (event.replace) {
@@ -943,7 +978,7 @@ export function useDesktopShell() {
             // Avoid duplicate lines
             const alreadyHasThisLine = prev.status.includes(thinkingStatus);
             if (alreadyHasThisLine) return prev;
-            
+
             const newStatus = prev.status + '\n' + thinkingStatus;
             return {
               ...prev,
@@ -1001,7 +1036,7 @@ export function useDesktopShell() {
       case 'tool_end':
         // Never clear thinking — keep accumulated steps visible until streaming starts
         // (thinking is cleared by 'ai_chunk'/'content' events once the AI starts responding)
-        
+
         if (event.summary) {
           const newTool: CompletedTool = {
             tool: event.tool,
@@ -1172,12 +1207,12 @@ export function useDesktopShell() {
           setMessages(prev => prev.map(m =>
             m.id === mId
               ? {
-                  ...m,
-                  content: doneFinalContent,
-                  isStreaming: false,
-                  ...(doneInlineActions.length > 0 ? { inlineActions: doneInlineActions } : {}),
-                  ...(doneThinkingTrace ? { thinkingTrace: doneThinkingTrace } : {}),
-                }
+                ...m,
+                content: doneFinalContent,
+                isStreaming: false,
+                ...(doneInlineActions.length > 0 ? { inlineActions: doneInlineActions } : {}),
+                ...(doneThinkingTrace ? { thinkingTrace: doneThinkingTrace } : {}),
+              }
               : m
           ));
         };
@@ -1320,7 +1355,7 @@ export function useDesktopShell() {
         body: JSON.stringify(requestBody),
         signal: abortControllerRef.current?.signal
       });
-      
+
       if (!response.ok) {
         // Parse plan enforcement 403 errors
         if (response.status === 403) {
@@ -1340,25 +1375,50 @@ export function useDesktopShell() {
         throw new Error('No response body');
       }
 
+      // Buffer for partial lines that may be split across chunk boundaries.
+      // Without this, a data: line split across two reader.read() calls
+      // would fail to parse and be silently dropped.
+      let sseLineBuffer = '';
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        const chunk = decoder.decode(value, { stream: true });
+        sseLineBuffer += chunk;
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === '[DONE]' || jsonStr === '') continue;
+        // Split on newline to get complete lines
+        const sseLines = sseLineBuffer.split('\n');
+        // Keep the last element — it might be an incomplete line
+        sseLineBuffer = sseLines.pop() || '';
 
+        for (const line of sseLines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+
+          const jsonStr = trimmed.slice(6).trim();
+          if (jsonStr === '[DONE]' || jsonStr === '') continue;
+
+          try {
+            const data = JSON.parse(jsonStr) as StreamEvent;
+            console.log('[SSE] Event received:', data.type, data);
+            handleStreamEvent(data, messageId);
+          } catch (err) {
+            console.error('[SSE] Failed to parse:', jsonStr, err);
+          }
+        }
+      }
+
+      // Process any remaining buffered data after stream ends
+      if (sseLineBuffer.trim()) {
+        const remaining = sseLineBuffer.trim();
+        if (remaining.startsWith('data: ')) {
+          const jsonStr = remaining.slice(6).trim();
+          if (jsonStr && jsonStr !== '[DONE]') {
             try {
               const data = JSON.parse(jsonStr) as StreamEvent;
-              console.log('[SSE] Event received:', data.type, data);
               handleStreamEvent(data, messageId);
-            } catch (err) {
-              console.error('[SSE] Failed to parse:', jsonStr, err);
-            }
+            } catch (_) { /* ignore final partial */ }
           }
         }
       }
@@ -1937,7 +1997,7 @@ export function useDesktopShell() {
 
       const response = await generateReport({
         valuation: valuationData,
-        report_type: reportType,
+        report_type: reportType as 'str' | 'ltr' | 'adu' | 'flip' | 'full',
         export_format: 'text',
         property_address: reportDrawer.propertyAddress,
       });
@@ -1948,6 +2008,8 @@ export function useDesktopShell() {
 
       const reportData: ReportData = {
         content: response.report,
+        report_id: response.report_id,
+        view_url: response.view_url,
         report_type: response.report_type || reportType,
         generated_at: response.generated_at || new Date().toISOString(),
         property_address: response.property_details?.address || reportDrawer.propertyAddress,
@@ -1959,6 +2021,9 @@ export function useDesktopShell() {
         report: reportData,
         isLoading: false,
       }));
+
+      // Notify Reports page to refresh its list
+      window.dispatchEvent(new CustomEvent('reports-updated'));
 
       logger.info('[useDesktopShell] Report generated successfully', { reportType });
     } catch (err) {
@@ -2123,9 +2188,9 @@ export function useDesktopShell() {
       strategist: 'Strategist',
     };
     const modeDescriptions: Record<AgentMode, string> = {
-      hunter: 'I\'m now in **Deal Hunter** mode — focused on finding, vetting, and acting on deals. Give me an address or a city and I\'ll get to work.',
-      research: 'I\'m now in **Research** mode — focused on education, market analysis, and deep understanding. Ask me about any market, concept, or trend.',
-      strategist: 'I\'m now in **Strategist** mode — focused on portfolio planning, risk management, and long-term wealth building. Let\'s talk about your goals and strategy.',
+      hunter: '**Deal Hunter activated.** I search, score, and vet deals — no fluff. Every property gets a verdict: **Buy, Negotiate, or Pass.** Give me a city or address and I\'ll run the numbers.',
+      research: '**Research Analyst activated.** I dig deep into markets, trends, and fundamentals — with citations. I\'ll match my depth to your experience level. Ask me about any market or investing concept.',
+      strategist: '**Portfolio Strategist activated.** I think in decades, not deals. Every recommendation connects to your broader portfolio: risk exposure, diversification, and long-term wealth. Tell me your goals and current position.',
     };
 
     // Only inject transition message if there are existing messages in the conversation

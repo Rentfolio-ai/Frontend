@@ -177,6 +177,16 @@ export interface StreamModeSuggestionEvent {
   auto_query?: string;  // Query to auto-run after switching
 }
 
+// Mode auto-switched: backend detected a clear mismatch and switched automatically
+export interface StreamModeSwitchedEvent {
+  type: 'mode_switched';
+  from_mode: 'hunter' | 'research' | 'strategist';
+  to_mode: 'hunter' | 'research' | 'strategist';
+  reason: string;
+  auto_query?: string;  // Query to re-send in the new mode
+  confidence?: number;
+}
+
 export type StreamEvent =
   | StreamInitEvent
   | StreamThinkingEvent
@@ -199,7 +209,8 @@ export type StreamEvent =
   | StreamToolsBatchStartEvent
   | StreamToolResultEvent
   | StreamInlineActionsEvent
-  | StreamModeSuggestionEvent;
+  | StreamModeSuggestionEvent
+  | StreamModeSwitchedEvent;
 
 export interface StreamClearContentEvent {
   type: 'clear_content';

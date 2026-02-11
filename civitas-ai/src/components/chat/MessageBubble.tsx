@@ -722,6 +722,37 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   onNavigateToUpgrade?.();
                   return;
                 }
+
+                // Generate Report — open the report drawer with property context
+                // instead of sending a new chat message (which loses property data)
+                if (action.tool_name === 'generate_report') {
+                  // Extract property address from the message's tool results
+                  const propTool = message.tools?.find(
+                    (t: any) => t.kind === 'scout_properties' || t.name === 'scout_properties'
+                  );
+                  const firstProp = propTool?.data?.properties?.[0];
+                  const propertyAddress = firstProp?.address || propTool?.data?.market_context?.location || '';
+                  onAction?.('generate_report', { propertyAddress, strategy: 'LTR' });
+                  return;
+                }
+
+                // Deal Analysis — open the deal analyzer with the top property
+                if (action.tool_name === 'request_financial_analysis') {
+                  const propTool = message.tools?.find(
+                    (t: any) => t.kind === 'scout_properties' || t.name === 'scout_properties'
+                  );
+                  const firstProp = propTool?.data?.properties?.[0];
+                  if (firstProp && onOpenDealAnalyzer) {
+                    onOpenDealAnalyzer(
+                      firstProp.listing_id || null,
+                      'STR',
+                      firstProp.price || 500000,
+                      firstProp.address
+                    );
+                    return;
+                  }
+                }
+
                 const query = action.query || action.label;
                 if (action.target_mode && onModeSwitch) {
                   // Cross-mode action: switch mode first, then fire the query

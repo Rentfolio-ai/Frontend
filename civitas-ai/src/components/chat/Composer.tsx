@@ -295,9 +295,9 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
 
   // Agent Mode Logic
   const modes: { id: AgentMode, label: string, icon: React.ReactNode, description: string }[] = [
-    { id: 'hunter', label: 'Hunter', icon: <HunterIcon className="w-4 h-4" />, description: 'Exhaustive search & discovery' },
-    { id: 'research', label: 'Research', icon: <ResearchIcon className="w-4 h-4" />, description: 'Deep market analysis' },
-    { id: 'strategist', label: 'Strategist', icon: <StrategistIcon className="w-4 h-4" />, description: 'Planning & scenarios' },
+    { id: 'hunter', label: 'Hunter', icon: <HunterIcon className="w-4 h-4" />, description: 'Search listings, score deals, run financial analysis' },
+    { id: 'research', label: 'Research', icon: <ResearchIcon className="w-4 h-4" />, description: 'Market trends, comparisons, education — no listings' },
+    { id: 'strategist', label: 'Strategist', icon: <StrategistIcon className="w-4 h-4" />, description: 'Portfolio strategy, risk modeling, long-term planning' },
   ];
 
   const currentModeData = modes.find(m => m.id === currentMode) || modes[0];
@@ -324,7 +324,11 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
         </div>
       )}
 
-      <div className="relative rounded-2xl backdrop-blur-xl bg-white/[0.08] border border-white/[0.12] hover:border-white/[0.18] focus-within:border-[#C08B5C]/30 transition-all duration-200 shadow-2xl shadow-black/20">
+      <div className={`relative rounded-2xl backdrop-blur-xl bg-white/[0.08] border transition-all duration-200 shadow-2xl shadow-black/20 ${currentMode === 'hunter' ? 'border-[#C08B5C]/20 hover:border-[#C08B5C]/30 focus-within:border-[#C08B5C]/40' :
+          currentMode === 'research' ? 'border-blue-400/20 hover:border-blue-400/30 focus-within:border-blue-400/40' :
+            currentMode === 'strategist' ? 'border-purple-400/20 hover:border-purple-400/30 focus-within:border-purple-400/40' :
+              'border-white/[0.12] hover:border-white/[0.18] focus-within:border-[#C08B5C]/30'
+        }`}>
 
         {attachment && (
           <div className="mx-4 mt-4">

@@ -20,6 +20,7 @@ import {
   Calendar,
   MapPin,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ReportTypeSelector } from './ReportTypeSelector';
@@ -37,6 +38,8 @@ import type {
 
 export interface ReportData {
   content: string;
+  report_id?: string;
+  view_url?: string;
   report_type: InvestmentReportFormat;
   generated_at: string;
   property_address?: string;
@@ -123,10 +126,11 @@ function formatDate(dateString?: string): string {
 }
 
 /**
- * Generate PDF from report content using browser print
+ * Generate PDF from report content using browser print.
+ * When view_url is available, loads the professional HTML from the backend;
+ * otherwise falls back to a basic styled HTML document.
  */
 async function downloadReportAsPdf(report: ReportData): Promise<void> {
-  // Create a hidden iframe for printing
   const iframe = document.createElement('iframe');
   iframe.style.position = 'absolute';
   iframe.style.width = '0';
@@ -134,13 +138,26 @@ async function downloadReportAsPdf(report: ReportData): Promise<void> {
   iframe.style.border = 'none';
   document.body.appendChild(iframe);
 
+  // If we have a view_url, load the professional HTML directly in the iframe
+  if (report.view_url) {
+    iframe.src = report.view_url;
+    await new Promise<void>((resolve) => {
+      iframe.onload = () => resolve();
+      // Timeout fallback in case onload doesn't fire
+      setTimeout(resolve, 3000);
+    });
+    iframe.contentWindow?.print();
+    setTimeout(() => document.body.removeChild(iframe), 1000);
+    return;
+  }
+
+  // Fallback: build basic styled HTML
   const doc = iframe.contentDocument || iframe.contentWindow?.document;
   if (!doc) {
     document.body.removeChild(iframe);
     throw new Error('Could not create print document');
   }
 
-  // Build styled HTML content
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -148,60 +165,14 @@ async function downloadReportAsPdf(report: ReportData): Promise<void> {
         <title>Investment Report - ${report.property_address || 'Property'}</title>
         <style>
           @page { margin: 1in; }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #1a1a1a;
-            max-width: 8.5in;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            border-bottom: 2px solid #0066cc;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-          }
-          .header h1 {
-            font-size: 24px;
-            margin: 0 0 8px 0;
-            color: #0066cc;
-          }
-          .header-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            font-size: 12px;
-            color: #666;
-          }
-          .header-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
-          .content {
-            white-space: pre-wrap;
-            font-size: 14px;
-          }
-          .content h2 {
-            color: #0066cc;
-            font-size: 18px;
-            margin-top: 24px;
-            margin-bottom: 12px;
-          }
-          .content h3 {
-            color: #333;
-            font-size: 16px;
-            margin-top: 20px;
-            margin-bottom: 8px;
-          }
-          .footer {
-            margin-top: 32px;
-            padding-top: 16px;
-            border-top: 1px solid #ddd;
-            font-size: 11px;
-            color: #888;
-            text-align: center;
-          }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; max-width: 8.5in; margin: 0 auto; padding: 20px; }
+          .header { border-bottom: 2px solid #C08B5C; padding-bottom: 16px; margin-bottom: 24px; }
+          .header h1 { font-size: 24px; margin: 0 0 8px 0; color: #C08B5C; }
+          .header-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #666; }
+          .content { white-space: pre-wrap; font-size: 14px; }
+          .content h2 { color: #C08B5C; font-size: 18px; margin-top: 24px; margin-bottom: 12px; }
+          .content h3 { color: #333; font-size: 16px; margin-top: 20px; margin-bottom: 8px; }
+          .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #888; text-align: center; }
         </style>
       </head>
       <body>
@@ -210,13 +181,10 @@ async function downloadReportAsPdf(report: ReportData): Promise<void> {
           <div class="header-meta">
             ${report.property_address ? `<span>📍 ${report.property_address}</span>` : ''}
             <span>📅 ${formatDate(report.generated_at)}</span>
-            <span>📊 ${REPORT_TYPE_LABELS[report.report_type]}</span>
           </div>
         </div>
         <div class="content">${report.content}</div>
-        <div class="footer">
-          Generated by Vasthu • ${new Date().toISOString().split('T')[0]}
-        </div>
+        <div class="footer">Generated by Civitas AI • ${new Date().toISOString().split('T')[0]}</div>
       </body>
     </html>
   `;
@@ -225,16 +193,9 @@ async function downloadReportAsPdf(report: ReportData): Promise<void> {
   doc.write(htmlContent);
   doc.close();
 
-  // Wait for content to render
   await new Promise(resolve => setTimeout(resolve, 250));
-
-  // Trigger print dialog (which allows Save as PDF)
   iframe.contentWindow?.print();
-
-  // Clean up after a delay
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-  }, 1000);
+  setTimeout(() => document.body.removeChild(iframe), 1000);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -270,14 +231,28 @@ const ReportHeader: React.FC<{ report: ReportData }> = ({ report }) => (
   </div>
 );
 
-/** Scrollable report content */
-const ReportContent: React.FC<{ content: string }> = ({ content }) => (
-  <div className="flex-1 overflow-auto px-6 py-4">
-    <pre className="whitespace-pre-wrap font-sans text-[13px] text-white/80 leading-relaxed">
-      {content}
-    </pre>
-  </div>
-);
+/** Scrollable report content — iframe for professional HTML, fallback to plaintext */
+const ReportContent: React.FC<{ content: string; viewUrl?: string }> = ({ content, viewUrl }) => {
+  if (viewUrl) {
+    return (
+      <div className="flex-1 overflow-hidden">
+        <iframe
+          src={viewUrl}
+          className="w-full h-full border-0"
+          title="Investment Report"
+          sandbox="allow-same-origin allow-popups"
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="flex-1 overflow-auto px-6 py-4">
+      <pre className="whitespace-pre-wrap font-sans text-[13px] text-white/80 leading-relaxed">
+        {content}
+      </pre>
+    </div>
+  );
+};
 
 /** Report generator form (when no report is loaded) */
 const ReportGenerator: React.FC<{
@@ -493,6 +468,17 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
                       )}
                       <span className="text-[10px] text-white/30">PDF</span>
                     </button>
+                    <button
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: { tab: 'reports' } }));
+                        onClose();
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center gap-1"
+                      title="View in Reports"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-white/40" />
+                      <span className="text-[10px] text-white/30">Reports</span>
+                    </button>
                   </>
                 )}
               </div>
@@ -509,7 +495,7 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
             {report ? (
               <>
                 <ReportHeader report={report} />
-                <ReportContent content={report.content} />
+                <ReportContent content={report.content} viewUrl={report.view_url} />
               </>
             ) : (
               <ReportGenerator

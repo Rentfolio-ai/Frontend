@@ -208,7 +208,7 @@ class AuthAPI {
    */
   async signOut(): Promise<SignOutResponse> {
     try {
-      const response = await this.request<SignOutResponse>('/api/auth/signout', {
+      const response = await this.request<SignOutResponse>('/api/auth/logout', {
         method: 'POST',
       });
       this.removeToken();

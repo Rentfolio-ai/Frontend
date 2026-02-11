@@ -33,7 +33,10 @@ export const AgentModeSelector: React.FC<AgentModeSelectorProps> = ({
                         onClick={() => onModeChange(mode.id)}
                         disabled={disabled}
                         className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${currentMode === mode.id
-                            ? 'bg-white/10 text-white shadow-lg border border-white/10'
+                            ? mode.id === 'hunter' ? 'bg-[#C08B5C]/15 text-[#D4A27F] shadow-lg border border-[#C08B5C]/20' :
+                                mode.id === 'research' ? 'bg-blue-400/15 text-blue-300 shadow-lg border border-blue-400/20' :
+                                    mode.id === 'strategist' ? 'bg-purple-400/15 text-purple-300 shadow-lg border border-purple-400/20' :
+                                        'bg-white/10 text-white shadow-lg border border-white/10'
                             : 'text-white/40 hover:text-white/70 hover:bg-white/5'
                             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title={mode.description}

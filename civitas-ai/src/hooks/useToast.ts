@@ -3,6 +3,7 @@
  * Hook for showing toast notifications
  */
 
+import { useCallback } from 'react';
 import { create } from 'zustand';
 
 type ToastType = 'success' | 'info' | 'warning' | 'error';
@@ -43,14 +44,22 @@ export const useToastStore = create<ToastStore>((set) => ({
 export function useToast() {
     const { toasts, showToast, closeToast } = useToastStore();
 
+    // Memoize convenience wrappers so consumers can safely use them
+    // as useCallback / useEffect dependencies without infinite loops.
+    const toast = useCallback((message: string) => showToast(message, 'info'), [showToast]);
+    const success = useCallback((message: string) => showToast(message, 'success'), [showToast]);
+    const error = useCallback((message: string) => showToast(message, 'error'), [showToast]);
+    const warning = useCallback((message: string) => showToast(message, 'warning'), [showToast]);
+    const info = useCallback((message: string) => showToast(message, 'info'), [showToast]);
+
     return {
         toasts,
         closeToast,
-        toast: (message: string) => showToast(message, 'info'),
-        success: (message: string) => showToast(message, 'success'),
-        error: (message: string) => showToast(message, 'error'),
-        warning: (message: string) => showToast(message, 'warning'),
-        info: (message: string) => showToast(message, 'info'),
+        toast,
+        success,
+        error,
+        warning,
+        info,
         showToast,
     };
 }
