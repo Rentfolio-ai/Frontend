@@ -1,7 +1,6 @@
 // FILE: src/types/chat.ts
 import type { PresentationBundle } from './pnl';
 import type { ComplianceResult } from './compliance';
-import type { Citation } from '../components/chat/CitationBadge';
 
 // Tool kinds for discriminated union pattern
 // Maps to backend tool_name values and frontend card components
@@ -24,6 +23,16 @@ export type ToolKind =
   | 'renovation_analysis'
   | 'report'
   | 'scout_properties';
+
+export interface Citation {
+  id: number;
+  title: string;
+  url?: string;
+  source: string;
+  snippet?: string;
+  publishedDate?: string;
+  favicon?: string;
+}
 
 export type AgentMode = 'research' | 'strategist' | 'hunter';
 
@@ -95,7 +104,7 @@ export interface Message {
   inlineActions?: InlineAction[]; // structured next steps from suggest_actions tool
   summary_markdown?: string;
   contextSources?: string[]; // Badges for context attribution
-  citations?: Citation[]; // 🚀 NEW: Citations for the assistant message
+  citations?: Citation[];
   /** Persisted AI reasoning trace (populated after stream completes) */
   thinkingTrace?: {
     steps: { text: string; source: string }[];

@@ -43,7 +43,6 @@ import {
   NeighborhoodTrajectoryCard,
 } from '../hunter';
 import { DealIntelligenceCard } from './tool-cards/DealIntelligenceCard';
-import { VoiceSummaryCard } from './VoiceSummaryCard';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -97,7 +96,6 @@ interface MessageBubbleProps {
   onNavigateToPreferences?: () => void;
   // Navigate to Upgrade / Billing page
   onNavigateToUpgrade?: () => void;
-  // Recalculate property metrics
   onRecalculate?: (property: any, params: any) => Promise<any>;
 }
 
@@ -757,6 +755,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   }
                 }
 
+                // Recalculate PnL
+                if (action.tool_name === 'recalculate_pnl' && onRecalculate) {
+                  onRecalculate(null, action.arguments);
+                  return;
+                }
+
                 const query = action.query || action.label;
                 if (action.target_mode && onModeSwitch) {
                   // Cross-mode action: switch mode first, then fire the query
@@ -789,10 +793,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               Switch to {message.modeSuggestion.suggestedMode.charAt(0).toUpperCase() + message.modeSuggestion.suggestedMode.slice(1)}
             </button>
           </div>
-        )}
-
-        {message.data?.type === 'voice_summary' && (
-          <VoiceSummaryCard data={message.data as any} />
         )}
 
         {/* Tool Cards - No container, float directly */}
@@ -841,7 +841,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             properties={message.data.tool_results.scouted_properties}
             onViewDetails={onViewDetails || (() => { })}
             onOpenDealAnalyzer={onOpenDealAnalyzer}
-            onRecalculate={onRecalculate}
           />
         )}
 

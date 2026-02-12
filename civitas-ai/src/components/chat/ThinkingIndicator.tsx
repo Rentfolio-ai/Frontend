@@ -10,14 +10,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { X, RefreshCw, AlertCircle, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import type { ThinkingState, CompletedTool } from '@/types/stream';
+import type { ReasoningStep } from './AIReasoningPanel';
 
-// Define ReasoningStep type inline since we only need it for props
-interface ReasoningStep {
-  title: string;
-  description: string;
-  status: 'pending' | 'running' | 'complete' | 'error';
-  tool?: string;
-}
+
 
 interface ThinkingIndicatorProps {
   thinking: ThinkingState | null;

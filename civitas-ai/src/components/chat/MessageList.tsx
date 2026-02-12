@@ -10,6 +10,7 @@ import type { InvestmentStrategy } from '../../types/pnl';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
+import type { ReasoningStep } from './AIReasoningPanel';
 
 interface MessageListProps {
   messages: Message[];
@@ -23,7 +24,7 @@ interface MessageListProps {
   // Thinking state props
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
-  reasoningSteps?: any[]; // 🚀 NEW: Real-time reasoning steps
+  reasoningSteps?: ReasoningStep[]; // 🚀 NEW: Real-time reasoning steps
   userName?: string;
   userAvatar?: string;
   onRefresh?: (messageId: string) => void;

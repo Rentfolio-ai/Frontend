@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Trash2, Pin, FileBarChart2, Edit3, MoreVertical, Archive, Search, X, Ellipsis } from 'lucide-react';
+import { Trash2, Pin, FileBarChart2, Edit3, MoreVertical, Archive, Search, X, Ellipsis, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
@@ -39,6 +39,7 @@ interface SimpleSidebarProps {
     onChatClick: () => void;
     onAnalyticsClick: () => void;
     onReportsClick: () => void;
+    onVoiceNotesClick?: () => void;
     onSettingsClick?: () => void;
     onHelpClick?: () => void;
     onUpgradeClick?: () => void;
@@ -54,11 +55,12 @@ interface SimpleSidebarProps {
     hideHamburger?: boolean;
     isCurrentChatTemporary?: boolean;
 }
+
 export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onNewChat,
-    onChatClick,
     onAnalyticsClick,
     onReportsClick,
+    onVoiceNotesClick,
     onSettingsClick,
     onHelpClick,
     onUpgradeClick,
@@ -69,8 +71,8 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onDeleteChat,
     onPinChat,
     onArchiveChat,
-    hideHamburger,
-    isCurrentChatTemporary,
+    hideHamburger = false,
+    isCurrentChatTemporary = false,
 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -269,6 +271,10 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                 <FileBarChart2 className="w-4 h-4" strokeWidth={1.8} />
                                 <span>Reports</span>
                             </button>
+                            <button onClick={() => onVoiceNotesClick?.()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-[13px] text-white/40 hover:text-white/70 hover:bg-white/[0.04]">
+                                <Mic className="w-4 h-4" strokeWidth={1.8} />
+                                <span>Voice Notes</span>
+                            </button>
                         </div>
 
                         {/* Search bar (toggled) */}
@@ -378,6 +384,9 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                             </button>
                             <button onClick={() => onReportsClick()} className="p-2.5 rounded-xl transition-colors hover:bg-white/5" title="Reports">
                                 <FileBarChart2 className="w-[18px] h-[18px] text-white/50" />
+                            </button>
+                            <button onClick={() => onVoiceNotesClick?.()} className="p-2.5 rounded-xl transition-colors hover:bg-white/5" title="Voice Notes">
+                                <Mic className="w-[18px] h-[18px] text-white/50" />
                             </button>
                         </div>
 
