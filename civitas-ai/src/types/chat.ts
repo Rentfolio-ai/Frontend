@@ -1,6 +1,7 @@
 // FILE: src/types/chat.ts
 import type { PresentationBundle } from './pnl';
 import type { ComplianceResult } from './compliance';
+import type { Citation } from '../components/chat/CitationBadge';
 
 // Tool kinds for discriminated union pattern
 // Maps to backend tool_name values and frontend card components
@@ -94,6 +95,7 @@ export interface Message {
   inlineActions?: InlineAction[]; // structured next steps from suggest_actions tool
   summary_markdown?: string;
   contextSources?: string[]; // Badges for context attribution
+  citations?: Citation[]; // 🚀 NEW: Citations for the assistant message
   /** Persisted AI reasoning trace (populated after stream completes) */
   thinkingTrace?: {
     steps: { text: string; source: string }[];

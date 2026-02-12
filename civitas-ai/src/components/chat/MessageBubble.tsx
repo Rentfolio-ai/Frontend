@@ -43,6 +43,7 @@ import {
   NeighborhoodTrajectoryCard,
 } from '../hunter';
 import { DealIntelligenceCard } from './tool-cards/DealIntelligenceCard';
+import { VoiceSummaryCard } from './VoiceSummaryCard';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -96,6 +97,8 @@ interface MessageBubbleProps {
   onNavigateToPreferences?: () => void;
   // Navigate to Upgrade / Billing page
   onNavigateToUpgrade?: () => void;
+  // Recalculate property metrics
+  onRecalculate?: (property: any, params: any) => Promise<any>;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -122,6 +125,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onModeSwitch,
   onNavigateToPreferences,
   onNavigateToUpgrade,
+  onRecalculate,
 }) => {
   const isUser = message.role === 'user' || message.type === 'user';
   const hasAttachment = !!message.attachment;
@@ -355,7 +359,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     // --- Paragraphs (collapse empty ones) ---
                     p: ({ children }) => {
                       // Collapse empty paragraphs that ReactMarkdown creates between block elements
-                      const isEmpty = !children || 
+                      const isEmpty = !children ||
                         (Array.isArray(children) && children.every(c => c == null || c === '' || c === '\n')) ||
                         (typeof children === 'string' && !children.trim());
                       if (isEmpty) return null;
@@ -787,6 +791,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         )}
 
+        {message.data?.type === 'voice_summary' && (
+          <VoiceSummaryCard data={message.data as any} />
+        )}
+
         {/* Tool Cards - No container, float directly */}
         {hasTools && (
           <div className="w-full mt-3">
@@ -833,6 +841,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             properties={message.data.tool_results.scouted_properties}
             onViewDetails={onViewDetails || (() => { })}
             onOpenDealAnalyzer={onOpenDealAnalyzer}
+            onRecalculate={onRecalculate}
           />
         )}
 
@@ -917,7 +926,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <div className="relative group/user-avatar">
             {/* Subtle outer glow on hover */}
             <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-[#C08B5C]/30 to-[#D4A27F]/30 opacity-0 group-hover/user-avatar:opacity-100 blur-sm transition-opacity duration-300" />
-            
+
             {/* Avatar container */}
             <div className="relative w-8 h-8 rounded-full overflow-hidden ring-[1.5px] ring-white/[0.12] shadow-lg shadow-black/20 group-hover/user-avatar:ring-[#C08B5C]/30 transition-all duration-300">
               {userAvatar && userAvatar.length > 200 ? (

@@ -54,9 +54,9 @@ interface SimpleSidebarProps {
     hideHamburger?: boolean;
     isCurrentChatTemporary?: boolean;
 }
-
 export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onNewChat,
+    onChatClick,
     onAnalyticsClick,
     onReportsClick,
     onSettingsClick,
@@ -69,8 +69,8 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onDeleteChat,
     onPinChat,
     onArchiveChat,
-    hideHamburger = false,
-    isCurrentChatTemporary = false,
+    hideHamburger,
+    isCurrentChatTemporary,
 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -263,8 +263,8 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                             </div>
                         </div>
 
-                        {/* Reports nav — at the top, below header */}
-                        <div className="px-2 pb-1.5 flex-shrink-0">
+                        {/* Nav links — at the top, below header */}
+                        <div className="px-2 pb-1.5 flex-shrink-0 space-y-0.5">
                             <button onClick={() => onReportsClick()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-[13px] text-white/40 hover:text-white/70 hover:bg-white/[0.04]">
                                 <FileBarChart2 className="w-4 h-4" strokeWidth={1.8} />
                                 <span>Reports</span>

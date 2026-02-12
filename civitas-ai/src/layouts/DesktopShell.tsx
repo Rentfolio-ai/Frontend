@@ -26,6 +26,7 @@ import { usePropertyBookmarks } from '../hooks/usePropertyBookmarks';
 import { useSavedReports } from '../hooks/useSavedReports';
 import { ToastContainer } from '../components/primitives/Toast';
 import { ReportsPage } from '../components/reports/ReportsPage';
+
 import { CommandCenterChatView } from '../components/desktop-shell/CommandCenterChatView';
 import { SimpleSidebar } from '../components/desktop-shell/SimpleSidebar';
 import { CommandSearch } from '../components/desktop-shell/CommandSearch';
@@ -136,6 +137,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Voice mode
     handleVoiceTurn,
     handleVoiceStart,
+    handleVoiceNoteSaved,
   } = useDesktopShell();
 
   console.log('[DesktopShell] Render state:', {
@@ -344,7 +346,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   onToggleBookmark={handleToggleBookmark}
                   onNavigateToReports={handleNavigateToReportsAndRefresh}
                   onNavigateToInvestmentPreferences={() => setActiveTab('investment_preferences')}
-                  onNavigateToUpgrade={() => setActiveTab('billing')}
+                  onNavigateToUpgrade={() => setActiveTab('upgrade')}
                   onOpenSidebar={() => setIsSidebarOpen(true)}
                   onNewChat={handleNewChat}
                   thinking={thinking}
@@ -379,6 +381,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   // Voice mode props
                   onVoiceTurn={handleVoiceTurn}
                   onVoiceStart={handleVoiceStart}
+                  onVoiceNoteSaved={handleVoiceNoteSaved}
                   conversationId={activeChatId || undefined}
                 />
               );
@@ -388,6 +391,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 <ReportsPage />
               </ErrorBoundary>
             )}
+
             {activeTab === 'files' && (
               <ErrorBoundary pageName="Files">
                 <FilesPage />

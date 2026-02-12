@@ -1,6 +1,7 @@
 // Modern Sign-Up Page - Clean and Professional
 import React, { useState } from 'react';
 import { authAPI } from '../../services/authApi';
+import { createAccount, getIdToken } from '../../services/firebaseAuth';
 import { Logo } from '../../components/ui/Logo';
 
 interface SignUpPageProps {
@@ -62,18 +63,25 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
     try {
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
-      // Call backend signup API so user is persisted in the database
-      const response = await authAPI.signUp({
-        email: formData.email,
-        password: formData.password,
-        name: fullName,
-        accept_terms: true,
-      });
+      let idToken = 'dev-token';
 
-      // Store token
-      if (response.token) {
-        localStorage.setItem('civitas-token', response.token);
+      // Try Firebase signup if Firebase is properly configured
+      const firebaseApiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+      const isFirebaseConfigured = firebaseApiKey && !firebaseApiKey.includes('Dummy');
+
+      if (isFirebaseConfigured) {
+        // Production: Create user in Firebase, get real ID token
+        const firebaseUser = await createAccount(formData.email, formData.password, fullName);
+        const token = await getIdToken(firebaseUser);
+        if (token) idToken = token;
       }
+
+      // Verify the token with the backend (creates/syncs user in DB)
+      const response = await authAPI.signUp({
+        id_token: idToken,
+        email: formData.email,
+        name: fullName,
+      });
 
       const userData = {
         id: response.user.user_id,
@@ -82,11 +90,22 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
         avatar: `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase(),
       };
 
+      // Store user in localStorage
+      localStorage.setItem('civitas-user', JSON.stringify(userData));
+
       onSignUp(userData);
-    } catch (error) {
-      setErrors({
-        general: error instanceof Error ? error.message : 'Failed to create account.',
-      });
+    } catch (error: any) {
+      // Handle Firebase-specific errors with user-friendly messages
+      const code = error?.code;
+      let message = error?.message || 'Failed to create account.';
+      if (code === 'auth/email-already-in-use') {
+        message = 'An account with this email already exists. Try signing in instead.';
+      } else if (code === 'auth/weak-password') {
+        message = 'Password is too weak. Please use a stronger password.';
+      } else if (code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      }
+      setErrors({ general: message });
     } finally {
       setIsLoading(false);
     }
@@ -211,8 +230,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   placeholder="First name"
                   className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.firstName
-                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                    : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
                     }`}
                 />
               </div>
@@ -228,8 +247,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   placeholder="Last name"
                   className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.lastName
-                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                      : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                    : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
                     }`}
                 />
               </div>
@@ -247,8 +266,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="Enter your email address"
                 className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.email
-                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                    : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                  ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                  : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
                   }`}
               />
             </div>
@@ -265,8 +284,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onNavigateToSi
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 placeholder="At least 8 characters"
                 className={`w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${errors.password
-                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                    : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
+                  ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                  : 'border-white/[0.08] focus:border-[#C08B5C] focus:ring-[#C08B5C]'
                   }`}
               />
               {errors.password && <p className="mt-1 text-xs text-red-400 font-sans">{errors.password}</p>}

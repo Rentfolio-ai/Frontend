@@ -52,6 +52,7 @@ interface ChatTabViewProps {
   onNavigateToUpgrade?: () => void;
   onOpenSidebar?: () => void;
   onNewChat?: () => void;
+  onRecalculate?: (property: any, params: any) => Promise<any>;
   // Thinking state
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
@@ -69,6 +70,7 @@ interface ChatTabViewProps {
   // Voice mode
   onVoiceTurn?: (role: 'user' | 'assistant', content: string) => void;
   onVoiceStart?: () => void;
+  onVoiceNoteSaved?: (noteId: string, summary: any, details: { duration: number; persona: string; transcript: any[] }) => void;
   conversationId?: string;
 }
 
@@ -223,12 +225,13 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onRetry,
   onEditMessage,
   onNavigateBranch,
-  chatTitle,
   currentMode,
   onModeChange,
   onVoiceTurn,
   onVoiceStart,
+  onVoiceNoteSaved,
   conversationId,
+  onRecalculate,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const [showPreferences, setShowPreferences] = useState(false);
@@ -256,6 +259,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const voiceSession = useVoiceSession({
     conversationId,
     onTurn: onVoiceTurn,
+    onVoiceNoteSaved,
   });
 
   // Streaming voice partials — cleaned for display
@@ -666,6 +670,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 onModeSwitch={handleModeSwitch}
                 onNavigateToPreferences={onNavigateToInvestmentPreferences}
                 onNavigateToUpgrade={onNavigateToUpgrade}
+                onRecalculate={onRecalculate}
               />
 
               {/* ── Voice Streaming Partials ── */}

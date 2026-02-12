@@ -3,7 +3,7 @@ import { cn } from '../../../lib/utils';
 import {
     ChevronLeft, ChevronRight, Sparkles, GitCompare,
     Bed, Bath, Maximize2, TrendingUp, TrendingDown,
-    DollarSign, Percent, BarChart3, Calendar, MapPin, ExternalLink
+    DollarSign, Percent, BarChart3, Calendar, MapPin, ExternalLink, Award
 } from 'lucide-react';
 import type { InvestmentStrategy } from '../../../types/pnl';
 import type { ScoutedProperty } from '../../../types/backendTools';
@@ -18,6 +18,7 @@ interface PropertyListCardProps {
     onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
     onViewDetails?: (property: any) => void;
     enableHolographicView?: boolean;
+    onRecalculate?: (property: any, params: any) => Promise<any>;
 }
 
 /* ─────────────────────────────── helpers ─────────────────────────────── */
@@ -83,6 +84,22 @@ const MetricPill: React.FC<{
     </div>
 );
 
+/* ───────────────────────────── corner ribbon ────────────────────────── */
+
+const Ribbon: React.FC<{ label: string; color: string; icon?: React.ReactNode }> = ({ label, color, icon }) => (
+    <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24 pointer-events-none">
+        <div
+            className={cn(
+                "absolute top-4 -right-8 w-32 py-1 rotate-45 flex items-center justify-center gap-1.5 shadow-lg shadow-black/40 border-y border-white/10",
+                color
+            )}
+        >
+            {icon && <span className="scale-75 origin-center">{icon}</span>}
+            <span className="text-[9px] font-black uppercase tracking-tighter text-white drop-shadow-sm">{label}</span>
+        </div>
+    </div>
+);
+
 /* ───────────────────── single property card (premium) ───────────────── */
 
 const PropertyCard: React.FC<{
@@ -91,13 +108,28 @@ const PropertyCard: React.FC<{
     onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
     criteria?: any;
     enableHolographicView?: boolean;
-}> = ({ property, onViewDetails, onOpenDealAnalyzer, criteria, enableHolographicView }) => {
+    isHero?: boolean;
+    index?: number;
+    onRecalculate?: (property: any, params: any) => Promise<any>;
+}> = ({ property, onViewDetails, onOpenDealAnalyzer, criteria, enableHolographicView, isHero, index, onRecalculate }) => {
     const [showHolographic, setShowHolographic] = useState(false);
     const [photoIdx, setPhotoIdx] = useState(0);
     const [imgLoaded, setImgLoaded] = useState(false);
     const { isSelected, toggleComparison } = useComparisonStore();
 
-    const photos = property.photos?.length ? property.photos : ['https://images.rentcast.io/s3/photo-placeholder.jpg'];
+    const photos = property.photos?.length ? property.photos : [];
+    const hasPhotos = photos.length > 0;
+    const photoUrl = hasPhotos ? photos[photoIdx] : null;
+
+    // Generate a unique placeholder gradient seed based on listing_id
+    const listingSeed = property.listing_id ? Array.from(property.listing_id).reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+    const placeholderColors = [
+        ['#1E1C24', '#2D2B35'],
+        ['#1A191F', '#25242A'],
+        ['#201E26', '#302E38'],
+        ['#18171C', '#222126'],
+    ];
+    const colorPair = placeholderColors[listingSeed % placeholderColors.length];
     const financial = property.financial_snapshot;
     const isPositive = financial?.status === 'positive';
     const hasMulti = photos.length > 1;
@@ -136,35 +168,86 @@ const PropertyCard: React.FC<{
         <>
             <div
                 className={cn(
-                    'min-w-[330px] w-[330px] snap-center rounded-[20px] overflow-hidden transition-all duration-300 group cursor-pointer',
+                    'snap-center rounded-[20px] overflow-hidden transition-all duration-300 group cursor-pointer relative',
+                    isHero ? 'min-w-[420px] w-[420px]' : 'min-w-[330px] w-[330px]',
                     'hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-black/40',
                     selected && 'ring-2 ring-[#C08B5C]/50'
                 )}
                 style={{
-                    background: 'linear-gradient(165deg, rgba(30,28,36,0.95) 0%, rgba(18,17,22,0.98) 100%)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: isHero
+                        ? 'linear-gradient(165deg, rgba(35,32,45,0.98) 0%, rgba(192,139,92,0.12) 50%, rgba(18,17,22,1) 100%)'
+                        : score && score > 85
+                            ? 'linear-gradient(165deg, rgba(30,28,36,0.98) 0%, rgba(192,139,92,0.05) 50%, rgba(18,17,22,1) 100%)'
+                            : 'linear-gradient(165deg, rgba(30,28,36,0.95) 0%, rgba(18,17,22,0.98) 100%)',
+                    border: isHero
+                        ? '1px solid rgba(192,139,92,0.4)'
+                        : score && score > 85
+                            ? '1px solid rgba(192,139,92,0.3)'
+                            : '1px solid rgba(255,255,255,0.06)',
                 }}
                 onClick={() => onViewDetails?.(property)}
             >
+                {/* ──── Corner Ribbons ──── */}
+                {score && score >= 90 && (
+                    <Ribbon label="Best Match" color="bg-gradient-to-r from-amber-500 to-orange-600" icon={<Award className="w-3 h-3 text-white" />} />
+                )}
+                {capRate && capRate >= 8 && score && score < 90 && (
+                    <Ribbon label="High Yield" color="bg-gradient-to-r from-emerald-500 to-teal-600" icon={<TrendingUp className="w-3 h-3 text-white" />} />
+                )}
+                {property.days_on_market != null && property.days_on_market <= 3 && !score && (
+                    <Ribbon label="New Listing" color="bg-gradient-to-r from-blue-500 to-indigo-600" icon={<Calendar className="w-3 h-3 text-white" />} />
+                )}
+
                 {/* ──── Image Section ──── */}
-                <div className="relative h-[195px] overflow-hidden group/img">
+                <div className={cn("relative overflow-hidden group/img", isHero ? 'h-[230px]' : 'h-[195px]')}>
                     {/* Shimmer placeholder */}
                     {!imgLoaded && (
                         <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] via-white/[0.06] to-white/[0.02] animate-pulse" />
                     )}
-                    <img
-                        src={photos[photoIdx]}
-                        alt={property.address}
-                        onLoad={() => setImgLoaded(true)}
-                        className={cn(
-                            'w-full h-full object-cover transition-all duration-700',
-                            'group-hover:scale-[1.05] group-hover:brightness-110',
-                            imgLoaded ? 'opacity-100' : 'opacity-0'
-                        )}
-                    />
+                    {hasPhotos ? (
+                        <img
+                            src={photoUrl!}
+                            alt={property.address}
+                            onLoad={() => setImgLoaded(true)}
+                            className={cn(
+                                'w-full h-full object-cover transition-all duration-700',
+                                'group-hover:scale-[1.05] group-hover:brightness-110',
+                                imgLoaded ? 'opacity-100' : 'opacity-0'
+                            )}
+                        />
+                    ) : (
+                        <div
+                            className="w-full h-full flex flex-col items-center justify-center gap-3"
+                            style={{ background: `linear-gradient(135deg, ${colorPair[0]}, ${colorPair[1]})` }}
+                        >
+                            <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center">
+                                <MapPin className="w-6 h-6 text-white/20" />
+                            </div>
+                            <span className="text-[10px] font-medium text-white/10 uppercase tracking-widest">No Photos Available</span>
+                        </div>
+                    )}
                     {/* Deep gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#121116] via-[#121116]/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121116] via-[#121116]/60 to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-r from-[#121116]/20 to-transparent" />
+
+                    {/* Background glow depends on strength */}
+                    {score && score > 85 && (
+                        <div className="absolute -inset-10 bg-amber-500/10 blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    )}
+                    {capRate && capRate >= 7 && (
+                        <div className="absolute -inset-10 bg-emerald-500/10 blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    )}
+
+                    {/* Multi-tone premium accent line for Hero, unique colors for others */}
+                    <div
+                        className={cn("absolute bottom-0 left-0 z-10 transition-all duration-500", isHero ? "h-[3.5px] opacity-100" : "h-[2.5px] opacity-70")}
+                        style={{
+                            width: '100%',
+                            background: isHero
+                                ? 'linear-gradient(90deg, transparent, #C08B5C, #D4A27F, #F3E5AB, #D4A27F, #C08B5C, transparent)'
+                                : `linear-gradient(90deg, transparent, ${['#4B5563', '#60A5FA', '#34D399', '#A855F7'][(index || 0) % 4]}, transparent)`
+                        }}
+                    />
 
                     {/* Photo navigation */}
                     {hasMulti && (
@@ -218,15 +301,24 @@ const PropertyCard: React.FC<{
 
                     {/* ─── Bottom overlay: Price + Address ─── */}
                     <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">
+                        {isHero && (
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-white/60 text-[8px] font-bold uppercase tracking-wider mb-1.5 border border-white/5">
+                                <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+                                Top Recommendation
+                            </div>
+                        )}
                         {/* Price badge with gradient */}
                         <div className="inline-flex items-center mb-1.5">
-                            <span className="text-[22px] font-extrabold text-white tracking-tight drop-shadow-lg">
+                            <span className={cn(
+                                "font-extrabold text-white tracking-tight drop-shadow-lg",
+                                isHero ? 'text-[28px]' : 'text-[22px]'
+                            )}>
                                 ${property.price?.toLocaleString()}
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] text-white/45">
                             <MapPin className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{property.address}</span>
+                            <span className="truncate max-w-[200px]">{property.address}</span>
                         </div>
                     </div>
 
@@ -291,27 +383,27 @@ const PropertyCard: React.FC<{
                     </div>
 
                     {/* ─── Financial Metrics: 3-column grid ─── */}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className={cn("grid gap-2", isHero ? "grid-cols-3" : "grid-cols-3")}>
                         <MetricPill
                             label="Rent"
                             value={rent ? `${fmtCurrency(rent)}/mo` : '—'}
-                            icon={<DollarSign className="w-3 h-3" />}
+                            icon={<DollarSign className={isHero ? "w-4 h-4" : "w-3 h-3"} />}
                             accent="text-white/80"
-                            bgTint="rgba(255,255,255,0.025)"
+                            bgTint={isHero ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.025)"}
                         />
                         <MetricPill
                             label="Cap Rate"
                             value={capRate ? `${capRate.toFixed(1)}%` : '—'}
-                            icon={<Percent className="w-3 h-3" />}
+                            icon={<Percent className={isHero ? "w-4 h-4" : "w-3 h-3"} />}
                             accent={capRate && capRate >= 6 ? 'text-emerald-400' : 'text-white/60'}
-                            bgTint={capRate && capRate >= 6 ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.025)'}
+                            bgTint={capRate && capRate >= 6 ? 'rgba(16,185,129,0.05)' : isHero ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.025)'}
                         />
                         <MetricPill
                             label="Cash Flow"
                             value={cashFlow != null ? `${isPositive ? '+' : '-'}${fmtCurrency(cashFlow)}/mo` : '—'}
-                            icon={isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            icon={isPositive ? <TrendingUp className={isHero ? "w-4 h-4" : "w-3 h-3"} /> : <TrendingDown className={isHero ? "w-4 h-4" : "w-3 h-3"} />}
                             accent={isPositive ? 'text-emerald-400' : 'text-rose-400'}
-                            bgTint={isPositive ? 'rgba(16,185,129,0.05)' : 'rgba(239,68,68,0.04)'}
+                            bgTint={isPositive ? 'rgba(16,185,129,0.05)' : isHero ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)'}
                         />
                     </div>
 
@@ -369,6 +461,7 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
     onOpenDealAnalyzer,
     onViewDetails,
     enableHolographicView: enableHolographicViewProp = false,
+    onRecalculate,
 }) => {
     const { investmentCriteria } = usePreferencesStore();
     const { selectedProperties, startComparing } = useComparisonStore();
@@ -415,8 +508,8 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
                 </div>
 
                 {/* Card carousel */}
-                <div className="flex overflow-x-auto gap-4 py-1 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
-                    {properties.map((property) => (
+                <div className="flex overflow-x-auto gap-5 py-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
+                    {properties.map((property, idx) => (
                         <PropertyCard
                             key={property.listing_id}
                             property={property}
@@ -424,6 +517,9 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
                             onOpenDealAnalyzer={onOpenDealAnalyzer}
                             criteria={investmentCriteria}
                             enableHolographicView={holographicMode}
+                            isHero={idx === 0}
+                            index={idx}
+                            onRecalculate={onRecalculate}
                         />
                     ))}
                 </div>

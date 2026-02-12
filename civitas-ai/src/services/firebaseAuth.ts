@@ -11,6 +11,9 @@ import {
     GoogleAuthProvider,
     signOut as firebaseSignOut,
     onAuthStateChanged,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    updateProfile,
     type User
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -111,3 +114,35 @@ export const onAuthChange = (callback: (user: User | null) => void) => {
 };
 
 export type { User };
+
+/**
+ * Create a new account with email and password via Firebase Auth
+ */
+export const createAccount = async (email: string, password: string, displayName?: string): Promise<User> => {
+    try {
+        if (!auth) throw new Error('Firebase Auth not initialized');
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        // Set the display name if provided
+        if (displayName) {
+            await updateProfile(result.user, { displayName });
+        }
+        return result.user;
+    } catch (error) {
+        console.error('Error creating account:', error);
+        throw error;
+    }
+};
+
+/**
+ * Sign in with email and password via Firebase Auth
+ */
+export const signInWithEmail = async (email: string, password: string): Promise<User> => {
+    try {
+        if (!auth) throw new Error('Firebase Auth not initialized');
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        return result.user;
+    } catch (error) {
+        console.error('Error signing in with email:', error);
+        throw error;
+    }
+};

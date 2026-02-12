@@ -41,6 +41,7 @@ interface MessageListProps {
   onModeSwitch?: (mode: string, autoQuery?: string) => void;
   onNavigateToPreferences?: () => void;
   onNavigateToUpgrade?: () => void;
+  onRecalculate?: (property: any, params: any) => Promise<any>;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -70,6 +71,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   onModeSwitch,
   onNavigateToPreferences,
   onNavigateToUpgrade,
+  onRecalculate,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -159,6 +161,8 @@ export const MessageList: React.FC<MessageListProps> = ({
               onModeSwitch={onModeSwitch}
               onNavigateToPreferences={onNavigateToPreferences}
               onNavigateToUpgrade={onNavigateToUpgrade}
+              onRecalculate={onRecalculate}
+              citations={message.citations}
             />
           );
         })}

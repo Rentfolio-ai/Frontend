@@ -84,6 +84,7 @@ interface CommandCenterChatViewProps {
   // Voice mode
   onVoiceTurn?: (role: 'user' | 'assistant', content: string) => void;
   onVoiceStart?: () => void;
+  onVoiceNoteSaved?: (noteId: string, summary: any, details: { duration: number; persona: string; transcript: any[] }) => void;
   conversationId?: string;
 }
 
@@ -107,6 +108,7 @@ export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (prop
     isLoading,
     currentMode,
     onModeChange,
+    onVoiceNoteSaved,
   } = props;
 
   const [contextProperty, setContextProperty] = useState<ScoutedProperty | null>(null);

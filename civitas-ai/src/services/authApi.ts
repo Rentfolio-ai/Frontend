@@ -30,23 +30,33 @@ export interface SignInRequest {
 }
 
 export interface SignUpRequest {
-  email: string;
-  password: string;
+  id_token: string;
+  email?: string;
   name?: string;
-  accept_terms: boolean;
+}
+
+export interface VerifyTokenRequest {
+  id_token: string;
+  email?: string;
+  name?: string;
 }
 
 export interface AuthResponse {
-  token: string;
+  success: boolean;
   user: {
     user_id: string;
     email: string;
+    full_name?: string;
     name?: string;
     created_at: string;
     last_login?: string;
+    onboarding_completed?: boolean;
+    subscription_tier?: string;
   };
-  thread_id: string;
-  expires_at: string;
+  firebase_uid: string;
+  token?: string;
+  thread_id?: string;
+  expires_at?: string;
 }
 
 export interface ForgotPasswordRequest {
@@ -154,15 +164,25 @@ class AuthAPI {
   }
 
   /**
-   * Sign in with email and password
+   * Sign in — verify Firebase ID token with backend
    */
-  async signIn(data: SignInRequest): Promise<AuthResponse> {
-    const response = await this.request<AuthResponse>('/api/auth/signin', {
+  async signIn(data: SignInRequest & { id_token?: string }): Promise<AuthResponse> {
+    // If we have a Firebase ID token, use verify-token
+    if (data.id_token) {
+      return this.verifyToken({
+        id_token: data.id_token,
+        email: data.email,
+      });
+    }
+    // Fallback: try direct signin (dev mode compat)
+    const response = await this.request<AuthResponse>('/api/auth/verify-token', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        id_token: 'dev-token',
+        email: data.email,
+      }),
     });
 
-    // Store token
     if (response.token) {
       this.setToken(response.token, data.remember_me || false);
     }
@@ -171,15 +191,23 @@ class AuthAPI {
   }
 
   /**
-   * Sign up with email and password
+   * Sign up — verify Firebase ID token with backend (creates user if new)
    */
   async signUp(data: SignUpRequest): Promise<AuthResponse> {
-    const response = await this.request<AuthResponse>('/api/auth/signup', {
+    return this.verifyToken(data);
+  }
+
+  /**
+   * Verify a Firebase ID token with the backend.
+   * This creates/updates the user in the database and returns user info.
+   */
+  async verifyToken(data: VerifyTokenRequest): Promise<AuthResponse> {
+    const response = await this.request<AuthResponse>('/api/auth/verify-token', {
       method: 'POST',
       body: JSON.stringify(data),
     });
 
-    // Store token
+    // Store token if provided
     if (response.token) {
       this.setToken(response.token, false);
     }

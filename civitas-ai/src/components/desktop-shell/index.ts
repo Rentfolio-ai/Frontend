@@ -5,3 +5,4 @@ export { ReportsTabView } from './ReportsTabView';
 export { PortfolioTabView } from './PortfolioTabView';
 export { DesktopSidebarMenu } from './DesktopSidebarMenu';
 export { CommandSearch } from './CommandSearch';
+export { SimpleSidebar } from './SimpleSidebar';

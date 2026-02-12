@@ -62,10 +62,15 @@ export interface UseVoiceSessionReturn {
 interface UseVoiceSessionOptions {
   conversationId?: string;
   onTurn?: (role: 'user' | 'assistant', content: string) => void;
+  onVoiceNoteSaved?: (
+    noteId: string,
+    summary: any,
+    details: { duration: number; persona: string; transcript: any[] }
+  ) => void;
 }
 
 export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceSessionReturn {
-  const { conversationId, onTurn } = options;
+  const { conversationId, onTurn, onVoiceNoteSaved } = options;
 
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef<number>(Date.now());
@@ -153,7 +158,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceS
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
       if (VOICE_API_KEY) headers['X-API-Key'] = VOICE_API_KEY;
 
-      const res = await fetch(`${VOICE_API_BASE}/api/voice/token`, {
+      const modeParam = persona.mode ? `?mode=${encodeURIComponent(persona.mode)}` : '';
+      const res = await fetch(`${VOICE_API_BASE}/api/voice/token${modeParam}`, {
         method: 'POST',
         headers,
       });
@@ -273,9 +279,9 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceS
       await camera.start();
       gemini.sendTextHint(
         '[The user has enabled their camera. You can now see what they see in real-time. ' +
-          'Describe what you observe when asked. For properties, comment on condition, ' +
-          'renovation needs, curb appeal, structural concerns, and anything relevant to ' +
-          'real estate investment. Be specific about what you see.]',
+        'Describe what you observe when asked. For properties, comment on condition, ' +
+        'renovation needs, curb appeal, structural concerns, and anything relevant to ' +
+        'real estate investment. Be specific about what you see.]',
       );
     }
   }, [camera, gemini]);
@@ -358,7 +364,70 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceS
 
       saveTurns();
     }
-  }, [camera, capture, playback, gemini, conversationId, activePersona, language]);
+
+    // ── Auto-save as a Voice Note ──
+    if (gemini.turns.length > 0) {
+      const noteId = `vn_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+      const userStr = localStorage.getItem('civitas-user');
+      let user: { id?: string } | undefined;
+      if (userStr) {
+        try {
+          user = JSON.parse(userStr);
+        } catch { /* ignore */ }
+      }
+
+      const noteHeaders: HeadersInit = {
+        'Content-Type': 'application/json',
+        ...(user?.id ? { 'X-User-ID': user.id } : {}),
+      };
+      if (VOICE_API_KEY) noteHeaders['X-API-Key'] = VOICE_API_KEY;
+
+      // 1. Save the note
+      fetch(`${VOICE_API_BASE}/api/voice/notes`, {
+        method: 'POST',
+        headers: noteHeaders,
+        body: JSON.stringify({
+          id: noteId,
+          persona: activePersona?.name || 'Vasthu',
+          mode: activePersona?.mode || 'hunter',
+          duration: Math.round((Date.now() - startTimeRef.current) / 1000),
+          turn_count: gemini.turns.length,
+          transcript: gemini.turns.map(t => ({
+            role: t.role,
+            content: t.content,
+            timestamp: t.timestamp,
+          })),
+          conversation_id: conversationId,
+        }),
+      })
+        .then(async res => {
+          if (res.ok) {
+            console.log('[useVoiceSession] Voice note saved:', noteId);
+            // 2. Generate summary
+            const summaryRes = await fetch(`${VOICE_API_BASE}/api/voice/notes/${noteId}/summarize`, {
+              method: 'POST',
+              headers: noteHeaders,
+            });
+
+            if (summaryRes.ok) {
+              const summaryData = await summaryRes.json();
+              if (summaryData.status === 'summarized' && onVoiceNoteSaved) {
+                onVoiceNoteSaved(noteId, summaryData.data, {
+                  duration: Math.round((Date.now() - startTimeRef.current) / 1000),
+                  persona: activePersona?.name || 'Vasthu',
+                  transcript: gemini.turns,
+                });
+              }
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Failed to save voice note:', err);
+        });
+    }
+
+  }, [camera, capture, playback, gemini, conversationId, activePersona, language, onTurn, onVoiceNoteSaved]);
 
   // ── Reconnect (voice-only after session expired) ──
   const reconnect = useCallback(async () => {

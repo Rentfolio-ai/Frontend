@@ -40,7 +40,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security';
+export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'voice_notes';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -1852,6 +1852,33 @@ export function useDesktopShell() {
     setMessages(prev => [...prev, message]);
   }, []);
 
+  const handleVoiceNoteSaved = useCallback((noteId: string, summary: any, details: { duration: number; persona: string; transcript: any[] }) => {
+    const summaryData = typeof summary === 'string' ? { summary } : summary;
+
+    const message = ChatService.createAssistantMessage(
+      `🎤 **Voice Note Saved**\n\n${summaryData.summary || 'Voice note saved and summarized.'}`
+    );
+
+    message.data = {
+      type: 'voice_summary',
+      voice_note_id: noteId,
+      summary: {
+        title: summaryData.title || `Voice Session with ${details.persona}`,
+        summary: summaryData.summary || 'No summary available.',
+        key_insights: summaryData.key_insights || [],
+        action_items: summaryData.action_items || [],
+        mentioned_properties: summaryData.mentioned_properties || [],
+        mentioned_markets: summaryData.mentioned_markets || [],
+      },
+      duration: details.duration,
+      persona: details.persona,
+      transcript: details.transcript,
+    };
+
+    setMessages(prev => [...prev, message]);
+    showToast('Voice note saved successfully', 'success');
+  }, [showToast]);
+
   const handleLoadChat = (chatId: string) => {
     const chat = chatHistory.find(c => c.id === chatId);
     if (!chat) return;
@@ -2282,6 +2309,7 @@ export function useDesktopShell() {
     // Voice mode
     handleVoiceTurn,
     handleVoiceStart,
+    handleVoiceNoteSaved,
 
     // Command Center
     commandCenter,
