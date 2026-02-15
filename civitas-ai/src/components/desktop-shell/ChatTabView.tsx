@@ -12,6 +12,7 @@ import { FAQModal } from '../FAQModal';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
+import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceSuggestion } from '../chat/PreferenceSuggestionToast';
 import { uploadFile, ingestFileToBackend } from '../../services/fileStorage';
 
@@ -56,6 +57,11 @@ interface ChatTabViewProps {
   // Thinking state
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
+  // Thinking steps (ChatGPT-style collapsible thinking)
+  thinkingSteps?: ThinkingStep[];
+  thinkingIsActive?: boolean;
+  thinkingIsDone?: boolean;
+  thinkingElapsed?: number;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   // Cancel and error handling
@@ -218,6 +224,10 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   thinking,
   completedTools = [],
+  thinkingSteps,
+  thinkingIsActive,
+  thinkingIsDone,
+  thinkingElapsed,
   onRefresh,
   onViewDetails,
   onCancel,
@@ -655,6 +665,10 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 onNavigateToReports={onNavigateToReports}
                 thinking={thinking}
                 completedTools={completedTools}
+                thinkingSteps={thinkingSteps}
+                thinkingIsActive={thinkingIsActive}
+                thinkingIsDone={thinkingIsDone}
+                thinkingElapsed={thinkingElapsed}
                 userName={userName}
                 userAvatar={userAvatar}
                 onRefresh={onRefresh}

@@ -103,6 +103,9 @@ export default {
         'glow': '0 0 30px hsl(var(--primary) / 0.3)',
         'glow-lg': '0 0 60px hsl(var(--primary) / 0.4)',
         'inner-glow': 'inset 0 1px 0 hsl(var(--primary) / 0.1)',
+        'vision-glow': '0 0 30px rgba(139, 92, 246, 0.3)',
+        'vision-glow-lg': '0 0 60px rgba(139, 92, 246, 0.4)',
+        'score-glow': '0 0 20px var(--score-glow-color, rgba(139, 92, 246, 0.3))',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -151,6 +154,27 @@ export default {
           '0%, 100%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
         },
+        // Vision-specific keyframes
+        scanPulse: {
+          '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+          '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+        },
+        scanRing: {
+          '0%': { transform: 'scale(0.8)', opacity: '0.6' },
+          '100%': { transform: 'scale(1.6)', opacity: '0' },
+        },
+        countUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        scoreReveal: {
+          '0%': { strokeDashoffset: '283' },
+          '100%': { strokeDashoffset: 'var(--score-offset)' },
+        },
+        detectionAppear: {
+          '0%': { opacity: '0', transform: 'scale(0.9)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -162,6 +186,12 @@ export default {
         "pulse-glow": "pulseGlow 3s ease-in-out infinite",
         "float": "float 4s ease-in-out infinite",
         "gradient": "gradientShift 15s ease infinite",
+        // Vision-specific animations
+        "scan-pulse": "scanPulse 2s ease-in-out infinite",
+        "scan-ring": "scanRing 2s ease-out infinite",
+        "count-up": "countUp 0.6s ease-out forwards",
+        "score-reveal": "scoreReveal 1.2s ease-out forwards",
+        "detection-appear": "detectionAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
       },
     },
   },

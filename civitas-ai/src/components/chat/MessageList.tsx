@@ -11,6 +11,7 @@ import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
 import type { ReasoningStep } from './AIReasoningPanel';
+import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 
 interface MessageListProps {
   messages: Message[];
@@ -24,7 +25,12 @@ interface MessageListProps {
   // Thinking state props
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
-  reasoningSteps?: ReasoningStep[]; // 🚀 NEW: Real-time reasoning steps
+  reasoningSteps?: ReasoningStep[];
+  // Thinking steps (ChatGPT-style collapsible thinking)
+  thinkingSteps?: ThinkingStep[];
+  thinkingIsActive?: boolean;
+  thinkingIsDone?: boolean;
+  thinkingElapsed?: number;
   userName?: string;
   userAvatar?: string;
   onRefresh?: (messageId: string) => void;
@@ -47,7 +53,7 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({
   messages,
-  reasoningSteps = [], // 🚀 NEW: Real-time reasoning steps
+  reasoningSteps = [],
   isLoading = false,
   onAction,
   agentStatus = 'online',
@@ -57,6 +63,10 @@ export const MessageList: React.FC<MessageListProps> = ({
   onNavigateToReports,
   thinking,
   completedTools = [],
+  thinkingSteps,
+  thinkingIsActive,
+  thinkingIsDone,
+  thinkingElapsed,
   userName,
   userAvatar,
   onRefresh,
@@ -178,13 +188,17 @@ export const MessageList: React.FC<MessageListProps> = ({
               <ThinkingIndicator
                 thinking={thinking || { status: 'Thinking' }}
                 completedTools={completedTools}
-                reasoningSteps={reasoningSteps} // 🚀 NEW: Pass reasoning steps
-                partialContent={partialContent} // 🚀 NEW: Pass partial streaming content
+                reasoningSteps={reasoningSteps}
+                partialContent={partialContent}
                 userQuery={lastUserMessage?.content}
                 onCancel={onCancel}
                 error={error}
                 onRetry={onRetry}
                 onOpenPreferences={onOpenPreferences}
+                thinkingSteps={thinkingSteps}
+                thinkingIsActive={thinkingIsActive}
+                thinkingIsDone={thinkingIsDone}
+                thinkingElapsed={thinkingElapsed}
               />
             </div>
           </div>

@@ -16,6 +16,8 @@ import { toolResultsToRecords, toolResultsToToolCards } from '../utils/toolResul
 import { logger } from '../utils/logger';
 import { uploadFile } from '../services/fileStorage';
 import { parsePropertyQuery, parseChatQuery } from '../utils/v2Helpers';
+import { useThinkingQueue } from './useThinkingQueue';
+import type { ThinkingStepInput } from './useThinkingQueue';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
@@ -222,6 +224,9 @@ export function useDesktopShell() {
   const [reasoningSteps, setReasoningSteps] = useState<any[]>([]); // NEW: Reasoning steps from stream
   const [streamError, _setStreamError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Thinking step accumulator (ChatGPT-style collapsible thinking)
+  const thinkingQueue = useThinkingQueue();
   const streamContentRef = useRef<string>('');
   const currentToolsRef = useRef<CompletedTool[]>([]);
   const inlineActionsRef = useRef<any[]>([]);
@@ -515,6 +520,7 @@ export function useDesktopShell() {
     });
     setCompletedTools([]);
     setReasoningSteps([]); // NEW: Reset reasoning steps
+    thinkingQueue.reset(); // Reset the event queue
     streamContentRef.current = '';
     currentToolsRef.current = [];
     inlineActionsRef.current = [];
@@ -872,6 +878,7 @@ export function useDesktopShell() {
       // V2 Event: search complete
       case 'complete': {
         console.log('✅ [V2-SSE] COMPLETE:', event.message);
+        thinkingQueue.finish();
         setThinking(null);
         setIsLoading(false);
 
@@ -951,16 +958,26 @@ export function useDesktopShell() {
       case 'thinking': {
         // V2 uses 'message' field, V1 uses 'status' field
         const thinkingStatus = event.status || event.message || 'Thinking';
-        console.log('🧠 [SSE] THINKING EVENT:', thinkingStatus, 'replace:', !!event.replace, 'at', new Date().toLocaleTimeString());
+        console.log('🧠 [SSE] THINKING EVENT:', thinkingStatus, 'stage:', event.stage, 'source:', event.source, 'at', new Date().toLocaleTimeString());
 
-        // If "replace" flag is set (V2 property search), update the status in-place
-        // instead of accumulating numbered steps. Skip trace too.
+        // Always push into the accumulator for the collapsible thinking display
+        const stepInput: ThinkingStepInput = {
+          stage: event.stage || event.tool || 'thinking',
+          message: thinkingStatus,
+          source: event.source,
+        };
+        thinkingQueue.push(stepInput);
+
+        // Also update the legacy thinking state for backward compat
         if (event.replace) {
           setThinking(prev => ({
             ...(prev || {}),
             status: thinkingStatus,
             explanation: event.explanation || prev?.explanation,
             source: event.source || prev?.source || 'V2 Property Intelligence',
+            stage: event.stage,
+            durationHintMs: event.duration_hint_ms,
+            progress: event.progress,
           }));
           break;
         }
@@ -972,10 +989,9 @@ export function useDesktopShell() {
           thinkingTraceRef.current.push({ text: thinkingStatus, source: traceSource });
         }
 
-        // Accumulate thinking events into multi-line display (V1 agent flow).
+        // Accumulate thinking events (V1 agent flow) for legacy state
         setThinking(prev => {
           if (prev && prev.status) {
-            // Avoid duplicate lines
             const alreadyHasThisLine = prev.status.includes(thinkingStatus);
             if (alreadyHasThisLine) return prev;
 
@@ -986,7 +1002,6 @@ export function useDesktopShell() {
               explanation: event.explanation || prev.explanation,
             };
           }
-          // First thinking event — set initial state
           return {
             title: event.title,
             status: thinkingStatus,
@@ -2258,7 +2273,13 @@ export function useDesktopShell() {
     // Thinking / Tools
     thinking,
     completedTools,
-    reasoningSteps, // 🚀 NEW: Real-time reasoning steps
+    reasoningSteps,
+    thinkingQueue: {
+      steps: thinkingQueue.steps,
+      isActive: thinkingQueue.isActive,
+      isDone: thinkingQueue.isDone,
+      elapsedSeconds: thinkingQueue.elapsedSeconds,
+    },
     handleRegenerate,
     refreshToolResults,
     toolResultsByThread,

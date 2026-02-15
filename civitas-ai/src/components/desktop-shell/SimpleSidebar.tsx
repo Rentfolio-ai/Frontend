@@ -44,6 +44,7 @@ interface SimpleSidebarProps {
     onHelpClick?: () => void;
     onUpgradeClick?: () => void;
     onAboutClick?: () => void;
+    onVisionClick?: () => void;
     onSearchClick?: () => void;
     onFilesClick?: () => void;
     chatHistory: ChatSession[];
@@ -65,6 +66,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onHelpClick,
     onUpgradeClick,
     onAboutClick,
+    onVisionClick,
     chatHistory,
     activeChatId,
     onLoadChat,
@@ -411,6 +413,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                 onHelpClick={() => { setShowProfileMenu(false); onHelpClick?.(); }}
                 onUpgradeClick={() => { setShowProfileMenu(false); onUpgradeClick?.(); }}
                 onAboutClick={() => { setShowProfileMenu(false); onAboutClick?.(); }}
+                onVisionClick={() => { setShowProfileMenu(false); onVisionClick?.(); }}
             />
         </>
     );

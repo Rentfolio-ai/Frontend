@@ -21,7 +21,9 @@ export interface StreamThinkingEvent {
   icon?: string;
   tool?: string;
   mode?: 'quick' | 'smart' | 'deep';  // Reasoning mode from backend
-  progress?: number;     // V2: Progress indicator (0-1)
+  stage?: string;              // Machine-readable pipeline stage (e.g., "db_search")
+  duration_hint_ms?: number;   // Estimated wall-clock time for frontend animation
+  progress?: number;           // 0.0 – 1.0 progress value
   step_number?: number;  // V2: Step number for ordering
   total_steps?: number;  // V2: Total number of steps
   filters_applied?: string[];  // Filters being applied (e.g., ["Max $400k", "Excluding HOA"])
@@ -224,6 +226,9 @@ export interface ThinkingState {
   mode?: 'quick' | 'smart' | 'deep';  // Reasoning mode from backend
   icon?: string;
   tool?: string;
+  stage?: string;        // Machine-readable pipeline stage (e.g., "db_search", "reasoning_client_read")
+  durationHintMs?: number; // Estimated duration for this stage (for smooth animations)
+  progress?: number;     // 0.0 – 1.0 progress value
   filtersApplied?: string[];  // Filters from backend (camelCase for frontend)
   userContext?: {              // User context from backend
     budgetMax?: number;

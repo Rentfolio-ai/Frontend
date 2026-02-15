@@ -15,6 +15,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
+import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { CommandCenterLayout } from '../../layouts/CommandCenterLayout';
@@ -48,7 +49,12 @@ interface CommandCenterChatViewProps {
   onNewChat?: () => void;
   thinking?: ThinkingState | null;
   completedTools?: CompletedTool[];
-  reasoningSteps?: any[]; // 🚀 NEW: Real-time reasoning steps
+  reasoningSteps?: any[];
+  // Thinking steps (ChatGPT-style collapsible thinking)
+  thinkingSteps?: ThinkingStep[];
+  thinkingIsActive?: boolean;
+  thinkingIsDone?: boolean;
+  thinkingElapsed?: number;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   onCancel?: () => void;

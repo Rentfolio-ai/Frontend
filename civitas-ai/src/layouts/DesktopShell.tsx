@@ -108,7 +108,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Thinking state
     thinking,
     completedTools,
-    reasoningSteps, // 🚀 NEW: Real-time reasoning steps
+    reasoningSteps,
+    thinkingQueue,
     handleRegenerate,
     activeProperty,
     handleViewPropertyDetails,
@@ -301,6 +302,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         onHelpClick={() => setShowHelpPopup(true)}
         onUpgradeClick={() => setActiveTab('upgrade')}
         onAboutClick={() => setActiveTab('about')}
+        onVisionClick={() => {
+          window.history.replaceState({}, '', '/vision/app');
+          window.location.href = '/vision/app';
+        }}
         chatHistory={chatHistory}
         activeChatId={activeChatId || ''}
         onLoadChat={handleLoadChat}
@@ -351,7 +356,11 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   onNewChat={handleNewChat}
                   thinking={thinking}
                   completedTools={completedTools}
-                  reasoningSteps={reasoningSteps} // 🚀 NEW: Real-time reasoning steps
+                  reasoningSteps={reasoningSteps}
+                  thinkingSteps={thinkingQueue?.steps}
+                  thinkingIsActive={thinkingQueue?.isActive}
+                  thinkingIsDone={thinkingQueue?.isDone}
+                  thinkingElapsed={thinkingQueue?.elapsedSeconds}
                   onRefresh={handleRegenerate}
                   onViewDetails={handleViewPropertyDetails}
                   onCancel={cancelStream}

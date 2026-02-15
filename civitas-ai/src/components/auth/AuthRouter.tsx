@@ -9,19 +9,30 @@ import { FAQPage } from '../../pages/public/FAQPage';
 import { PrivacyPolicyPage } from '../../pages/legal/PrivacyPolicyPage';
 import { TermsOfServicePage } from '../../pages/legal/TermsOfServicePage';
 import { CookiePolicyPage } from '../../pages/legal/CookiePolicyPage';
+import { VisionProductPage } from '../../pages/product/VisionProductPage';
+import { VisionLandingPage } from '../../pages/vision/VisionLandingPage';
+import { VisionSignInPage } from '../../pages/vision/VisionSignInPage';
+import { VisionSignUpPage } from '../../pages/vision/VisionSignUpPage';
 import { LocationPermissionModal } from '../modals/LocationPermissionModal';
 
-type AuthView = 'landing' | 'signin' | 'signup' | 'faq' | 'privacy-policy' | 'terms-of-service' | 'cookie-policy';
+type AuthView =
+  | 'landing' | 'signin' | 'signup' | 'faq'
+  | 'privacy-policy' | 'terms-of-service' | 'cookie-policy'
+  | 'vision-landing' | 'vision-signin' | 'vision-signup' | 'vision-app';
+
+/** Returns true if the view belongs to the Vision product flow */
+const isVisionView = (view: AuthView) =>
+  view === 'vision-landing' || view === 'vision-signin' || view === 'vision-signup' || view === 'vision-app';
 
 export const AuthRouter: React.FC = () => {
   const { user, isLoading, signIn, signUp, refreshUser } = useAuth();
   const [authView, setAuthView] = useState<AuthView>('landing');
   const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
 
-  // Reset to landing page when user logs out
+  // Reset to the appropriate landing page when user logs out
   useEffect(() => {
     if (!user) {
-      setAuthView('landing');
+      setAuthView((prev) => isVisionView(prev) ? 'vision-landing' : 'landing');
     }
   }, [user]);
 
@@ -32,11 +43,8 @@ export const AuthRouter: React.FC = () => {
 
     if (payment === 'success') {
       setPaymentMessage('Payment successful! Your Pro subscription is now active.');
-      // Refresh user data to pick up new subscription tier
       if (refreshUser) refreshUser();
-      // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
-      // Auto-dismiss after 6 seconds
       setTimeout(() => setPaymentMessage(null), 6000);
     } else if (payment === 'cancelled') {
       setPaymentMessage('Payment was cancelled. You can upgrade anytime from Settings.');
@@ -45,23 +53,28 @@ export const AuthRouter: React.FC = () => {
     }
   }, [refreshUser]);
 
-  // Handle URL-based routing for legal pages (opened in new tabs)
+  // Handle URL-based routing
   useEffect(() => {
     const path = window.location.pathname;
-    const legalRoutes: Record<string, AuthView> = {
+    const urlRoutes: Record<string, AuthView> = {
       '/privacy-policy': 'privacy-policy',
       '/privacy': 'privacy-policy',
       '/terms-of-service': 'terms-of-service',
       '/terms': 'terms-of-service',
       '/cookie-policy': 'cookie-policy',
+      '/vision': 'vision-landing',
+      '/vision/signin': 'vision-signin',
+      '/vision/signup': 'vision-signup',
+      '/vision/app': 'vision-app',
     };
-    const matchedView = legalRoutes[path];
+    const matchedView = urlRoutes[path];
     if (matchedView) {
       setAuthView(matchedView);
     }
   }, []);
 
-  // Render legal pages regardless of auth state (accessible to everyone)
+  // ─── Legal pages — always accessible ──────────────────────────────────────
+
   const legalBack = () => {
     window.history.replaceState({}, '', '/');
     setAuthView('landing');
@@ -71,17 +84,14 @@ export const AuthRouter: React.FC = () => {
   if (authView === 'terms-of-service') return <TermsOfServicePage onBack={legalBack} />;
   if (authView === 'cookie-policy') return <CookiePolicyPage onBack={legalBack} />;
 
-  // Show loading spinner while checking auth state
+  // ─── Loading ──────────────────────────────────────────────────────────────
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto bg-primary rounded-2xl flex items-center justify-center animate-pulse">
-            <svg
-              className="w-8 h-8 text-primary-foreground"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-8 h-8 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
@@ -94,8 +104,26 @@ export const AuthRouter: React.FC = () => {
     );
   }
 
-  // If user is authenticated, show the main desktop shell
+  // ─── Authenticated ────────────────────────────────────────────────────────
+
   if (user) {
+    // Vision product — authenticated
+    if (isVisionView(authView)) {
+      return (
+        <VisionProductPage
+          onBackToApp={() => {
+            window.history.replaceState({}, '', '/vision');
+            setAuthView('vision-landing');
+          }}
+          onGoToAI={() => {
+            window.history.replaceState({}, '', '/');
+            setAuthView('landing');
+          }}
+        />
+      );
+    }
+
+    // Vasthu AI — authenticated
     return (
       <>
         {paymentMessage && (
@@ -126,7 +154,57 @@ export const AuthRouter: React.FC = () => {
     );
   }
 
-  // If not authenticated, show auth pages
+  // ─── Unauthenticated — Vision product flow ────────────────────────────────
+
+  if (authView === 'vision-landing') {
+    return (
+      <VisionLandingPage
+        onNavigateToSignIn={() => {
+          window.history.replaceState({}, '', '/vision/signin');
+          setAuthView('vision-signin');
+        }}
+        onNavigateToSignUp={() => {
+          window.history.replaceState({}, '', '/vision/signup');
+          setAuthView('vision-signup');
+        }}
+      />
+    );
+  }
+
+  if (authView === 'vision-signup') {
+    return (
+      <VisionSignUpPage
+        onSignUp={signUp}
+        onNavigateToSignIn={() => {
+          window.history.replaceState({}, '', '/vision/signin');
+          setAuthView('vision-signin');
+        }}
+        onNavigateToLanding={() => {
+          window.history.replaceState({}, '', '/vision');
+          setAuthView('vision-landing');
+        }}
+      />
+    );
+  }
+
+  if (authView === 'vision-signin') {
+    return (
+      <VisionSignInPage
+        onSignIn={signIn}
+        onNavigateToSignUp={() => {
+          window.history.replaceState({}, '', '/vision/signup');
+          setAuthView('vision-signup');
+        }}
+        onNavigateToLanding={() => {
+          window.history.replaceState({}, '', '/vision');
+          setAuthView('vision-landing');
+        }}
+      />
+    );
+  }
+
+  // ─── Unauthenticated — Vasthu AI flow ─────────────────────────────────────
+
   if (authView === 'landing') {
     return (
       <LandingPage
@@ -149,12 +227,13 @@ export const AuthRouter: React.FC = () => {
 
   if (authView === 'faq') {
     return (
-      <FAQPage 
-        onBackToHome={() => setAuthView('landing')} 
+      <FAQPage
+        onBackToHome={() => setAuthView('landing')}
       />
     );
   }
 
+  // Default: sign-in for Vasthu AI
   return (
     <SignInPage
       onSignIn={signIn}
