@@ -10,9 +10,10 @@ import {
   DealIntelligenceCard,
   ComplianceCard,
   ValuationCard,
-
+  SendEmailCard,
+  SendTextCard,
 } from './tool-cards';
-import { SimplePropertyResults } from './tool-cards/SimplePropertyResults';
+import { Search } from 'lucide-react';
 import type { DealAnalyzerData } from './tool-cards';
 import type { ValuationData } from './tool-cards';
 import type { VisionAnalysisData } from './tool-cards';
@@ -119,6 +120,52 @@ type ScoutPropertiesToolResult = {
   status: 'success' | 'warning' | 'error';
 };
 
+type SearchRentalsToolResult = {
+  kind: 'search_rentals';
+  title: string;
+  data: any;
+  status: 'success' | 'warning' | 'error';
+};
+
+type SendEmailToolResult = {
+  kind: 'send_email';
+  title: string;
+  data: {
+    professional_name: string;
+    professional_id: string;
+    to_email: string;
+    subject: string;
+    body: string;
+    subject_variants?: string[];
+    tone?: string;
+    length?: string;
+    tool_type?: string;
+  };
+  status: 'success' | 'warning' | 'error';
+};
+
+type SendTextToolResult = {
+  kind: 'send_text';
+  title: string;
+  data: {
+    professional_name: string;
+    professional_id: string;
+    to_phone: string;
+    body: string;
+    channel?: 'sms' | 'whatsapp';
+    tone?: string;
+    tool_type?: string;
+  };
+  status: 'success' | 'warning' | 'error';
+};
+
+type GenericToolResult = {
+  kind: 'generic' | 'property_comparison_table' | 'generated_report' | 'portfolio_analysis' | 'cashflow_timeseries' | 'report';
+  title: string;
+  data: any;
+  status: 'success' | 'warning' | 'error';
+};
+
 // Create a discriminated union of all tool result types
 type ToolResult =
   | RoiAnalysisToolResult
@@ -129,15 +176,22 @@ type ToolResult =
   | ComplianceToolResult
   | ValuationToolResult
   | RenovationAnalysisToolResult
-  | ScoutPropertiesToolResult;
+  | ScoutPropertiesToolResult
+  | SearchRentalsToolResult
+  | SendEmailToolResult
+  | SendTextToolResult
+  | GenericToolResult;
 
 interface ToolMessageProps {
   tool: ToolResult;
   timestamp: string;
   onOpenDealAnalyzer?: (propertyId: string | null, strategy: InvestmentStrategy, purchasePrice?: number, propertyAddress?: string) => void;
-  // Property bookmark support
   bookmarks?: BookmarkedProperty[];
   onToggleBookmark?: (property: ScoutedProperty) => void;
+  onAction?: (query: string) => void;
+  onRefine?: (instruction: string) => void;
+  onGoToIntegrations?: () => void;
+  onSendComplete?: (summary: string) => void;
 }
 
 export const ToolMessage: React.FC<ToolMessageProps> = ({
@@ -146,6 +200,10 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
   onOpenDealAnalyzer,
   bookmarks,
   onToggleBookmark,
+  onAction: _onAction,
+  onRefine,
+  onGoToIntegrations,
+  onSendComplete,
 }) => {
   const getStatusBadge = () => {
     switch (tool.status) {
@@ -204,23 +262,77 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         // But we include it for TypeScript exhaustiveness checking
         return null;
       case 'scout_properties':
-      case 'Property Scout':
-        // Render properties using SimplePropertyResults - NO wrapper
-        const properties = tool.data?.properties || [];
+      case 'Property Scout': {
+        const topPicks = tool.data?.top_picks || [];
+        const moreMatches = tool.data?.more_matches || [];
+        const allProperties = tool.data?.properties || [...topPicks, ...moreMatches];
+        const count = tool.data?.total_found || allProperties.length;
         const location = tool.data?.market_context?.location || '';
-        const priceRange = tool.data?.market_context?.price_range || '';
-        
-        if (properties.length === 0) {
-          return null;
-        }
-        
-        // Return directly with no wrapper div
+
+        if (count === 0) return null;
+
         return (
-          <SimplePropertyResults 
-            properties={properties} 
-            location={location}
-            priceRange={priceRange}
-            onOpenDealAnalyzer={onOpenDealAnalyzer}
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+            <div className="w-7 h-7 rounded-md bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <Search className="w-3.5 h-3.5 text-emerald-400" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[13px] font-medium text-white/80">
+                {count} {count === 1 ? 'property' : 'properties'} found{location ? ` in ${location}` : ''}
+              </span>
+              {topPicks.length > 0 && (
+                <span className="text-[11px] text-white/40">
+                  {topPicks.length} AI top {topPicks.length === 1 ? 'pick' : 'picks'}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      }
+      case 'search_rentals': {
+        const rentals = tool.data?.properties || [];
+        const rentalCount = rentals.length;
+        const rentalLocation = tool.data?.market_context?.location || '';
+
+        if (rentalCount === 0) return null;
+
+        return (
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+            <div className="w-7 h-7 rounded-md bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+              <Search className="w-3.5 h-3.5 text-blue-400" />
+            </div>
+            <span className="text-[13px] font-medium text-white/80">
+              {rentalCount} {rentalCount === 1 ? 'rental' : 'rentals'} found{rentalLocation ? ` in ${rentalLocation}` : ''}
+            </span>
+          </div>
+        );
+      }
+      case 'send_email':
+        return (
+          <SendEmailCard
+            professionalId={tool.data.professional_id || 'manual'}
+            professionalName={tool.data.professional_name || 'Recipient'}
+            toEmail={tool.data.to_email || ''}
+            subject={tool.data.subject || ''}
+            body={tool.data.body || ''}
+            subjectVariants={tool.data.subject_variants}
+            tone={tool.data.tone}
+            onRefine={onRefine}
+            onGoToIntegrations={onGoToIntegrations}
+            onSendComplete={onSendComplete}
+          />
+        );
+      case 'send_text':
+        return (
+          <SendTextCard
+            professionalId={tool.data.professional_id || 'manual'}
+            professionalName={tool.data.professional_name || 'Recipient'}
+            toPhone={tool.data.to_phone || ''}
+            body={tool.data.body || ''}
+            defaultChannel={tool.data.channel || 'sms'}
+            tone={tool.data.tone}
+            onRefine={onRefine}
+            onSendComplete={onSendComplete}
           />
         );
       case 'generic':
@@ -229,7 +341,6 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
       case 'portfolio_analysis':
       case 'cashflow_timeseries':
       case 'report':
-        // Generic/unsupported tools - don't render anything, let the AI message handle it
         return null;
       default: {
         // This ensures exhaustiveness checking at compile time, properly scoped in a block
@@ -241,9 +352,14 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
     }
   };
 
-  // For property scout tools, return content directly with NO Card wrapper
-  if (tool.kind === 'scout_properties' || tool.kind === 'Property Scout') {
-    return <>{renderToolContent()}</>;
+  // Communication and property/rental tools render their own styled cards directly
+  if (tool.kind === 'send_email' || tool.kind === 'send_text' ||
+      tool.kind === 'scout_properties' || tool.kind === 'Property Scout' || tool.kind === 'search_rentals') {
+    return (
+      <div className="max-w-chat mx-auto animate-slide-in mb-2">
+        {renderToolContent()}
+      </div>
+    );
   }
   
   return (

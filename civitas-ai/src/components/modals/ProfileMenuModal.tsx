@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Settings, HelpCircle, Info, LogOut, ChevronRight, ChevronLeft, Globe, Check, ScanEye } from 'lucide-react';
+import { Settings, HelpCircle, Info, LogOut, ChevronRight, ChevronLeft, Globe, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -70,7 +70,6 @@ interface ProfileMenuModalProps {
     onHelpClick: () => void;
     onUpgradeClick: () => void;
     onAboutClick: () => void;
-    onVisionClick?: () => void;
 }
 
 export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
@@ -80,7 +79,6 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
     onHelpClick,
     onUpgradeClick,
     onAboutClick,
-    onVisionClick,
 }) => {
     const { user: currentUser, signOut } = useAuth();
     const { subscription } = useSubscription();
@@ -174,22 +172,6 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                                 handleClose();
                                             }}
                                         />
-
-                                        {onVisionClick && (
-                                            <>
-                                                <div className="h-px bg-white/10 my-1 mx-2" />
-                                                <MenuItem
-                                                    icon={ScanEye}
-                                                    label="Try Vasthu Vision"
-                                                    badge="NEW"
-                                                    hasArrow
-                                                    onClick={() => {
-                                                        onVisionClick();
-                                                        handleClose();
-                                                    }}
-                                                />
-                                            </>
-                                        )}
 
                                         <div className="h-px bg-white/10 my-1 mx-2" />
 

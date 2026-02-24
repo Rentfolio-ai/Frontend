@@ -1,9 +1,88 @@
 // FILE: src/types/stream.ts
 /**
- * Types for SSE streaming events from /api/stream
+ * SSE streaming event types — 8 canonical event protocol.
+ *
+ * status  — stage label (understanding/gathering/analyzing/composing/refining)
+ * tool    — tool execution bubble (running/done/error)
+ * token   — append-only text delta
+ * data    — structured payload (properties, rentals, mode switches, actions)
+ * warning — non-fatal issue (timeouts, missing config)
+ * final   — authoritative full text + tools (reconcile streamed deltas)
+ * done    — end-of-stream marker with metadata
+ * ping    — keepalive heartbeat
+ *
+ * Every event carries: seq, request_id, ts (stamped by SSE generator)
  */
 
 import type { ClarificationRequest } from './chat';
+
+// ── Base metadata stamped on every event ─────────────────────────
+
+interface StreamEventBase {
+  seq: number;
+  request_id: string;
+  ts: number;
+}
+
+// ── 8 Canonical Event Types ──────────────────────────────────────
+
+export interface StreamStatusEvent extends StreamEventBase {
+  type: 'status';
+  stage: 'understanding' | 'gathering' | 'analyzing' | 'composing' | 'refining' | 'reasoning';
+  label: string;
+  source?: string;
+  subtag?: string;
+}
+
+export interface StreamThinkingTokenEvent extends StreamEventBase {
+  type: 'thinking_token';
+  delta: string;
+}
+
+export interface StreamToolEvent extends StreamEventBase {
+  type: 'tool';
+  name: string;
+  label: string;
+  status: 'running' | 'done' | 'error';
+  data?: any;
+}
+
+export interface StreamTokenEvent extends StreamEventBase {
+  type: 'token';
+  delta: string;
+}
+
+export interface StreamDataEvent extends StreamEventBase {
+  type: 'data';
+  kind: 'properties' | 'rentals' | 'mode_switched' | 'mode_suggestion'
+      | 'confirm_action' | 'inline_actions' | 'confidence' | 'rewrite';
+  payload: any;
+}
+
+export interface StreamWarningEvent extends StreamEventBase {
+  type: 'warning';
+  message: string;
+  code?: string;
+}
+
+export interface StreamFinalEvent extends StreamEventBase {
+  type: 'final';
+  text: string;
+  models_used?: string[];
+}
+
+export interface StreamDoneEventV2 extends StreamEventBase {
+  type: 'done';
+  models_used?: string[];
+  duration_ms?: number;
+  error?: string;
+}
+
+export interface StreamPingEvent extends StreamEventBase {
+  type: 'ping';
+}
+
+// ── Legacy/backward-compat types (V1 endpoints) ─────────────────
 
 export interface StreamInitEvent {
   type: 'init';
@@ -12,22 +91,22 @@ export interface StreamInitEvent {
 
 export interface StreamThinkingEvent {
   type: 'thinking';
-  title?: string;        // Main action title (e.g., "Searching for properties")
-  status?: string;       // Status text (V1 chat endpoint)
-  message?: string;      // Message text (V2 property endpoint)
-  explanation?: string;  // Why this is happening (e.g., "I need to find properties...")
-  replace?: boolean;     // If true, replace the status line instead of accumulating steps
+  title?: string;
+  status?: string;
+  message?: string;
+  explanation?: string;
+  replace?: boolean;
   source?: string;
   icon?: string;
   tool?: string;
-  mode?: 'quick' | 'smart' | 'deep';  // Reasoning mode from backend
-  stage?: string;              // Machine-readable pipeline stage (e.g., "db_search")
-  duration_hint_ms?: number;   // Estimated wall-clock time for frontend animation
-  progress?: number;           // 0.0 – 1.0 progress value
-  step_number?: number;  // V2: Step number for ordering
-  total_steps?: number;  // V2: Total number of steps
-  filters_applied?: string[];  // Filters being applied (e.g., ["Max $400k", "Excluding HOA"])
-  user_context?: {             // User preferences context
+  mode?: 'quick' | 'smart' | 'deep';
+  stage?: string;
+  duration_hint_ms?: number;
+  progress?: number;
+  step_number?: number;
+  total_steps?: number;
+  filters_applied?: string[];
+  user_context?: {
     budget_max?: number;
     dislikes?: string[];
     favorite_markets?: string[];
@@ -37,10 +116,10 @@ export interface StreamThinkingEvent {
 
 export interface StreamToolStartEvent {
   type: 'tool_start';
-  title?: string;        // Main action title (e.g., "Analyzing market data")
+  title?: string;
   tool: string;
-  thinking: string;      // Status text (e.g., "Analyzing market data...")
-  explanation?: string;  // Why this is happening
+  thinking: string;
+  explanation?: string;
   source?: string;
   icon?: string;
 }
@@ -51,8 +130,8 @@ export interface StreamToolEndEvent {
   icon?: string;
   summary?: string;
   data?: any;
-  reason?: string;       // Why no results (e.g., "No properties under $400k")
-  suggestion?: string;   // What to try next (e.g., "Try increasing budget")
+  reason?: string;
+  suggestion?: string;
 }
 
 export interface StreamContentEvent {
@@ -79,14 +158,12 @@ export interface StreamSuggestionsEvent {
   suggestions: any[];
 }
 
-// 🚀 NEW: Citations event
 export interface StreamCitationsEvent {
   type: 'citations';
   citations: any[];
   message_id?: string;
 }
 
-// 🚀 NEW: Reasoning step event
 export interface StreamReasoningStepEvent {
   type: 'reasoning_step';
   step: {
@@ -98,14 +175,12 @@ export interface StreamReasoningStepEvent {
   };
 }
 
-// 🚀 NEW: Confidence event
 export interface StreamConfidenceEvent {
   type: 'confidence';
   score: number;
   message_id?: string;
 }
 
-// 🚀 NEW: Data sources event
 export interface StreamDataSourcesEvent {
   type: 'data_sources';
   sources: Array<{
@@ -115,18 +190,25 @@ export interface StreamDataSourcesEvent {
   }>;
 }
 
-// 🚀 NEW: Clarification event
 export interface StreamClarificationEvent {
   type: 'clarification_request';
-  data: any; // Raw tool output
+  data: any;
 }
 
-// 🚀 V2: Property search events
 export interface StreamPropertiesEvent {
   type: 'properties';
+  top_picks?: any[];
+  more_matches?: any[];
   properties: any[];
   total_found?: number;
   market_context?: any;
+}
+
+export interface StreamRentalsEvent {
+  type: 'rentals';
+  listings: any[];
+  total_found?: number;
+  sources?: string[];
 }
 
 export interface StreamAiChunkEvent {
@@ -139,7 +221,10 @@ export interface StreamCompleteEvent {
   message?: string;
 }
 
-// 🚀 PHASE 2A: Parallel Tool Events
+export interface StreamClearContentEvent {
+  type: 'clear_content';
+}
+
 export interface StreamToolsBatchStartEvent {
   type: 'tools_batch_start';
   tools: Array<{
@@ -171,25 +256,36 @@ export interface StreamInlineActionsEvent {
   context?: string;
 }
 
-// Mode suggestion: AI recommends switching to a different mode
 export interface StreamModeSuggestionEvent {
   type: 'mode_suggestion';
   suggested_mode: 'hunter' | 'research' | 'strategist';
   reason: string;
-  auto_query?: string;  // Query to auto-run after switching
+  auto_query?: string;
 }
 
-// Mode auto-switched: backend detected a clear mismatch and switched automatically
 export interface StreamModeSwitchedEvent {
   type: 'mode_switched';
   from_mode: 'hunter' | 'research' | 'strategist';
   to_mode: 'hunter' | 'research' | 'strategist';
   reason: string;
-  auto_query?: string;  // Query to re-send in the new mode
+  auto_query?: string;
   confidence?: number;
 }
 
+// ── Union of all event types ─────────────────────────────────────
+
 export type StreamEvent =
+  // New canonical types
+  | StreamStatusEvent
+  | StreamThinkingTokenEvent
+  | StreamToolEvent
+  | StreamTokenEvent
+  | StreamDataEvent
+  | StreamWarningEvent
+  | StreamFinalEvent
+  | StreamDoneEventV2
+  | StreamPingEvent
+  // Legacy types (V1 backward compat)
   | StreamInitEvent
   | StreamThinkingEvent
   | StreamToolStartEvent
@@ -206,6 +302,7 @@ export type StreamEvent =
   | StreamClarificationEvent
   | StreamClearContentEvent
   | StreamPropertiesEvent
+  | StreamRentalsEvent
   | StreamAiChunkEvent
   | StreamCompleteEvent
   | StreamToolsBatchStartEvent
@@ -214,23 +311,21 @@ export type StreamEvent =
   | StreamModeSuggestionEvent
   | StreamModeSwitchedEvent;
 
-export interface StreamClearContentEvent {
-  type: 'clear_content';
-}
+// ── State interfaces ─────────────────────────────────────────────
 
 export interface ThinkingState {
-  title?: string;        // Main action title (e.g., "Searching for properties")
-  status: string;       // Status text (e.g., "Searching for properties...")
-  explanation?: string; // Why this is happening (e.g., "I need to find properties...")
+  title?: string;
+  status: string;
+  explanation?: string;
   source?: string;
-  mode?: 'quick' | 'smart' | 'deep';  // Reasoning mode from backend
+  mode?: 'quick' | 'smart' | 'deep';
   icon?: string;
   tool?: string;
-  stage?: string;        // Machine-readable pipeline stage (e.g., "db_search", "reasoning_client_read")
-  durationHintMs?: number; // Estimated duration for this stage (for smooth animations)
-  progress?: number;     // 0.0 – 1.0 progress value
-  filtersApplied?: string[];  // Filters from backend (camelCase for frontend)
-  userContext?: {              // User context from backend
+  stage?: string;
+  durationHintMs?: number;
+  progress?: number;
+  filtersApplied?: string[];
+  userContext?: {
     budgetMax?: number;
     dislikes?: string[];
     favoriteMarkets?: string[];
@@ -243,8 +338,8 @@ export interface CompletedTool {
   summary: string;
   icon: string;
   data?: any;
-  reason?: string;       // Why no results
-  suggestion?: string;   // What to try next
+  reason?: string;
+  suggestion?: string;
 }
 
 export interface StreamState {
@@ -255,7 +350,6 @@ export interface StreamState {
   error: string | null;
   threadId: string | null;
   contextSources: string[];
-  // 🚀 NEW: Week 1 & 2 + Citations
   citations?: any[];
   reasoningSteps?: Array<{
     title: string;
@@ -271,8 +365,6 @@ export interface StreamState {
     status?: 'live' | 'cached' | 'recent';
   }>;
   clarificationRequest?: ClarificationRequest;
-
-  // 🚀 PHASE 2A: Tool Batch State
   toolBatch?: ToolBatchItem[];
 }
 

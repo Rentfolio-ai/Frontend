@@ -2,9 +2,9 @@
  * AIReasoningPanel — Post-response collapsible reasoning trace
  *
  * Rendered below AI messages that have a persisted `thinkingTrace`.
- * Shows "Thought for Xs" header, and expands to reveal the step-by-step
- * reasoning the model went through before responding. Inspired by
- * ChatGPT's "Thought for …" and Gemini's "Thinking" panels.
+ * When native model reasoning (Claude/Gemini) is available, it displays
+ * as the primary content with status steps as compact context.
+ * Falls back to a step list for models without native thinking.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -12,16 +12,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
   ChevronRight,
-  Search,
-  BarChart3,
-  Shield,
-  Zap,
-  FileText,
   Wrench,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThinkingContent } from './ThinkingIndicator';
 
-// Re-export for backward compat
 export interface ReasoningStep {
   title: string;
   description: string;
@@ -37,33 +33,13 @@ interface ThinkingTrace {
 }
 
 interface AIReasoningPanelProps {
-  /** Full reasoning trace from Message.thinkingTrace */
   trace: ThinkingTrace;
-  /** Legacy steps prop (fallback if trace not available) */
   steps?: ReasoningStep[];
   totalFactors?: number;
   className?: string;
+  nativeThinkingText?: string;
 }
 
-// --- Icon from source ---
-function sourceIcon(source: string): React.ReactNode {
-  const s = source.toLowerCase();
-  if (s.includes('safety') || s.includes('guardrail') || s.includes('grader'))
-    return <Shield className="w-3 h-3 text-amber-400/60" />;
-  if (s.includes('reasoning') || s.includes('system 2') || s.includes('strategic'))
-    return <Brain className="w-3 h-3 text-[#D4A27F]/60" />;
-  if (s.includes('scan') || s.includes('search') || s.includes('scout'))
-    return <Search className="w-3 h-3 text-blue-400/60" />;
-  if (s.includes('pnl') || s.includes('metric') || s.includes('valuation') || s.includes('analysis'))
-    return <BarChart3 className="w-3 h-3 text-emerald-400/60" />;
-  if (s.includes('report') || s.includes('generate'))
-    return <FileText className="w-3 h-3 text-[#D4A27F]/60" />;
-  if (s.includes('tool'))
-    return <Wrench className="w-3 h-3 text-blue-400/60" />;
-  return <Zap className="w-3 h-3 text-white/30" />;
-}
-
-// --- Format duration ---
 function formatDuration(ms: number): string {
   const secs = Math.round(ms / 1000);
   if (secs < 1) return 'less than a second';
@@ -78,21 +54,22 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
   trace,
   steps: legacySteps = [],
   className = '',
+  nativeThinkingText,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Merge legacy steps into trace format
   const displaySteps = useMemo(() => {
     if (trace.steps.length > 0) return trace.steps;
-    // Fallback to legacy steps
     return legacySteps.map((s) => ({
       text: s.title + (s.description ? ` — ${s.description}` : ''),
       source: s.tool || 'AI',
     }));
   }, [trace.steps, legacySteps]);
 
-  // Don't render if no steps
-  if (displaySteps.length === 0) return null;
+  const hasNativeThinking = !!nativeThinkingText;
+  const hasSteps = displaySteps.length > 0;
+
+  if (!hasSteps && !hasNativeThinking) return null;
 
   const durationText = trace.durationMs > 0
     ? formatDuration(trace.durationMs)
@@ -105,7 +82,11 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
         onClick={() => setIsExpanded(!isExpanded)}
         className="group flex items-center gap-1.5 text-[12px] text-white/30 hover:text-white/50 transition-colors"
       >
-        <Brain className="w-3.5 h-3.5 text-[#C08B5C]/40 group-hover:text-[#C08B5C]/60 transition-colors" />
+        {hasNativeThinking ? (
+          <Sparkles className="w-3.5 h-3.5 text-[#C08B5C]/40 group-hover:text-[#C08B5C]/60 transition-colors" />
+        ) : (
+          <Brain className="w-3.5 h-3.5 text-[#C08B5C]/40 group-hover:text-[#C08B5C]/60 transition-colors" />
+        )}
         <span>
           Thought{durationText ? ` for ${durationText}` : ''}
         </span>
@@ -117,7 +98,7 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
         </motion.div>
       </button>
 
-      {/* Expandable trace */}
+      {/* Expandable content */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -127,23 +108,32 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="mt-2 pl-3 border-l border-white/[0.06] space-y-0.5">
-              {displaySteps.map((step, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="flex items-start gap-2 py-0.5"
-                >
-                  <div className="flex-shrink-0 mt-0.5">
-                    {sourceIcon(step.source)}
-                  </div>
-                  <span className="text-[11px] leading-relaxed text-white/35">
-                    {step.text}
-                  </span>
-                </motion.div>
-              ))}
+            <div className="mt-2 pl-3 border-l border-white/[0.06]">
+
+              {hasNativeThinking ? (
+                <div className="mb-1.5">
+                  <ThinkingContent text={nativeThinkingText!} />
+                </div>
+              ) : hasSteps ? (
+                <div className="space-y-0.5">
+                  {displaySteps.map((step, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="flex items-start gap-2 py-0.5"
+                    >
+                      <div className="flex-shrink-0 mt-0.5">
+                        <span className="flex-shrink-0 w-1 h-1 rounded-full bg-white/20 inline-block" />
+                      </div>
+                      <span className="text-[11px] leading-relaxed text-white/35">
+                        {step.text}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : null}
 
               {/* Tools used summary */}
               {trace.toolsUsed.length > 0 && (

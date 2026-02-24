@@ -62,15 +62,10 @@ export interface UseVoiceSessionReturn {
 interface UseVoiceSessionOptions {
   conversationId?: string;
   onTurn?: (role: 'user' | 'assistant', content: string) => void;
-  onVoiceNoteSaved?: (
-    noteId: string,
-    summary: any,
-    details: { duration: number; persona: string; transcript: any[] }
-  ) => void;
 }
 
 export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceSessionReturn {
-  const { conversationId, onTurn, onVoiceNoteSaved } = options;
+  const { conversationId, onTurn } = options;
 
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef<number>(Date.now());
@@ -165,7 +160,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceS
       });
 
       if (!res.ok) throw new Error(`Token request failed: ${res.status}`);
-      const { token, token_type } = await res.json();
+      const { token, token_type, model: backendModel } = await res.json();
 
       const toolInstructions = getToolInstructions(persona.mode);
       const fullInstructions = persona.systemInstructions + toolInstructions;
@@ -183,6 +178,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceS
       gemini.connect({
         token,
         tokenType: token_type,
+        model: backendModel,
         systemInstructions: fullInstructions,
         language,
         voiceName: persona._geminiVoice,
@@ -365,69 +361,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}): UseVoiceS
       saveTurns();
     }
 
-    // ── Auto-save as a Voice Note ──
-    if (gemini.turns.length > 0) {
-      const noteId = `vn_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-      const userStr = localStorage.getItem('civitas-user');
-      let user: { id?: string } | undefined;
-      if (userStr) {
-        try {
-          user = JSON.parse(userStr);
-        } catch { /* ignore */ }
-      }
-
-      const noteHeaders: HeadersInit = {
-        'Content-Type': 'application/json',
-        ...(user?.id ? { 'X-User-ID': user.id } : {}),
-      };
-      if (VOICE_API_KEY) noteHeaders['X-API-Key'] = VOICE_API_KEY;
-
-      // 1. Save the note
-      fetch(`${VOICE_API_BASE}/api/voice/notes`, {
-        method: 'POST',
-        headers: noteHeaders,
-        body: JSON.stringify({
-          id: noteId,
-          persona: activePersona?.name || 'Vasthu',
-          mode: activePersona?.mode || 'hunter',
-          duration: Math.round((Date.now() - startTimeRef.current) / 1000),
-          turn_count: gemini.turns.length,
-          transcript: gemini.turns.map(t => ({
-            role: t.role,
-            content: t.content,
-            timestamp: t.timestamp,
-          })),
-          conversation_id: conversationId,
-        }),
-      })
-        .then(async res => {
-          if (res.ok) {
-            console.log('[useVoiceSession] Voice note saved:', noteId);
-            // 2. Generate summary
-            const summaryRes = await fetch(`${VOICE_API_BASE}/api/voice/notes/${noteId}/summarize`, {
-              method: 'POST',
-              headers: noteHeaders,
-            });
-
-            if (summaryRes.ok) {
-              const summaryData = await summaryRes.json();
-              if (summaryData.status === 'summarized' && onVoiceNoteSaved) {
-                onVoiceNoteSaved(noteId, summaryData.data, {
-                  duration: Math.round((Date.now() - startTimeRef.current) / 1000),
-                  persona: activePersona?.name || 'Vasthu',
-                  transcript: gemini.turns,
-                });
-              }
-            }
-          }
-        })
-        .catch(err => {
-          console.error('Failed to save voice note:', err);
-        });
-    }
-
-  }, [camera, capture, playback, gemini, conversationId, activePersona, language, onTurn, onVoiceNoteSaved]);
+  }, [camera, capture, playback, gemini, conversationId, activePersona, language, onTurn]);
 
   // ── Reconnect (voice-only after session expired) ──
   const reconnect = useCallback(async () => {

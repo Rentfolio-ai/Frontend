@@ -116,21 +116,21 @@
   .dark {
     /* Obsidian + Copper — Premium Real Estate Dark Theme */
 
-    /* Base: Warm near-blacks */
-    --background: 240 7% 7%;
-    /* #111114 - Obsidian shell */
-    --surface: 240 6% 9%;
-    /* #18181c - Sidebar/surface */
-    --surface-elevated: 240 6% 12%;
-    /* #1e1e24 - Elevated cards */
-    --muted: 240 5% 14%;
-    --border: 240 5% 14%;
+    /* Base: Warm charcoal (lighter for readability) */
+    --background: 240 5% 12%;
+    /* #1d1d22 - Charcoal shell */
+    --surface: 240 5% 14%;
+    /* #222228 - Sidebar/surface */
+    --surface-elevated: 240 5% 17%;
+    /* #28282f - Elevated cards */
+    --muted: 240 4% 20%;
+    --border: 240 4% 19%;
     /* Subtle borders */
-    --border-subtle: 240 5% 11%;
+    --border-subtle: 240 4% 16%;
     /* Even more subtle */
-    --foreground: 0 0% 90%;
-    /* #E5E5E5 - Primary text */
-    --text-muted: 0 0% 55%;
+    --foreground: 0 0% 92%;
+    /* #EBEBEB - Primary text */
+    --text-muted: 0 0% 58%;
     /* Warm gray for secondary text */
 
     /* Copper / Bronze Accent System */
@@ -149,9 +149,9 @@
     --neutral: 240 3% 50%;
 
     /* Component colors */
-    --card: 240 7% 5%;
-    /* #0c0c10 */
-    --card-foreground: 0 0% 90%;
+    --card: 240 5% 10%;
+    /* #18181e */
+    --card-foreground: 0 0% 92%;
     --popover: 240 6% 9%;
     --popover-foreground: 0 0% 90%;
     --primary-foreground: 0 0% 100%;
@@ -605,9 +605,9 @@
 
 /* Reset prose defaults for dark theme */
 .prose {
-  --tw-prose-body: rgba(226, 232, 240, 0.7);
-  --tw-prose-headings: rgba(255, 255, 255, 0.95);
-  --tw-prose-bold: rgba(255, 255, 255, 0.9);
+  --tw-prose-body: rgba(232, 222, 210, 0.9);
+  --tw-prose-headings: rgba(245, 230, 208, 1);
+  --tw-prose-bold: rgba(250, 240, 228, 1);
 }
 
 /* ===== Message Content Highlighting ===== */
@@ -740,12 +740,53 @@
 
 /* ── Chat font size (applied to message text) ── */
 .chat-message-text {
-  font-size: var(--chat-font-size, 14.5px);
+  font-size: var(--chat-font-size, 15px);
+}
+
+/* ── Compact prose for GPT-like density ── */
+.prose-compact p {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}
+.prose-compact h1, .prose-compact h2, .prose-compact h3, .prose-compact h4 {
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+}
+.prose-compact ul, .prose-compact ol {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  padding-left: 1.25em;
+}
+.prose-compact li {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+.prose-compact blockquote {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+.prose-compact pre {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+.prose-compact hr {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 /* ── Chat density (gap between messages) ── */
 .chat-message-list {
   gap: var(--chat-density, 12px);
+}
+
+/* ── Warm gradient background for chat area ── */
+.chat-gradient-bg {
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(192, 139, 92, 0.06) 0%,
+    rgba(192, 139, 92, 0.025) 40%,
+    transparent 70%
+  );
 }
 
 /* ── Accent-aware utility classes ── */

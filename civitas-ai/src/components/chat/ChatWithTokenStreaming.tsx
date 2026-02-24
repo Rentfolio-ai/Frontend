@@ -12,7 +12,7 @@ import { ThinkingIndicator } from './ThinkingIndicator';
 import { ClarificationForm } from './ClarificationForm';
 import { AgentModeSelector } from './AgentModeSelector';
 import { ToolGrid } from './ToolGrid'; // 🚀 Import ToolGrid
-import { SimplePropertyResults } from './tool-cards/SimplePropertyResults';
+import { PropertyResultsGrid } from './tool-cards/PropertyResultsGrid';
 import type { Message as ChatMessage, AgentMode } from '../../types/chat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -201,7 +201,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
                   if (isPropertyTool) {
                     return (
                       <div key={`hist-tool-${idx}`} className="mt-4 w-full">
-                        <SimplePropertyResults
+                        <PropertyResultsGrid
                           properties={tool.data?.properties || tool.data?.results || []}
                           onAction={(query) => submitMessage(query)}
                         />
@@ -263,7 +263,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   className="w-full px-4 mb-4"
                 >
-                  <SimplePropertyResults
+                  <PropertyResultsGrid
                     properties={tool.result.properties || tool.result || []}
                     onAction={(query) => submitMessage(query)}
                   />

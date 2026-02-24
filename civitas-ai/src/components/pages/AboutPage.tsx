@@ -1,321 +1,393 @@
-/**
- * About / Learn More — Institutional Grade Design
- * Precision, Clarity, and High-Contrast Professional Aesthetic.
- */
-
 import React, { useState } from 'react';
 import {
-  ArrowLeft,
-  Search,
-  FileText,
-  BarChart3,
-  MessageSquare,
-  Check,
-  Cpu,
-  Database,
-  Network
+    ArrowLeft, Search, FileText, BarChart3, MessageSquare,
+    Check, Cpu, Database, Network, ExternalLink, Zap,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../ui/Logo';
 
 interface AboutPageProps {
-  onBack: () => void;
+    onBack: () => void;
 }
-
-// ─── Tab Navigation ──────────────────────────────────────────────────────────
 
 type TabId = 'platform' | 'trust';
 
 const tabs: { id: TabId; label: string }[] = [
-  { id: 'platform', label: 'PLATFORM INTELLIGENCE' },
-  { id: 'trust', label: 'TRUST & SECURITY' },
+    { id: 'platform', label: 'Platform Intelligence' },
+    { id: 'trust', label: 'Trust & Security' },
 ];
 
-// ─── Shared Components ───────────────────────────────────────────────────────
+const reveal = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
 
-const SectionHeader: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
-  <div className="mb-6 border-b border-white/[0.08] pb-4">
-    <h2 className="text-sm font-display font-semibold text-white tracking-wide uppercase">{title}</h2>
-    {subtitle && <p className="text-xs font-mono text-white/40 mt-1">{subtitle}</p>}
-  </div>
+const stagger = {
+    visible: { transition: { staggerChildren: 0.08 } },
+};
+
+/* -- Shared Components -- */
+
+const InfoCard: React.FC<{
+    title: string;
+    children: React.ReactNode;
+    className?: string;
+}> = ({ title, children, className }) => (
+    <motion.div
+        variants={reveal}
+        className={`rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-5 ${className || ''}`}
+    >
+        <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-4 pb-2 border-b border-white/[0.04] flex justify-between items-center">
+            {title}
+            <div className="w-1.5 h-1.5 bg-[#C08B5C] rounded-full opacity-50" />
+        </h3>
+        {children}
+    </motion.div>
 );
 
-const InfoCard: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
-  <div className={`bg-[#161618] border border-white/[0.08] p-5 ${className}`}>
-    <h3 className="text-xs font-mono font-medium text-white/50 uppercase tracking-wider mb-4 border-b border-white/[0.04] pb-2 flex justify-between items-center">
-      {title}
-      <div className="w-1.5 h-1.5 bg-[#C08B5C] rounded-full opacity-60" />
-    </h3>
-    {children}
-  </div>
-);
-
-// ─── Main Component ──────────────────────────────────────────────────────────
+/* -- Main Component -- */
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
-  const [activeTab, setActiveTab] = useState<TabId>('platform');
+    const [activeTab, setActiveTab] = useState<TabId>('platform');
 
-  // ─── Content Renderers ───────────────────────────────────────────────────
-
-  const renderPlatform = () => (
-    <div className="space-y-6">
-      {/* Hero Section */}
-      <div className="bg-[#161618] border border-white/[0.08] p-8 flex flex-col md:flex-row gap-8 items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#C08B5C] flex items-center justify-center">
-              <Logo variant="light" showText={false} className="w-6 h-6 text-[#0C0C0E]" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-display font-semibold text-white tracking-tight">VASTHU INTELLIGENCE</h1>
-              <p className="text-xs font-mono text-white/40">SYSTEM VERSION 2.4.0-RC</p>
-            </div>
-          </div>
-          <p className="text-sm font-sans text-white/70 leading-relaxed max-w-2xl">
-            Vasthu is an advanced real estate intelligence platform designed for institutional-grade analysis. By synthesizing disparate market data with frontier language models, it provides precise, defensible investment insights through a natural language interface.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-4 w-full md:w-auto min-w-[240px]">
-          <div className="bg-[#0C0C0E] border border-white/[0.08] p-3">
-            <div className="text-xs font-mono text-white/40 mb-1">LATENCY</div>
-            <div className="text-lg font-mono text-[#C08B5C]">&lt; 140ms</div>
-          </div>
-          <div className="bg-[#0C0C0E] border border-white/[0.08] p-3">
-            <div className="text-xs font-mono text-white/40 mb-1">DATA POINTS</div>
-            <div className="text-lg font-mono text-[#C08B5C]">240M+</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoCard title="Operational Modes" className="h-full">
-          <div className="space-y-4">
-            {[
-              { icon: MessageSquare, name: 'RESEARCH', desc: 'Market analysis & strategy formulation.' },
-              { icon: Search, name: 'HUNTER', desc: 'Property identification & scoring.' },
-              { icon: BarChart3, name: 'STRATEGIST', desc: 'Financial modeling & risk assessment.' },
-            ].map(mode => (
-              <div key={mode.name} className="flex items-start gap-4 group">
-                <mode.icon className="w-5 h-5 text-white/30 group-hover:text-[#C08B5C] transition-colors mt-0.5" strokeWidth={1.5} />
-                <div>
-                  <div className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors">{mode.name}</div>
-                  <div className="text-xs text-white/40 font-mono">{mode.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </InfoCard>
-
-        <InfoCard title="Architecture" className="h-full">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-              <span className="text-xs text-white/60 flex items-center gap-2"><Cpu className="w-3.5 h-3.5" /> Processor</span>
-              <span className="text-xs font-mono text-[#C08B5C]">HYBRID (GPT-4o / CLAUDE 3.5)</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-              <span className="text-xs text-white/60 flex items-center gap-2"><Database className="w-3.5 h-3.5" /> Knowledge Base</span>
-              <span className="text-xs font-mono text-white/40">VECTOR + GRAPH RELATIONAL</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-white/60 flex items-center gap-2"><Network className="w-3.5 h-3.5" /> Data Feeds</span>
-              <span className="text-xs font-mono text-white/40">REAL-TIME WEBSOCKET</span>
-            </div>
-          </div>
-          <div className="mt-6 p-3 bg-[#0C0C0E] border border-white/[0.08] text-[10px] font-mono text-white/30 leading-relaxed">
-            System utilizes a constitutional AI layer for output verification, ensuring all financial projections meet strict accuracy thresholds before presentation.
-          </div>
-        </InfoCard>
-      </div>
-
-      <SectionHeader title="Core Capabilities" subtitle="FUNCTIONAL MODULES" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/[0.08] bg-[#161618] divide-y md:divide-y-0 md:divide-x divide-white/[0.08]">
-        {[
-          { icon: Search, title: 'Acquisition', desc: 'Automated deal sourcing aligned with Buy Box criteria.' },
-          { icon: BarChart3, title: 'Underwriting', desc: 'Institutional-grade financial modeling (DCF, IRR, MOIC).' },
-          { icon: FileText, title: 'Reporting', desc: 'Lender-ready investment memorandums & presentations.' },
-        ].map((cap, i) => (
-          <div key={i} className="p-6 hover:bg-white/[0.02] transition-colors">
-            <cap.icon className="w-6 h-6 text-[#C08B5C] mb-4" strokeWidth={1.5} />
-            <h3 className="text-sm font-bold text-white mb-2">{cap.title}</h3>
-            <p className="text-xs text-white/50 leading-relaxed">{cap.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InfoCard title="Data Sources">
-          <ul className="space-y-2">
-            {[
-              'MLS Data Aggregators',
-              'Public Records (County Assessor)',
-              'RentCast API (Market Rents)',
-              'Census Bureau (Demographics)',
-              'Bureau of Labor Statistics (Employment)',
-            ].map((source, i) => (
-              <li key={i} className="flex items-center gap-3 text-xs text-white/70">
-                <div className="w-1 h-1 bg-[#C08B5C]" />
-                {source}
-              </li>
-            ))}
-          </ul>
-        </InfoCard>
-        <InfoCard title="Analysis Metrics">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-[#0C0C0E] border border-white/[0.08]">
-              <div className="text-[10px] font-mono text-white/40 mb-1">YIELD</div>
-              <div className="text-white/80 text-xs">Cap Rate, Cash-on-Cash</div>
-            </div>
-            <div className="p-3 bg-[#0C0C0E] border border-white/[0.08]">
-              <div className="text-[10px] font-mono text-white/40 mb-1">VALUATION</div>
-              <div className="text-white/80 text-xs">ARV, As-Is Value</div>
-            </div>
-            <div className="p-3 bg-[#0C0C0E] border border-white/[0.08]">
-              <div className="text-[10px] font-mono text-white/40 mb-1">EXPENSES</div>
-              <div className="text-white/80 text-xs">OpEx Ratio, CapEx Reserves</div>
-            </div>
-            <div className="p-3 bg-[#0C0C0E] border border-white/[0.08]">
-              <div className="text-[10px] font-mono text-white/40 mb-1">ACTION</div>
-              <div className="text-white/80 text-xs">Buy/Hold/Sell/Refi</div>
-            </div>
-          </div>
-        </InfoCard>
-      </div>
-    </div>
-  );
-
-  const renderTrust = () => (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <SectionHeader title="Security Protocols" subtitle="COMPLIANCE & ENCRYPTION" />
-
-      <div className="grid grid-cols-1 gap-4">
-        {[
-          { title: "DATA ENCRYPTION", desc: "AES-256 encryption at rest. TLS 1.3 for all data in transit.", status: "ACTIVE" },
-          { title: "ACCESS CONTROL", desc: "Role-based access control (RBAC) with MFA enforcement.", status: "ENFORCED" },
-          { title: "AI GOVERNANCE", desc: "Constitutional AI guardrails prevent hallucination of financial data.", status: "MONITORED" },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center justify-between p-5 bg-[#161618] border border-white/[0.08]">
-            <div>
-              <h3 className="text-sm font-bold text-white mb-1">{item.title}</h3>
-              <p className="text-xs text-white/50">{item.desc}</p>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1 bg-[#0C0C0E] border border-white/[0.08]">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-mono text-emerald-500 tracking-wider">
-                {item.status}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <InfoCard title="Privacy Controls">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <Check className="w-4 h-4 text-[#C08B5C] mt-0.5" />
-            <div>
-              <div className="text-sm text-white/90 font-medium">Zero-Retention Mode</div>
-              <p className="text-xs text-white/40 mt-1">Option to process data without persistent storage.</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <Check className="w-4 h-4 text-[#C08B5C] mt-0.5" />
-            <div>
-              <div className="text-sm text-white/90 font-medium">Model Isolation</div>
-              <p className="text-xs text-white/40 mt-1">Customer data is never used to train global models.</p>
-            </div>
-          </div>
-        </div>
-      </InfoCard>
-
-      <SectionHeader title="System Hygiene" subtitle="REAL-TIME DIAGNOSTICS" />
-      <div className="bg-[#161618] border border-white/[0.08]">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-[#0C0C0E] text-white/40 font-mono uppercase">
-            <tr>
-              <th className="px-6 py-3 font-medium">Service</th>
-              <th className="px-6 py-3 font-medium">Region</th>
-              <th className="px-6 py-3 font-medium">Uptime (30d)</th>
-              <th className="px-6 py-3 font-medium text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/[0.04]">
-            {[
-              { name: 'API Gateway', region: 'US-EAST-1', uptime: '99.99%', status: 'OPERATIONAL' },
-              { name: 'LLM Inference Engine', region: 'GLOBAL', uptime: '99.95%', status: 'OPERATIONAL' },
-              { name: 'Vector Database', region: 'US-WEST-2', uptime: '99.99%', status: 'OPERATIONAL' },
-              { name: 'Market Data Feed', region: 'MULTI', uptime: '99.98%', status: 'OPERATIONAL' },
-            ].map((row, i) => (
-              <tr key={i} className="hover:bg-white/[0.02]">
-                <td className="px-6 py-4 font-medium text-white/80">{row.name}</td>
-                <td className="px-6 py-4 font-mono text-white/50">{row.region}</td>
-                <td className="px-6 py-4 font-mono text-white/50">{row.uptime}</td>
-                <td className="px-6 py-4 text-right">
-                  <span className="inline-flex items-center gap-1.5 text-emerald-500 font-mono text-[10px]">
-                    {row.status}
-                    <Check className="w-3 h-3" />
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex justify-end gap-6 pt-4 border-t border-white/[0.08]">
-        <a href="/terms-of-service" className="text-xs text-white/40 hover:text-white transition-colors font-mono uppercase tracking-wider">Terms of Service</a>
-        <a href="/privacy-policy" className="text-xs text-white/40 hover:text-white transition-colors font-mono uppercase tracking-wider">Privacy Policy</a>
-        <a href="mailto:support@vasthu.ai" className="text-xs text-white/40 hover:text-white transition-colors font-mono uppercase tracking-wider">Support</a>
-      </div>
-    </div>
-  );
-
-  const tabContent: Record<TabId, () => React.ReactNode> = {
-    platform: renderPlatform,
-    trust: renderTrust,
-  };
-
-  return (
-    <div className="h-full flex flex-col bg-[#0C0C0E]">
-      {/* Header */}
-      <header className="flex-shrink-0 px-8 py-6 border-b border-white/[0.08] flex items-center justify-between bg-[#0C0C0E]">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="text-white/40 hover:text-white transition-colors">
-            <ArrowLeft className="w-5 h-5" strokeWidth={1.5} />
-          </button>
-          <div className="h-6 w-px bg-white/[0.08]" />
-          <h1 className="text-sm font-display font-semibold text-white tracking-widest uppercase">
-            System Information
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-          <span className="text-xs font-mono text-white/40">ONLINE</span>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="flex-shrink-0 px-8 border-b border-white/[0.08] bg-[#0C0C0E]">
-        <div className="flex gap-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-4 text-xs font-mono font-medium tracking-wider border-b-2 transition-colors ${activeTab === tab.id
-                ? 'border-[#C08B5C] text-white'
-                : 'border-transparent text-white/40 hover:text-white/70'
-                }`}
+    const renderPlatform = () => (
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="space-y-6"
+        >
+            {/* Hero Section */}
+            <motion.div
+                variants={reveal}
+                className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-8 overflow-hidden"
             >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </nav>
+                <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-[#C08B5C]/[0.06] blur-3xl pointer-events-none" />
 
-      {/* Content Area */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto p-8">
-          {tabContent[activeTab]()}
+                <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#C08B5C]/20 to-[#D4A27F]/10 border border-[#C08B5C]/15 flex items-center justify-center">
+                                <Logo variant="light" showText={false} className="w-6 h-6 text-[#D4A27F]" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-semibold text-white tracking-tight">Vasthu Intelligence</h1>
+                                <p className="text-[11px] text-white/30 font-mono uppercase tracking-wider">System v2.4.0-RC</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-white/55 leading-relaxed max-w-2xl">
+                            Vasthu is an advanced real estate intelligence platform designed for institutional-grade analysis. By synthesizing disparate market data with frontier language models, it provides precise, defensible investment insights through a natural language interface.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 w-full md:w-auto min-w-[220px]">
+                        {[
+                            { label: 'Latency', value: '< 140ms', icon: Zap },
+                            { label: 'Data Points', value: '240M+', icon: Database },
+                        ].map(stat => (
+                            <motion.div
+                                key={stat.label}
+                                whileHover={{ y: -1 }}
+                                className="rounded-xl bg-[#0E0E11] border border-white/[0.06] p-3.5"
+                            >
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <stat.icon className="w-3 h-3 text-white/20" />
+                                    <span className="text-[10px] text-white/30 font-mono uppercase tracking-wider">{stat.label}</span>
+                                </div>
+                                <div className="text-lg font-semibold text-[#D4A27F] font-mono">{stat.value}</div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Operational Modes & Architecture */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoCard title="Operational Modes" className="h-full">
+                    <div className="space-y-4">
+                        {[
+                            { icon: MessageSquare, name: 'Research', desc: 'Market analysis & strategy formulation.' },
+                            { icon: Search, name: 'Hunter', desc: 'Property identification & scoring.' },
+                            { icon: BarChart3, name: 'Strategist', desc: 'Financial modeling & risk assessment.' },
+                        ].map(mode => (
+                            <div key={mode.name} className="flex items-start gap-3.5 group">
+                                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.08] transition-colors mt-0.5">
+                                    <mode.icon className="w-4 h-4 text-white/30 group-hover:text-[#D4A27F] transition-colors" strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <div className="text-sm font-medium text-white/85 group-hover:text-white transition-colors">{mode.name}</div>
+                                    <div className="text-[11px] text-white/35 mt-0.5">{mode.desc}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </InfoCard>
+
+                <InfoCard title="Architecture" className="h-full">
+                    <div className="space-y-3">
+                        {[
+                            { icon: Cpu, label: 'Processor', value: 'Multi-Model LLM', accent: true },
+                            { icon: Database, label: 'Knowledge Base', value: 'Vector + Graph', accent: false },
+                            { icon: Network, label: 'Data Feeds', value: 'Real-time WebSocket', accent: false },
+                        ].map(row => (
+                            <div key={row.label} className="flex items-center justify-between py-2.5 border-b border-white/[0.04] last:border-0">
+                                <span className="text-xs text-white/50 flex items-center gap-2">
+                                    <row.icon className="w-3.5 h-3.5" /> {row.label}
+                                </span>
+                                <span className={`text-[11px] font-mono ${row.accent ? 'text-[#D4A27F]' : 'text-white/35'}`}>
+                                    {row.value}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-5 p-3 rounded-lg bg-[#0E0E11] border border-white/[0.06] text-[10px] font-mono text-white/25 leading-relaxed">
+                        Constitutional AI layer verifies all financial projections meet strict accuracy thresholds before presentation.
+                    </div>
+                </InfoCard>
+            </div>
+
+            {/* Core Capabilities */}
+            <motion.div variants={reveal}>
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Core Capabilities</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                        { icon: Search, title: 'Acquisition', desc: 'Automated deal sourcing aligned with Buy Box criteria.' },
+                        { icon: BarChart3, title: 'Underwriting', desc: 'Institutional-grade financial modeling (DCF, IRR, MOIC).' },
+                        { icon: FileText, title: 'Reporting', desc: 'Lender-ready investment memorandums & presentations.' },
+                    ].map((cap) => (
+                        <motion.div
+                            key={cap.title}
+                            variants={reveal}
+                            whileHover={{ y: -2 }}
+                            className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-6 hover:border-white/[0.1] transition-all duration-300"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center mb-4">
+                                <cap.icon className="w-5 h-5 text-[#D4A27F]" strokeWidth={1.5} />
+                            </div>
+                            <h3 className="text-sm font-medium text-white mb-1.5">{cap.title}</h3>
+                            <p className="text-[12px] text-white/40 leading-relaxed">{cap.desc}</p>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Data Sources & Analysis Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoCard title="Data Sources">
+                    <ul className="space-y-2.5">
+                        {[
+                            'MLS Data Aggregators',
+                            'Public Records (County Assessor)',
+                            'RentCast API (Market Rents)',
+                            'Census Bureau (Demographics)',
+                            'Bureau of Labor Statistics (Employment)',
+                        ].map((source, i) => (
+                            <li key={i} className="flex items-center gap-3 text-[12px] text-white/55">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]/60 flex-shrink-0" />
+                                {source}
+                            </li>
+                        ))}
+                    </ul>
+                </InfoCard>
+
+                <InfoCard title="Analysis Metrics">
+                    <div className="grid grid-cols-2 gap-3">
+                        {[
+                            { label: 'Yield', value: 'Cap Rate, Cash-on-Cash' },
+                            { label: 'Valuation', value: 'ARV, As-Is Value' },
+                            { label: 'Expenses', value: 'OpEx Ratio, CapEx Reserves' },
+                            { label: 'Action', value: 'Buy/Hold/Sell/Refi' },
+                        ].map(metric => (
+                            <div key={metric.label} className="p-3 rounded-lg bg-[#0E0E11] border border-white/[0.06]">
+                                <div className="text-[9px] font-mono text-white/25 uppercase tracking-wider mb-1">{metric.label}</div>
+                                <div className="text-white/65 text-[11px]">{metric.value}</div>
+                            </div>
+                        ))}
+                    </div>
+                </InfoCard>
+            </div>
+        </motion.div>
+    );
+
+    const renderTrust = () => (
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="max-w-4xl mx-auto space-y-8"
+        >
+            {/* Security Protocols */}
+            <motion.div variants={reveal}>
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Security Protocols</h2>
+                <div className="space-y-3">
+                    {[
+                        { title: 'Data Encryption', desc: 'AES-256 encryption at rest. TLS 1.3 for all data in transit.', status: 'Active' },
+                        { title: 'Access Control', desc: 'Role-based access control (RBAC) with MFA enforcement.', status: 'Enforced' },
+                        { title: 'AI Governance', desc: 'Constitutional AI guardrails prevent hallucination of financial data.', status: 'Monitored' },
+                    ].map((item) => (
+                        <motion.div
+                            key={item.title}
+                            variants={reveal}
+                            whileHover={{ x: 2 }}
+                            className="flex items-center justify-between p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm"
+                        >
+                            <div>
+                                <h3 className="text-sm font-medium text-white mb-1">{item.title}</h3>
+                                <p className="text-[12px] text-white/40">{item.desc}</p>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0E0E11] border border-white/[0.06]">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">
+                                    {item.status}
+                                </span>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Privacy Controls */}
+            <InfoCard title="Privacy Controls">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {[
+                        { title: 'Zero-Retention Mode', desc: 'Option to process data without persistent storage.' },
+                        { title: 'Model Isolation', desc: 'Customer data is never used to train global models.' },
+                    ].map(item => (
+                        <div key={item.title} className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <Check className="w-3 h-3 text-[#C08B5C]" />
+                            </div>
+                            <div>
+                                <div className="text-sm text-white/85 font-medium">{item.title}</div>
+                                <p className="text-[12px] text-white/35 mt-1">{item.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </InfoCard>
+
+            {/* System Diagnostics */}
+            <motion.div variants={reveal}>
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">System Diagnostics</h2>
+                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                        <thead>
+                            <tr className="bg-[#0E0E11] text-white/30 font-mono uppercase text-[10px] tracking-wider">
+                                <th className="px-6 py-3.5 font-medium">Service</th>
+                                <th className="px-6 py-3.5 font-medium">Region</th>
+                                <th className="px-6 py-3.5 font-medium">Uptime (30d)</th>
+                                <th className="px-6 py-3.5 font-medium text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.04]">
+                            {[
+                                { name: 'API Gateway', region: 'US-EAST-1', uptime: '99.99%', status: 'Operational' },
+                                { name: 'LLM Inference Engine', region: 'Global', uptime: '99.95%', status: 'Operational' },
+                                { name: 'Vector Database', region: 'US-WEST-2', uptime: '99.99%', status: 'Operational' },
+                                { name: 'Market Data Feed', region: 'Multi', uptime: '99.98%', status: 'Operational' },
+                            ].map((row) => (
+                                <tr key={row.name} className="hover:bg-white/[0.015] transition-colors">
+                                    <td className="px-6 py-4 font-medium text-white/75">{row.name}</td>
+                                    <td className="px-6 py-4 font-mono text-white/40">{row.region}</td>
+                                    <td className="px-6 py-4 font-mono text-white/40">{row.uptime}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <span className="inline-flex items-center gap-1.5 text-emerald-400 font-mono text-[10px]">
+                                            {row.status}
+                                            <Check className="w-3 h-3" />
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </motion.div>
+
+            {/* Footer Links */}
+            <motion.div
+                variants={reveal}
+                className="flex justify-center gap-8 pt-4 border-t border-white/[0.04]"
+            >
+                {[
+                    { label: 'Terms of Service', href: '/terms-of-service' },
+                    { label: 'Privacy Policy', href: '/privacy-policy' },
+                    { label: 'Support', href: 'mailto:support@vasthu.ai' },
+                ].map(link => (
+                    <a
+                        key={link.label}
+                        href={link.href}
+                        className="text-[11px] text-white/30 hover:text-[#D4A27F] transition-colors flex items-center gap-1 font-medium"
+                    >
+                        {link.label}
+                        <ExternalLink className="w-3 h-3" />
+                    </a>
+                ))}
+            </motion.div>
+        </motion.div>
+    );
+
+    return (
+        <div className="h-full flex flex-col bg-[#161619]">
+            {/* Header */}
+            <header className="flex-shrink-0 flex items-center justify-between px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={onBack}
+                        className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    >
+                        <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    </button>
+                    <h1 className="text-lg font-medium text-white tracking-tight">System Information</h1>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[11px] font-medium text-white/30">Online</span>
+                </div>
+            </header>
+
+            {/* Tab Navigation */}
+            <nav className="flex-shrink-0 px-8 border-b border-white/[0.06] bg-[#161619]">
+                <div className="flex gap-1">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`relative py-3.5 px-4 text-[12px] font-medium tracking-wide transition-colors ${
+                                activeTab === tab.id
+                                    ? 'text-white'
+                                    : 'text-white/35 hover:text-white/60'
+                            }`}
+                        >
+                            {tab.label}
+                            {activeTab === tab.id && (
+                                <motion.div
+                                    layoutId="about-tab-indicator"
+                                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#C08B5C] rounded-full"
+                                    transition={{ duration: 0.25 }}
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </nav>
+
+            {/* Content */}
+            <main className="flex-1 overflow-y-auto">
+                <div className="max-w-5xl mx-auto p-8">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {activeTab === 'platform' ? renderPlatform() : renderTrust()}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 };
+

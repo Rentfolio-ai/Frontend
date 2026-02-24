@@ -1,9 +1,10 @@
 // FILE: src/components/onboarding/OnboardingTour.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, MessageSquare, TrendingUp, Search } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Search, Building2 } from 'lucide-react';
 import type { TabType } from '../../hooks/useDesktopShell';
 import { completeOnboarding } from '../../services/onboardingApi';
+import { usePreferencesStore } from '../../stores/preferencesStore';
 
 interface OnboardingTourProps {
   isOpen: boolean;
@@ -19,7 +20,8 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   onSkip,
 }) => {
   const [startTime] = useState(Date.now());
-  const [currentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const setPreferredStartPage = usePreferencesStore(s => s.setPreferredStartPage);
 
   // Check if user has already seen onboarding (can be bypassed with ?onboarding=true)
   const urlParams = new URLSearchParams(window.location.search);
@@ -60,7 +62,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     }
   ];
 
-  const handleComplete = async () => {
+  const handleComplete = async (redirectTab: TabType = 'chat') => {
     const duration = Math.floor((Date.now() - startTime) / 1000);
 
     // Mark onboarding as completed for this user
@@ -74,7 +76,13 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       duration_seconds: duration,
     });
 
-    onComplete('chat' as TabType);
+    onComplete(redirectTab);
+  };
+
+  // Handle the start page choice
+  const handleStartPageChoice = (choice: 'chat' | 'marketplace') => {
+    setPreferredStartPage(choice);
+    handleComplete(choice as TabType);
   };
 
   const handleSkip = async () => {
@@ -135,96 +143,154 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                   Skip
                 </button>
 
-                {/* Header with custom Vasthu icon */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex flex-col items-center mb-12"
-                >
-                  {/* Vasthu Icon */}
-                  <div className="mb-6 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#C08B5C] to-blue-500 rounded-2xl blur-2xl opacity-50"></div>
-                    <svg viewBox="0 0 32 32" fill="none" className="w-20 h-20 relative">
-                      <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradientOnboarding)" strokeWidth="1.5" opacity="0.8" />
-                      <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradientOnboarding)" strokeWidth="2" fill="none" strokeLinejoin="round" />
-                      <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradientOnboarding)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <defs>
-                        <linearGradient id="vasthuGradientOnboarding" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#C08B5C" />
-                          <stop offset="100%" stopColor="#2563EB" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </div>
-
-                  <h1 className="text-5xl font-bold bg-gradient-to-r from-[#D4A27F] via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
-                    {currentStepData.title}
-                  </h1>
-                  <p className="text-xl text-[#D4A27F]/80 font-medium mb-2">
-                    {currentStepData.subtitle}
-                  </p>
-                  <p className="text-white/60 text-center max-w-2xl">
-                    {currentStepData.description}
-                  </p>
-                </motion.div>
-
-                {/* Features Grid - Enhanced */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
-                  {currentStepData.features.map((feature, index) => (
+                {currentStep === 0 ? (
+                  <>
+                    {/* Header with custom Vasthu icon */}
                     <motion.div
-                      key={index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="group relative p-6 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
+                      transition={{ delay: 0.2 }}
+                      className="flex flex-col items-center mb-12"
                     >
-                      {/* Hover glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#C08B5C]/0 to-blue-500/0 group-hover:from-[#C08B5C]/10 group-hover:to-blue-500/10 rounded-2xl transition-all duration-300"></div>
+                      {/* Vasthu Icon */}
+                      <div className="mb-6 relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#C08B5C] to-blue-500 rounded-2xl blur-2xl opacity-50"></div>
+                        <svg viewBox="0 0 32 32" fill="none" className="w-20 h-20 relative">
+                          <circle cx="16" cy="16" r="14" stroke="url(#vasthuGradientOnboarding)" strokeWidth="1.5" opacity="0.8" />
+                          <path d="M16 6L24 12V20L16 26L8 20V12L16 6Z" stroke="url(#vasthuGradientOnboarding)" strokeWidth="2" fill="none" strokeLinejoin="round" />
+                          <path d="M13 13L16 19L19 13" stroke="url(#vasthuGradientOnboarding)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <defs>
+                            <linearGradient id="vasthuGradientOnboarding" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#C08B5C" />
+                              <stop offset="100%" stopColor="#2563EB" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                      </div>
 
-                      <div className="relative flex items-start gap-4">
-                        <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-[#C08B5C]/20 to-blue-500/20 text-[#D4A27F] group-hover:scale-110 transition-transform">
-                          {feature.icon}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-white font-bold text-base">
-                              {feature.title}
-                            </h3>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#C08B5C]/20 text-[#D4A27F] font-semibold">
-                              {feature.highlight}
-                            </span>
+                      <h1 className="text-5xl font-bold bg-gradient-to-r from-[#D4A27F] via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
+                        {currentStepData.title}
+                      </h1>
+                      <p className="text-xl text-[#D4A27F]/80 font-medium mb-2">
+                        {currentStepData.subtitle}
+                      </p>
+                      <p className="text-white/60 text-center max-w-2xl">
+                        {currentStepData.description}
+                      </p>
+                    </motion.div>
+
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+                      {currentStepData.features.map((feature, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 + index * 0.1 }}
+                          className="group relative p-6 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#C08B5C]/0 to-blue-500/0 group-hover:from-[#C08B5C]/10 group-hover:to-blue-500/10 rounded-2xl transition-all duration-300"></div>
+                          <div className="relative flex items-start gap-4">
+                            <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-[#C08B5C]/20 to-blue-500/20 text-[#D4A27F] group-hover:scale-110 transition-transform">
+                              {feature.icon}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="text-white font-bold text-base">{feature.title}</h3>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#C08B5C]/20 text-[#D4A27F] font-semibold">
+                                  {feature.highlight}
+                                </span>
+                              </div>
+                              <p className="text-white/60 text-sm leading-relaxed">{feature.description}</p>
+                            </div>
                           </div>
-                          <p className="text-white/60 text-sm leading-relaxed">
-                            {feature.description}
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* CTA */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
+                      className="flex flex-col items-center gap-4"
+                    >
+                      <button
+                        onClick={() => setCurrentStep(1)}
+                        className="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-[#A8734A] via-blue-600 to-purple-600 hover:from-[#C08B5C] hover:via-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-2xl shadow-[#C08B5C]/40 transition-all hover:scale-[1.05] hover:shadow-[#C08B5C]/60 overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                        <span className="relative z-10 flex items-center gap-2">
+                          Continue
+                          <Sparkles className="w-5 h-5" />
+                        </span>
+                      </button>
+                      <p className="text-white/40 text-xs">
+                        Takes less than 30 seconds to get started
+                      </p>
+                    </motion.div>
+                  </>
+                ) : (
+                  /* ======== STEP 2: Choose Your Start Page ======== */
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="flex flex-col items-center mb-10">
+                      <h2 className="text-3xl font-bold text-white mb-2 text-center">
+                        How would you like to start?
+                      </h2>
+                      <p className="text-white/50 text-center max-w-lg">
+                        You can always switch between these anytime from the sidebar.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto">
+                      {/* Chat with AI */}
+                      <button
+                        onClick={() => handleStartPageChoice('chat')}
+                        className="group relative flex flex-col items-center gap-5 p-8 rounded-2xl
+                          bg-gradient-to-br from-white/[0.04] to-white/[0.01]
+                          border border-white/[0.08] hover:border-blue-500/40
+                          transition-all duration-200 hover:bg-white/[0.06] text-left"
+                      >
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center
+                          group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-colors duration-200">
+                          <MessageSquare className="w-7 h-7 text-blue-400" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-lg font-bold text-white mb-1.5">Chat with AI</h3>
+                          <p className="text-[13px] text-white/45 leading-relaxed">
+                            Ask questions in natural language. Get instant property analysis, market insights, and deal recommendations.
                           </p>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                        <span className="text-[11px] text-blue-400/60 font-medium">Recommended for new users</span>
+                      </button>
 
-                {/* CTA - Enhanced */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                  className="flex flex-col items-center gap-4"
-                >
-                  <button
-                    onClick={handleComplete}
-                    className="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-[#A8734A] via-blue-600 to-purple-600 hover:from-[#C08B5C] hover:via-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-2xl shadow-[#C08B5C]/40 transition-all hover:scale-[1.05] hover:shadow-[#C08B5C]/60 overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
-                    <span className="relative z-10 flex items-center gap-2">
-                      Start Your Journey
-                      <Sparkles className="w-5 h-5" />
-                    </span>
-                  </button>
-                  <p className="text-white/40 text-xs">
-                    Takes less than 30 seconds to get started
-                  </p>
-                </motion.div>
+                      {/* Browse Properties */}
+                      <button
+                        onClick={() => handleStartPageChoice('marketplace')}
+                        className="group relative flex flex-col items-center gap-5 p-8 rounded-2xl
+                          bg-gradient-to-br from-white/[0.04] to-white/[0.01]
+                          border border-white/[0.08] hover:border-[#C08B5C]/40
+                          transition-all duration-200 hover:bg-white/[0.06] text-left"
+                      >
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#C08B5C]/20 to-[#D4A27F]/20 flex items-center justify-center
+                          group-hover:from-[#C08B5C]/30 group-hover:to-[#D4A27F]/30 transition-colors duration-200">
+                          <Building2 className="w-7 h-7 text-[#C08B5C]" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-lg font-bold text-white mb-1.5">Marketplace</h3>
+                          <p className="text-[13px] text-white/45 leading-relaxed">
+                            Browse agents, lenders, contractors, and other professionals. Connect via chat or Vasthu Voice.
+                          </p>
+                        </div>
+                        <span className="text-[11px] text-[#C08B5C]/60 font-medium">Find the right pro</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
           </motion.div>

@@ -4,13 +4,13 @@ import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
 import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
-import { PreferencesModalSimplified } from '../PreferencesModalSimplified';
 import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
 
 
-import type { Message } from '../../types/chat';
+import type { Message, AgentMode } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
+import { AVAILABLE_MODELS, modelSupportsThinking } from '../../constants/models';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
 import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceSuggestion } from '../chat/PreferenceSuggestionToast';
@@ -18,6 +18,8 @@ import { uploadFile, ingestFileToBackend } from '../../services/fileStorage';
 
 import { checkHealth } from '../../services/agentsApi';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useTokenUsage } from '../../hooks/useTokenUsage';
+import { useAuth } from '../../contexts/AuthContext';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
 import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
@@ -25,13 +27,12 @@ import { useSmartSuggestions } from '../../hooks/useSmartSuggestions';
 import { ScrollToBottomButton } from '../chat/ScrollToBottomButton';
 import { InConversationSearch } from '../chat/InConversationSearch';
 import { KeyboardShortcutsModal } from '../chat/KeyboardShortcutsModal';
+import { InlineContextBanner, type BannerAction } from '../chat/InlineContextBanner';
 import { VoiceChatBar } from '../voice/VoiceChatBar';
 import { VoiceWaveform } from '../voice/VoiceWaveform';
 import { PersonaPickerModal } from '../voice/PersonaPickerModal';
 import { useVoiceSession } from '../../hooks/useVoiceSession';
 import { getPersonaById, type VoicePersona } from '../../config/voicePersonas';
-
-import type { AgentMode } from '../../types/chat';
 
 
 interface ChatTabViewProps {
@@ -62,6 +63,7 @@ interface ChatTabViewProps {
   thinkingIsActive?: boolean;
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
+  nativeThinkingText?: string | null;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   // Cancel and error handling
@@ -73,17 +75,76 @@ interface ChatTabViewProps {
   chatTitle?: string;
   currentMode: AgentMode;
   onModeChange: (mode: AgentMode) => void;
+  selectedModel?: string;
+  onModelChange?: (modelId: string) => void;
   // Voice mode
   onVoiceTurn?: (role: 'user' | 'assistant', content: string) => void;
   onVoiceStart?: () => void;
-  onVoiceNoteSaved?: (noteId: string, summary: any, details: { duration: number; persona: string; transcript: any[] }) => void;
   conversationId?: string;
+  onOpenIntegrations?: () => void;
+  onSendComplete?: (summary: string) => void;
+  // Temporary chat (not saved to history)
+  isTemporary?: boolean;
+  onToggleTemporary?: () => void;
+  onBuyTokenPack?: () => void;
+}
+
+// Extract entities from recent conversation messages
+function extractConversationContext(messages: Message[]): {
+  cities: string[];
+  categories: string[];
+  propertyTypes: string[];
+  professionals: string[];
+} {
+  const recent = messages.slice(-10);
+  const text = recent
+    .map(m => (m.role === 'user' || m.role === 'assistant') ? (m.content || '') : '')
+    .join(' ');
+
+  const cityStateRe = /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*),\s*([A-Z]{2})\b/g;
+  const cities = new Set<string>();
+  let match;
+  while ((match = cityStateRe.exec(text)) !== null) {
+    cities.add(`${match[1]}, ${match[2]}`);
+  }
+
+  const catKeywords: Record<string, string> = {
+    'real estate agent': 'agents', 'realtor': 'agents', 'agent': 'agents',
+    'lender': 'lenders', 'mortgage': 'lenders', 'loan': 'lenders',
+    'contractor': 'contractors', 'builder': 'contractors',
+    'property manager': 'managers', 'inspector': 'inspectors',
+  };
+  const categories = new Set<string>();
+  const lower = text.toLowerCase();
+  for (const [kw, cat] of Object.entries(catKeywords)) {
+    if (lower.includes(kw)) categories.add(cat);
+  }
+
+  const propTypes = new Set<string>();
+  const propKeywords = ['multifamily', 'single family', 'condo', 'townhouse', 'STR', 'short-term rental', 'duplex', 'triplex', 'fourplex'];
+  for (const kw of propKeywords) {
+    if (lower.includes(kw.toLowerCase())) propTypes.add(kw);
+  }
+
+  const profNameRe = /(?:email|text|message|contact|reach out to)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)/g;
+  const professionals = new Set<string>();
+  while ((match = profNameRe.exec(text)) !== null) {
+    professionals.add(match[1]);
+  }
+
+  return {
+    cities: Array.from(cities),
+    categories: Array.from(categories),
+    propertyTypes: Array.from(propTypes),
+    professionals: Array.from(professionals),
+  };
 }
 
 // Context-aware greeting with tagline + subtitle for a richer welcome
 const getContextAwareGreeting = (
   userPreferences?: any,
-  userName?: string
+  userName?: string,
+  conversationContext?: ReturnType<typeof extractConversationContext>,
 ): { title: string; tagline: string; subtitle: string } => {
   const hour = new Date().getHours();
   const name = userName?.split(' ')[0] || '';
@@ -92,6 +153,39 @@ const getContextAwareGreeting = (
 
   type G = { title: string; tagline: string; subtitle: string };
   const pool: G[] = [];
+
+  // ── Conversation-derived taglines (highest priority, 3x weight) ──
+  const convPool: G[] = [];
+  if (conversationContext) {
+    const { cities, categories, propertyTypes, professionals } = conversationContext;
+    if (cities.length > 0) {
+      const city = cities[0];
+      convPool.push(
+        { title: '', tagline: `Properties in ${city}`, subtitle: 'Continuing where you left off.' },
+        { title: '', tagline: `Still exploring ${city}?`, subtitle: 'I can pull fresh listings or run new analysis.' },
+        { title: '', tagline: `Back to ${city} — what's next?`, subtitle: 'More deals, deeper analysis, or new neighborhoods.' },
+      );
+    }
+    if (professionals.length > 0) {
+      const prof = professionals[0];
+      convPool.push(
+        { title: '', tagline: `Following up with ${prof}?`, subtitle: 'I can draft a message or check for replies.' },
+        { title: '', tagline: `More deals through ${prof}?`, subtitle: 'Want to reach out again or explore other contacts?' },
+      );
+    }
+    if (propertyTypes.length > 0) {
+      const pt = propertyTypes[0];
+      convPool.push(
+        { title: '', tagline: `That ${pt.toLowerCase()} deal — want to dig deeper?`, subtitle: 'I can run numbers, pull comps, or find similar properties.' },
+      );
+    }
+    if (categories.length > 0) {
+      const cat = categories[0];
+      convPool.push(
+        { title: '', tagline: `Need more ${cat}?`, subtitle: 'I can search the marketplace for top-rated professionals.' },
+      );
+    }
+  }
 
   // ── Contextual greetings based on user data ──
 
@@ -188,8 +282,9 @@ const getContextAwareGreeting = (
   ];
 
   // ── Selection logic ──
-  // Combine: 2x context-aware, 1x time, 1x generic
+  // Combine: 3x conversation context (highest priority), 2x preference context, 1x time, 1x generic
   const all: G[] = [
+    ...convPool, ...convPool, ...convPool,
     ...pool, ...pool,
     ...timeGreetings,
     ...genericGreetings,
@@ -228,6 +323,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   thinkingIsActive,
   thinkingIsDone,
   thinkingElapsed,
+  nativeThinkingText,
   onRefresh,
   onViewDetails,
   onCancel,
@@ -237,15 +333,19 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onNavigateBranch,
   currentMode,
   onModeChange,
+  selectedModel,
+  onModelChange,
   onVoiceTurn,
   onVoiceStart,
-  onVoiceNoteSaved,
   conversationId,
   onRecalculate,
+  onOpenIntegrations,
+  onSendComplete,
+  isTemporary,
+  onToggleTemporary,
+  onBuyTokenPack,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
-  const [showPreferences, setShowPreferences] = useState(false);
-
   const [showFAQ, setShowFAQ] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
@@ -253,6 +353,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showSuggestionChips, setShowSuggestionChips] = useState(true);
+  const [contextBanner, setContextBanner] = useState<{ message: string; actions: BannerAction[] } | null>(null);
+  const lastBannerMessageId = useRef<string | null>(null);
   const [voiceActive, setVoiceActive] = useState(false);
   const [showPersonaPicker, setShowPersonaPicker] = useState(false);
   const savedPersonaId = usePreferencesStore(s => s.voicePersona);
@@ -263,13 +365,18 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   const prefsStore = usePreferencesStore();
   const { isPro, isFree } = useSubscription();
+  const { user: authUser } = useAuth();
+
+  // Token usage metering
+  const tier = isPro ? 'pro' : 'free';
+  const { usage: tokenUsage, isNearLimit: isNearTokenLimit, isExhausted: isTokenExhausted } = useTokenUsage(authUser?.id || '', tier);
+
   const showEmptyState = messages.length === 0 && !isLoading && !voiceActive;
 
   // Voice session hook — manages Gemini Live connection, audio, camera, turns
   const voiceSession = useVoiceSession({
     conversationId,
     onTurn: onVoiceTurn,
-    onVoiceNoteSaved,
   });
 
   // Streaming voice partials — cleaned for display
@@ -343,6 +450,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   }, [voiceSession]);
 
   const handleSendMessage = async (text: string) => {
+    // Auto-dismiss context banner on any user message
+    setContextBanner(null);
     if (attachment) {
       setIsUploading(true);
       try {
@@ -384,23 +493,44 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   const agentStatus: AgentStatus = backendStatus === 'down' ? 'offline' : backendStatus === 'unknown' ? 'unknown' : 'online';
 
-  // Get context-aware greeting (updates when preferences change)
+  // Extract conversation context for adaptive taglines and composer placeholders
+  const conversationContext = useMemo(
+    () => extractConversationContext(messages),
+    [messages.length],
+  );
+
+  // Generate dynamic placeholders from conversation context
+  const contextPlaceholders = useMemo(() => {
+    const ph: string[] = [];
+    const { cities, categories, propertyTypes } = conversationContext;
+    if (cities.length > 0) {
+      ph.push(`More properties in ${cities[0]}...`);
+      ph.push(`Email another agent in ${cities[0]}...`);
+      ph.push(`Analyze a deal in ${cities[0]}...`);
+    }
+    if (propertyTypes.length > 0) {
+      ph.push(`Find more ${propertyTypes[0].toLowerCase()} deals...`);
+    }
+    if (categories.length > 0) {
+      ph.push(`Search for top ${categories[0]}...`);
+    }
+    return ph;
+  }, [conversationContext]);
+
+  // Get context-aware greeting (updates when preferences or messages change)
   const greeting = useMemo(() => {
-    console.log('[ChatTabView] Calculating greeting with prefs:', {
-      city: prefsStore.lastSearchCity,
-      strategy: prefsStore.defaultStrategy
-    });
-    return getContextAwareGreeting(prefsStore, userName);
+    return getContextAwareGreeting(prefsStore, userName, conversationContext);
   }, [
     prefsStore.lastSearchCity,
     prefsStore.defaultStrategy,
     prefsStore.favoriteMarkets,
     prefsStore.budgetRange,
     prefsStore.financialDna,
-    userName
+    userName,
+    conversationContext,
   ]);
 
-  const suggestions = useSmartSuggestions({ messages, completedTools, isLoading, mode: currentMode });
+  const { suggestions, trackClick } = useSmartSuggestions({ messages, completedTools, isLoading, mode: currentMode });
 
   // Detect preference suggestions from new AI responses
   useEffect(() => {
@@ -429,6 +559,77 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       setPreferenceSuggestion(suggestion);
     }
   }, [messages, isLoading]);
+
+  // Detect contextual inline action banners after assistant messages
+  useEffect(() => {
+    if (messages.length === 0 || isLoading) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role !== 'assistant' || lastMsg.id === lastBannerMessageId.current) return;
+    lastBannerMessageId.current = lastMsg.id;
+
+    const content = (lastMsg.content || '').toLowerCase();
+    const turnCount = messages.filter(m => m.role === 'user').length;
+    const toolNames = completedTools.map(t => (typeof t === 'string' ? t : t.tool || '').toLowerCase());
+
+    // Only show one banner at a time — first match wins
+    // 1. Mode mismatch: research-heavy content while in hunter mode
+    const researchKeywords = ['explain', 'trends', 'compare markets', 'education', 'market overview', 'outlook', 'median', 'growth rate', 'historical'];
+    const isResearchContent = researchKeywords.filter(kw => content.includes(kw)).length >= 2;
+    if (currentMode === 'hunter' && isResearchContent) {
+      setContextBanner({
+        message: 'This looks like a deep research question.',
+        actions: [
+          { label: 'Switch to Research', primary: true, onClick: () => { onModeChange('research' as AgentMode); setContextBanner(null); } },
+        ],
+      });
+      return;
+    }
+
+    // 2. Report opportunity: deal analysis or property search completed
+    const hasAnalysisTool = toolNames.some(t => t.includes('analysis') || t.includes('deal') || t.includes('pnl') || t.includes('underwrite'));
+    const hasPropertyTool = toolNames.some(t => t.includes('search') || t.includes('property') || t.includes('scout'));
+    if (hasAnalysisTool || (hasPropertyTool && content.includes('found'))) {
+      setContextBanner({
+        message: hasAnalysisTool ? 'Analysis complete.' : 'Properties found.',
+        actions: [
+          { label: 'Generate Report', primary: true, onClick: () => { onSendMessage('Generate a detailed report for this analysis'); setContextBanner(null); } },
+          ...(hasPropertyTool && !hasAnalysisTool ? [{ label: 'Analyze top property', onClick: () => { onSendMessage('Analyze the top property from these results'); setContextBanner(null); } }] : []),
+        ],
+      });
+      return;
+    }
+
+    // 3. Strategy depth: 6+ user turns with financial analysis → suggest strategist
+    const financialKeywords = ['roi', 'cash flow', 'cap rate', 'portfolio', 'irr', 'leverage', 'equity'];
+    const isFinancialContent = financialKeywords.some(kw => content.includes(kw));
+    if (turnCount >= 6 && isFinancialContent && currentMode !== 'strategist') {
+      setContextBanner({
+        message: 'This conversation has portfolio-level depth.',
+        actions: [
+          { label: 'Switch to Strategist', primary: true, onClick: () => { onModeChange('strategist' as AgentMode); setContextBanner(null); } },
+        ],
+      });
+      return;
+    }
+
+    // 4. Action prompt: properties found but no follow-up after 2+ messages
+    if (hasPropertyTool && turnCount >= 2) {
+      const lastTwoUserMsgs = messages.filter(m => m.role === 'user').slice(-2);
+      const hasFollowUp = lastTwoUserMsgs.some(m =>
+        ['analyze', 'compare', 'report', 'detail'].some(kw => (m.content || '').toLowerCase().includes(kw))
+      );
+      if (!hasFollowUp) {
+        setContextBanner({
+          message: 'Properties were found. Want to go deeper?',
+          actions: [
+            { label: 'Compare these deals', primary: true, onClick: () => { onSendMessage('Compare these properties side by side'); setContextBanner(null); } },
+            { label: 'Analyze top pick', onClick: () => { onSendMessage('Analyze the best property from the search results'); setContextBanner(null); } },
+          ],
+        });
+        return;
+      }
+    }
+  }, [messages, isLoading, currentMode, completedTools, onModeChange, onSendMessage]);
 
   // Check backend health
   useEffect(() => {
@@ -487,7 +688,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       // Cmd+, - Open preferences
       if (isMod && e.key === ',') {
         e.preventDefault();
-        setShowPreferences(true);
+        onNavigateToInvestmentPreferences?.();
       }
 
       // Cmd+/ - Show keyboard shortcuts
@@ -501,7 +702,6 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         if (showKeyboardShortcuts) setShowKeyboardShortcuts(false);
         if (showInConvoSearch) setShowInConvoSearch(false);
         if (showShortcuts) setShowShortcuts(false);
-        if (showPreferences) setShowPreferences(false);
         if (showFAQ) setShowFAQ(false);
         onCancel?.();
       }
@@ -509,7 +709,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [prefsStore.isWideMode, prefsStore.setWideMode, showPreferences, showFAQ, showShortcuts, showKeyboardShortcuts, showInConvoSearch, onCancel]);
+  }, [prefsStore.isWideMode, prefsStore.setWideMode, showFAQ, showShortcuts, showKeyboardShortcuts, showInConvoSearch, onCancel, onNavigateToInvestmentPreferences]);
 
 
 
@@ -530,7 +730,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
 
   return (
-    <div className="h-full flex flex-col relative max-w-3xl mx-auto w-full">
+    <div className="h-full flex flex-col relative max-w-[48rem] mx-auto w-full">
 
 
 
@@ -540,7 +740,6 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
       {/* Modals */}
       <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
-      <PreferencesModalSimplified isOpen={showPreferences} onClose={() => setShowPreferences(false)} />
       <ShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
       <KeyboardShortcutsModal isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
 
@@ -548,8 +747,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       <div className="flex-1 overflow-hidden">
         {showEmptyState ? (
           /* Notion-style: Avatar + Greeting + Composer + Cards below */
-          <div className="h-full flex flex-col items-center justify-center px-4 py-6">
-            <div className="w-full max-w-[580px] mx-auto space-y-5">
+          <div className="h-full flex flex-col items-center justify-center px-4 py-6 chat-gradient-bg">
+            <div className="w-full max-w-[680px] mx-auto space-y-5">
               {/* Avatar + Greeting */}
               <div className="text-center space-y-3">
                 <div className="relative inline-block">
@@ -576,15 +775,52 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   onAttach={onAttach}
                   attachment={attachment}
                   onClearAttachment={onClearAttachment}
-                  onOpenPreferences={() => setShowPreferences(true)}
+                  onOpenPreferences={() => onNavigateToInvestmentPreferences?.()}
+                  onOpenIntegrations={onOpenIntegrations}
                   aria-label="Chat input"
                   currentMode={currentMode}
                   onModeChange={onModeChange}
+                  selectedModel={selectedModel}
+                  onModelChange={onModelChange}
+                  availableModels={AVAILABLE_MODELS.map(m => ({ ...m, accessible: m.tier === 'free' || isPro }))}
                   voiceActive={voiceActive}
                   onVoiceActivate={handleVoiceActivate}
                   isPro={isPro}
                   onUpgradePrompt={onNavigateToUpgrade}
+                  contextPlaceholders={contextPlaceholders}
+                  tokenUsage={tokenUsage}
+                  isNearTokenLimit={isNearTokenLimit}
+                  isTokenExhausted={isTokenExhausted}
+                  onTokenUpgrade={onNavigateToUpgrade}
+                  onBuyTokenPack={onBuyTokenPack}
                 />
+                {/* Temporary toggle + disclaimer */}
+                <div className="flex items-center justify-center gap-3 mt-2">
+                  {onToggleTemporary && (
+                    <button
+                      type="button"
+                      onClick={onToggleTemporary}
+                      className={`flex items-center gap-1.5 text-[10.5px] transition-colors ${
+                        isTemporary
+                          ? 'text-amber-400/70 hover:text-amber-400'
+                          : 'text-white/20 hover:text-white/40'
+                      }`}
+                      title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Enable temporary chat (not saved to history)'}
+                    >
+                      <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${
+                        isTemporary ? 'bg-amber-400/30' : 'bg-white/[0.08]'
+                      }`}>
+                        <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${
+                          isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/30'
+                        }`} />
+                      </span>
+                      <span>Temporary</span>
+                    </button>
+                  )}
+                  <p className="text-[10.5px] text-white/25">
+                    Vasthu can make mistakes. Verify important information.
+                  </p>
+                </div>
               </div>
 
               {/* Suggestion Chips - Pill Shaped */}
@@ -592,33 +828,39 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 <div className="animate-in fade-in duration-200">
                   <div className="flex flex-wrap items-center justify-center gap-2">
                     {suggestions.slice(0, 3).map((suggestion, index) => {
-                      const isObject = typeof suggestion !== 'string';
-                      const label = isObject ? suggestion.label : suggestion;
-                      const query = isObject ? suggestion.query : suggestion;
-                      const key = isObject ? suggestion.id : index;
-
-                      // Icons that match your app's features
-                      const chipIcons = ['🏠', '📈', '📋', '🎯'];
-                      const icon = chipIcons[index % 4];
+                      const chipFallbackIcons = ['🏠', '📈', '📋', '🎯'];
+                      const label = suggestion.label;
+                      const query = suggestion.query;
+                      const key = suggestion.id || index;
+                      const icon = suggestion.icon || chipFallbackIcons[index % 4];
 
                       return (
                         <button
                           key={key}
-                          onClick={() => handleSendMessage(query)}
-                          className="group flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+                          onClick={() => {
+                            trackClick(suggestion);
+                            // Switch mode if chip targets a different mode
+                            if (suggestion.target_mode && suggestion.target_mode !== currentMode) {
+                              onModeChange(suggestion.target_mode as AgentMode);
+                              setTimeout(() => handleSendMessage(query), 300);
+                            } else {
+                              handleSendMessage(query);
+                            }
+                          }}
+                          className="group flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
                         >
-                          <span className="text-[10px] opacity-60 group-hover:opacity-90 transition-opacity">{icon}</span>
-                          <span className="text-[10px] text-white/50 group-hover:text-white/80 font-medium leading-none">{label}</span>
+                          <span className="text-xs opacity-60 group-hover:opacity-90 transition-opacity">{icon}</span>
+                          <span className="text-[12px] text-white/50 group-hover:text-white/80 font-medium leading-none">{label}</span>
                         </button>
                       );
                     })}
                     {/* Close button for suggestions */}
                     <button
                       onClick={() => setShowSuggestionChips(false)}
-                      className="flex items-center justify-center w-5 h-5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-white/25 hover:text-white/60 transition-all"
+                      className="flex items-center justify-center w-6 h-6 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-white/25 hover:text-white/60 transition-all"
                       title="Hide suggestions"
                     >
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -629,7 +871,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
           </div>
         ) : (
           /* Chat Messages - Compact centered */
-          <div ref={messageContainerRef} className="h-full overflow-y-auto chat-scroll relative">
+          <div ref={messageContainerRef} className="h-full overflow-y-auto overflow-x-hidden chat-scroll relative chat-gradient-bg">
             {/* Centered waveform + "Start talking" when voice is active with no content yet */}
             {voiceActive && messages.length < 3 && !voiceUserPartial && !voiceAIPartial && (
               <div className="flex flex-col items-center justify-center gap-4 py-16">
@@ -645,7 +887,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
               </div>
             )}
 
-            <div className="max-w-[640px] mx-auto px-4">
+            <div className="max-w-[680px] mx-auto px-3">
               {/* In-Conversation Search */}
               <InConversationSearch
                 isOpen={showInConvoSearch}
@@ -669,6 +911,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 thinkingIsActive={thinkingIsActive}
                 thinkingIsDone={thinkingIsDone}
                 thinkingElapsed={thinkingElapsed}
+                nativeThinkingText={nativeThinkingText}
+                hasThinkingModel={modelSupportsThinking(selectedModel || '')}
                 userName={userName}
                 userAvatar={userAvatar}
                 onRefresh={onRefresh}
@@ -677,7 +921,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 onCancel={onCancel}
                 error={error}
                 onRetry={onRetry}
-                onOpenPreferences={() => setShowPreferences(true)}
+                onOpenPreferences={() => onNavigateToInvestmentPreferences?.()}
                 isWideMode={prefsStore.isWideMode}
                 onNavigateBranch={onNavigateBranch}
                 onSuggestionSelect={handleSendMessage}
@@ -685,12 +929,15 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 onNavigateToPreferences={onNavigateToInvestmentPreferences}
                 onNavigateToUpgrade={onNavigateToUpgrade}
                 onRecalculate={onRecalculate}
+                onRefine={(instruction) => handleSendMessage(instruction)}
+                onGoToIntegrations={onOpenIntegrations}
+                onSendComplete={onSendComplete}
               />
 
               {/* ── Voice Streaming Partials ── */}
               {voiceActive && (
                 <div
-                  className={`${prefsStore.isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto flex flex-col`}
+                  className={`${prefsStore.isWideMode ? 'max-w-3xl' : 'max-w-[680px]'} mx-auto flex flex-col`}
                   style={{ gap: 'var(--chat-density, 24px)' }}
                 >
                   {/* Listening indicator — shows immediately while waiting for transcription */}
@@ -780,11 +1027,20 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         )}
       </div>
 
+      {/* Inline Context Banner — between messages and composer */}
+      {!showEmptyState && contextBanner && (
+        <InlineContextBanner
+          message={contextBanner.message}
+          actions={contextBanner.actions}
+          onDismiss={() => setContextBanner(null)}
+        />
+      )}
+
       {/* Bottom bar: VoiceChatBar (when voice active) or Composer */}
       {!showEmptyState && (
         <div className="flex-shrink-0 relative">
-          <div className="px-4 md:px-6 pb-4 pt-3 relative z-20">
-            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto transition-all duration-200`}>
+          <div className="px-3 md:px-4 pb-3 pt-2 relative z-20">
+            <div className={`w-full ${prefsStore.isWideMode ? 'max-w-3xl' : 'max-w-[680px]'} mx-auto transition-all duration-200`}>
               {voiceActive ? (
                 <VoiceChatBar
                   session={voiceSession}
@@ -801,20 +1057,53 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                     onAttach={onAttach}
                     attachment={attachment}
                     onClearAttachment={onClearAttachment}
-                    onOpenPreferences={() => setShowPreferences(true)}
+                    onOpenPreferences={() => onNavigateToInvestmentPreferences?.()}
+                    onOpenIntegrations={onOpenIntegrations}
                     aria-label="Chat input"
                     currentMode={currentMode}
                     onModeChange={onModeChange}
+                    selectedModel={selectedModel}
+                    onModelChange={onModelChange}
+                    availableModels={AVAILABLE_MODELS.map(m => ({ ...m, accessible: m.tier === 'free' || isPro }))}
                     voiceActive={voiceActive}
                     onVoiceActivate={handleVoiceActivate}
                     isPro={isPro}
                     onUpgradePrompt={onNavigateToUpgrade}
+                    contextPlaceholders={contextPlaceholders}
+                    tokenUsage={tokenUsage}
+                    isNearTokenLimit={isNearTokenLimit}
+                    isTokenExhausted={isTokenExhausted}
+                    onTokenUpgrade={onNavigateToUpgrade}
+                    onBuyTokenPack={onBuyTokenPack}
                   />
 
-                  {/* Minimal disclaimer */}
-                  <p className="text-center text-[10.5px] text-white/25 mt-2.5">
-                    Vasthu can make mistakes. Verify important information.
-                  </p>
+                  {/* Temporary chat toggle + disclaimer */}
+                  <div className="flex items-center justify-center gap-3 mt-2">
+                    {onToggleTemporary && (
+                      <button
+                        type="button"
+                        onClick={onToggleTemporary}
+                        className={`flex items-center gap-1.5 text-[10.5px] transition-colors ${
+                          isTemporary
+                            ? 'text-amber-400/70 hover:text-amber-400'
+                            : 'text-white/20 hover:text-white/40'
+                        }`}
+                        title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Enable temporary chat (not saved to history)'}
+                      >
+                        <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${
+                          isTemporary ? 'bg-amber-400/30' : 'bg-white/[0.08]'
+                        }`}>
+                          <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${
+                            isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/30'
+                          }`} />
+                        </span>
+                        <span>Temporary</span>
+                      </button>
+                    )}
+                    <p className="text-[10.5px] text-white/25">
+                      Vasthu can make mistakes. Verify important information.
+                    </p>
+                  </div>
 
                   {/* Free plan usage indicator — hidden for Pro and in dev */}
                   {isFree && !import.meta.env.DEV && (

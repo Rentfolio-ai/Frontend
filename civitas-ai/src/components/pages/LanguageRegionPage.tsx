@@ -6,11 +6,23 @@
 
 import React from 'react';
 import { ArrowLeft, Globe, Clock, DollarSign, Calendar, ChevronDown, MessageSquare, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 
 interface LanguageRegionPageProps {
     onBack: () => void;
 }
+
+// ─── Animation Variants ──────────────────────────────────────────────────────
+
+const reveal = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const stagger = {
+    visible: { transition: { staggerChildren: 0.08 } },
+};
 
 // ─── Language Data ───────────────────────────────────────────────────────────
 
@@ -89,6 +101,44 @@ function getLanguageDisplayName(code: string): string {
     return lang ? lang.native : code;
 }
 
+// ─── Reusable Components ─────────────────────────────────────────────────────
+
+const SelectRow: React.FC<{
+    icon: React.ElementType;
+    label: string;
+    subtitle: string;
+    value: string;
+    options: Array<{ value: string; label: string; [key: string]: any }>;
+    onChange: (v: string) => void;
+    renderOption?: (opt: any) => string;
+}> = ({ icon: Icon, label, subtitle, value, options, onChange, renderOption }) => (
+    <div className="px-5 py-4">
+        <div className="flex items-center gap-3.5 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
+                <Icon className="w-[18px] h-[18px] text-[#D4A27F]" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <h4 className="text-[13px] font-medium text-white/85">{label}</h4>
+                <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
+            </div>
+        </div>
+        <div className="ml-[52px] relative">
+            <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg bg-[#0E0E11] border border-white/[0.08] text-[12px] text-white/80 appearance-none cursor-pointer focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
+            >
+                {options.map(o => (
+                    <option key={o.value} value={o.value} style={{ backgroundColor: '#1e1e24' }}>
+                        {renderOption ? renderOption(o) : o.label}
+                    </option>
+                ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
+        </div>
+    </div>
+);
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }) => {
@@ -103,122 +153,92 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
     const currentLang = LANGUAGES.find(l => l.value === language);
     const currentCurrency = CURRENCIES.find(c => c.value === currency);
 
-    // ── Select Row ─────────────────────────────────────────────────────────
-
-    const SelectRow: React.FC<{
-        icon: React.ElementType;
-        label: string;
-        subtitle: string;
-        value: string;
-        options: Array<{ value: string; label: string; [key: string]: any }>;
-        onChange: (v: string) => void;
-        renderOption?: (opt: any) => string;
-    }> = ({ icon: Icon, label, subtitle, value, options, onChange, renderOption }) => (
-        <div className="px-3.5 py-3">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="w-7 h-7 rounded-md bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-3.5 h-3.5 text-[#D4A27F]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h4 className="text-[13px] font-medium text-white/80">{label}</h4>
-                    <p className="text-[11px] text-white/35">{subtitle}</p>
-                </div>
-            </div>
-            <div className="ml-10 relative">
-                <select
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-[12px] text-white/80 appearance-none cursor-pointer focus:outline-none focus:border-[#C08B5C]/30 transition-colors"
-                >
-                    {options.map(o => (
-                        <option key={o.value} value={o.value} style={{ backgroundColor: '#1e1e24' }}>
-                            {renderOption ? renderOption(o) : o.label}
-                        </option>
-                    ))}
-                </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
-            </div>
-        </div>
-    );
-
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
+        <div className="h-full flex flex-col bg-[#161619]">
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
-                <button onClick={onBack} className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
-                    <ArrowLeft className="w-4 h-4 text-white/60" />
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+                <button
+                    onClick={onBack}
+                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                >
+                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
                 </button>
-                <div>
-                    <h1 className="text-lg font-semibold text-white/90">Language & Region</h1>
-                    <p className="text-[11px] text-white/35">Language, timezone, and display formats</p>
+                <div className="flex-1">
+                    <h1 className="text-lg font-medium text-white tracking-tight">Language & Region</h1>
+                    <p className="text-[11px] text-white/30 mt-0.5">Language, timezone, and display formats</p>
                 </div>
-            </div>
+            </header>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="max-w-2xl mx-auto space-y-5">
-
+            <div className="flex-1 overflow-y-auto">
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={stagger}
+                    className="max-w-2xl mx-auto px-8 py-8 space-y-6"
+                >
                     {/* ── AI Response Language ── */}
-                    <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Language</h2>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] overflow-hidden">
-                            {/* Current language highlight */}
-                            <div className="px-3.5 py-3 border-b border-white/[0.04]">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-7 h-7 rounded-md bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-                                        <Globe className="w-3.5 h-3.5 text-[#D4A27F]" />
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Language</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm overflow-hidden">
+                            <div className="p-6 border-b border-white/[0.04]">
+                                <div className="flex items-center gap-3.5 mb-5">
+                                    <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
+                                        <Globe className="w-[18px] h-[18px] text-[#D4A27F]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-[13px] font-medium text-white/80">Display & AI Language</h4>
-                                        <p className="text-[11px] text-white/35">Vasthu will respond in your selected language</p>
+                                        <h4 className="text-sm font-medium text-white/90">Display & AI Language</h4>
+                                        <p className="text-[11px] text-white/35 mt-0.5">Vasthu will respond in your selected language</p>
                                     </div>
                                 </div>
-                                <div className="ml-10">
-                                    {/* Language grid */}
-                                    <div className="grid grid-cols-2 gap-1.5 max-h-[240px] overflow-y-auto pr-1 scrollbar-hide">
-                                        {LANGUAGES.map((lang) => {
-                                            const selected = language === lang.value;
-                                            return (
-                                                <button
-                                                    key={lang.value}
-                                                    onClick={() => setLanguage(lang.value)}
-                                                    className={`flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-all ${
-                                                        selected
-                                                            ? 'bg-[#C08B5C]/15 border border-[#C08B5C]/30'
-                                                            : 'bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]'
-                                                    }`}
-                                                >
-                                                    <span className="text-[14px] flex-shrink-0">{lang.flag}</span>
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className={`text-[11px] font-medium block truncate ${selected ? 'text-[#D4A27F]' : 'text-white/60'}`}>
-                                                            {lang.native}
-                                                        </span>
-                                                        <span className="text-[9px] text-white/25 block truncate">{lang.label}</span>
-                                                    </div>
-                                                    {selected && <Check className="w-3 h-3 text-[#C08B5C] flex-shrink-0" />}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+
+                                <div className="grid grid-cols-2 gap-2 max-h-[260px] overflow-y-auto pr-1 scrollbar-hide">
+                                    {LANGUAGES.map((lang) => {
+                                        const selected = language === lang.value;
+                                        return (
+                                            <motion.button
+                                                key={lang.value}
+                                                onClick={() => setLanguage(lang.value)}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
+                                                    selected
+                                                        ? 'bg-[#C08B5C]/15 border border-[#C08B5C]/30 shadow-sm shadow-[#C08B5C]/5'
+                                                        : 'bg-[#0E0E11] border border-white/[0.06] hover:border-white/[0.12]'
+                                                }`}
+                                            >
+                                                <span className="text-[15px] flex-shrink-0">{lang.flag}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <span className={`text-[11px] font-medium block truncate ${selected ? 'text-[#D4A27F]' : 'text-white/65'}`}>
+                                                        {lang.native}
+                                                    </span>
+                                                    <span className="text-[9px] text-white/25 block truncate">{lang.label}</span>
+                                                </div>
+                                                {selected && <Check className="w-3.5 h-3.5 text-[#C08B5C] flex-shrink-0" />}
+                                            </motion.button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
-                            {/* AI language note */}
-                            <div className="px-3.5 py-2.5 flex items-center gap-2.5">
+                            <div className="px-6 py-3.5 flex items-center gap-2.5">
                                 <MessageSquare className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
                                 <p className="text-[10px] text-white/25 leading-relaxed">
                                     Vasthu will understand messages in any language, but will reply in <span className="text-white/45 font-medium">{getLanguageDisplayName(language)}</span>.
-                                    You can also quickly switch languages from the <span className="text-white/40 font-medium">
-                                    <Globe className="w-3 h-3 inline-block -mt-0.5 mx-0.5" />
-                                    globe icon</span> in the chat input bar.
+                                    You can also quickly switch languages from the{' '}
+                                    <span className="text-white/40 font-medium">
+                                        <Globe className="w-3 h-3 inline-block -mt-0.5 mx-0.5" />
+                                        globe icon
+                                    </span>{' '}
+                                    in the chat input bar.
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* ── Region Settings ── */}
-                    <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Region</h2>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Region</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             <SelectRow
                                 icon={Clock}
                                 label="Timezone"
@@ -238,12 +258,12 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                                 renderOption={(o) => `${o.symbol} ${o.label}`}
                             />
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* ── Format Settings ── */}
-                    <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Format</h2>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Format</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             <SelectRow
                                 icon={Calendar}
                                 label="Date Format"
@@ -255,50 +275,52 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                             />
 
                             {/* Time Format */}
-                            <div className="px-3.5 py-3">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-7 h-7 rounded-md bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-                                        <Clock className="w-3.5 h-3.5 text-[#D4A27F]" />
+                            <div className="px-5 py-4">
+                                <div className="flex items-center gap-3.5 mb-3">
+                                    <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
+                                        <Clock className="w-[18px] h-[18px] text-[#D4A27F]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-[13px] font-medium text-white/80">Time Format</h4>
-                                        <p className="text-[11px] text-white/35">12-hour or 24-hour clock</p>
+                                        <h4 className="text-[13px] font-medium text-white/85">Time Format</h4>
+                                        <p className="text-[11px] text-white/35 mt-0.5">12-hour or 24-hour clock</p>
                                     </div>
                                 </div>
-                                <div className="ml-10 grid grid-cols-2 gap-2">
+                                <div className="ml-[52px] grid grid-cols-2 gap-2.5">
                                     {[
                                         { v: '12h' as const, l: '12-hour', example: '3:00 PM' },
                                         { v: '24h' as const, l: '24-hour', example: '15:00' },
                                     ].map(tf => (
-                                        <button
+                                        <motion.button
                                             key={tf.v}
                                             onClick={() => setTimeFormat(tf.v)}
-                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-[12px] font-medium transition-all ${
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                            className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-[12px] font-medium transition-all ${
                                                 timeFormat === tf.v
-                                                    ? 'border-[#C08B5C] bg-[#C08B5C]/10 text-[#D4A27F]'
-                                                    : 'border-white/[0.06] bg-white/[0.02] text-white/50 hover:bg-white/[0.04]'
+                                                    ? 'border-[#C08B5C] bg-[#C08B5C]/10 text-[#D4A27F] shadow-sm shadow-[#C08B5C]/10'
+                                                    : 'border-white/[0.08] bg-[#0E0E11] text-white/50 hover:border-white/[0.15] hover:text-white/70'
                                             }`}
                                         >
-                                            <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                                                 timeFormat === tf.v ? 'border-[#C08B5C]' : 'border-white/20'
                                             }`}>
-                                                {timeFormat === tf.v && <div className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" />}
+                                                {timeFormat === tf.v && <div className="w-2 h-2 rounded-full bg-[#C08B5C]" />}
                                             </div>
                                             <div>
                                                 <span>{tf.l}</span>
                                                 <span className="text-[10px] text-white/25 ml-1.5">({tf.example})</span>
                                             </div>
-                                        </button>
+                                        </motion.button>
                                     ))}
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* ── Preview ── */}
-                    <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-1">Preview</h2>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5 space-y-2">
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Preview</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-5 space-y-3">
                             {[
                                 { l: 'Language', v: currentLang ? `${currentLang.flag} ${currentLang.native}` : language },
                                 { l: 'Date', v: dateFormat.replace('MM', '02').replace('DD', '07').replace('YYYY', '2026') },
@@ -307,14 +329,14 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                             ].map(p => (
                                 <div key={p.l} className="flex items-center justify-between">
                                     <span className="text-[11px] text-white/35">{p.l}</span>
-                                    <span className="text-[12px] font-medium text-white/70">{p.v}</span>
+                                    <span className="text-[12px] font-medium text-white/75">{p.v}</span>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
 
                     <div className="h-4" />
-                </div>
+                </motion.div>
             </div>
         </div>
     );

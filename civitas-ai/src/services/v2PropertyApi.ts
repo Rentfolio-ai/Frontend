@@ -53,6 +53,7 @@ export interface Property {
   lot_size?: number;
   estimated_rent?: number;
   image_url?: string;
+  photos?: string[];
   calculated_metrics?: CalculatedMetrics;
 }
 

@@ -8,4 +8,7 @@ export { PropertyGrid } from './PropertyGrid';
 export { IntelligencePane } from './IntelligencePane';
 export { ComparisonDock } from './ComparisonDock';
 export { HolographicPropertyView } from './HolographicPropertyView';
+export { PropertySearchLayout } from './PropertySearchLayout';
+export { PropertyMapView } from './PropertyMapView';
+export { PhotoCarousel } from './PhotoCarousel';
 

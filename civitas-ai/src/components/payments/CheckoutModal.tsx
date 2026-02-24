@@ -78,8 +78,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-md rounded-2xl border border-white/[0.1] p-6"
-                    style={{ backgroundColor: '#18181c' }}
+                    className="relative w-full max-w-md rounded-2xl border border-white/[0.08] p-6"
+                    style={{ backgroundColor: '#161619' }}
                 >
                     {/* Close Button */}
                     <button

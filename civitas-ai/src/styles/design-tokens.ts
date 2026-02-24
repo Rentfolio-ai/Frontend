@@ -75,18 +75,32 @@ export const designTokens = {
       blur: 'rgba(15,23,42,0.60)',            // Slate blur
     },
 
-    // Legacy support (EVEN DARKER!)
     sidebar: {
-      bg: '#475569',                          // Slate-600 (DARKER!)
-      surface: '#CBD5E1',                     // Slate-300 cards
-      hover: '#111114',                       // Slate-700 (darker hover)
-      border: '#18181c',                      // Slate-800 (very dark border)
+      bg: '#1e1e22',                          // Warm charcoal
+      surface: '#28282f',                     // Elevated surface
+      hover: '#2a2a32',                       // Hover state
+      border: '#333340',                      // Visible border
     },
     chat: {
-      bg: '#64748B',                          // Slate-500 (DARKER!)
-      surface: '#475569',                     // Slate-600
-      elevated: '#CBD5E1',                    // Slate-300 for cards
-      border: '#18181c',                      // Slate-800 (very dark border)
+      bg: '#1e1e22',                          // Warm charcoal
+      surface: '#24242a',                     // Slightly elevated
+      elevated: '#2c2c34',                    // Cards
+      border: '#333340',                      // Visible border
+    },
+    help: {
+      bg: '#1a1a1e',                          // Rich deep charcoal
+      bgDeep: '#141416',                      // Deepest base (widget shell)
+      surface: '#222228',                     // Elevated panels
+      surfaceHover: '#2a2a32',                // Hover state
+      border: 'rgba(255,255,255,0.07)',       // Subtle border
+      borderHover: 'rgba(255,255,255,0.12)', // Hover border
+      accent: '#C08B5C',                      // Copper primary
+      accentLight: '#D4A27F',                 // Copper highlight
+      accentDark: '#A8734A',                  // Copper depth
+      accentGlow: 'rgba(192,139,92,0.15)',   // Copper glow
+      accentSubtle: 'rgba(192,139,92,0.06)', // Very faint copper
+      glowOuter: '0 8px 40px rgba(192,139,92,0.08), 0 0 80px rgba(192,139,92,0.04), 0 25px 60px -12px rgba(0,0,0,0.5)',
+      noiseOpacity: 0.03,                     // Subtle noise overlay
     },
   },
 

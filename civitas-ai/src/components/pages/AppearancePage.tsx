@@ -119,27 +119,27 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
     // ── Render ────────────────────────────────────────────────────────────────
 
     return (
-        <div className="h-full flex flex-col" style={{ backgroundColor: '#111114' }}>
+        <div className="h-full flex flex-col bg-[#161619]">
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/60" />
+                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
                 </button>
                 <div>
-                    <h1 className="text-lg font-semibold text-white/90">Appearance</h1>
-                    <p className="text-[11px] text-white/35">Customize how Vasthu looks and feels</p>
+                    <h1 className="text-lg font-medium text-white tracking-tight">Appearance</h1>
+                    <p className="text-[11px] text-white/30 mt-0.5">Customize how Vasthu looks and feels</p>
                 </div>
-            </div>
+            </header>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="max-w-2xl mx-auto space-y-6">
+            <div className="flex-1 overflow-y-auto">
+                <div className="max-w-2xl mx-auto px-8 py-8 space-y-6">
 
                     {/* ── Theme ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
                             Theme
                         </h2>
                         <div className="grid grid-cols-3 gap-2.5">
@@ -198,10 +198,10 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
 
                     {/* ── Accent Color ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
                             Accent Color
                         </h2>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3">
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-4">
                             <div className="flex items-center gap-3">
                                 {ACCENT_COLORS.map((c) => {
                                     const selected = accentColor === c.id;
@@ -213,7 +213,7 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                                             title={c.label}
                                         >
                                             <div className={`w-7 h-7 rounded-full ${c.swatch} transition-all flex items-center justify-center ${
-                                                selected ? `ring-2 ${c.ring} ring-offset-2 ring-offset-[#111114] scale-110` : 'opacity-60 group-hover:opacity-90'
+                                                selected ? `ring-2 ${c.ring} ring-offset-2 ring-offset-[#161619] scale-110` : 'opacity-60 group-hover:opacity-90'
                                             }`}>
                                                 {selected && <Check className="w-3 h-3 text-white" />}
                                             </div>
@@ -229,10 +229,10 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
 
                     {/* ── Font Size ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
                             Font Size
                         </h2>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3 space-y-3">
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-4 space-y-3">
                             {/* Segmented control */}
                             <div className="flex gap-1.5 p-1 rounded-lg bg-white/[0.04]">
                                 {fontSizes.map((f) => {
@@ -273,11 +273,11 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                     <div>
                         <div className="flex items-center gap-2 mb-2.5 px-1">
                             <MessageSquare className="w-3 h-3 text-white/25" />
-                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
                                 Chat Display
                             </h2>
                         </div>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3 space-y-3">
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-4 space-y-3">
                             {/* Message density */}
                             <div>
                                 <p className="text-[11px] text-white/45 mb-2">Message spacing</p>
@@ -328,11 +328,11 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                     <div>
                         <div className="flex items-center gap-2 mb-2.5 px-1">
                             <Sparkles className="w-3 h-3 text-white/25" />
-                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
                                 Accessibility
                             </h2>
                         </div>
-                        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             {/* Reduced Motion */}
                             <div className="flex items-center gap-3 px-3.5 py-2.5">
                                 <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${reducedMotion ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>

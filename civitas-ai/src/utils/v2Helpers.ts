@@ -9,22 +9,54 @@
 
 /**
  * Build request body for hunter mode (property search).
+ * Passes full investment preferences so the backend can personalise scoring.
  */
-export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string): any {
+export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string, modelId?: string): any {
   const query: any = {
-    limit: 7,
+    limit: 100,
     include_ai: true,
-    property_types: ["SFH"],
     mode: mode || 'hunter',
-    raw_query: msg, // Let the backend LLM extract the location
+    raw_query: msg,
   };
 
-  // Use user budget if available
+  if (modelId) query.model_id = modelId;
+
+  // Budget
   if (userPrefs?.budgetRange?.max) {
     query.max_price = userPrefs.budgetRange.max;
   }
+  if (userPrefs?.budgetRange?.min) {
+    query.min_price = userPrefs.budgetRange.min;
+  }
 
-  // Include language preference so AI responds in the correct language
+  // Strategy (STR / LTR / FLIP)
+  if (userPrefs?.defaultStrategy) {
+    query.strategy = userPrefs.defaultStrategy;
+  }
+
+  // Preferred bedrooms
+  if (userPrefs?.preferredBedrooms) {
+    query.min_beds = userPrefs.preferredBedrooms;
+  }
+
+  // Property types from preferences (fall back to ["SFH"])
+  if (userPrefs?.preferredPropertyTypes?.length) {
+    query.property_types = userPrefs.preferredPropertyTypes;
+  } else {
+    query.property_types = ["SFH"];
+  }
+
+  // Favorite markets for prioritization
+  if (userPrefs?.favoriteMarkets?.length) {
+    query.preferred_markets = userPrefs.favoriteMarkets;
+  }
+
+  // User ID so backend can fetch financial DNA and full criteria
+  if (userPrefs?.user_id) {
+    query.user_id = userPrefs.user_id;
+  }
+
+  // Language preference
   if (userPrefs?.language && userPrefs.language !== 'en-US') {
     query.response_language = userPrefs.language;
   }
@@ -37,19 +69,58 @@ export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string):
  * Build request body for research/strategist mode (conversational AI).
  * Includes thread_id for multi-turn conversation memory.
  */
-export function parseChatQuery(msg: string, mode: 'research' | 'strategist', threadId?: string, language?: string): any {
+export function parseChatQuery(
+  msg: string,
+  mode: 'research' | 'strategist',
+  threadId?: string,
+  language?: string,
+  propertyContext?: any,
+  userIdentity?: { id?: string; name?: string; email?: string; phone?: string },
+  conversationHistory?: Array<{ role: string; content: string; tools?: any[] }>,
+  professionalContext?: { name?: string; email?: string; phone?: string; category?: string; id?: string },
+  userPreferences?: {
+    budgetRange?: { min?: number; max?: number };
+    defaultStrategy?: string;
+    favoriteMarkets?: string[];
+    financialDna?: any;
+    clientLocation?: any;
+  },
+  modelId?: string,
+): any {
   const query: any = {
     query: msg,
     mode: mode,
   };
 
+  if (modelId) query.model_id = modelId;
+
   if (threadId) {
     query.thread_id = threadId;
   }
 
-  // Include language preference so AI responds in the correct language
   if (language && language !== 'en-US') {
     query.response_language = language;
+  }
+
+  if (propertyContext) {
+    query.property_context = propertyContext;
+  }
+
+  if (userIdentity?.id) query.user_id = userIdentity.id;
+  if (userIdentity?.name) query.user_name = userIdentity.name;
+  if (userIdentity?.email) query.user_email = userIdentity.email;
+  if (userIdentity?.phone) query.user_phone = userIdentity.phone;
+
+  if (conversationHistory && conversationHistory.length > 0) {
+    query.conversation_history = conversationHistory;
+  }
+
+  if (professionalContext) {
+    query.professional_context = professionalContext;
+  }
+
+  if (userPreferences) {
+    query.user_preferences = userPreferences;
   }
 
   console.log('[v2Helpers] Parsed chat query:', query);

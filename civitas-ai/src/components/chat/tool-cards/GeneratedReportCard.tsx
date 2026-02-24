@@ -1,53 +1,50 @@
 // FILE: src/components/chat/tool-cards/GeneratedReportCard.tsx
-// Displays generated investment reports with HTML iframe viewer
-// Reports are auto-saved on backend - no manual save needed
+// Clean, professional in-chat report card.
+// Reports are auto-saved on backend — no manual save needed.
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText, X, Printer, ExternalLink, FolderOpen,
-  TrendingUp, Shield, Search, Target, ChevronRight,
-  BarChart3, Zap
+  TrendingUp, ChevronRight,
 } from 'lucide-react';
 import type { GenerateReportOutput } from '@/types/backendTools';
 import { reportsService } from '@/services/reportsApi';
 
-// Mode-to-theme config
-const MODE_THEMES: Record<string, { gradient: string; icon: React.ReactNode; badge: string; badgeBg: string }> = {
-  hunter: {
-    gradient: 'from-amber-500/20 via-yellow-500/10 to-orange-500/5',
-    icon: <Target className="w-4 h-4" />,
-    badge: 'Deal Analysis',
-    badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/20',
-  },
-  strategist: {
-    gradient: 'from-violet-500/20 via-purple-500/10 to-indigo-500/5',
-    icon: <BarChart3 className="w-4 h-4" />,
-    badge: 'Strategy',
-    badgeBg: 'bg-violet-500/20 text-violet-300 border-violet-500/20',
-  },
-  research: {
-    gradient: 'from-cyan-500/20 via-[#C08B5C]/10 to-blue-500/5',
-    icon: <Search className="w-4 h-4" />,
-    badge: 'Research',
-    badgeBg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/20',
-  },
+/* ── Report type config ────────────────────────────────────────────── */
+
+const TYPE_CONFIG: Record<string, { label: string; color: string; textClass: string }> = {
+  str:        { label: 'STR Analysis',       color: '#34d399', textClass: 'text-emerald-400' },
+  ltr:        { label: 'LTR Underwriting',   color: '#38bdf8', textClass: 'text-sky-400' },
+  adu:        { label: 'ADU Analysis',       color: '#fbbf24', textClass: 'text-amber-400' },
+  flip:       { label: 'Flip Analysis',      color: '#fb7185', textClass: 'text-rose-400' },
+  full:       { label: 'Full Report',        color: '#5eead4', textClass: 'text-teal-300' },
+  portfolio:  { label: 'Portfolio Strategy', color: '#a78bfa', textClass: 'text-violet-400' },
+  strategy:   { label: 'Investment Thesis',  color: '#e879f9', textClass: 'text-fuchsia-400' },
+  market:     { label: 'Market Research',    color: '#22d3ee', textClass: 'text-cyan-400' },
+  comparison: { label: 'Comparative Analysis', color: '#818cf8', textClass: 'text-indigo-400' },
 };
 
-// Recommendation badge styling
-const REC_STYLES: Record<string, string> = {
-  buy: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/20',
-  pass: 'bg-rose-500/20 text-rose-300 border-rose-500/20',
-  negotiate: 'bg-amber-500/20 text-amber-300 border-amber-500/20',
-  hold: 'bg-blue-500/20 text-blue-300 border-blue-500/20',
-  'explore further': 'bg-cyan-500/20 text-cyan-300 border-cyan-500/20',
-  'strong candidate': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/20',
-  'below market': 'bg-amber-500/20 text-amber-300 border-amber-500/20',
-  monitor: 'bg-blue-500/20 text-blue-300 border-blue-500/20',
-  reposition: 'bg-violet-500/20 text-violet-300 border-violet-500/20',
+const REC_STYLES: Record<string, { textClass: string; dotClass: string }> = {
+  buy:                { textClass: 'text-emerald-400', dotClass: 'bg-emerald-400' },
+  pass:               { textClass: 'text-white/40',    dotClass: 'bg-white/30' },
+  negotiate:          { textClass: 'text-amber-400',   dotClass: 'bg-amber-400' },
+  hold:               { textClass: 'text-sky-400',     dotClass: 'bg-sky-400' },
+  'explore further':  { textClass: 'text-cyan-400',    dotClass: 'bg-cyan-400' },
+  'strong candidate': { textClass: 'text-emerald-300', dotClass: 'bg-emerald-300' },
+  'below market':     { textClass: 'text-amber-300',   dotClass: 'bg-amber-300' },
+  monitor:            { textClass: 'text-white/50',    dotClass: 'bg-white/40' },
+  reposition:         { textClass: 'text-violet-400',  dotClass: 'bg-violet-400' },
 };
 
-// Report Modal Component
+const getTypeConfig = (type: string) =>
+  TYPE_CONFIG[type?.toLowerCase()] || { label: type || 'Report', color: '#888', textClass: 'text-white/50' };
+
+const getRecStyle = (rec: string) =>
+  REC_STYLES[rec?.toLowerCase()] || { textClass: 'text-white/40', dotClass: 'bg-white/30' };
+
+/* ── Report Modal ──────────────────────────────────────────────────── */
+
 interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -55,37 +52,14 @@ interface ReportModalProps {
   reportType: string;
   propertyAddress: string;
   htmlContent?: string;
-  mode?: string;
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
-  isOpen,
-  onClose,
-  reportId,
-  reportType,
-  propertyAddress,
-  htmlContent,
-  mode = 'hunter',
+  isOpen, onClose, reportId, reportType, propertyAddress, htmlContent,
 }) => {
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
   const htmlUrl = reportsService.getHtmlUrl(reportId);
-  const theme = MODE_THEMES[mode] || MODE_THEMES.hunter;
-
-  const handlePrint = () => {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.print();
-    }
-  };
-
-  const handleOpenNewTab = () => {
-    if (htmlContent) {
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    } else {
-      window.open(htmlUrl, '_blank');
-    }
-  };
+  const cfg = getTypeConfig(reportType);
 
   if (!isOpen) return null;
 
@@ -97,51 +71,56 @@ const ReportModal: React.FC<ReportModalProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-md"
+          className="absolute inset-0 bg-black/70"
           onClick={onClose}
         />
 
         {/* Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          initial={{ opacity: 0, scale: 0.97, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          exit={{ opacity: 0, scale: 0.97, y: 8 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-[#0d0f14] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-white/[0.08]"
+          className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-[#111113] rounded-xl shadow-2xl overflow-hidden flex flex-col border border-white/[0.08]"
         >
+          {/* Accent strip */}
+          <div className="h-[2px] w-full flex-shrink-0" style={{ backgroundColor: cfg.color }} />
+
           {/* Header */}
-          <div className={`flex items-center justify-between px-5 py-3 border-b border-white/[0.08] bg-gradient-to-r ${theme.gradient}`}>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/[0.08] backdrop-blur-sm flex items-center justify-center text-white/70">
-                <FileText className="w-4 h-4" />
+          <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className={`text-[10px] font-semibold uppercase tracking-wider ${cfg.textClass}`}>
+                  {getTypeConfig(reportType).label}
+                </span>
               </div>
-              <div>
-                <h2 className="font-semibold text-white/90 text-sm">
-                  {reportType}
-                </h2>
-                <p className="text-[11px] text-white/40">
-                  {propertyAddress}
-                </p>
-              </div>
+              <p className="text-[11px] text-white/35 truncate">{propertyAddress}</p>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
-                onClick={handlePrint}
-                className="p-2 rounded-lg hover:bg-white/[0.08] transition-colors text-white/40 hover:text-white/70"
-                title="Print report"
+                onClick={() => iframeRef.current?.contentWindow?.print()}
+                className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
+                title="Print"
               >
                 <Printer className="w-4 h-4" />
               </button>
               <button
-                onClick={handleOpenNewTab}
-                className="p-2 rounded-lg hover:bg-white/[0.08] transition-colors text-white/40 hover:text-white/70"
+                onClick={() => {
+                  if (htmlContent) {
+                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                    window.open(URL.createObjectURL(blob), '_blank');
+                  } else {
+                    window.open(htmlUrl, '_blank');
+                  }
+                }}
+                className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
                 title="Open in new tab"
               >
                 <ExternalLink className="w-4 h-4" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-white/[0.08] transition-colors text-white/40 hover:text-white/70"
+                className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -150,7 +129,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
           </div>
 
           {/* Report Content */}
-          <div className="flex-1 overflow-hidden bg-white">
+          <div className="flex-1 overflow-hidden bg-[#F7F8FA]">
             <iframe
               ref={iframeRef}
               src={htmlContent ? undefined : htmlUrl}
@@ -165,6 +144,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
   );
 };
 
+/* ── Main Card ─────────────────────────────────────────────────────── */
 
 export interface GeneratedReportCardProps {
   data: GenerateReportOutput;
@@ -190,101 +170,89 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
     key_metrics,
   } = data;
 
-  // Detect mode from data or infer from report type
-  const mode = (data as any).mode || (
-    ['portfolio', 'strategy'].some(t => (report_type || '').toLowerCase().includes(t)) ? 'strategist' :
-    ['market', 'research', 'comparison'].some(t => (report_type || '').toLowerCase().includes(t)) ? 'research' :
-    'hunter'
-  );
+  const cfg = getTypeConfig(report_type);
+  const recStyle = getRecStyle(recommendation || '');
 
-  const theme = MODE_THEMES[mode] || MODE_THEMES.hunter;
-  const recStyle = REC_STYLES[(recommendation || '').toLowerCase()] || REC_STYLES.negotiate;
-
-  // Extract key metrics for the preview card
-  const cashFlow = key_metrics?.cash_flow_monthly || key_metrics?.monthly_cash_flow;
+  // Extract key metrics
+  const cashFlow = key_metrics?.monthly_cash_flow;
   const capRate = key_metrics?.cap_rate;
   const coc = key_metrics?.cash_on_cash;
 
   return (
     <>
-      {/* Report Card — dark glassmorphic style */}
+      {/* Report Card — clean flat style */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className={`mt-3 rounded-xl border border-white/[0.08] bg-gradient-to-br ${theme.gradient} backdrop-blur-xl overflow-hidden`}
+        transition={{ duration: 0.25 }}
+        className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.03] overflow-hidden"
       >
+        {/* Accent strip */}
+        <div className="h-[2px] w-full" style={{ backgroundColor: cfg.color }} />
+
         {/* Card Header */}
         <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-white/60">
-              {theme.icon}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <FileText className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+              <span className={`text-[12px] font-semibold ${cfg.textClass}`}>{cfg.label}</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-white/90">{report_type}</span>
-                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${theme.badgeBg}`}>
-                  {theme.badge}
-                </span>
-              </div>
-              <p className="text-[11px] text-white/40 mt-0.5 truncate max-w-[280px]">{property_address}</p>
-            </div>
+            <p className="text-[11px] text-white/40 truncate max-w-[300px]">{property_address}</p>
           </div>
 
-          {/* Recommendation badge */}
+          {/* Recommendation */}
           {recommendation && (
-            <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border ${recStyle}`}>
-              {recommendation.toUpperCase()}
+            <span className="flex items-center gap-1.5 flex-shrink-0">
+              <span className={`w-1.5 h-1.5 rounded-full ${recStyle.dotClass}`} />
+              <span className={`text-[11px] font-semibold ${recStyle.textClass}`}>
+                {recommendation.toUpperCase()}
+              </span>
             </span>
           )}
         </div>
 
-        {/* Key Metrics Row */}
-        {(cashFlow || capRate || coc) && (
-          <div className="px-4 pb-2 flex gap-4 text-[11px]">
+        {/* Metrics Row */}
+        {(cashFlow != null || capRate != null || coc != null) && (
+          <div className="px-4 pb-2.5 flex items-center gap-4 text-[11px]">
             {cashFlow != null && (
               <div className="flex items-center gap-1.5">
-                <TrendingUp className={`w-3 h-3 ${cashFlow >= 0 ? 'text-emerald-400/70' : 'text-rose-400/70'}`} />
-                <span className="text-white/40">Cash Flow</span>
-                <span className={`font-semibold ${cashFlow >= 0 ? 'text-emerald-300/90' : 'text-rose-300/90'}`}>
+                <TrendingUp className={`w-3 h-3 ${cashFlow >= 0 ? 'text-emerald-400/60' : 'text-rose-400/60'}`} />
+                <span className="text-white/35">Cash Flow</span>
+                <span className={`font-semibold font-mono ${cashFlow >= 0 ? 'text-emerald-400/80' : 'text-rose-400/80'}`}>
                   ${Math.abs(cashFlow).toLocaleString()}/mo
                 </span>
               </div>
             )}
             {capRate != null && (
               <div className="flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-white/30" />
-                <span className="text-white/40">Cap Rate</span>
-                <span className="font-semibold text-white/80">{(capRate * 100).toFixed(1)}%</span>
+                <span className="text-white/35">Cap Rate</span>
+                <span className="font-semibold font-mono text-white/70">{(capRate * 100).toFixed(1)}%</span>
               </div>
             )}
             {coc != null && (
               <div className="flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-white/30" />
-                <span className="text-white/40">CoC</span>
-                <span className="font-semibold text-white/80">{(coc * 100).toFixed(1)}%</span>
+                <span className="text-white/35">CoC</span>
+                <span className="font-semibold font-mono text-white/70">{(coc * 100).toFixed(1)}%</span>
               </div>
             )}
           </div>
         )}
 
         {/* Actions */}
-        <div className="px-4 py-3 flex items-center gap-2 border-t border-white/[0.05]">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        <div className="px-4 py-2.5 flex items-center gap-2 border-t border-white/[0.05]">
+          <button
             onClick={() => setIsReportOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg text-[12px] font-medium shadow-lg shadow-violet-500/15 hover:from-violet-500 hover:to-purple-500 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] text-white/70 hover:text-white/90 rounded-md text-[12px] font-medium transition-all"
           >
             <FileText className="w-3.5 h-3.5" />
             View Full Report
-            <ChevronRight className="w-3 h-3 opacity-60" />
-          </motion.button>
+            <ChevronRight className="w-3 h-3 opacity-50" />
+          </button>
 
           {onNavigateToReports && (
             <button
               onClick={onNavigateToReports}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-white/40 hover:text-white/60 text-[11px] font-medium transition-colors rounded-lg hover:bg-white/[0.04]"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-white/30 hover:text-white/50 text-[11px] font-medium transition-colors rounded-md hover:bg-white/[0.03]"
             >
               <FolderOpen className="w-3 h-3" />
               All Reports
@@ -302,7 +270,6 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
           reportType={report_type}
           propertyAddress={property_address}
           htmlContent={html_content}
-          mode={mode}
         />
       )}
     </>

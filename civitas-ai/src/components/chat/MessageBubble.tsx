@@ -11,7 +11,8 @@ import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
 import { ActionButtons } from './ActionButtons';
 import { InlineActionsBar } from './InlineActionsBar';
 import { ToolMessage } from './ToolMessage';
-import { PropertyBookmarkCard, GeneratedReportCard, PropertyListCard } from './tool-cards';
+import { PropertyBookmarkCard, GeneratedReportCard } from './tool-cards';
+import { PropertyContextCard } from './PropertyContextCard';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
@@ -43,6 +44,7 @@ import {
   NeighborhoodTrajectoryCard,
 } from '../hunter';
 import { DealIntelligenceCard } from './tool-cards/DealIntelligenceCard';
+import { PropertyFlashcardRow } from './tool-cards/PropertyFlashcardRow';
 
 // Format relative time (e.g., "just now", "2m ago", "1h ago")
 const formatRelativeTime = (timestamp: string | Date): string => {
@@ -97,6 +99,9 @@ interface MessageBubbleProps {
   // Navigate to Upgrade / Billing page
   onNavigateToUpgrade?: () => void;
   onRecalculate?: (property: any, params: any) => Promise<any>;
+  onRefine?: (instruction: string) => void;
+  onGoToIntegrations?: () => void;
+  onSendComplete?: (summary: string) => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
@@ -124,6 +129,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   onNavigateToPreferences,
   onNavigateToUpgrade,
   onRecalculate,
+  onRefine,
+  onGoToIntegrations,
+  onSendComplete,
 }) => {
   const isUser = message.role === 'user' || message.type === 'user';
   const hasAttachment = !!message.attachment;
@@ -212,19 +220,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     <div
       id={`message-${message.id}`}
       className={cn(
-        "group flex w-full mb-6 relative animate-in fade-in slide-in-from-bottom-2 duration-300",
+        "group flex w-full mb-2 relative animate-in fade-in slide-in-from-bottom-2 duration-300",
         isUser ? "justify-end" : "justify-start"
       )}
     >
       {/* Agent Avatar (Left) */}
       {!isUser && (
-        <div className="flex-shrink-0 mr-4 mt-1">
-          <AgentAvatar status={agentStatus} className="w-9 h-9 shadow-lg shadow-blue-500/10" />
+        <div className="flex-shrink-0 mr-3 mt-0.5">
+          <AgentAvatar status={agentStatus} className="w-7 h-7 shadow-lg shadow-blue-500/10" />
         </div>
       )}
 
       <div className={cn(
-        "flex flex-col max-w-[90%] md:max-w-[85%]",
+        "flex flex-col max-w-[80%] md:max-w-[65%]",
         isUser ? "items-end" : "items-start"
       )}>
         {/* Branch Navigation */}
@@ -269,21 +277,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               "rounded-2xl rounded-br-md",
               "accent-user-bubble",
               "border border-white/[0.1]",
-              "px-4 py-3",
-              "text-[14px] leading-relaxed text-white/90",
+              "px-3.5 py-2.5",
+              "text-[14px] leading-normal text-white/90",
               "backdrop-blur-xl",
             ],
             !isUser && "text-[15px] leading-relaxed",
-            !isUser && hasTools && message.tools?.some(t => t.kind === 'scout_properties') && "!p-0 !bg-transparent"
+            
           )}
           style={{
-            color: isUser ? '#F0FDFA' : '#E2E8F0',
+            color: isUser ? '#F0FDFA' : '#E8DED2',
           }}
         >
 
           {/* Check for "Deep Reasoning" source from backend and render badge */}
           {message.contextSources?.includes('System 2 Reasoning') && (
-            <div className="mb-3">
+            <div className="mb-2">
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-medium text-purple-300">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -294,12 +302,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
           )}
 
+          {/* Property context card (from Explore → Chat handoff) */}
+          {isUser && message.propertyContext && (
+            <div className="mb-2">
+              <PropertyContextCard data={message.propertyContext} />
+            </div>
+          )}
+
           {/* Content Area */}
           <div
             className={cn(
-              "prose prose-sm max-w-none relative z-10 chat-message-text",
+              "prose prose-sm prose-compact max-w-none relative z-10 chat-message-text",
               message.isStreaming && !isUser && "streaming-text",
-              isUser ? "text-white/90" : "text-slate-200"
+              isUser ? "text-white/90" : "text-[#E8DED2]"
             )}
           >
             {isUser && isEditing ? (
@@ -344,13 +359,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   components={{
                     // --- Headings ---
                     h2: ({ children }) => (
-                      <h2 className="ai-heading-2 flex items-center gap-2.5 text-[15px] font-bold text-white mt-3 -mb-1 pb-0.5 border-b border-white/[0.06]">
+                      <h2 className="ai-heading-2 flex items-center gap-2.5 text-[17px] font-bold text-[#F5E6D0] mt-3 -mb-1 pb-0.5 border-b border-white/[0.06]">
                         <span className="inline-block w-1 h-4 rounded-full accent-bar flex-shrink-0" />
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-[14px] font-semibold text-white/90 mt-3 mb-1">
+                      <h3 className="text-[15.5px] font-semibold text-[#F0DCC0] mt-3 mb-1">
                         {children}
                       </h3>
                     ),
@@ -362,14 +377,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                         (typeof children === 'string' && !children.trim());
                       if (isEmpty) return null;
                       return (
-                        <p className="text-[13px] leading-[1.7] text-white/70 my-1.5">
+                        <p className="text-[15px] leading-[1.75] text-[#E8DED2]/90 my-1.5">
                           {children}
                         </p>
                       );
                     },
                     // --- Strong/Bold ---
                     strong: ({ children }) => (
-                      <strong className="font-semibold text-white/95">
+                      <strong className="font-bold text-[#FAF0E4]">
                         {children}
                       </strong>
                     ),
@@ -442,7 +457,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       </th>
                     ),
                     td: ({ children }) => (
-                      <td className="px-3 py-2 text-white/70 border-t border-white/[0.04] font-medium">
+                      <td className="px-3 py-2 text-[#E8DED2]/85 border-t border-white/[0.04] font-medium">
                         {children}
                       </td>
                     ),
@@ -463,7 +478,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       </ol>
                     ),
                     li: ({ children, ordered, ...props }: any) => (
-                      <li className="flex items-start gap-2.5 text-[13px] leading-[1.7] text-white/70 pl-1" {...props}>
+                      <li className="flex items-start gap-2.5 text-[15px] leading-[1.75] text-[#E8DED2]/90 pl-1" {...props}>
                         <span className="flex-shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full accent-dot opacity-60" />
                         <span className="flex-1">{children}</span>
                       </li>
@@ -471,7 +486,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     // --- Blockquotes ---
                     blockquote: ({ children }) => (
                       <blockquote className="my-3 pl-4 py-2 pr-3 rounded-r-xl accent-blockquote">
-                        <div className="text-[13px] text-white/50 italic">
+                        <div className="text-[14px] text-white/60 italic">
                           {children}
                         </div>
                       </blockquote>
@@ -810,6 +825,23 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   />
                 );
               }
+              else if (tool.kind === 'scout_properties' && tool.data) {
+                const d = tool.data as any;
+                const allProps = d.properties || d.top_picks || [];
+                const topPicks = (d.top_picks || allProps).slice(0, 5);
+                const moreMatches = d.more_matches || allProps.slice(5);
+                return (
+                  <PropertyFlashcardRow
+                    key={tool.id}
+                    topPicks={topPicks}
+                    moreMatches={moreMatches}
+                    totalFound={d.total_found || allProps.length}
+                    marketContext={d.market_context}
+                    bookmarks={bookmarks}
+                    onToggleBookmark={onToggleBookmark}
+                  />
+                );
+              }
               else if (tool.kind === 'generated_report' && tool.data) {
                 return (
                   <GeneratedReportCard
@@ -824,27 +856,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <ToolMessage
                   key={tool.id}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  tool={tool as any} // Forced cast to solve discriminated union mismatch with minimal impact
+                  tool={tool as any}
                   timestamp={new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   bookmarks={bookmarks}
                   onToggleBookmark={onToggleBookmark}
-                  onOpenDealAnalyzer={onOpenDealAnalyzer} // Pass through all parameters
+                  onOpenDealAnalyzer={onOpenDealAnalyzer}
+                  onAction={(query) => onAction?.(query)}
+                  onRefine={onRefine}
+                  onGoToIntegrations={onGoToIntegrations}
+                  onSendComplete={onSendComplete}
                 />
               );
             })}
           </div>
         )}
 
-        {/* Render specific tool result cards if data exists directly on message */}
-        {message.data?.tool_results?.scouted_properties && (
-          <PropertyListCard
-            properties={message.data.tool_results.scouted_properties}
-            onViewDetails={onViewDetails || (() => { })}
-            onOpenDealAnalyzer={onOpenDealAnalyzer}
-          />
-        )}
-
-        {/* 🎯 Hunter Mode: Interactive Tool Result Cards */}
+        {/* Hunter Mode: Interactive Tool Result Cards */}
         {message.data?.tool_results?.detect_deal_killers && (
           <div className="mt-4">
             <DealKillerCard
@@ -900,16 +927,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
 
         {/* AI Reasoning Trace — "Thought for Xs" collapsible panel */}
-        {!isUser && !message.isStreaming && message.thinkingTrace && message.thinkingTrace.steps.length > 0 && (
+        {!isUser && !message.isStreaming && (message.thinkingTrace?.steps?.length || message.nativeThinkingText) && (
           <div className="w-full">
             <AIReasoningPanel
-              trace={message.thinkingTrace}
+              trace={message.thinkingTrace || { steps: [], durationMs: 0, toolsUsed: [] }}
               steps={aiReasoningSteps}
+              nativeThinkingText={message.nativeThinkingText}
             />
           </div>
         )}
         {/* Legacy fallback: show reasoning steps even without thinkingTrace */}
-        {!isUser && !message.isStreaming && !message.thinkingTrace && aiReasoningSteps.length > 0 && (
+        {!isUser && !message.isStreaming && !message.thinkingTrace && !message.nativeThinkingText && aiReasoningSteps.length > 0 && (
           <div className="w-full">
             <AIReasoningPanel
               trace={{ steps: [], durationMs: 0, toolsUsed: [] }}

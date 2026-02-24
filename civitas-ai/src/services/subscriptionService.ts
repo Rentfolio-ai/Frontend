@@ -115,6 +115,31 @@ export const subscriptionService = {
     },
 
     /**
+     * Purchase a one-time token pack (25K tokens for $10). Pro users only.
+     */
+    purchaseTokenPack: async (): Promise<{ checkout_url?: string }> => {
+        const response = await fetch(`${API_BASE_URL}/api/billing/purchase-token-pack`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                success_url: window.location.origin + '?payment=token_pack_success',
+                cancel_url: window.location.origin + '?payment=cancelled',
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(err.detail || 'Failed to create token pack session');
+        }
+
+        const data = await response.json();
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        }
+        return data;
+    },
+
+    /**
      * Cancel the current subscription
      */
     cancelSubscription: async (): Promise<{ status: string; message: string }> => {

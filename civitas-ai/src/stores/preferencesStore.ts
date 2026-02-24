@@ -95,6 +95,9 @@ export interface UserPreferences {
     // Agent mode preference
     preferredMode: 'hunter' | 'research' | 'strategist';
 
+    // Start page preference (chosen during onboarding)
+    preferredStartPage: 'chat' | 'marketplace';
+
     // Voice preferences
     voiceEnabled: boolean;
     voiceAutoSend: boolean;
@@ -141,6 +144,7 @@ export interface PreferencesState extends UserPreferences {
     setReducedMotion: (enabled: boolean) => void;
     setHighContrast: (enabled: boolean) => void;
     setPreferredMode: (mode: UserPreferences['preferredMode']) => void;
+    setPreferredStartPage: (page: UserPreferences['preferredStartPage']) => void;
 
     // Language & Region setters
     setLanguage: (lang: string) => void;
@@ -188,6 +192,7 @@ const defaultPreferences: UserPreferences = {
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     preferredMode: 'hunter',
+    preferredStartPage: 'chat',
     inferredPreferences: null,
     clientLocation: null,
     voiceEnabled: true,
@@ -276,6 +281,7 @@ export const usePreferencesStore = create<PreferencesState>()(
             setReducedMotion: (enabled: boolean) => set({ reducedMotion: enabled }),
             setHighContrast: (enabled: boolean) => set({ highContrast: enabled }),
             setPreferredMode: (mode: UserPreferences['preferredMode']) => set({ preferredMode: mode }),
+            setPreferredStartPage: (page: UserPreferences['preferredStartPage']) => set({ preferredStartPage: page }),
 
             // Language & Region
             setLanguage: (lang: string) => set({ language: lang }),
@@ -381,6 +387,9 @@ export const usePreferencesStore = create<PreferencesState>()(
                 currency: state.currency,
                 dateFormat: state.dateFormat,
                 timeFormat: state.timeFormat,
+
+                // Start page
+                preferredStartPage: state.preferredStartPage,
 
                 // Voice
                 voiceEnabled: state.voiceEnabled,

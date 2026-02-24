@@ -22,7 +22,9 @@ export type ToolKind =
   | 'renovation_analysis'
   | 'renovation_analysis'
   | 'report'
-  | 'scout_properties';
+  | 'scout_properties'
+  | 'send_email'
+  | 'send_text';
 
 export interface Citation {
   id: number;
@@ -35,6 +37,16 @@ export interface Citation {
 }
 
 export type AgentMode = 'research' | 'strategist' | 'hunter';
+
+export interface ModelInfo {
+  id: string;
+  name: string;
+  provider: 'google' | 'openai' | 'anthropic' | 'xai';
+  tier: 'free' | 'pro' | 'enterprise';
+  description: string;
+  context_window: number;
+  accessible: boolean;
+}
 
 export interface ClarificationQuestion {
   id: string;
@@ -87,6 +99,30 @@ export interface InlineAction {
   style?: 'primary' | 'secondary' | 'danger';
 }
 
+// Property context data attached when sending a property for AI analysis
+export interface PropertyContextData {
+  address?: string;
+  city?: string;
+  state?: string;
+  price?: number;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
+  property_type?: string;
+  image_url?: string;
+  year_built?: number;
+  estimated_rent?: number;
+  calculated_metrics?: {
+    monthly_cash_flow?: number;
+    cap_rate?: number;
+    cash_on_cash_roi?: number;
+    annual_noi?: number;
+    monthly_mortgage?: number;
+    monthly_expenses?: number;
+    total_roi?: number;
+  };
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -94,6 +130,7 @@ export interface Message {
   type?: 'user' | 'assistant'; // For backward compatibility
   timestamp: string | Date;
   isStreaming?: boolean;
+  propertyContext?: PropertyContextData; // Property data for AI analysis
   attachment?: {
     name: string;
     type: string;
@@ -111,6 +148,8 @@ export interface Message {
     durationMs: number;
     toolsUsed: string[];
   };
+  /** Native model thinking/reasoning text (Claude extended thinking, Gemini thought) */
+  nativeThinkingText?: string;
   /** Mode switch suggestion from AI (e.g. research → hunter) */
   modeSuggestion?: {
     suggestedMode: string;

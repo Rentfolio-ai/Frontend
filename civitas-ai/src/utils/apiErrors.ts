@@ -6,10 +6,13 @@
  */
 
 export interface PlanError {
-  type: 'limit_exceeded' | 'pro_required';
+  type: 'limit_exceeded' | 'pro_required' | 'token_limit_exceeded';
   message: string;
   action?: string;
   limit?: number;
+  used?: number;
+  budget?: number;
+  resetDate?: string;
   currentTier?: string;
   upgradeUrl?: string;
 }
@@ -40,6 +43,18 @@ export async function parseApiError(response: Response): Promise<PlanError | nul
         return {
           type: 'pro_required',
           message: detail.message || 'This feature requires a Pro subscription.',
+          currentTier: detail.current_tier,
+          upgradeUrl: detail.upgrade_url || '/upgrade',
+        };
+      }
+
+      if (detail.error === 'token_limit_exceeded') {
+        return {
+          type: 'token_limit_exceeded',
+          message: detail.message || 'You\'ve used your monthly token budget.',
+          used: detail.used,
+          budget: detail.budget,
+          resetDate: detail.reset_date,
           currentTier: detail.current_tier,
           upgradeUrl: detail.upgrade_url || '/upgrade',
         };

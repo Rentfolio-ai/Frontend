@@ -31,6 +31,8 @@ interface MessageListProps {
   thinkingIsActive?: boolean;
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
+  nativeThinkingText?: string | null;
+  hasThinkingModel?: boolean;
   userName?: string;
   userAvatar?: string;
   onRefresh?: (messageId: string) => void;
@@ -49,6 +51,9 @@ interface MessageListProps {
   onNavigateToPreferences?: () => void;
   onNavigateToUpgrade?: () => void;
   onRecalculate?: (property: any, params: any) => Promise<any>;
+  onRefine?: (instruction: string) => void;
+  onGoToIntegrations?: () => void;
+  onSendComplete?: (summary: string) => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
@@ -67,6 +72,8 @@ export const MessageList: React.FC<MessageListProps> = ({
   thinkingIsActive,
   thinkingIsDone,
   thinkingElapsed,
+  nativeThinkingText,
+  hasThinkingModel = false,
   userName,
   userAvatar,
   onRefresh,
@@ -83,6 +90,9 @@ export const MessageList: React.FC<MessageListProps> = ({
   onNavigateToPreferences,
   onNavigateToUpgrade,
   onRecalculate,
+  onRefine,
+  onGoToIntegrations,
+  onSendComplete,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -138,12 +148,12 @@ export const MessageList: React.FC<MessageListProps> = ({
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full overflow-y-auto chat-scroll relative"
+      className="h-full overflow-y-auto overflow-x-hidden chat-scroll relative"
       onScroll={handleScroll}
     >
       <div
-        className={`${isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto py-8 px-4 md:px-6 flex flex-col transition-all duration-300`}
-        style={{ gap: 'var(--chat-density, 24px)' }}
+        className={`${isWideMode ? 'max-w-2xl' : 'max-w-[580px]'} mx-auto py-4 px-3 md:px-4 flex flex-col transition-all duration-300`}
+        style={{ gap: 'var(--chat-density, 12px)' }}
       >
         {visibleMessages.map((message, index) => {
           const isLast = index === visibleMessages.length - 1;
@@ -174,6 +184,9 @@ export const MessageList: React.FC<MessageListProps> = ({
               onNavigateToUpgrade={onNavigateToUpgrade}
               onRecalculate={onRecalculate}
               citations={message.citations}
+              onRefine={onRefine}
+              onGoToIntegrations={onGoToIntegrations}
+              onSendComplete={onSendComplete}
             />
           );
         })}
@@ -199,6 +212,8 @@ export const MessageList: React.FC<MessageListProps> = ({
                 thinkingIsActive={thinkingIsActive}
                 thinkingIsDone={thinkingIsDone}
                 thinkingElapsed={thinkingElapsed}
+                nativeThinkingText={nativeThinkingText}
+                hasThinkingModel={hasThinkingModel}
               />
             </div>
           </div>

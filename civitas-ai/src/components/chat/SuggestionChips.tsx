@@ -19,7 +19,7 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
   const isGrid = variant === 'grid';
   const isCarousel = variant === 'carousel';
 
-  let containerClass = "flex flex-wrap gap-1.5 mt-2";
+  let containerClass = "flex flex-wrap gap-2 mt-2";
   if (isGrid) {
     containerClass = "grid grid-cols-1 md:grid-cols-2 gap-2.5 max-w-2xl mx-auto w-full px-4";
   } else if (isCarousel) {
@@ -71,16 +71,16 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
             transition={{ delay: index * 0.05 }}
             whileHover={{ y: -2, scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] transition-all duration-200 whitespace-nowrap
+            className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[13px] transition-all duration-200 whitespace-nowrap
                         bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm
                         hover:bg-white/[0.08] hover:border-[#C08B5C]/20
                         text-white/50 hover:text-white/80
                         ${isCarousel ? 'flex-shrink-0 snap-start' : ''}`}
           >
             {icon ? (
-              <span className="text-xs">{icon}</span>
+              <span className="text-sm">{icon}</span>
             ) : (
-              <Sparkles className="w-3 h-3 text-[#C08B5C]/40 group-hover:text-[#C08B5C] transition-colors" />
+              <Sparkles className="w-3.5 h-3.5 text-[#C08B5C]/40 group-hover:text-[#C08B5C] transition-colors" />
             )}
             <span className="font-medium">{label}</span>
           </motion.button>

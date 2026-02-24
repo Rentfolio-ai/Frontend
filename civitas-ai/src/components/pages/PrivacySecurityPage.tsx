@@ -1,5 +1,5 @@
 /**
- * Privacy & Security Page
+ * Privacy & Security Page — Premium redesign
  *
  * Covers data privacy controls, security settings, active sessions,
  * and legal/policy links.
@@ -44,41 +44,35 @@ interface PrivacySecurityPageProps {
     onBack: () => void;
 }
 
-// ── Shared Toggle ────────────────────────────────────────────────────────────
+const reveal = {
+    hidden: { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+};
+
+const stagger = {
+    visible: { transition: { staggerChildren: 0.07 } },
+};
+
+// ── Toggle ──────────────────────────────────────────────────────────────────
 
 const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled, onToggle }) => (
     <button
         onClick={onToggle}
-        className={`relative w-9 h-5 rounded-full transition-all duration-200 flex-shrink-0 border ${enabled
-            ? 'bg-[#C08B5C] border-[#C08B5C]'
-            : 'bg-white/[0.05] border-white/[0.1] hover:border-white/[0.2]'
-            }`}
+        className={`relative w-10 h-[22px] rounded-full transition-all duration-200 flex-shrink-0 ${
+            enabled
+                ? 'bg-gradient-to-r from-[#C08B5C] to-[#D4A27F] shadow-[0_0_10px_rgba(192,139,92,0.3)]'
+                : 'bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.2]'
+        }`}
     >
         <div
-            className={`absolute top-[1px] left-[1px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${enabled ? 'translate-x-4' : 'translate-x-0'
-                }`}
+            className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                enabled ? 'translate-x-[18px]' : 'translate-x-0'
+            }`}
         />
     </button>
 );
 
-// ── Section Header ───────────────────────────────────────────────────────────
-
-const SectionHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <h2 className="text-xs font-medium font-sans text-white/40 mb-3 px-1 tracking-wide uppercase">
-        {children}
-    </h2>
-);
-
-// ── Info Banner ──────────────────────────────────────────────────────────────
-
-const InfoBanner: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="flex items-start gap-3 p-4 rounded bg-[#161618] border border-white/[0.08]">
-        <ShieldCheck className="w-4 h-4 text-white/60 flex-shrink-0 mt-0.5" />
-        <p className="text-xs font-sans text-white/50 leading-relaxed">{children}</p>
-    </div>
-);
-
-// ── Row Components ───────────────────────────────────────────────────────────
+// ── Row Components ──────────────────────────────────────────────────────────
 
 interface ToggleRowProps {
     icon: React.ElementType;
@@ -89,13 +83,13 @@ interface ToggleRowProps {
 }
 
 const ToggleRow: React.FC<ToggleRowProps> = ({ icon: Icon, title, subtitle, enabled, onToggle }) => (
-    <div className="flex items-center gap-4 px-5 py-4 group hover:bg-white/[0.02] transition-colors">
-        <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.05] transition-colors">
-            <Icon className="w-4 h-4 text-white/50 group-hover:text-white/70" />
+    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-white/[0.02] transition-colors">
+        <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.12] transition-colors">
+            <Icon className="w-[18px] h-[18px] text-[#D4A27F] group-hover:text-[#C08B5C] transition-colors" />
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium font-sans text-white/90">{title}</h3>
-            <p className="text-xs font-sans text-white/40 mt-0.5">{subtitle}</p>
+            <h3 className="text-[13px] font-medium text-white/85 group-hover:text-white transition-colors">{title}</h3>
+            <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
         </div>
         <Toggle enabled={enabled} onToggle={onToggle} />
     </div>
@@ -113,25 +107,30 @@ interface ActionRowProps {
 const ActionRow: React.FC<ActionRowProps> = ({ icon: Icon, title, subtitle, onClick, danger, external }) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02] group text-left"
+        className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-white/[0.02] group text-left"
     >
-        <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 transition-colors ${danger ? 'bg-red-500/10 group-hover:bg-red-500/20' : 'bg-white/[0.03] group-hover:bg-white/[0.05]'
-            }`}>
-            <Icon className={`w-4 h-4 ${danger ? 'text-red-400' : 'text-white/50 group-hover:text-white/70'}`} />
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+            danger
+                ? 'bg-red-500/[0.08] group-hover:bg-red-500/[0.14]'
+                : 'bg-[#C08B5C]/[0.08] group-hover:bg-[#C08B5C]/[0.12]'
+        }`}>
+            <Icon className={`w-[18px] h-[18px] transition-colors ${
+                danger ? 'text-red-400' : 'text-[#D4A27F] group-hover:text-[#C08B5C]'
+            }`} />
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className={`text-sm font-medium font-sans ${danger ? 'text-red-400' : 'text-white/90'}`}>{title}</h3>
-            <p className="text-xs font-sans text-white/40 mt-0.5">{subtitle}</p>
+            <h3 className={`text-[13px] font-medium ${danger ? 'text-red-400' : 'text-white/85 group-hover:text-white'} transition-colors`}>{title}</h3>
+            <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
         </div>
         {external ? (
-            <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
+            <ExternalLink className="w-3.5 h-3.5 text-white/15 group-hover:text-white/35 transition-colors flex-shrink-0" />
         ) : (
-            <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" />
+            <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/35 transition-colors flex-shrink-0" />
         )}
     </button>
 );
 
-// ── Session Row ──────────────────────────────────────────────────────────────
+// ── Session Row ─────────────────────────────────────────────────────────────
 
 interface SessionRowProps {
     device: string;
@@ -143,29 +142,29 @@ interface SessionRowProps {
 }
 
 const SessionRow: React.FC<SessionRowProps> = ({ device, location, lastActive, isCurrent, deviceType, onRevoke }) => (
-    <div className="flex items-center gap-4 px-5 py-4 group hover:bg-white/[0.02] transition-colors">
-        <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.05]">
+    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-white/[0.02] transition-colors">
+        <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
             {deviceType === 'desktop' ? (
-                <Monitor className="w-4 h-4 text-white/40" />
+                <Monitor className="w-[18px] h-[18px] text-[#D4A27F]" />
             ) : (
-                <Smartphone className="w-4 h-4 text-white/40" />
+                <Smartphone className="w-[18px] h-[18px] text-[#D4A27F]" />
             )}
         </div>
         <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-                <h3 className="text-sm font-medium font-sans text-white/90">{device}</h3>
+                <h3 className="text-[13px] font-medium text-white/85">{device}</h3>
                 {isCurrent && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Current
                     </span>
                 )}
             </div>
-            <p className="text-xs font-sans text-white/40 mt-0.5">{location} • {lastActive}</p>
+            <p className="text-[11px] text-white/35 mt-0.5">{location} · {lastActive}</p>
         </div>
         {!isCurrent && onRevoke && (
             <button
                 onClick={onRevoke}
-                className="px-3 py-1.5 rounded text-xs font-medium text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-[11px] font-medium text-red-400/60 hover:text-red-400 hover:bg-red-500/[0.08] transition-colors border border-transparent hover:border-red-500/15"
             >
                 Revoke
             </button>
@@ -173,7 +172,7 @@ const SessionRow: React.FC<SessionRowProps> = ({ device, location, lastActive, i
     </div>
 );
 
-// ── Expandable Section ───────────────────────────────────────────────────────
+// ── Expandable Section ──────────────────────────────────────────────────────
 
 const ExpandableSection: React.FC<{
     title: string;
@@ -184,17 +183,17 @@ const ExpandableSection: React.FC<{
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="rounded bg-[#161618] border border-white/[0.08] overflow-hidden">
+        <div>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors group"
+                className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-white/[0.02] transition-colors group"
             >
-                <div className="w-8 h-8 rounded bg-white/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.05]">
-                    <Icon className="w-4 h-4 text-white/50 group-hover:text-white/70" />
+                <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.12] transition-colors">
+                    <Icon className="w-[18px] h-[18px] text-[#D4A27F] group-hover:text-[#C08B5C] transition-colors" />
                 </div>
-                <span className="flex-1 text-left text-sm font-medium font-sans text-white/90">{title}</span>
+                <span className="flex-1 text-left text-[13px] font-medium text-white/85 group-hover:text-white transition-colors">{title}</span>
                 <ChevronDown
-                    className={`w-3.5 h-3.5 text-white/25 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-3.5 h-3.5 text-white/20 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 />
             </button>
             <AnimatePresence>
@@ -206,7 +205,7 @@ const ExpandableSection: React.FC<{
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                     >
-                        <div className="px-5 pb-5 pt-1 border-t border-white/[0.04]">{children}</div>
+                        <div className="px-4 pb-4 pt-1 border-t border-white/[0.04]">{children}</div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -214,7 +213,7 @@ const ExpandableSection: React.FC<{
     );
 };
 
-// ── Confirm Dialog ───────────────────────────────────────────────────────────
+// ── Confirm Dialog ──────────────────────────────────────────────────────────
 
 const ConfirmDialog: React.FC<{
     isOpen: boolean;
@@ -228,35 +227,51 @@ const ConfirmDialog: React.FC<{
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
             <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative w-full max-w-sm rounded-xl border border-white/[0.08] p-6 shadow-2xl bg-[#161618]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={onCancel}
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="relative w-full max-w-sm rounded-2xl border border-white/[0.08] p-6 shadow-2xl bg-[#161619]"
             >
+                <div
+                    className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
+                    style={{
+                        background: danger
+                            ? 'linear-gradient(90deg, #EF4444 0%, #F87171 50%, #EF4444 100%)'
+                            : 'linear-gradient(90deg, #C08B5C 0%, #D4A27F 50%, #C08B5C 100%)',
+                    }}
+                />
                 <div className="flex items-start gap-4 mb-6">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${danger ? 'bg-red-500/10' : 'bg-[#C08B5C]/10'
-                        }`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        danger ? 'bg-red-500/10' : 'bg-[#C08B5C]/10'
+                    }`}>
                         <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-[#C08B5C]'}`} />
                     </div>
                     <div>
-                        <h3 className="text-base font-semibold font-sans text-white mb-1">{title}</h3>
-                        <p className="text-sm font-sans text-white/50 leading-relaxed">{message}</p>
+                        <h3 className="text-base font-semibold text-white mb-1">{title}</h3>
+                        <p className="text-[13px] text-white/45 leading-relaxed">{message}</p>
                     </div>
                 </div>
                 <div className="flex gap-3 justify-end">
                     <button
                         onClick={onCancel}
-                        className="px-4 py-2 rounded text-xs font-medium text-white/50 hover:bg-white/[0.06] hover:text-white transition-colors"
+                        className="px-4 py-2 rounded-lg text-[12px] font-medium text-white/50 hover:bg-white/[0.06] hover:text-white transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onConfirm}
-                        className={`px-4 py-2 rounded text-xs font-semibold text-white transition-all shadow-sm ${danger
-                            ? 'bg-red-500 hover:bg-red-600 border border-red-400/20'
-                            : 'bg-[#C08B5C] hover:bg-[#A8734A] border border-[#C08B5C]/20'
-                            }`}
+                        className={`px-4 py-2 rounded-lg text-[12px] font-semibold text-white transition-all ${
+                            danger
+                                ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20'
+                                : 'bg-[#C08B5C] hover:bg-[#A8734A] shadow-lg shadow-[#C08B5C]/20'
+                        }`}
                     >
                         {confirmLabel}
                     </button>
@@ -266,45 +281,36 @@ const ConfirmDialog: React.FC<{
     );
 };
 
-// ══════════════════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
-// ══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════════════════════════
 
 export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack }) => {
     const { signOut } = useAuth();
 
-    // ── Loading / feedback ───────────────────────────────────────────────────
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-    // ── Privacy toggles ──────────────────────────────────────────────────────
     const [chatHistoryEnabled, setChatHistoryEnabled] = useState(true);
     const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
     const [modelTrainingOptOut, setModelTrainingOptOut] = useState(false);
     const [showOnlineStatus, setShowOnlineStatus] = useState(true);
 
-    // ── Security ─────────────────────────────────────────────────────────────
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-
-    // ── Sessions ─────────────────────────────────────────────────────────────
     const [sessions, setSessions] = useState<SessionData[]>([]);
 
-    // ── Confirm dialogs ──────────────────────────────────────────────────────
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showClearHistoryConfirm, setShowClearHistoryConfirm] = useState(false);
 
-    // ── Toast helper ─────────────────────────────────────────────────────────
     const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 4000);
     }, []);
 
-    // ── Load preferences + sessions on mount ─────────────────────────────────
     useEffect(() => {
         const loadData = async () => {
             try {
-                // Mock data loading if services fail or for preview
                 const [prefs, sessionsData] = await Promise.allSettled([
                     privacyService.getPreferences(),
                     securityService.getSessions(),
@@ -330,28 +336,24 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         loadData();
     }, []);
 
-    // ── Toggle handler (persists to backend) ─────────────────────────────────
     const handleToggle = useCallback(async (
         key: 'chat_history_enabled' | 'analytics_enabled' | 'model_training_opt_out' | 'show_online_status',
         currentValue: boolean,
         setter: React.Dispatch<React.SetStateAction<boolean>>,
     ) => {
         const newValue = !currentValue;
-        setter(newValue);  // Optimistic update
-
+        setter(newValue);
         try {
             await privacyService.updatePreferences({ [key]: newValue });
         } catch {
-            setter(currentValue);  // Revert on failure
+            setter(currentValue);
             showToast('Failed to update setting', 'error');
         }
     }, [showToast]);
 
-    // ── 2FA toggle ───────────────────────────────────────────────────────────
     const handleToggle2FA = useCallback(async () => {
         const newValue = !twoFactorEnabled;
         setTwoFactorEnabled(newValue);
-
         try {
             await securityService.updateTwoFactor(newValue);
             showToast(`Two-factor authentication ${newValue ? 'enabled' : 'disabled'}`);
@@ -361,7 +363,6 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         }
     }, [twoFactorEnabled, showToast]);
 
-    // ── Password reset ───────────────────────────────────────────────────────
     const handlePasswordReset = useCallback(async () => {
         setActionLoading('password');
         try {
@@ -374,13 +375,11 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         }
     }, [showToast]);
 
-    // ── Export data ──────────────────────────────────────────────────────────
     const handleExportData = useCallback(async () => {
         setActionLoading('export');
         try {
             const result = await privacyService.exportData();
             if (result.data) {
-                // Download as JSON file
                 const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -401,7 +400,6 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         }
     }, [showToast]);
 
-    // ── Clear chat history ───────────────────────────────────────────────────
     const handleClearAllHistory = () => setShowClearHistoryConfirm(true);
 
     const confirmClearHistory = useCallback(async () => {
@@ -417,7 +415,6 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         }
     }, [showToast]);
 
-    // ── Delete account ───────────────────────────────────────────────────────
     const handleDeleteAccount = () => setShowDeleteConfirm(true);
 
     const confirmDeleteAccount = useCallback(async () => {
@@ -426,7 +423,6 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         try {
             const result = await privacyService.deleteAccount();
             showToast(result.message);
-            // Sign out and redirect to landing page after account deletion
             await signOut();
         } catch {
             showToast('Failed to request account deletion', 'error');
@@ -435,7 +431,6 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         }
     }, [showToast, signOut]);
 
-    // ── Session management ───────────────────────────────────────────────────
     const handleRevokeSession = useCallback(async (sessionId: string) => {
         try {
             await securityService.revokeSession(sessionId);
@@ -456,104 +451,112 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
         }
     }, [showToast]);
 
-    // ── Render ───────────────────────────────────────────────────────────────
-
     return (
-        <div className="h-full flex flex-col bg-[#0C0C0E]">
-            {/* Toast notification */}
+        <div className="h-full flex flex-col bg-[#161619]">
+            {/* Toast */}
             <AnimatePresence>
                 {toast && (
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl border ${toast.type === 'success'
-                            ? 'bg-[#161618] border-emerald-500/20 text-emerald-400'
-                            : 'bg-[#161618] border-red-500/20 text-red-400'
-                            }`}
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-xl ${
+                            toast.type === 'success'
+                                ? 'bg-[#161619]/90 border-emerald-500/20 text-emerald-400'
+                                : 'bg-[#161619]/90 border-red-500/20 text-red-400'
+                        }`}
                     >
                         {toast.type === 'success' ? (
                             <CheckCircle2 className="w-4 h-4" />
                         ) : (
                             <AlertTriangle className="w-4 h-4" />
                         )}
-                        <span className="text-sm font-medium font-sans">{toast.message}</span>
+                        <span className="text-[13px] font-medium">{toast.message}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Header - Minimal & Professional */}
-            <header className="flex items-center gap-4 px-8 py-6 border-b border-white/[0.08] bg-[#0C0C0E]/80 backdrop-blur-md sticky top-0 z-20">
+            {/* Header */}
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded bg-transparent hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
                     <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-xl font-display font-semibold text-white tracking-tight">Privacy & Security</h1>
+                    <h1 className="text-lg font-medium text-white tracking-tight">Privacy & Security</h1>
+                    <p className="text-[11px] text-white/30 mt-0.5">Control your data, sessions, and account safety</p>
                 </div>
-                {loading && <Loader2 className="w-4 h-4 text-white/20 animate-spin ml-auto" />}
+                {loading && <Loader2 className="w-4 h-4 text-[#C08B5C]/40 animate-spin" />}
             </header>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-                <div className="max-w-3xl mx-auto px-8 py-10 space-y-10">
-
-                    {/* Trust banner - Refined */}
-                    <div className="flex items-start gap-4 p-5 rounded bg-[#161618] border border-white/[0.08]">
-                        <ShieldCheck className="w-5 h-5 text-white/40 flex-shrink-0 mt-0.5" />
-                        <p className="text-sm font-sans text-white/60 leading-relaxed">
-                            Your data is encrypted in transit and at rest. We strictly adhere to privacy standards and never sell your personal data to third parties. You maintain full control over your data retention.
-                        </p>
-                    </div>
-
-                    {/* ── DATA PRIVACY ── */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <SectionHeader>Data Privacy Controls</SectionHeader>
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={stagger}
+                    className="max-w-2xl mx-auto px-8 py-8 space-y-6"
+                >
+                    {/* Trust Banner */}
+                    <motion.div
+                        variants={reveal}
+                        className="rounded-2xl border border-[#C08B5C]/10 bg-gradient-to-br from-[#C08B5C]/[0.04] to-transparent backdrop-blur-sm p-5 flex items-start gap-4"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-[#C08B5C]/[0.1] flex items-center justify-center flex-shrink-0">
+                            <ShieldCheck className="w-5 h-5 text-[#D4A27F]" />
                         </div>
-                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
+                        <div>
+                            <h3 className="text-[13px] font-semibold text-white/90 mb-1">Your data is protected</h3>
+                            <p className="text-[12px] text-white/40 leading-relaxed">
+                                Encrypted in transit and at rest. We never sell your personal data to third parties. You maintain full control over your data retention.
+                            </p>
+                        </div>
+                    </motion.div>
+
+                    {/* Data Privacy Controls */}
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Data Privacy</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             <ToggleRow
                                 icon={History}
                                 title="Chat History"
-                                subtitle="Save your conversations for future reference"
+                                subtitle="Save conversations for future reference"
                                 enabled={chatHistoryEnabled}
                                 onToggle={() => handleToggle('chat_history_enabled', chatHistoryEnabled, setChatHistoryEnabled)}
                             />
                             <ToggleRow
                                 icon={BarChart3}
                                 title="Usage Analytics"
-                                subtitle="Share anonymized usage data to help us improve"
+                                subtitle="Share anonymized data to help us improve"
                                 enabled={analyticsEnabled}
                                 onToggle={() => handleToggle('analytics_enabled', analyticsEnabled, setAnalyticsEnabled)}
                             />
                             <ToggleRow
                                 icon={Eye}
                                 title="Model Training Opt-Out"
-                                subtitle="Prevent your data from being used to train AI models"
+                                subtitle="Prevent your data from training AI models"
                                 enabled={modelTrainingOptOut}
                                 onToggle={() => handleToggle('model_training_opt_out', modelTrainingOptOut, setModelTrainingOptOut)}
                             />
                             <ToggleRow
                                 icon={showOnlineStatus ? Eye : EyeOff}
-                                title="Show Online Status"
+                                title="Online Status"
                                 subtitle="Let team members see when you're active"
                                 enabled={showOnlineStatus}
                                 onToggle={() => handleToggle('show_online_status', showOnlineStatus, setShowOnlineStatus)}
                             />
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* ── SECURITY ── */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <SectionHeader>Account Security</SectionHeader>
-                        </div>
-                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
+                    {/* Account Security */}
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Account Security</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={Lock}
-                                title={actionLoading === 'password' ? 'Sending reset email...' : 'Change Password'}
+                                title={actionLoading === 'password' ? 'Sending reset email…' : 'Change Password'}
                                 subtitle="We'll send a password reset link to your email"
                                 onClick={handlePasswordReset}
                             />
@@ -565,17 +568,16 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                                 onToggle={handleToggle2FA}
                             />
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* ── ACTIVE SESSIONS ── */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <SectionHeader>Active Sessions</SectionHeader>
-                        </div>
-                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
+                    {/* Active Sessions */}
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Active Sessions</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             {sessions.length === 0 && !loading && (
-                                <div className="px-5 py-6 text-center text-sm text-white/30 font-sans">
-                                    No active sessions found
+                                <div className="px-4 py-8 text-center">
+                                    <Monitor className="w-5 h-5 text-white/15 mx-auto mb-2" />
+                                    <p className="text-[12px] text-white/25">No active sessions found</p>
                                 </div>
                             )}
                             {sessions.map((session) => (
@@ -592,52 +594,47 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                             {sessions.length > 1 && (
                                 <button
                                     onClick={handleRevokeAllOther}
-                                    className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors border-t border-white/[0.04] group"
+                                    className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-white/[0.02] transition-colors group"
                                 >
-                                    <div className="w-8 h-8 rounded bg-red-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/20 transition-colors">
-                                        <LogOut className="w-4 h-4 text-red-400" />
+                                    <div className="w-9 h-9 rounded-xl bg-red-500/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/[0.14] transition-colors">
+                                        <LogOut className="w-[18px] h-[18px] text-red-400" />
                                     </div>
-                                    <span className="text-sm font-medium font-sans text-red-400">Sign out all other sessions</span>
+                                    <span className="text-[13px] font-medium text-red-400">Sign out all other sessions</span>
                                 </button>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* ── YOUR DATA & LEGAL ── */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <SectionHeader>Data & Legal</SectionHeader>
-                        </div>
-                        <div className="rounded bg-[#161618] border border-white/[0.08] divide-y divide-white/[0.04] overflow-hidden">
+                    {/* Data & Legal */}
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Data & Legal</h2>
+                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={Download}
-                                title={actionLoading === 'export' ? 'Preparing export...' : 'Export My Data'}
+                                title={actionLoading === 'export' ? 'Preparing export…' : 'Export My Data'}
                                 subtitle="Download a copy of all your data (JSON)"
                                 onClick={handleExportData}
                             />
-
-                            {/* Expandable Data Handling Info */}
                             <ExpandableSection title="How We Handle Data" icon={Info}>
                                 <div className="space-y-4 py-2">
                                     <div className="flex items-start gap-3">
-                                        <div className="w-4 h-4 mt-0.5 flex-shrink-0 flex items-center justify-center">
-                                            <Shield className="w-3.5 h-3.5 text-white/30" />
+                                        <div className="w-7 h-7 rounded-lg bg-[#C08B5C]/[0.06] flex items-center justify-center flex-shrink-0">
+                                            <Shield className="w-3.5 h-3.5 text-[#D4A27F]/60" />
                                         </div>
-                                        <p className="text-xs font-sans text-white/50 leading-relaxed">
-                                            <strong className="text-white/80 font-medium">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.
+                                        <p className="text-[12px] text-white/40 leading-relaxed">
+                                            <strong className="text-white/70 font-medium">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.
                                         </p>
                                     </div>
                                     <div className="flex items-start gap-3">
-                                        <div className="w-4 h-4 mt-0.5 flex-shrink-0 flex items-center justify-center">
-                                            <Lock className="w-3.5 h-3.5 text-white/30" />
+                                        <div className="w-7 h-7 rounded-lg bg-[#C08B5C]/[0.06] flex items-center justify-center flex-shrink-0">
+                                            <Lock className="w-3.5 h-3.5 text-[#D4A27F]/60" />
                                         </div>
-                                        <p className="text-xs font-sans text-white/50 leading-relaxed">
-                                            <strong className="text-white/80 font-medium">Access:</strong> Only you have access to your private data keys. Our support team cannot view your decrypted content.
+                                        <p className="text-[12px] text-white/40 leading-relaxed">
+                                            <strong className="text-white/70 font-medium">Access:</strong> Only you have access to your private data keys. Support cannot view decrypted content.
                                         </p>
                                     </div>
                                 </div>
                             </ExpandableSection>
-
                             <ActionRow
                                 icon={FileText}
                                 title="Privacy Policy"
@@ -660,37 +657,34 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                                 external
                             />
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* ── DANGER ZONE ── */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <SectionHeader>Danger Zone</SectionHeader>
-                        </div>
-                        <div className="rounded bg-red-500/[0.02] border border-red-500/10 divide-y divide-red-500/10 overflow-hidden">
+                    {/* Danger Zone */}
+                    <motion.div variants={reveal}>
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-red-400/30 mb-3 px-1">Danger Zone</h2>
+                        <div className="rounded-2xl bg-red-500/[0.02] border border-red-500/[0.08] divide-y divide-red-500/[0.06] overflow-hidden">
                             <ActionRow
                                 icon={Trash2}
-                                title={actionLoading === 'clearHistory' ? 'Clearing...' : 'Clear Chat History'}
-                                subtitle="Permanently delete all your conversation history"
+                                title={actionLoading === 'clearHistory' ? 'Clearing…' : 'Clear Chat History'}
+                                subtitle="Permanently delete all conversation history"
                                 onClick={handleClearAllHistory}
                                 danger
                             />
                             <ActionRow
                                 icon={UserX}
                                 title="Delete Account"
-                                subtitle="Permanently delete your account and all associated data"
+                                subtitle="Permanently delete your account and all data"
                                 onClick={handleDeleteAccount}
                                 danger
                             />
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Bottom spacer */}
                     <div className="h-4" />
-                </div>
+                </motion.div>
             </div>
 
-            {/* ── Confirm Dialogs ── */}
+            {/* Confirm Dialogs */}
             <ConfirmDialog
                 isOpen={showDeleteConfirm}
                 title="Delete Account?"

@@ -32,9 +32,10 @@ const FEATURE_LIMITS: Record<string, Record<string, number>> = {
     free: {
         property_searches: 2,
         reports: 2,
-        voice_sessions: 0,       // blocked (includes camera-in-voice)
+        voice_sessions: 0,
         str_full_analysis: 0,
         advanced_tools: 0,
+        premium_models: 0,
     },
     pro: {
         property_searches: -1,
@@ -42,6 +43,7 @@ const FEATURE_LIMITS: Record<string, Record<string, number>> = {
         voice_sessions: -1,
         str_full_analysis: -1,
         advanced_tools: -1,
+        premium_models: -1,
     },
     enterprise: {
         property_searches: -1,
@@ -49,6 +51,7 @@ const FEATURE_LIMITS: Record<string, Record<string, number>> = {
         voice_sessions: -1,
         str_full_analysis: -1,
         advanced_tools: -1,
+        premium_models: -1,
     },
 };
 

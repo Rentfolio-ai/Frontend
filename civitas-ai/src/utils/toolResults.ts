@@ -153,6 +153,12 @@ const deriveKind = (rawKind?: string, toolName?: string): ToolCard['kind'] | und
       return 'generated_report';
     case 'report':
       return 'alert';
+    case 'draft_email':
+    case 'send_email':
+      return 'send_email';
+    case 'draft_text':
+    case 'send_text':
+      return 'send_text';
     default:
       return undefined;
   }

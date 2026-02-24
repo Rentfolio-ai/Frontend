@@ -18,6 +18,9 @@ import { uploadFile } from '../services/fileStorage';
 import { parsePropertyQuery, parseChatQuery } from '../utils/v2Helpers';
 import { useThinkingQueue } from './useThinkingQueue';
 import type { ThinkingStepInput } from './useThinkingQueue';
+import { parseDraftBlocks } from '../utils/parseDraftBlocks';
+import { useInboundMessages } from './useInboundMessages';
+import type { InboundMessage } from '../components/chat/tool-cards/InboundMessageCard';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
@@ -42,7 +45,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'voice_notes';
+export type TabType = 'chat' | 'marketplace' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'integrations';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -133,6 +136,24 @@ export function useDesktopShell() {
   // Agent Mode State — initialized from persisted preference
   const [currentMode, setCurrentMode] = useState<AgentMode>(preferredMode || 'hunter');
 
+  // Model selector — persisted in localStorage, independent of mode.
+  // A ref mirrors the state so sendMessageWithStream always reads the
+  // latest value without needing it in its dependency array.
+  const [selectedModel, setSelectedModelRaw] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('civitas-selected-model') || 'gemini-2.5-flash';
+    }
+    return 'gemini-2.5-flash';
+  });
+  const selectedModelRef = useRef(selectedModel);
+  const setSelectedModel = (modelId: string) => {
+    setSelectedModelRaw(modelId);
+    selectedModelRef.current = modelId;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('civitas-selected-model', modelId);
+    }
+  };
+
   // UI state
   const [isRailCollapsed, setIsRailCollapsed] = useState(() => {
     const saved = typeof window !== 'undefined'
@@ -144,6 +165,30 @@ export function useDesktopShell() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('chat');
   const [activeProperty, setActiveProperty] = useState<any | null>(null);
+
+  // Inbound message SSE listener
+  const handleInboundMessage = useCallback((msg: InboundMessage) => {
+    const inboundMsg: Message = {
+      id: `inbound-${msg.conversationId}-${Date.now()}`,
+      role: 'assistant',
+      content: `New ${msg.channel} from ${msg.fromName}: ${msg.content.slice(0, 100)}`,
+      timestamp: new Date().toISOString(),
+      tools: [{
+        id: `inbound-tool-${Date.now()}`,
+        title: `Inbound ${msg.channel.toUpperCase()}`,
+        description: `From ${msg.fromName}`,
+        status: 'completed' as const,
+        kind: 'inbound_message' as any,
+        data: msg,
+      }],
+    };
+    setMessages(prev => [...prev, inboundMsg]);
+  }, []);
+
+  useInboundMessages({
+    enabled: false, // Backend endpoint not yet implemented
+    onMessage: handleInboundMessage,
+  });
 
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -231,6 +276,10 @@ export function useDesktopShell() {
   const currentToolsRef = useRef<CompletedTool[]>([]);
   const inlineActionsRef = useRef<any[]>([]);
 
+  // Native model thinking text (Claude extended thinking, Gemini thought parts)
+  const [nativeThinkingText, setNativeThinkingText] = useState<string | null>(null);
+  const nativeThinkingRef = useRef<string>('');
+
   // --- Mode suggestion from AI (research/strategist → hunter switch) ---
   const modeSuggestionRef = useRef<{ suggestedMode: string; reason: string; autoQuery: string } | null>(null);
 
@@ -251,6 +300,13 @@ export function useDesktopShell() {
   // Pending finalization: when done/complete fires, we store the callback here
   // and let the drain loop apply it after the buffer is empty (preserving typewriter effect)
   const pendingFinalizationRef = useRef<((msgId: string) => void) | null>(null);
+
+  // V2 streaming protocol: track whether 'final' event was received (so 'done' knows to skip finalization)
+  const finalReceivedRef = useRef<boolean>(false);
+  // Track draft blocks already extracted mid-stream so we don't duplicate on final
+  const draftBlocksExtractedRef = useRef<boolean>(false);
+  // Stall detection: timestamp of last event received
+  const lastEventTimeRef = useRef<number>(Date.now());
 
   // Cancel active stream
   const cancelStream = useCallback(() => {
@@ -528,6 +584,11 @@ export function useDesktopShell() {
     thinkingTraceRef.current = [];
     thinkingStartTimeRef.current = Date.now();
     pendingFinalizationRef.current = null;
+    finalReceivedRef.current = false;
+    nativeThinkingRef.current = '';
+    setNativeThinkingText(null);
+    draftBlocksExtractedRef.current = false;
+    lastEventTimeRef.current = Date.now();
     // Reset typewriter state
     wordBufferRef.current = [];
     displayedContentRef.current = '';
@@ -628,7 +689,7 @@ export function useDesktopShell() {
         actions.push({ label: 'Market context', tool_name: 'get_market_stats', arguments: {}, style: 'secondary' });
         actions.push({ label: 'Rental demand analysis', tool_name: 'analyze_rental_demand_depth', arguments: {}, style: 'secondary' });
       } else {
-        actions.push({ label: 'Explore a market', tool_name: 'research_new_market', arguments: {}, style: 'secondary' });
+        actions.push({ label: 'Research a market', tool_name: 'research_new_market', arguments: {}, style: 'secondary' });
         actions.push({ label: 'Check regulations', tool_name: 'forecast_regulatory_changes', arguments: {}, style: 'secondary' });
       }
     }
@@ -655,6 +716,28 @@ export function useDesktopShell() {
       return;
     }
 
+    // Handle confirm_action event (Cursor-style confirmation dialog)
+    if (eventAny.type === 'confirm_action' && eventAny.message && Array.isArray(eventAny.options)) {
+      logger.info('[useDesktopShell] Received confirm_action event', {
+        message: eventAny.message,
+        options: eventAny.options,
+      });
+      setMessages(prev => prev.map(m =>
+        m.id === messageId
+          ? { ...m, action: {
+              type: 'confirm' as const,
+              message: eventAny.message,
+              options: eventAny.options,
+              context: eventAny.context,
+            }}
+          : m
+      ));
+      return;
+    }
+
+    // Reset stall timer on any event
+    lastEventTimeRef.current = Date.now();
+
     switch (event.type) {
       case 'init':
         if (event.thread_id) {
@@ -662,35 +745,327 @@ export function useDesktopShell() {
         }
         break;
 
-      // V2 Event: properties received
-      case 'properties':
-        console.log('🏠 [V2-SSE] PROPERTIES EVENT:', event);
-        // DON'T clear thinking here - more thinking events come after properties
-        // Thinking will be cleared by 'complete' or 'ai_chunk' when AI starts streaming
+      // ── V2 Canonical Event: status (thinking/progress indicator) ──
+      case 'status': {
+        const statusEvt = event as any;
+        const statusLabel = statusEvt.label || 'Working...';
+        const statusStage = statusEvt.stage || 'understanding';
+        const statusSource = statusEvt.source || 'System';
 
-        // Extract key info
-        const propertyCount = event.total_found || event.properties?.length || 0;
+        thinkingQueue.push({ stage: statusStage, message: statusLabel, source: statusSource });
+
+        setThinking(prev => ({
+          ...(prev || {}),
+          status: statusLabel,
+          source: statusSource,
+          stage: statusStage,
+        }));
+
+        const alreadyInStatusTrace = thinkingTraceRef.current.some(s => s.text === statusLabel);
+        if (!alreadyInStatusTrace && statusLabel !== 'Working...') {
+          thinkingTraceRef.current.push({ text: statusLabel, source: statusSource });
+        }
+        break;
+      }
+
+      // ── V2 Canonical Event: thinking_token (native reasoning stream) ──
+      case 'thinking_token': {
+        const thinkDelta = (event as any).delta || '';
+        nativeThinkingRef.current += thinkDelta;
+        setNativeThinkingText(nativeThinkingRef.current);
+        break;
+      }
+
+      // ── V2 Canonical Event: token (streaming text delta) ──
+      case 'token': {
+        const delta = (event as any).delta || '';
+        streamContentRef.current += delta;
+
+        setMessages(prev => {
+          const exists = prev.some(m => m.id === messageId);
+          if (!exists) {
+            return [...prev, {
+              id: messageId,
+              content: '',
+              role: 'assistant',
+              type: 'assistant',
+              timestamp: new Date(),
+              isStreaming: true,
+            } as Message];
+          }
+          return prev;
+        });
+
+        // Eager draft extraction: detect complete draft blocks mid-stream
+        let draftJustExtracted = false;
+        if (!draftBlocksExtractedRef.current && /<!--draft_(email|text):[\s\S]*?-->/.test(streamContentRef.current)) {
+          const { cleanContent, draftTools } = parseDraftBlocks(streamContentRef.current);
+          if (draftTools.length > 0) {
+            draftBlocksExtractedRef.current = true;
+            draftJustExtracted = true;
+            streamContentRef.current = cleanContent;
+            wordBufferRef.current = [];
+            const remaining = cleanContent.slice(displayedContentRef.current.length);
+            if (remaining) {
+              wordBufferRef.current.push(...remaining.split(/(\s+)/));
+            }
+            setMessages(prev => prev.map(m =>
+              m.id === messageId
+                ? { ...m, tools: [...(m.tools || []), ...draftTools] }
+                : m
+            ));
+          }
+        }
+
+        isStreamingRef.current = true;
+        if (!draftJustExtracted) {
+          pushToWordBuffer(delta);
+        }
+        startDrainLoop(messageId);
+        break;
+      }
+
+      // ── V2 Canonical Event: tool (tool execution bubble) ──
+      case 'tool': {
+        const toolEvt = event as any;
+        if (toolEvt.status === 'done' && toolEvt.label) {
+          const newTool: CompletedTool = {
+            tool: toolEvt.name,
+            summary: toolEvt.label,
+            icon: '✓',
+            data: toolEvt.data,
+          };
+          setCompletedTools(prev => [...prev, newTool]);
+          currentToolsRef.current = [...currentToolsRef.current, newTool];
+
+          setMessages(prev => {
+            const existing = prev.find(m => m.id === messageId);
+            const baseMessage = existing || {
+              id: messageId,
+              content: streamContentRef.current,
+              role: 'assistant',
+              type: 'assistant',
+              timestamp: new Date(),
+              isStreaming: true,
+            };
+            const updatedMessage = {
+              ...baseMessage,
+              tools: currentToolsRef.current.map(t => ({
+                id: `${t.tool}-${Date.now()}`,
+                title: t.tool,
+                description: t.summary,
+                status: 'success',
+                kind: t.tool === 'request_financial_analysis' ? 'deal_intelligence' : 'generic',
+                data: t.data,
+              })),
+            };
+            const filtered = prev.filter(m => m.id !== messageId);
+            return [...filtered, updatedMessage as Message];
+          });
+        }
+        break;
+      }
+
+      // ── V2 Canonical Event: data (structured payload dispatch) ──
+      case 'data': {
+        const dataEvt = event as any;
+        const kind = dataEvt.kind;
+        const payload = dataEvt.payload || {};
+
+        switch (kind) {
+          case 'mode_switched': {
+            const toMode = payload.to_mode || 'hunter';
+            const switchReason = payload.reason || 'Detected a better mode for your query.';
+            const autoQuery = payload.auto_query || '';
+
+            logger.info(`[useDesktopShell] Mode auto-switched to ${toMode}`, { switchReason, autoQuery });
+            setCurrentMode(toMode as AgentMode);
+            const modeLabels: Record<string, string> = { hunter: 'Hunter', research: 'Research', strategist: 'Strategist' };
+            showToast(`Switched to ${modeLabels[toMode] || toMode} mode — ${switchReason}`, 'info');
+
+            if (autoQuery) {
+              setTimeout(() => { sendMessageWithStream(autoQuery, { skipUserMessage: true }); }, 400);
+            }
+            break;
+          }
+          case 'mode_suggestion': {
+            const sugMode = payload.suggested_mode || 'hunter';
+            const sugReason = payload.reason || 'Switch mode for better results.';
+            const sugAutoQuery = payload.auto_query || '';
+            modeSuggestionRef.current = { suggestedMode: sugMode, reason: sugReason, autoQuery: sugAutoQuery };
+            const switchHint = `\n\n---\n**Tip:** ${sugReason}\n`;
+            pushToWordBuffer(switchHint);
+            startDrainLoop(messageId);
+            break;
+          }
+          case 'rentals': {
+            const rentalListings = payload.listings || [];
+            const rentalCount = payload.total_found || rentalListings.length;
+            const rentalSources = payload.sources || [];
+
+            streamContentRef.current = '';
+            displayedContentRef.current = '';
+            wordBufferRef.current = [];
+
+            const rentalProperties = rentalListings.map((listing: any, idx: number) => ({
+              id: listing.id || `rental-${idx}`,
+              address: listing.address || 'N/A',
+              city: listing.city || '', state: listing.state || '', zip_code: listing.zip_code || '',
+              price: listing.price || 0, beds: listing.beds || 0, baths: listing.baths || 0,
+              sqft: listing.sqft || 0, property_type: listing.property_type || 'Rental',
+              source: listing.source || 'Unknown', url: listing.url || '',
+              photo_url: listing.photo_url || '', latitude: listing.latitude || 0,
+              longitude: listing.longitude || 0, is_rental: true, listing_type: 'rental',
+              estimated_rent: listing.price || 0, ai_match_score: 85 - (idx * 3),
+              financial_snapshot: { estimated_rent: listing.price || 0, status: 'rental' },
+            }));
+
+            const rentalPrices = rentalProperties.map((p: any) => p.price).filter((p: number) => p > 0);
+            const minRent = rentalPrices.length > 0 ? Math.min(...rentalPrices) : 0;
+            const maxRent = rentalPrices.length > 0 ? Math.max(...rentalPrices) : 0;
+            const rentRange = minRent > 0 ? `$${minRent.toLocaleString()} - $${maxRent.toLocaleString()}/mo` : '';
+
+            const rentalToolCard = {
+              tool: 'search_rentals',
+              summary: `${rentalCount} Rentals Found · ${rentalSources.join(', ')} · ${rentRange}`,
+              icon: '🏘️',
+              id: `rentals-${Date.now()}`, title: `${rentalCount} Rental Listings`,
+              description: `From ${rentalSources.join(', ')} · ${rentRange}`,
+              status: 'success', kind: 'search_rentals', name: 'search_rentals',
+              data: { properties: rentalProperties, total_found: rentalCount, market_context: { price_range: rentRange, sources: rentalSources }, is_rental: true },
+            };
+
+            currentToolsRef.current = [rentalToolCard];
+            setCompletedTools([rentalToolCard]);
+            setMessages(prev => {
+              const filtered = prev.filter(m => m.id !== messageId);
+              return [...filtered, { id: messageId, content: '', role: 'assistant', type: 'assistant', timestamp: new Date(), isStreaming: true, tools: [rentalToolCard] } as Message];
+            });
+            break;
+          }
+          case 'confirm_action': {
+            setMessages(prev => prev.map(m =>
+              m.id === messageId ? { ...m, action: { type: 'confirm' as const, message: payload.message, options: payload.options, context: payload.context } } : m
+            ));
+            break;
+          }
+          case 'inline_actions': {
+            inlineActionsRef.current = payload.actions || [];
+            setMessages(prev => prev.map(m => m.id === messageId ? { ...m, inlineActions: payload.actions } : m));
+            break;
+          }
+          case 'confidence':
+            break;
+          case 'rewrite':
+            streamContentRef.current = '';
+            displayedContentRef.current = '';
+            wordBufferRef.current = [];
+            break;
+        }
+        break;
+      }
+
+      // ── V2 Canonical Event: warning (non-fatal issue) ──
+      case 'warning': {
+        const warnEvt = event as any;
+        logger.warn('[V2Chat] Warning:', { message: warnEvt.message, code: warnEvt.code });
+        break;
+      }
+
+      // ── V2 Canonical Event: final (authoritative text reconciliation) ──
+      case 'final': {
+        const finalEvt = event as any;
+        const finalText = finalEvt.text || '';
+        finalReceivedRef.current = true;
+
+        streamContentRef.current = finalText;
+        thinkingQueue.finish();
+        setThinking(null);
+        setIsLoading(false);
+        isStreamingRef.current = false;
+
+        const { cleanContent: finalCleanContent, draftTools: rawFinalDraftTools } = parseDraftBlocks(finalText);
+        // Skip tools already extracted mid-stream
+        const finalDraftTools = draftBlocksExtractedRef.current ? [] : rawFinalDraftTools;
+        console.log('[SSE final] draftTools:', finalDraftTools.length, 'eagerly extracted:', draftBlocksExtractedRef.current, 'clean:', finalCleanContent.slice(0, 120));
+        draftBlocksExtractedRef.current = false; // reset for next message
+
+        const finalDuration = thinkingStartTimeRef.current ? Date.now() - thinkingStartTimeRef.current : 0;
+        const finalSteps = thinkingTraceRef.current.length > 0 ? [...thinkingTraceRef.current] : undefined;
+        const finalToolsUsed = currentToolsRef.current.map(t => t.tool).filter(Boolean);
+        const finalTrace = finalSteps ? { steps: finalSteps, durationMs: finalDuration, toolsUsed: finalToolsUsed } : undefined;
+        const finalModeSuggestion = modeSuggestionRef.current;
+        modeSuggestionRef.current = null;
+        const finalNativeThinking = nativeThinkingRef.current || undefined;
+
+        pendingFinalizationRef.current = (mId: string) => {
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === mId);
+            if (!exists) {
+              return [...prev, {
+                id: mId,
+                content: finalCleanContent,
+                role: 'assistant',
+                type: 'assistant',
+                timestamp: new Date(),
+                isStreaming: false,
+                ...(finalTrace ? { thinkingTrace: finalTrace } : {}),
+                ...(finalModeSuggestion ? { modeSuggestion: finalModeSuggestion } : {}),
+                ...(finalDraftTools.length > 0 ? { tools: finalDraftTools } : {}),
+                ...(finalNativeThinking ? { nativeThinkingText: finalNativeThinking } : {}),
+              } as Message];
+            }
+            return prev.map(m =>
+              m.id === mId ? {
+                ...m,
+                content: finalCleanContent,
+                isStreaming: false,
+                ...(finalTrace ? { thinkingTrace: finalTrace } : {}),
+                ...(finalModeSuggestion ? { modeSuggestion: finalModeSuggestion } : {}),
+                ...(finalDraftTools.length > 0 ? { tools: [...(m.tools || []), ...finalDraftTools] } : {}),
+                ...(finalNativeThinking ? { nativeThinkingText: finalNativeThinking } : {}),
+              } : m
+            );
+          });
+        };
+
+        if (rafIdRef.current === null) {
+          pendingFinalizationRef.current(messageId);
+          pendingFinalizationRef.current = null;
+        }
+        break;
+      }
+
+      // ── V2 Canonical Event: ping (keepalive heartbeat) ──
+      case 'ping':
+        break;
+
+      // V2 Event: properties received (tiered: top_picks + more_matches)
+      case 'properties':
+        console.log('[V2-SSE] PROPERTIES EVENT:', event);
+
+        // Extract tiered data from backend
+        const topPicksRaw = event.top_picks || [];
+        const moreMatchesRaw = event.more_matches || [];
+        const allPropertiesRaw = event.properties || [...topPicksRaw, ...moreMatchesRaw];
         const location = event.market_context?.location || 'this area';
-        const properties = event.properties || [];
 
         // Calculate price range
-        const prices = properties.map((p: any) => p.price || p.current_value_estimate || 0).filter((p: number) => p > 0);
+        const prices = allPropertiesRaw.map((p: any) => p.price || p.current_value_estimate || 0).filter((p: number) => p > 0);
         const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
         const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
         const priceRange = minPrice > 0 ? `$${(minPrice / 1000).toFixed(0)}k - $${(maxPrice / 1000).toFixed(0)}k` : '';
 
-        // 🚀 NO HEADER - Let AI response speak for itself
         streamContentRef.current = '';
         displayedContentRef.current = '';
         wordBufferRef.current = [];
 
-        // Use backend calculated_metrics when available, fallback to rough estimates
-        const enhancedProperties = properties.map((prop: any, idx: number) => {
+        // Enhance a single property with calculated metrics
+        const _enhanceProp = (prop: any, idx: number) => {
           const price = prop.price || prop.current_value_estimate || 0;
           const rent = prop.estimated_rent || prop.current_rent_estimate || 0;
           const metrics = prop.calculated_metrics;
 
-          // Use backend metrics if available, otherwise rough fallback
           const capRate = metrics?.cap_rate ?? (price > 0 && rent > 0 ? ((rent * 12) / price) * 100 : 0);
           const cashflow = metrics?.monthly_cash_flow ?? (rent > 0 ? rent - (price * 0.007) : 0);
           const cashOnCash = metrics?.cash_on_cash_roi ?? 0;
@@ -698,21 +1073,11 @@ export function useDesktopShell() {
           const monthlyExpenses = metrics?.monthly_expenses ?? 0;
           const annualNoi = metrics?.annual_noi ?? 0;
           const totalRoi = metrics?.total_roi ?? 0;
-
-          // Use backend ai_score, not fake hardcoded score
           const matchScore = prop.ai_score ?? (85 + (idx * -5));
 
           return {
             ...prop,
             ai_match_score: matchScore,
-            cap_rate: capRate,
-            monthly_cashflow: cashflow,
-            cash_on_cash_roi: cashOnCash,
-            monthly_mortgage: monthlyMortgage,
-            monthly_expenses: monthlyExpenses,
-            annual_noi: annualNoi,
-            total_roi: totalRoi,
-            // Keep calculated_metrics for components that read it directly
             calculated_metrics: metrics || {
               monthly_mortgage: monthlyMortgage,
               monthly_expenses: monthlyExpenses,
@@ -722,57 +1087,56 @@ export function useDesktopShell() {
               cash_on_cash_roi: cashOnCash,
               total_roi: totalRoi,
             },
-            // financial_snapshot for PropertyListCard compatibility
             financial_snapshot: {
               estimated_monthly_cash_flow: Math.round(cashflow),
               estimated_rent: Math.round(rent),
-              monthly_mortgage: Math.round(monthlyMortgage),
-              monthly_expenses: Math.round(monthlyExpenses),
-              cap_rate: capRate,
-              cash_on_cash_roi: cashOnCash,
               status: cashflow > 0 ? 'positive' : 'negative',
             },
-            ai_badge: idx === 0 ? '🌟 AI TOP PICK' : idx === 1 ? '💰 BEST VALUE' : idx === 2 ? '📈 HIGH GROWTH' : null,
-            ai_reason: idx === 0 ? 'Perfect match for your LTR strategy' :
-              idx === 1 ? `Undervalued by ~15%` :
-                idx === 2 ? 'Emerging neighborhood with strong growth' : null
           };
-        });
+        };
 
-        console.log('[V2-SSE] Enhanced properties sample:', enhancedProperties[0]);
-        console.log('[V2-SSE] Enhanced properties count:', enhancedProperties.length);
+        const enhancedTopPicks = topPicksRaw.map((p: any, i: number) => ({
+          ..._enhanceProp(p, i),
+          tier: 'top',
+        }));
+        const enhancedMoreMatches = moreMatchesRaw.map((p: any, i: number) => ({
+          ..._enhanceProp(p, i + topPicksRaw.length),
+          tier: 'standard',
+        }));
+        const enhancedAll = [...enhancedTopPicks, ...enhancedMoreMatches];
 
-        // Convert to tool card format with enhanced data
+        console.log(`[V2-SSE] Properties: ${enhancedTopPicks.length} top picks + ${enhancedMoreMatches.length} more matches`);
+
+        // Build tool card with tiered data
         const propertyToolCard = {
           tool: 'scout_properties',
-          summary: `${propertyCount} Properties Found · AI-ranked by match score · ${location}`,
+          summary: enhancedTopPicks.length > 0
+            ? `${enhancedTopPicks.length} Top Picks + ${enhancedMoreMatches.length} More · AI-ranked · ${location}`
+            : `${enhancedAll.length} Properties Found · AI-ranked · ${location}`,
           icon: '🏠',
           id: `properties-${Date.now()}`,
-          title: `${propertyCount} Properties Found`,
+          title: `${enhancedAll.length} Properties Found`,
           description: `AI-ranked by match score · ${location}`,
           status: 'success',
           kind: 'scout_properties',
           name: 'scout_properties',
           data: {
-            properties: enhancedProperties,
+            top_picks: enhancedTopPicks,
+            more_matches: enhancedMoreMatches,
+            properties: enhancedAll,
             total_found: event.total_found,
             market_context: {
               ...event.market_context,
               price_range: priceRange,
-              location: location
+              location: location,
             },
             sorted_by: 'ai_match_score',
-            filters_applied: {
-              max_price: enhancedProperties[0]?.max_price,
-              strategy: 'Long-Term Rental'
-            }
           }
         };
 
         currentToolsRef.current = [propertyToolCard];
         setCompletedTools([propertyToolCard]);
 
-        // Add message with header and properties
         setMessages(prev => {
           const filtered = prev.filter(m => m.id !== messageId);
           return [...filtered, {
@@ -786,6 +1150,98 @@ export function useDesktopShell() {
           } as Message];
         });
         break;
+
+      // V2 Event: rental search results
+      case 'rentals': {
+        console.log('🏘️ [V2-SSE] RENTALS EVENT:', event);
+
+        const rentalListings = event.listings || [];
+        const rentalCount = event.total_found || rentalListings.length;
+        const rentalSources = event.sources || [];
+
+        // Reset streaming content for narration
+        streamContentRef.current = '';
+        displayedContentRef.current = '';
+        wordBufferRef.current = [];
+
+        // Convert rental listings to property-card-compatible format
+        const rentalProperties = rentalListings.map((listing: any, idx: number) => ({
+          id: listing.id || `rental-${idx}`,
+          address: listing.address || 'N/A',
+          city: listing.city || '',
+          state: listing.state || '',
+          zip_code: listing.zip_code || '',
+          price: listing.price || 0,
+          beds: listing.beds || 0,
+          baths: listing.baths || 0,
+          sqft: listing.sqft || 0,
+          property_type: listing.property_type || 'Rental',
+          source: listing.source || 'Unknown',
+          url: listing.url || '',
+          photo_url: listing.photo_url || '',
+          latitude: listing.latitude || 0,
+          longitude: listing.longitude || 0,
+          // Mark as rental for card variant rendering
+          is_rental: true,
+          listing_type: 'rental',
+          // Simplified metrics for rental cards
+          estimated_rent: listing.price || 0,
+          ai_match_score: 85 - (idx * 3),
+          financial_snapshot: {
+            estimated_rent: listing.price || 0,
+            status: 'rental',
+          },
+        }));
+
+        // Build price range display
+        const rentalPrices = rentalProperties
+          .map((p: any) => p.price)
+          .filter((p: number) => p > 0);
+        const minRent = rentalPrices.length > 0 ? Math.min(...rentalPrices) : 0;
+        const maxRent = rentalPrices.length > 0 ? Math.max(...rentalPrices) : 0;
+        const rentRange = minRent > 0
+          ? `$${minRent.toLocaleString()} - $${maxRent.toLocaleString()}/mo`
+          : '';
+
+        // Create tool card for rental results
+        const rentalToolCard = {
+          tool: 'search_rentals',
+          summary: `${rentalCount} Rentals Found · ${rentalSources.join(', ')} · ${rentRange}`,
+          icon: '🏘️',
+          id: `rentals-${Date.now()}`,
+          title: `${rentalCount} Rental Listings`,
+          description: `From ${rentalSources.join(', ')} · ${rentRange}`,
+          status: 'success',
+          kind: 'search_rentals',
+          name: 'search_rentals',
+          data: {
+            properties: rentalProperties,
+            total_found: rentalCount,
+            market_context: {
+              price_range: rentRange,
+              sources: rentalSources,
+            },
+            is_rental: true,
+          },
+        };
+
+        currentToolsRef.current = [rentalToolCard];
+        setCompletedTools([rentalToolCard]);
+
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== messageId);
+          return [...filtered, {
+            id: messageId,
+            content: streamContentRef.current,
+            role: 'assistant',
+            type: 'assistant',
+            timestamp: new Date(),
+            isStreaming: true,
+            tools: [rentalToolCard],
+          } as Message];
+        });
+        break;
+      }
 
       // V2 Event: AI insight chunks (streaming text)
       case 'ai_chunk':
@@ -898,32 +1354,40 @@ export function useDesktopShell() {
           : undefined;
         const v2Content = streamContentRef.current;
         const v2ModeSuggestion = modeSuggestionRef.current;
-        modeSuggestionRef.current = null; // Reset for next message
+        modeSuggestionRef.current = null;
+        const v2NativeThinking = nativeThinkingRef.current || undefined;
+
+        const { cleanContent: v2CleanContent, draftTools: v2DraftTools } = parseDraftBlocks(v2Content);
 
         pendingFinalizationRef.current = (mId: string) => {
           setMessages(prev => {
             const exists = prev.some(m => m.id === mId);
             if (!exists) {
-              // Message was never created (e.g. research/strategist with all events in one chunk)
               return [...prev, {
                 id: mId,
-                content: v2Content,
+                content: v2CleanContent,
                 role: 'assistant',
                 type: 'assistant',
                 timestamp: new Date(),
                 isStreaming: false,
                 ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
                 ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
+                ...(v2DraftTools.length > 0 ? { tools: v2DraftTools } : {}),
+                ...(v2NativeThinking ? { nativeThinkingText: v2NativeThinking } : {}),
               } as Message];
             }
             return prev.map(m =>
               m.id === mId
                 ? {
                   ...m,
-                  content: v2Content,
+                  content: v2CleanContent,
                   isStreaming: false,
                   ...(v2Trace ? { thinkingTrace: v2Trace } : {}),
                   ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
+                  ...(v2DraftTools.length > 0 ? {
+                    tools: [...(m.tools || []), ...v2DraftTools]
+                  } : {}),
+                  ...(v2NativeThinking ? { nativeThinkingText: v2NativeThinking } : {}),
                 }
                 : m
             );
@@ -1197,11 +1661,15 @@ export function useDesktopShell() {
       case 'done': {
         setThinking(null);
         setIsLoading(false);
-
-        // Signal that no more chunks are coming — drain loop will finish naturally
         isStreamingRef.current = false;
 
-        // Capture finalization data now (refs may change)
+        // If 'final' event already handled reconciliation (V2 protocol), just cleanup
+        if (finalReceivedRef.current) {
+          finalReceivedRef.current = false;
+          break;
+        }
+
+        // V1 fallback: capture finalization data now (refs may change)
         const doneInlineActions = inlineActionsRef.current.length > 0
           ? [...inlineActionsRef.current]
           : generateInlineActions([...currentToolsRef.current], currentMode);
@@ -1216,17 +1684,22 @@ export function useDesktopShell() {
           ? { steps: doneTraceSteps, durationMs: doneDuration, toolsUsed: doneToolsUsed }
           : undefined;
         const doneFinalContent = streamContentRef.current;
+        const { cleanContent: doneCleanContent, draftTools: doneDraftTools } = parseDraftBlocks(doneFinalContent);
+        const doneNativeThinking = nativeThinkingRef.current || undefined;
 
-        // Store finalization callback — drain loop will call it when buffer is empty
         pendingFinalizationRef.current = (mId: string) => {
           setMessages(prev => prev.map(m =>
             m.id === mId
               ? {
                 ...m,
-                content: doneFinalContent,
+                content: doneCleanContent,
                 isStreaming: false,
                 ...(doneInlineActions.length > 0 ? { inlineActions: doneInlineActions } : {}),
                 ...(doneThinkingTrace ? { thinkingTrace: doneThinkingTrace } : {}),
+                ...(doneDraftTools.length > 0 ? {
+                  tools: [...(m.tools || []), ...doneDraftTools]
+                } : {}),
+                ...(doneNativeThinking ? { nativeThinkingText: doneNativeThinking } : {}),
               }
               : m
           ));
@@ -1252,11 +1725,12 @@ export function useDesktopShell() {
       case 'error':
         setThinking(null);
         setIsLoading(false);
+        console.error('[useDesktopShell] SSE error event:', event);
         setMessages(prev => {
           const filtered = prev.filter(m => m.id !== messageId);
           return [...filtered, {
             id: messageId,
-            content: event.error || "I'm having trouble connecting. Please try again.",
+            content: event.error || (event as any).message || "I'm having trouble connecting. Please try again.",
             role: 'assistant',
             type: 'assistant',
             timestamp: new Date(),
@@ -1268,7 +1742,7 @@ export function useDesktopShell() {
   }, [activeChatId, currentMode, updateThreadIdForChat]);
 
   // Send message with SSE streaming
-  const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }) => {
+  const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }, extra?: { propertyContext?: any }) => {
     if (!message.trim() && !attachment) return;
 
     const currentAttachment = attachment;
@@ -1285,6 +1759,10 @@ export function useDesktopShell() {
     // Only add user message if NOT skipping (e.g. not regenerating)
     if (!options?.skipUserMessage) {
       const userMessage: Message = ChatService.createUserMessage(trimmedMessage);
+      // Attach property context if provided (from property card handoff)
+      if (extra?.propertyContext) {
+        userMessage.propertyContext = extra.propertyContext;
+      }
       setMessages(prev => [...prev, userMessage]);
     }
 
@@ -1328,6 +1806,45 @@ export function useDesktopShell() {
       let endpoint: string;
       let requestBody: any;
 
+      // Build conversation history (last 5 messages for context/refinement)
+      const recentHistory = messages.slice(-10).map(m => {
+        const entry: { role: string; content: string; tools?: any[] } = {
+          role: m.role || m.type || 'user',
+          content: m.content || '',
+        };
+        if (m.tools && m.tools.length > 0) {
+          entry.tools = m.tools.map(t => ({ kind: t.kind, data: t.data }));
+        }
+        return entry;
+      });
+
+      // Extract professional context from the most recent draft tool if present
+      let profContext: { name?: string; email?: string; phone?: string; category?: string; id?: string } | undefined;
+      for (let i = messages.length - 1; i >= Math.max(0, messages.length - 5); i--) {
+        const m = messages[i];
+        if (m.tools) {
+          const draftTool = m.tools.find(t => t.kind === 'send_email' || t.kind === 'send_text');
+          if (draftTool?.data) {
+            profContext = {
+              name: draftTool.data.professional_name,
+              email: draftTool.data.to_email,
+              phone: draftTool.data.to_phone,
+              id: draftTool.data.professional_id,
+            };
+            break;
+          }
+        }
+      }
+
+      const identity = { id: user?.id, name: user?.name, email: user?.email, phone: (user as any)?.phone };
+      const prefs = {
+        budgetRange: budgetRange || undefined,
+        defaultStrategy: defaultStrategy || undefined,
+        favoriteMarkets: favoriteMarkets?.length ? favoriteMarkets : undefined,
+        financialDna: financialDna || undefined,
+        clientLocation: clientLocation || undefined,
+      };
+
       if (!shouldUseV2) {
         // V1 fallback (file attachment)
         endpoint = `${CIVITAS_API_BASE}/api/stream`;
@@ -1347,17 +1864,18 @@ export function useDesktopShell() {
             client_location: clientLocation || undefined
           }
         };
-      } else if (currentMode === 'hunter') {
-        // Hunter mode → property search endpoint
-        endpoint = `${CIVITAS_API_BASE}/v2/property/search/stream`;
-        requestBody = parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation, language }, currentMode);
-      } else {
-        // Research / Strategist → chat endpoint
+      } else if (extra?.propertyContext) {
         endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
-        requestBody = parseChatQuery(trimmedMessage, currentMode as 'research' | 'strategist', effectiveThreadId, language);
+        requestBody = parseChatQuery(trimmedMessage, 'research', effectiveThreadId, language, extra.propertyContext, identity, recentHistory, profContext, prefs, selectedModelRef.current);
+      } else if (currentMode === 'hunter') {
+        endpoint = `${CIVITAS_API_BASE}/v2/property/search/stream`;
+        requestBody = parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation, language }, currentMode, selectedModelRef.current);
+      } else {
+        endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
+        requestBody = parseChatQuery(trimmedMessage, currentMode as 'research' | 'strategist', effectiveThreadId, language, undefined, identity, recentHistory, profContext, prefs, selectedModelRef.current);
       }
 
-      console.log(`[useDesktopShell] Calling ${shouldUseV2 ? `V2 ${currentMode}` : 'V1'} endpoint:`, endpoint);
+      console.log(`[useDesktopShell] Calling ${shouldUseV2 ? `V2 ${currentMode}` : 'V1'} endpoint:`, endpoint, `model=${selectedModelRef.current}`);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -1372,11 +1890,22 @@ export function useDesktopShell() {
       });
 
       if (!response.ok) {
-        // Parse plan enforcement 403 errors
         if (response.status === 403) {
           const { parseApiError } = await import('../utils/apiErrors');
           const planErr = await parseApiError(response);
           if (planErr) {
+            if (planErr.type === 'token_limit_exceeded') {
+              const upgradeMsg = `⚡ **Monthly token limit reached**\n\nYou've used ${planErr.used?.toLocaleString() ?? '?'} of ${planErr.budget?.toLocaleString() ?? '?'} tokens this month.\n\n[Upgrade to Pro](/upgrade) for 20× more capacity. Resets ${planErr.resetDate ?? 'next month'}.`;
+              setMessages(prev => [...prev, {
+                id: `upgrade-${Date.now()}`,
+                role: 'assistant',
+                type: 'assistant',
+                content: upgradeMsg,
+                timestamp: new Date(),
+              } as Message]);
+              setIsLoading(false);
+              return;
+            }
             throw new Error(planErr.message);
           }
         }
@@ -1391,37 +1920,48 @@ export function useDesktopShell() {
       }
 
       // Buffer for partial lines that may be split across chunk boundaries.
-      // Without this, a data: line split across two reader.read() calls
-      // would fail to parse and be silently dropped.
       let sseLineBuffer = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // Stall detection: relaxed thresholds to accommodate model thinking phases
+      lastEventTimeRef.current = Date.now();
+      const stallInterval = setInterval(() => {
+        const elapsed = Date.now() - lastEventTimeRef.current;
+        if (elapsed > 90_000) {
+          thinkingQueue.push({ stage: 'composing', message: 'Taking longer than expected — still working...', source: 'System' });
+        } else if (elapsed > 45_000) {
+          thinkingQueue.push({ stage: 'composing', message: 'Deep reasoning in progress...', source: 'System' });
+        }
+      }, 10_000);
 
-        const chunk = decoder.decode(value, { stream: true });
-        sseLineBuffer += chunk;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        // Split on newline to get complete lines
-        const sseLines = sseLineBuffer.split('\n');
-        // Keep the last element — it might be an incomplete line
-        sseLineBuffer = sseLines.pop() || '';
+          const chunk = decoder.decode(value, { stream: true });
+          sseLineBuffer += chunk;
 
-        for (const line of sseLines) {
-          const trimmed = line.trim();
-          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const sseLines = sseLineBuffer.split('\n');
+          sseLineBuffer = sseLines.pop() || '';
 
-          const jsonStr = trimmed.slice(6).trim();
-          if (jsonStr === '[DONE]' || jsonStr === '') continue;
+          for (const line of sseLines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
 
-          try {
-            const data = JSON.parse(jsonStr) as StreamEvent;
-            console.log('[SSE] Event received:', data.type, data);
-            handleStreamEvent(data, messageId);
-          } catch (err) {
-            console.error('[SSE] Failed to parse:', jsonStr, err);
+            const jsonStr = trimmed.slice(6).trim();
+            if (jsonStr === '[DONE]' || jsonStr === '') continue;
+
+            try {
+              const data = JSON.parse(jsonStr) as StreamEvent;
+              console.log('[SSE] Event received:', data.type, data);
+              handleStreamEvent(data, messageId);
+            } catch (err) {
+              console.error('[SSE] Failed to parse:', jsonStr, err);
+            }
           }
         }
+      } finally {
+        clearInterval(stallInterval);
       }
 
       // Process any remaining buffered data after stream ends
@@ -1441,6 +1981,9 @@ export function useDesktopShell() {
       if ((err as Error).name === 'AbortError') {
         return;
       }
+
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error('[useDesktopShell] Stream error:', errMsg, err);
 
       setThinking(null);
       setIsLoading(false);
@@ -2225,6 +2768,17 @@ export function useDesktopShell() {
     logger.info(`Mode switched: ${modeLabels[currentMode]} → ${modeLabels[newMode]}`);
   }, [currentMode, messages.length, setPreferredMode]);
 
+  const handleSendComplete = useCallback((summary: string) => {
+    const note: Message = {
+      id: `delivery-${Date.now()}`,
+      role: 'assistant',
+      type: 'assistant',
+      content: summary,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, note]);
+  }, []);
+
   return {
     // State
     chatHistory,
@@ -2274,6 +2828,7 @@ export function useDesktopShell() {
     thinking,
     completedTools,
     reasoningSteps,
+    nativeThinkingText,
     thinkingQueue: {
       steps: thinkingQueue.steps,
       isActive: thinkingQueue.isActive,
@@ -2299,6 +2854,8 @@ export function useDesktopShell() {
     setIsCurrentChatTemporary,
     currentMode,
     setCurrentMode: handleModeChange,
+    selectedModel,
+    setSelectedModel,
 
     // Voice mode
     handleVoiceTurn,
@@ -2312,6 +2869,9 @@ export function useDesktopShell() {
     clearComparisonDock,
     startComparison,
     togglePanePin,
+
+    // Communication
+    handleSendComplete,
   };
 
 }

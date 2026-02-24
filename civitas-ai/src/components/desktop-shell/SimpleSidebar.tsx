@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Trash2, Pin, FileBarChart2, Edit3, MoreVertical, Archive, Search, X, Ellipsis, Mic } from 'lucide-react';
+import { Trash2, Pin, Edit3, MoreVertical, Archive, Search, X, Ellipsis } from 'lucide-react';
+import { SidebarMarketplaceIcon, SidebarReportsIcon } from '../ui/PremiumIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
@@ -30,23 +31,22 @@ function getDateGroup(dateStr: string | undefined): string {
 
 const GROUP_ORDER = ['Today', 'Yesterday', 'Previous 7 Days', 'Previous 30 Days'];
 
-// Width constants
-const COLLAPSED_WIDTH = 56;  // px — icon rail, matches pl-14 in DesktopShell
-const EXPANDED_WIDTH = 260;  // px — full chat list
+const COLLAPSED_WIDTH = 56;
+const EXPANDED_WIDTH = 260;
 
 interface SimpleSidebarProps {
     onNewChat: () => void;
     onChatClick: () => void;
     onAnalyticsClick: () => void;
     onReportsClick: () => void;
-    onVoiceNotesClick?: () => void;
     onSettingsClick?: () => void;
     onHelpClick?: () => void;
     onUpgradeClick?: () => void;
     onAboutClick?: () => void;
-    onVisionClick?: () => void;
+    onMarketplaceClick?: () => void;
     onSearchClick?: () => void;
     onFilesClick?: () => void;
+    activeTab?: string;
     chatHistory: ChatSession[];
     activeChatId: string;
     onLoadChat: (chatId: string) => void;
@@ -59,22 +59,22 @@ interface SimpleSidebarProps {
 
 export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onNewChat,
-    onAnalyticsClick,
+    onAnalyticsClick: _onAnalyticsClick,
     onReportsClick,
-    onVoiceNotesClick,
+    onMarketplaceClick,
     onSettingsClick,
     onHelpClick,
     onUpgradeClick,
     onAboutClick,
-    onVisionClick,
+    activeTab = 'chat',
     chatHistory,
     activeChatId,
     onLoadChat,
     onDeleteChat,
     onPinChat,
     onArchiveChat,
-    hideHamburger = false,
-    isCurrentChatTemporary = false,
+    hideHamburger: _hideHamburger = false,
+    isCurrentChatTemporary: _isCurrentChatTemporary = false,
 }) => {
     const [isOpen, setIsOpen] = useState(true);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -119,7 +119,6 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
         return { pinned, groups, orderedGroupNames };
     }, [filteredChats]);
 
-    // Close expanded sidebar when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -130,7 +129,6 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
 
-    // Close dropdown menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -149,50 +147,47 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
         }
     }, [isSearching]);
 
-    // User avatar (shared between collapsed and expanded)
     const UserAvatar = ({ size = 28 }: { size?: number }) => (
         <div
             className="rounded-full flex-shrink-0 overflow-hidden"
             style={{
                 width: size, height: size,
                 background: !(currentUser?.avatar && currentUser.avatar.length > 200)
-                    ? 'linear-gradient(135deg, #C08B5C, #8A5D3B)' : undefined
+                    ? 'linear-gradient(135deg, #555, #333)' : undefined
             }}
         >
             {currentUser?.avatar && currentUser.avatar.length > 200 ? (
                 <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
             ) : (
-                <div className="w-full h-full flex items-center justify-center text-white font-semibold" style={{ fontSize: size * 0.4 }}>
+                <div className="w-full h-full flex items-center justify-center text-white font-medium" style={{ fontSize: size * 0.4 }}>
                     {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
             )}
         </div>
     );
 
-    // Render a single chat item
     const renderChatItem = (chat: ChatSession) => {
         const isActive = chat.id === activeChatId;
         return (
             <div
                 key={chat.id}
                 onClick={() => { onLoadChat(chat.id); }}
-                className="group relative flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150"
+                className="group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150"
                 style={{ backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent' }}
                 onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
-                {chat.isPinned && <Pin className="w-3 h-3 flex-shrink-0" style={{ color: '#C08B5C' }} />}
+                {chat.isPinned && <Pin className="w-3 h-3 flex-shrink-0 text-white/25" />}
                 <span
                     className="flex-1 truncate"
-                    style={{ color: isActive ? '#ECECF1' : '#9898A6', fontSize: '13px', fontWeight: isActive ? 500 : 400, letterSpacing: '-0.01em' }}
+                    style={{ color: isActive ? '#ECECF1' : '#8e8ea0', fontSize: '14px', fontWeight: isActive ? 500 : 400 }}
                 >
                     {chat.title || 'New conversation'}
                 </span>
                 <div className="hidden group-hover:flex items-center gap-0.5 relative flex-shrink-0">
                     <button
                         onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat.id ? null : chat.id); }}
-                        className="p-1 rounded-md transition-colors hover:bg-white/10"
-                        style={{ color: '#565869' }}
+                        className="p-1 rounded-md transition-colors hover:bg-white/10 text-white/25"
                         title="More options"
                     >
                         <Ellipsis className="w-4 h-4" />
@@ -206,11 +201,11 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                 exit={{ opacity: 0, scale: 0.95, y: -5 }}
                                 transition={{ duration: 0.1 }}
                                 className="absolute right-0 top-8 w-44 rounded-xl shadow-2xl z-[60] overflow-hidden"
-                                style={{ backgroundColor: '#202024', border: '1px solid rgba(255, 255, 255, 0.08)' }}
+                                style={{ backgroundColor: '#2a2a30', border: '1px solid rgba(255, 255, 255, 0.10)' }}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <button onClick={(e) => { onPinChat(chat.id, e); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-white/70 hover:bg-white/5 transition-colors">
-                                    <Pin size={14} className={chat.isPinned ? 'text-[#C08B5C]' : ''} />
+                                    <Pin size={14} />
                                     <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
                                 </button>
                                 {onArchiveChat && (
@@ -232,54 +227,75 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
 
     return (
         <>
-            {/* ══════ SINGLE SIDEBAR — collapsed = icon rail, expanded = full chat panel ══════ */}
             <div
                 ref={sidebarRef}
                 className={`fixed left-0 top-0 h-full z-50 flex flex-col overflow-hidden ${!isOpen ? 'items-center' : ''}`}
                 style={{
                     width: isOpen ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`,
-                    backgroundColor: '#171719',
-                    borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+                    backgroundColor: '#222228',
+                    borderRight: '1px solid rgba(255, 255, 255, 0.08)',
                     transition: 'width 200ms ease-out',
                 }}
             >
-                {/* ════════════════════════════════════════════════ */}
-                {/* EXPANDED STATE                                  */}
-                {/* ════════════════════════════════════════════════ */}
                 {isOpen ? (
                     <>
-                        {/* Header: Logo + Search + New Chat */}
-                        <div className="flex items-center justify-between px-3 py-3 flex-shrink-0">
+                        {/* Header: Logo + New Chat pencil */}
+                        <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-2 rounded-xl transition-colors hover:bg-white/5"
+                                className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.06]"
                                 title="Collapse sidebar"
                             >
-                                <Logo showText={false} className="w-8 h-8" variant="light" />
+                                <Logo showText={false} className="w-7 h-7" variant="light" />
                             </button>
-                            <div className="flex items-center gap-0.5">
-                                <button onClick={() => { setIsSearching(!isSearching); setSearchQuery(''); }} className="p-1.5 rounded-lg transition-colors hover:bg-white/5" title="Search chats">
-                                    <Search className="w-4 h-4 text-white/40" />
-                                </button>
-                                <button onClick={() => onNewChat()} className="p-1.5 rounded-lg transition-colors hover:bg-white/5" title="New chat">
-                                    <Edit3 className="w-4 h-4 text-white/50" />
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => onNewChat()}
+                                className="p-2 rounded-lg transition-colors hover:bg-white/[0.06] text-white/50 hover:text-white/80"
+                                title="New chat"
+                            >
+                                <Edit3 className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                            </button>
                         </div>
 
-                        {/* Nav links — at the top, below header */}
-                        <div className="px-2 pb-1.5 flex-shrink-0 space-y-0.5">
-                            <button onClick={() => onReportsClick()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-[13px] text-white/40 hover:text-white/70 hover:bg-white/[0.04]">
-                                <FileBarChart2 className="w-4 h-4" strokeWidth={1.8} />
+                        {/* Navigation */}
+                        <div className="px-2 pb-2 flex-shrink-0 space-y-0.5">
+                            <button
+                                onClick={() => onMarketplaceClick?.()}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-[14px] ${
+                                    activeTab === 'marketplace'
+                                        ? 'bg-white/[0.08] text-white/90 font-medium'
+                                        : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+                                }`}
+                            >
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                                    activeTab === 'marketplace'
+                                        ? 'bg-white/[0.06]'
+                                        : 'bg-white/[0.03]'
+                                }`}>
+                                    <SidebarMarketplaceIcon size={20} className={activeTab === 'marketplace' ? 'text-white/90' : 'text-white/40'} />
+                                </div>
+                                <span>Marketplace</span>
+                            </button>
+                            <button
+                                onClick={() => onReportsClick()}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-[14px] ${
+                                    activeTab === 'reports'
+                                        ? 'bg-white/[0.08] text-white/90 font-medium'
+                                        : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+                                }`}
+                            >
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                                    activeTab === 'reports'
+                                        ? 'bg-white/[0.06]'
+                                        : 'bg-white/[0.03]'
+                                }`}>
+                                    <SidebarReportsIcon size={20} className={activeTab === 'reports' ? 'text-white/90' : 'text-white/40'} />
+                                </div>
                                 <span>Reports</span>
                             </button>
-                            <button onClick={() => onVoiceNotesClick?.()} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-[13px] text-white/40 hover:text-white/70 hover:bg-white/[0.04]">
-                                <Mic className="w-4 h-4" strokeWidth={1.8} />
-                                <span>Voice Notes</span>
-                            </button>
                         </div>
 
-                        {/* Search bar (toggled) */}
+                        {/* Search bar */}
                         <AnimatePresence>
                             {isSearching && (
                                 <motion.div
@@ -287,7 +303,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
                                     transition={{ duration: 0.15 }}
-                                    className="px-3 pb-1 overflow-hidden flex-shrink-0"
+                                    className="px-3 pb-2 overflow-hidden flex-shrink-0"
                                 >
                                     <div className="relative">
                                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
@@ -309,103 +325,125 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                             )}
                         </AnimatePresence>
 
-                        {/* "Your chats" section header + chat history */}
-                        <div className="flex-1 overflow-y-auto px-2 py-1 space-y-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
-                            {/* Section label */}
-                            <div className="px-2.5 pt-1 pb-1">
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-white/20">Your chats</span>
-                            </div>
+                        {/* Chat history */}
+                        <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
+                            {/* Search toggle hint */}
+                            {!isSearching && (
+                                <button
+                                    onClick={() => { setIsSearching(true); setSearchQuery(''); }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-white/25 hover:text-white/40 hover:bg-white/[0.03] transition-colors text-[12px]"
+                                >
+                                    <Search className="w-3.5 h-3.5" />
+                                    <span>Search</span>
+                                    <span className="ml-auto text-[10px] text-white/15">⌘K</span>
+                                </button>
+                            )}
 
-                            {/* Pinned */}
                             {groupedChats.pinned.length > 0 && (
                                 <div className="mb-1">
-                                    <div className="px-2.5 py-1">
-                                        <span className="text-[10px] font-medium uppercase tracking-wider text-white/15">Pinned</span>
+                                    <div className="px-3 py-1.5">
+                                        <span className="text-[11px] font-medium text-white/20">Pinned</span>
                                     </div>
                                     {groupedChats.pinned.map(renderChatItem)}
                                 </div>
                             )}
 
-                            {/* Date groups */}
                             {groupedChats.orderedGroupNames.map(groupName => {
                                 const chats = groupedChats.groups[groupName];
                                 if (!chats || chats.length === 0) return null;
                                 return (
                                     <div key={groupName} className="mb-1">
-                                        <div className="px-2.5 py-1">
-                                            <span className="text-[10px] font-medium uppercase tracking-wider text-white/15">{groupName}</span>
+                                        <div className="px-3 py-1.5">
+                                            <span className="text-[11px] font-medium text-white/20">{groupName}</span>
                                         </div>
                                         {chats.map(renderChatItem)}
                                     </div>
                                 );
                             })}
 
-                            {/* Empty state */}
                             {filteredChats.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                                    <div className="text-white/15 text-[13px]">
+                                    <div className="text-white/20 text-[13px]">
                                         {searchQuery ? 'No matching chats' : 'No conversations yet'}
                                     </div>
-                                    {!searchQuery && (
-                                        <button onClick={() => onNewChat()} className="mt-3 text-[12px] text-[#C08B5C]/60 hover:text-[#C08B5C] transition-colors">
-                                            Start a new chat
-                                        </button>
-                                    )}
                                 </div>
                             )}
                         </div>
 
-                        {/* Bottom: User only */}
-                        <div className="border-t px-2 pt-1.5 pb-2 flex-shrink-0" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
-                            <button onClick={() => setShowProfileMenu(true)} className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors hover:bg-white/[0.04]">
-                                <UserAvatar size={24} />
-                                <span className="flex-1 truncate text-left text-[13px] font-medium text-white/50">{currentUser?.name || 'User'}</span>
-                                <MoreVertical className="w-3.5 h-3.5 text-white/15" />
+                        {/* User profile */}
+                        <div className="border-t px-2 pt-2 pb-2.5 flex-shrink-0" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
+                            <button onClick={() => setShowProfileMenu(true)} className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/[0.04]">
+                                <UserAvatar size={28} />
+                                <span className="flex-1 truncate text-left text-[14px] font-medium text-white/60">{currentUser?.name || 'User'}</span>
+                                <MoreVertical className="w-4 h-4 text-white/20" />
                             </button>
                         </div>
                     </>
                 ) : (
-                    /* ════════════════════════════════════════════════ */
-                    /* COLLAPSED STATE — icon rail                     */
-                    /* ════════════════════════════════════════════════ */
                     <>
-                        {/* Top: Logo + action icons stacked, centered horizontally */}
-                        <div className="flex flex-col items-center pt-3 gap-1 flex-shrink-0 w-full">
+                        {/* Collapsed: Logo + Pencil + Nav */}
+                        <div className="flex flex-col items-center pt-3 gap-2 flex-shrink-0 w-full">
                             <button
                                 onClick={() => setIsOpen(true)}
-                                className="p-2 rounded-xl transition-colors hover:bg-white/5"
+                                className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.06]"
                                 title="Expand sidebar"
                             >
-                                <Logo showText={false} className="w-8 h-8" variant="light" />
+                                <Logo showText={false} className="w-7 h-7" variant="light" />
                             </button>
-                            <button onClick={() => onNewChat()} className="p-2.5 rounded-xl transition-colors hover:bg-white/5" title="New chat">
-                                <Edit3 className="w-[18px] h-[18px] text-white/50" />
+
+                            {/* New chat */}
+                            <button
+                                onClick={() => onNewChat()}
+                                className="p-2.5 rounded-lg transition-colors hover:bg-white/[0.06] text-white/50 hover:text-white/80"
+                                title="New chat"
+                            >
+                                <Edit3 className="w-[18px] h-[18px]" strokeWidth={1.5} />
                             </button>
-                            <button onClick={() => { setIsOpen(true); setIsSearching(true); setSearchQuery(''); }} className="p-2.5 rounded-xl transition-colors hover:bg-white/5" title="Search chats">
-                                <Search className="w-[18px] h-[18px] text-white/50" />
+
+                            {/* Divider */}
+                            <div className="w-6 h-px bg-white/[0.06] my-0.5" />
+
+                            {/* Nav icons */}
+                            <button
+                                onClick={() => onMarketplaceClick?.()}
+                                className="p-1.5 rounded-lg transition-all duration-200 hover:bg-white/[0.06]"
+                                title="Marketplace"
+                            >
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                                    activeTab === 'marketplace'
+                                        ? 'bg-white/[0.06]'
+                                        : 'bg-white/[0.03]'
+                                }`}>
+                                    <SidebarMarketplaceIcon size={22} className={activeTab === 'marketplace' ? 'text-white/90' : 'text-white/40'} />
+                                </div>
                             </button>
-                            <button onClick={() => onReportsClick()} className="p-2.5 rounded-xl transition-colors hover:bg-white/5" title="Reports">
-                                <FileBarChart2 className="w-[18px] h-[18px] text-white/50" />
-                            </button>
-                            <button onClick={() => onVoiceNotesClick?.()} className="p-2.5 rounded-xl transition-colors hover:bg-white/5" title="Voice Notes">
-                                <Mic className="w-[18px] h-[18px] text-white/50" />
+                            <button
+                                onClick={() => onReportsClick()}
+                                className="p-1.5 rounded-lg transition-all duration-200 hover:bg-white/[0.06]"
+                                title="Reports"
+                            >
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                                    activeTab === 'reports'
+                                        ? 'bg-white/[0.06]'
+                                        : 'bg-white/[0.03]'
+                                }`}>
+                                    <SidebarReportsIcon size={22} className={activeTab === 'reports' ? 'text-white/90' : 'text-white/40'} />
+                                </div>
                             </button>
                         </div>
 
-                        {/* Spacer */}
                         <div className="flex-1" />
 
-                        {/* Bottom: User avatar, centered */}
-                        <div className="flex flex-col items-center pb-3 flex-shrink-0 w-full">
-                            <button onClick={() => setShowProfileMenu(true)} className="p-1.5 rounded-xl transition-colors hover:bg-white/5" title={currentUser?.name || 'Profile'}>
-                                <UserAvatar size={26} />
+                        {/* User avatar */}
+                        <div className="flex flex-col items-center pb-3.5 flex-shrink-0 w-full">
+                            <button onClick={() => setShowProfileMenu(true)} className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.06]" title={currentUser?.name || 'Profile'}>
+                                <UserAvatar size={28} />
                             </button>
                         </div>
                     </>
                 )}
             </div>
 
-            {/* Profile Menu Modal */}
             <ProfileMenuModal
                 isOpen={showProfileMenu}
                 onClose={() => setShowProfileMenu(false)}
@@ -413,7 +451,6 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                 onHelpClick={() => { setShowProfileMenu(false); onHelpClick?.(); }}
                 onUpgradeClick={() => { setShowProfileMenu(false); onUpgradeClick?.(); }}
                 onAboutClick={() => { setShowProfileMenu(false); onAboutClick?.(); }}
-                onVisionClick={() => { setShowProfileMenu(false); onVisionClick?.(); }}
             />
         </>
     );

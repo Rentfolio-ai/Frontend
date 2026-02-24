@@ -48,7 +48,11 @@ import { LanguageRegionPage } from '../components/pages/LanguageRegionPage';
 import { InvestmentPreferencesPage } from '../components/pages/InvestmentPreferencesPage';
 // ContactSupportPage replaced by HelpPopup
 import { PrivacySecurityPage } from '../components/pages/PrivacySecurityPage';
+import { IntegrationsPage } from '../components/pages/IntegrationsPage';
+import { MarketplacePage } from '@/components/marketplace/MarketplacePage';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
+import { usePreferencesStore } from '../stores/preferencesStore';
+import { subscriptionService } from '../services/subscriptionService';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -68,6 +72,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showHelpPopup, setShowHelpPopup] = useState(false);
+  const [showIntegrationsPopup, setShowIntegrationsPopup] = useState(false);
 
   // Global ⌘K shortcut for search
   useEffect(() => {
@@ -109,6 +114,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     thinking,
     completedTools,
     reasoningSteps,
+    nativeThinkingText,
     thinkingQueue,
     handleRegenerate,
     activeProperty,
@@ -135,11 +141,27 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     // Agent Mode
     currentMode,
     setCurrentMode,
+    // Model selection
+    selectedModel,
+    setSelectedModel,
     // Voice mode
     handleVoiceTurn,
     handleVoiceStart,
-    handleVoiceNoteSaved,
+    // Communication
+    handleSendComplete,
   } = useDesktopShell();
+
+  // Preferred start page: set active tab on first mount based on user preference
+  const preferredStartPage = usePreferencesStore(s => s.preferredStartPage);
+  const startPageAppliedRef = React.useRef(false);
+  useEffect(() => {
+    if (!startPageAppliedRef.current && preferredStartPage === 'marketplace') {
+      setActiveTab('marketplace');
+      startPageAppliedRef.current = true;
+    } else {
+      startPageAppliedRef.current = true;
+    }
+  }, [preferredStartPage, setActiveTab]);
 
   console.log('[DesktopShell] Render state:', {
     activeTab,
@@ -157,6 +179,29 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const handleToggleTemporary = useCallback(() => {
     setIsCurrentChatTemporary(prev => !prev);
   }, [setIsCurrentChatTemporary]);
+
+  // Token pack purchase (Pro users only)
+  const handleBuyTokenPack = useCallback(async () => {
+    try {
+      await subscriptionService.purchaseTokenPack();
+    } catch (err) {
+      console.error('[DesktopShell] Token pack purchase failed:', err);
+      error('Failed to start token pack purchase. Please try again.');
+    }
+  }, [error]);
+
+  // Handle Stripe return URL params (token pack success / subscription success)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (payment === 'token_pack_success') {
+      success('Token pack purchased! Your balance has been updated.');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (payment === 'success') {
+      success('Subscription activated! Welcome to Pro.');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [success]);
 
   // Preferences hook removed as settings tab is removed
   // const {
@@ -206,6 +251,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     setActiveTab('reports');
     refreshReports();
   }, [setActiveTab, refreshReports]);
+
 
 
 
@@ -288,7 +334,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
 
   return (
-    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: '#111114' }}>
+    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: '#1e1e22' }}>
       {/* Simple Left Sidebar with integrated chat history */}
       <SimpleSidebar
         onNewChat={() => {
@@ -296,16 +342,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           setActiveTab('chat');
         }}
         onChatClick={() => setActiveTab('chat')}
+        onMarketplaceClick={() => setActiveTab('marketplace')}
         onAnalyticsClick={() => setActiveTab('portfolio')}
         onReportsClick={() => setActiveTab('reports')}
         onSettingsClick={() => setActiveTab('settings')}
         onHelpClick={() => setShowHelpPopup(true)}
         onUpgradeClick={() => setActiveTab('upgrade')}
         onAboutClick={() => setActiveTab('about')}
-        onVisionClick={() => {
-          window.history.replaceState({}, '', '/vision/app');
-          window.location.href = '/vision/app';
-        }}
+        activeTab={activeTab}
         chatHistory={chatHistory}
         activeChatId={activeChatId || ''}
         onLoadChat={handleLoadChat}
@@ -361,13 +405,13 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   thinkingIsActive={thinkingQueue?.isActive}
                   thinkingIsDone={thinkingQueue?.isDone}
                   thinkingElapsed={thinkingQueue?.elapsedSeconds}
+                  nativeThinkingText={nativeThinkingText}
                   onRefresh={handleRegenerate}
                   onViewDetails={handleViewPropertyDetails}
                   onCancel={cancelStream}
                   error={streamError}
                   onEditMessage={handleEditMessage}
                   onNavigateBranch={handleNavigateBranch}
-                  // Chat management props
                   chatTitle={activeChat?.title}
                   chatId={activeChatId || undefined}
                   onPinChat={(chatId) => handlePinChat(chatId)}
@@ -377,7 +421,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   onScrollDirectionChange={setIsScrollingDown}
                   isTemporary={isCurrentChatTemporary}
                   onToggleTemporary={handleToggleTemporary}
-                  // Command Center props
                   commandCenter={commandCenter}
                   selectProperty={selectProperty}
                   addToComparisonDock={addToComparisonDock}
@@ -387,17 +430,61 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   togglePanePin={togglePanePin}
                   currentMode={currentMode}
                   onModeChange={setCurrentMode}
-                  // Voice mode props
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
                   onVoiceTurn={handleVoiceTurn}
                   onVoiceStart={handleVoiceStart}
-                  onVoiceNoteSaved={handleVoiceNoteSaved}
                   conversationId={activeChatId || undefined}
+                  onOpenIntegrations={() => setShowIntegrationsPopup(true)}
+                  onSendComplete={handleSendComplete}
+                  onBuyTokenPack={handleBuyTokenPack}
                 />
               );
             })()}
+            {activeTab === 'marketplace' && (
+              <ErrorBoundary pageName="Marketplace">
+                <MarketplacePage
+                  onStartChat={(context: { name: string; specialty: string; category: string } | null) => {
+                    setActiveTab('chat');
+                    if (context) {
+                      setTimeout(() => {
+                        sendMessageWithStream(`I'd like to connect with ${context.name} (${context.specialty})`);
+                      }, 150);
+                    }
+                  }}
+                  onStartVoice={() => {
+                    setActiveTab('chat');
+                  }}
+                  onStartEmail={(ctx: { name: string; email: string; category: string; specialty: string }) => {
+                    setActiveTab('chat');
+                    setTimeout(() => {
+                      sendMessageWithStream(
+                        `Draft an email to ${ctx.name} (${ctx.email}), a ${ctx.category.replace(/_/g, ' ')} specializing in ${ctx.specialty}. Keep it professional and concise.`
+                      );
+                    }, 150);
+                  }}
+                  onStartText={(ctx: { name: string; phone: string; category: string; specialty: string }) => {
+                    setActiveTab('chat');
+                    setTimeout(() => {
+                      sendMessageWithStream(
+                        `Draft a text message to ${ctx.name} at ${ctx.phone}, a ${ctx.category.replace(/_/g, ' ')} specializing in ${ctx.specialty}. Keep it brief and friendly.`
+                      );
+                    }, 150);
+                  }}
+                  onStartCall={(professional: { name: string; phone?: string; category: string }) => {
+                    setActiveTab('chat');
+                    setTimeout(() => {
+                      sendMessageWithStream(
+                        `I'd like to make a voice call to ${professional.name} at ${professional.phone}. They're a ${professional.category.replace(/_/g, ' ')}. Please help me prepare talking points.`
+                      );
+                    }, 150);
+                  }}
+                />
+              </ErrorBoundary>
+            )}
             {activeTab === 'reports' && (
               <ErrorBoundary pageName="Reports">
-                <ReportsPage />
+                <ReportsPage onNavigateToChat={() => setActiveTab('chat')} />
               </ErrorBoundary>
             )}
 
@@ -449,7 +536,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 <PrivacySecurityPage onBack={() => setActiveTab('settings')} />
               </ErrorBoundary>
             )}
-            {/* Help & Contact replaced by HelpPopup overlay */}
+            {/* Integrations + Help rendered as overlays below */}
             {activeTab === 'upgrade' && (
               <ErrorBoundary pageName="Upgrade">
                 <UpgradePage onBack={() => setActiveTab('chat')} />
@@ -521,6 +608,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         <HelpPopup
           isOpen={showHelpPopup}
           onClose={() => setShowHelpPopup(false)}
+        />
+
+        {/* Integrations Popup */}
+        <IntegrationsPage
+          isOpen={showIntegrationsPopup}
+          onClose={() => setShowIntegrationsPopup(false)}
         />
 
         {/* Floating Search Button */}

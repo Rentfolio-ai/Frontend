@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import type { ScoutedProperty } from '@/types/backendTools';
 import type { BookmarkedProperty } from '@/types/bookmarks';
 import type { InvestmentStrategy } from '@/types/pnl';
-import { SimplePropertyResults } from './SimplePropertyResults';
+import { PropertyResultsGrid } from './PropertyResultsGrid';
 
 // Icons
 const BookmarkIcon = ({ filled = false, className }: { filled?: boolean; className?: string }) => (
@@ -433,7 +433,7 @@ export const PropertyBookmarkCard: React.FC<PropertyBookmarkCardProps> = ({
   // Use simple property grid for V2 results with AI enhancements
   if (hasAIEnhancements) {
     console.log('[PropertyBookmarkCard] ✅ Using SIMPLE V2 cards!');
-    return <SimplePropertyResults properties={properties} onOpenDealAnalyzer={onOpenDealAnalyzer} />;
+    return <PropertyResultsGrid properties={properties} bookmarks={bookmarks} onToggleBookmark={onToggleBookmark} />;
   }
 
   // Use standard bookmark list for V1 results

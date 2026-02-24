@@ -1,18 +1,15 @@
 /**
- * Help Popup Panel
+ * Help Drawer Panel
  *
- * Overlay popup triggered from "Get help" in the profile menu.
- * Internal multi-view navigation: Home, FAQ/Search, Contact Us, Quick Guides, What's New.
- * Replaces the full-page HelpPage and ContactSupportPage.
+ * Bottom-sliding drawer triggered from "Get help" in the profile menu.
+ * Tab-based navigation: Home, FAQ, Contact, Guides, Changelog.
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   X,
-  ArrowLeft,
   Search,
   ChevronDown,
-  ChevronRight,
   Book,
   MessageSquare,
   Sparkles,
@@ -29,10 +26,11 @@ import {
   TrendingUp,
   Settings,
   Mic,
-  ExternalLink,
   ThumbsUp,
+  Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { designTokens } from '../../styles/design-tokens';
 import { supportApi } from '../../services/supportApi';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -44,7 +42,17 @@ interface HelpPopupProps {
   onClose: () => void;
 }
 
-// ─── FAQ data (hardcoded fallback) ───────────────────────────────────────────
+// ─── Tab definitions ─────────────────────────────────────────────────────────
+
+const TABS: { key: View; label: string; icon: React.ElementType }[] = [
+  { key: 'home', label: 'Home', icon: Home },
+  { key: 'faq', label: 'FAQ', icon: Search },
+  { key: 'contact', label: 'Contact', icon: MessageSquare },
+  { key: 'guides', label: 'Guides', icon: Book },
+  { key: 'whats-new', label: 'Changelog', icon: Rocket },
+];
+
+// ─── FAQ data ────────────────────────────────────────────────────────────────
 
 const FAQ_ITEMS = [
   {
@@ -139,7 +147,7 @@ const GUIDES = [
     id: 'getting-started',
     icon: Sparkles,
     title: 'Quick Start Guide',
-    desc: 'Get up and running in under 5 minutes. Set up your account, configure preferences, and run your first analysis.',
+    desc: 'Get up and running in under 5 minutes.',
     tag: 'Start here',
     content: [
       'Create your account and verify your email.',
@@ -153,7 +161,7 @@ const GUIDES = [
     id: 'property-analysis',
     icon: Home,
     title: 'Property Analysis',
-    desc: 'Learn how Vasthu evaluates properties using cash flow, cap rate, ROI, and other key metrics.',
+    desc: 'How Vasthu evaluates properties with key metrics.',
     content: [
       'Ask Vasthu to search for properties in any US market.',
       'Get instant analysis with key investment metrics.',
@@ -166,7 +174,7 @@ const GUIDES = [
     id: 'investment-prefs',
     icon: Settings,
     title: 'Investment Preferences',
-    desc: 'Configure your buy box, budget, strategy (STR/LTR/Flip), and financial assumptions.',
+    desc: 'Configure your buy box, budget, and strategy.',
     content: [
       'Navigate to Settings > Investment Preferences.',
       'Set your budget range and target markets.',
@@ -179,7 +187,7 @@ const GUIDES = [
     id: 'agent-modes',
     icon: TrendingUp,
     title: 'Agent Modes',
-    desc: 'Deep dive into Hunter, Research, and Strategist modes and when to use each.',
+    desc: 'Hunter, Research, and Strategist deep dive.',
     content: [
       'Hunter Mode: Fast deal scouting — finds properties matching your criteria quickly.',
       'Research Mode: Deep market analysis — comprehensive data on neighborhoods and trends.',
@@ -191,7 +199,7 @@ const GUIDES = [
     id: 'voice-mode',
     icon: Mic,
     title: 'Voice Mode (Beta)',
-    desc: 'Talk to Vasthu using your voice for hands-free property research.',
+    desc: 'Talk to Vasthu hands-free with your voice.',
     content: [
       'Click the waveform icon in the chat input to activate voice mode.',
       'Speak naturally — Vasthu transcribes and responds in real-time.',
@@ -238,119 +246,87 @@ const WHATS_NEW = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SUB-VIEWS
+// SUB-VIEWS (no back buttons — tabs handle navigation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ─── Home View ───────────────────────────────────────────────────────────────
+const QUICK_CARDS = [
+  { icon: Sparkles, title: 'Getting Started', desc: 'Set up your account and run your first analysis', gradient: 'from-amber-500/20 to-orange-500/20', view: 'guides' as View },
+  { icon: Zap, title: 'Analyze a Deal', desc: 'Underwrite any property with AI-powered metrics', gradient: 'from-blue-500/20 to-cyan-500/20', view: 'faq' as View },
+  { icon: TrendingUp, title: 'AI Modes', desc: 'Hunter, Research, and Strategist explained', gradient: 'from-violet-500/20 to-purple-500/20', view: 'guides' as View },
+  { icon: Mic, title: 'Voice Mode', desc: 'Hands-free property research with voice', gradient: 'from-emerald-500/20 to-teal-500/20', view: 'guides' as View },
+];
 
-const HomeView: React.FC<{
-  onNavigate: (view: View) => void;
-}> = ({ onNavigate }) => (
+const HomeView: React.FC<{ onNavigate: (view: View) => void }> = ({ onNavigate }) => (
   <div className="flex flex-col h-full">
-    <div className="px-6 pt-5 pb-4">
-      <h2 className="text-[18px] font-semibold text-white/90">How can we help?</h2>
-      <p className="text-[12px] text-white/40 mt-1">Search our guides or get in touch</p>
+    {/* Search pill */}
+    <div className="px-6 pt-4 pb-4">
+      <button
+        onClick={() => onNavigate('faq')}
+        className="w-full h-10 flex items-center gap-3 pl-4 pr-5 rounded-xl text-[13px] text-white/25 hover:text-white/35 transition-all duration-300 text-left backdrop-blur-md"
+        style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.06)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(192,139,92,0.25)';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+        }}
+      >
+        <Search className="w-3.5 h-3.5 text-copper-400/40 flex-shrink-0" />
+        Search help articles...
+      </button>
     </div>
 
-    <div className="flex-1 overflow-y-auto px-5 pb-5">
-      <div className="space-y-2">
-        {/* Search help articles */}
-        <button
-          onClick={() => onNavigate('faq')}
-          className="w-full flex items-center gap-3.5 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.10] transition-all text-left group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
-            <Search className="w-4.5 h-4.5 text-[#D4A27F]" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
-              Search help articles
-            </h3>
-            <p className="text-[11px] text-white/35">Browse FAQs and troubleshooting</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
-        </button>
-
-        {/* Contact us */}
-        <button
-          onClick={() => onNavigate('contact')}
-          className="w-full flex items-center gap-3.5 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.10] transition-all text-left group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
-            <MessageSquare className="w-4.5 h-4.5 text-white/60" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
-              Contact us
-            </h3>
-            <p className="text-[11px] text-white/35">Send feedback or report an issue</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
-        </button>
-
-        {/* Quick start guide */}
-        <button
-          onClick={() => onNavigate('guides')}
-          className="w-full flex items-center gap-3.5 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.10] transition-all text-left group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
-            <Book className="w-4.5 h-4.5 text-white/60" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
-              Quick guides
-            </h3>
-            <p className="text-[11px] text-white/35">Get started and learn features</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
-        </button>
-
-        {/* What's new */}
-        <button
-          onClick={() => onNavigate('whats-new')}
-          className="w-full flex items-center gap-3.5 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.10] transition-all text-left group"
-        >
-          <div className="w-9 h-9 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
-            <Rocket className="w-4.5 h-4.5 text-white/60" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-[13px] font-medium text-white/80 group-hover:text-white transition-colors">
-              What's new
-            </h3>
-            <p className="text-[11px] text-white/35">Latest updates and features</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0" />
-        </button>
+    {/* Quick-start card grid */}
+    <div className="flex-1 overflow-y-auto px-6 pb-4">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-3">Quick start</p>
+      <div className="grid grid-cols-2 gap-3">
+        {QUICK_CARDS.map((card) => {
+          const Icon = card.icon;
+          return (
+            <button
+              key={card.title}
+              onClick={() => onNavigate(card.view)}
+              className="group text-left p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300"
+            >
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300`}>
+                <Icon className="w-4.5 h-4.5 text-white/80" strokeWidth={1.5} />
+              </div>
+              <h4 className="text-[12px] font-medium text-white/70 group-hover:text-white/90 transition-colors mb-1">{card.title}</h4>
+              <p className="text-[10px] text-white/30 leading-relaxed">{card.desc}</p>
+            </button>
+          );
+        })}
       </div>
     </div>
 
     {/* Footer */}
-    <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-center gap-4">
-      <a
-        href="mailto:support@civitasai.com"
-        className="text-[10px] text-white/25 hover:text-white/50 transition-colors flex items-center gap-1"
-      >
-        <ExternalLink className="w-3 h-3" />
-        Email support
-      </a>
-      <span className="text-white/10">|</span>
-      <span className="text-[10px] text-white/20">Terms</span>
-      <span className="text-white/10">|</span>
-      <span className="text-[10px] text-white/20">Privacy</span>
+    <div className="px-6 py-3 border-t border-white/[0.06] flex items-center justify-between flex-shrink-0">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-50" style={{ animationDuration: '2s' }} />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+        </span>
+        <span className="text-[10px] text-white/25">All systems operational</span>
+      </div>
+      <kbd className="text-[9px] text-white/25 px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] font-mono">Esc</kbd>
     </div>
   </div>
 );
 
-// ─── FAQ / Search View ───────────────────────────────────────────────────────
+// ─── FAQ View ────────────────────────────────────────────────────────────────
 
-const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const FAQView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Auto-focus search on mount
     setTimeout(() => searchRef.current?.focus(), 150);
   }, []);
 
@@ -365,19 +341,8 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-        <button
-          onClick={onBack}
-          className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors flex-shrink-0"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-white/60" />
-        </button>
-        <h2 className="text-[15px] font-semibold text-white/90">Help Articles</h2>
-      </div>
-
       {/* Search */}
-      <div className="px-4 pb-3">
+      <div className="px-6 pt-4 pb-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
           <input
@@ -386,13 +351,10 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             placeholder="Search FAQs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-9 pl-9 pr-8 bg-white/[0.06] border border-white/[0.08] rounded-lg text-[12px] text-white/80 placeholder-white/25 focus:outline-none focus:border-white/[0.15] transition-all"
+            className="w-full h-9 pl-9 pr-8 bg-white/[0.04] border border-white/[0.08] rounded-xl text-[12px] text-white/80 placeholder-white/25 focus:outline-none focus:border-copper-500/40 transition-all duration-200"
           />
           {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2"
-            >
+            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2">
               <X className="w-3 h-3 text-white/30 hover:text-white/50" />
             </button>
           )}
@@ -400,14 +362,14 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       </div>
 
       {/* Category pills */}
-      <div className="flex gap-1.5 px-4 pb-3 overflow-x-auto no-scrollbar">
+      <div className="flex gap-1.5 px-6 pb-3 overflow-x-auto no-scrollbar">
         {FAQ_CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap transition-all duration-200 ${
               activeCategory === cat
-                ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
+                ? 'bg-copper-500/20 text-copper-400 border border-copper-500/30'
                 : 'bg-white/[0.04] text-white/40 border border-white/[0.06] hover:bg-white/[0.06]'
             }`}
           >
@@ -417,10 +379,12 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       </div>
 
       {/* FAQ list */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto px-6 pb-4">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <Search className="w-8 h-8 text-white/10 mb-3" />
+            <div className="w-12 h-12 rounded-xl bg-copper-500/10 flex items-center justify-center mb-3">
+              <Search className="w-5 h-5 text-copper-400/50" />
+            </div>
             <p className="text-[13px] text-white/40">No matching articles</p>
             <p className="text-[11px] text-white/25 mt-1">Try a different search term</p>
           </div>
@@ -432,15 +396,11 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <button
                   key={item.id}
                   onClick={() => setExpandedId(isOpen ? null : item.id)}
-                  className="w-full text-left px-4 py-3 transition-colors hover:bg-white/[0.02]"
+                  className={`w-full text-left px-4 py-3 transition-all duration-200 hover:bg-white/[0.02] relative ${isOpen ? 'border-l-2 border-l-copper-500' : 'border-l-2 border-l-transparent'}`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-[12px] font-medium text-white/70">{item.question}</h4>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 text-white/25 flex-shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
-                    />
+                    <ChevronDown className={`w-3.5 h-3.5 text-white/25 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                   </div>
                   <AnimatePresence>
                     {isOpen && (
@@ -448,18 +408,16 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
                         className="overflow-hidden"
                       >
-                        <p className="mt-2 text-[11px] text-white/40 leading-relaxed pr-6">
-                          {item.answer}
-                        </p>
+                        <p className="mt-2 text-[11px] text-white/40 leading-relaxed pr-6">{item.answer}</p>
                         <div className="flex items-center gap-3 mt-2.5 pt-2 border-t border-white/[0.04]">
                           <span className="text-[10px] text-white/25">Was this helpful?</span>
-                          <button className="p-1 rounded hover:bg-white/[0.05] transition-colors">
+                          <button className="p-1 rounded hover:bg-white/[0.05] transition-colors duration-200">
                             <ThumbsUp className="w-3 h-3 text-white/30 hover:text-emerald-400" />
                           </button>
-                          <button className="p-1 rounded hover:bg-white/[0.05] transition-colors">
+                          <button className="p-1 rounded hover:bg-white/[0.05] transition-colors duration-200">
                             <ThumbsDown className="w-3 h-3 text-white/30 hover:text-red-400" />
                           </button>
                         </div>
@@ -476,9 +434,9 @@ const FAQView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   );
 };
 
-// ─── Contact Us View ─────────────────────────────────────────────────────────
+// ─── Contact View ────────────────────────────────────────────────────────────
 
-const ContactView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const ContactView: React.FC = () => {
   const [reason, setReason] = useState<ReasonKey>('broken');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -515,47 +473,29 @@ const ContactView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-        <button
-          onClick={onBack}
-          className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors flex-shrink-0"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-white/60" />
-        </button>
-        <h2 className="text-[15px] font-semibold text-white/90">Contact Us</h2>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {/* Success state */}
+      <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4">
         <AnimatePresence>
           {submitted && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
               className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 mb-4"
             >
               <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-[12px] font-medium text-emerald-300">
-                  Thanks for your feedback!
-                </h3>
-                <p className="text-[10px] text-white/40">
-                  Our team has been notified and a ticket has been created.
-                </p>
+                <h3 className="text-[12px] font-medium text-emerald-300">Thanks for your feedback!</h3>
+                <p className="text-[10px] text-white/40">Our team has been notified and a ticket has been created.</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* What happened? */}
         <div className="mb-4">
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-0.5">
-            What happened?
-          </h3>
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-0.5">What happened?</h3>
           <div className="grid grid-cols-2 gap-2">
             {REASONS.map((r) => {
               const Icon = r.icon;
@@ -564,30 +504,25 @@ const ContactView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <button
                   key={r.key}
                   onClick={() => setReason(r.key)}
-                  className={`flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-left ${
+                  className={`flex items-center gap-2.5 p-3 rounded-xl transition-all duration-200 text-left ${
                     isActive
-                      ? 'border-[#C08B5C]/30 bg-[#C08B5C]/[0.06]'
-                      : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                      ? 'bg-copper-500/[0.08] border-2 border-copper-500/40'
+                      : 'bg-white/[0.02] border-2 border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.10]'
                   }`}
                 >
-                  <div className="w-7 h-7 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-3.5 h-3.5 text-white/60" />
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-copper-500/20' : 'bg-white/[0.06]'}`}>
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-copper-400' : 'text-white/40'}`} />
                   </div>
-                  <span className="text-[11px] font-medium text-white/70 leading-tight">
-                    {r.label}
-                  </span>
+                  <span className={`text-[11px] font-medium leading-tight ${isActive ? 'text-white/80' : 'text-white/60'}`}>{r.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Message form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5 px-0.5">
-              Tell us more
-            </h3>
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2 px-0.5">Tell us more</h3>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -600,55 +535,40 @@ const ContactView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                       ? 'What part was confusing?'
                       : 'Share any feedback or suggestions...'
               }
-              rows={4}
+              rows={3}
               maxLength={5000}
               required
-              className="w-full px-3 py-2.5 bg-white/[0.06] border border-white/[0.08] rounded-xl text-[12px] text-white/85 placeholder-white/25 focus:outline-none focus:border-[#C08B5C]/30 transition-colors resize-none leading-relaxed"
+              className="w-full px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-[12px] text-white/85 placeholder-white/25 focus:outline-none focus:border-copper-500/40 transition-all duration-200 resize-none leading-relaxed"
             />
-            <p className="text-[9px] text-white/20 text-right mt-0.5 px-0.5">
-              {message.length}/5000
-            </p>
+            <p className="text-[9px] text-white/20 text-right mt-0.5 px-0.5">{message.length}/5000</p>
           </div>
 
-          {/* Error */}
           {error && (
-            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
+            <div className="flex items-start gap-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
               <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-[11px] text-red-300">{error}</p>
             </div>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={submitting || !message.trim()}
-            className={`w-full py-2.5 rounded-xl text-[12px] font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`w-full py-2.5 rounded-xl text-[12px] font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
               submitting || !message.trim()
                 ? 'bg-white/[0.06] text-white/30 cursor-not-allowed'
-                : 'bg-[#C08B5C] text-white hover:bg-[#A8734A]'
+                : 'bg-copper-500 text-white hover:bg-copper-600 shadow-[0_2px_8px_rgba(192,139,92,0.25)]'
             }`}
           >
             {submitting ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Sending...
-              </>
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending...</>
             ) : (
-              <>
-                <Send className="w-3.5 h-3.5" />
-                Send Feedback
-              </>
+              <><Send className="w-3.5 h-3.5" /> Send Feedback</>
             )}
           </button>
 
           <p className="text-[10px] text-center text-white/20">
             Or email us at{' '}
-            <a
-              href="mailto:support@civitasai.com"
-              className="text-[#D4A27F] hover:underline"
-            >
-              support@civitasai.com
-            </a>
+            <a href="mailto:support@civitasai.com" className="text-copper-400 hover:underline">support@civitasai.com</a>
           </p>
         </form>
       </div>
@@ -656,56 +576,39 @@ const ContactView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   );
 };
 
-// ─── Quick Guides View ───────────────────────────────────────────────────────
+// ─── Guides View ─────────────────────────────────────────────────────────────
 
-const GuidesView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+const GuidesView: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-        <button
-          onClick={onBack}
-          className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors flex-shrink-0"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-white/60" />
-        </button>
-        <h2 className="text-[15px] font-semibold text-white/90">Quick Guides</h2>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+      <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4 space-y-2">
         {GUIDES.map((guide) => {
           const Icon = guide.icon;
           const isOpen = expandedId === guide.id;
           return (
             <div
               key={guide.id}
-              className="rounded-xl bg-white/[0.02] border border-white/[0.06] overflow-hidden"
+              className={`rounded-xl bg-white/[0.02] border overflow-hidden transition-all duration-200 ${isOpen ? 'border-copper-500/20 bg-white/[0.03]' : 'border-white/[0.06]'}`}
             >
               <button
                 onClick={() => setExpandedId(isOpen ? null : guide.id)}
-                className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-white/[0.02] transition-colors"
+                className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-white/[0.02] transition-colors duration-200"
               >
-                <div className="w-9 h-9 rounded-lg bg-white/[0.05] flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4.5 h-4.5 text-white/60" />
+                <div className="w-9 h-9 rounded-lg bg-copper-500/10 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-copper-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="text-[12px] font-medium text-white/80">{guide.title}</h3>
                     {guide.tag && (
-                      <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#C08B5C] text-black">
-                        {guide.tag}
-                      </span>
+                      <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-copper-500/20 text-copper-400">{guide.tag}</span>
                     )}
                   </div>
                   <p className="text-[10px] text-white/35 mt-0.5 leading-relaxed">{guide.desc}</p>
                 </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-white/20 flex-shrink-0 transition-transform duration-200 ${
-                    isOpen ? 'rotate-180' : ''
-                  }`}
-                />
+                <ChevronDown className={`w-4 h-4 text-white/20 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </button>
 
               <AnimatePresence>
@@ -714,19 +617,15 @@ const GuidesView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
                     className="overflow-hidden"
                   >
                     <div className="px-4 pb-4 pt-0">
-                      <ol className="space-y-2 ml-1">
+                      <ol className="space-y-2.5 ml-1">
                         {guide.content.map((step, i) => (
                           <li key={i} className="flex gap-2.5 items-start">
-                            <span className="text-[10px] font-mono font-bold text-[#C08B5C]/60 mt-0.5 flex-shrink-0 w-4 text-right">
-                              {i + 1}.
-                            </span>
-                            <span className="text-[11px] text-white/50 leading-relaxed">
-                              {step}
-                            </span>
+                            <span className="text-[10px] font-mono font-bold text-copper-500/50 mt-0.5 flex-shrink-0 w-4 text-right">{i + 1}.</span>
+                            <span className="text-[11px] text-white/50 leading-relaxed">{step}</span>
                           </li>
                         ))}
                       </ol>
@@ -742,32 +641,21 @@ const GuidesView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   );
 };
 
-// ─── What's New View ─────────────────────────────────────────────────────────
+// ─── Changelog View ──────────────────────────────────────────────────────────
 
-const WhatsNewView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
+const WhatsNewView: React.FC = () => (
   <div className="flex flex-col h-full">
-    {/* Header */}
-    <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-      <button
-        onClick={onBack}
-        className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors flex-shrink-0"
-      >
-        <ArrowLeft className="w-3.5 h-3.5 text-white/60" />
-      </button>
-      <h2 className="text-[15px] font-semibold text-white/90">What's New</h2>
-    </div>
-
-    <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-5">
-      {WHATS_NEW.map((release) => (
-        <div key={release.version}>
-          <div className="flex items-center gap-2 mb-2.5">
-            <span className="text-[11px] font-semibold text-[#D4A27F]">{release.version}</span>
-            <span className="text-[10px] text-white/25">{release.date}</span>
+    <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4 space-y-5">
+      {WHATS_NEW.map((release, ri) => (
+        <div key={release.version} className={`${ri > 0 ? 'pt-4 border-t border-white/[0.04]' : ''}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-copper-500/15 text-copper-400">{release.version}</span>
+            <span className="text-[10px] text-white/30">{release.date}</span>
           </div>
-          <div className="space-y-1.5 pl-1">
+          <div className="space-y-2 pl-1">
             {release.items.map((item, i) => (
               <div key={i} className="flex gap-2.5 items-start">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]/40 mt-1.5 flex-shrink-0" />
+                <div className="w-1.5 h-1.5 rounded-full bg-copper-500/40 mt-1.5 flex-shrink-0" />
                 <span className="text-[11px] text-white/50 leading-relaxed">{item}</span>
               </div>
             ))}
@@ -779,21 +667,17 @@ const WhatsNewView: React.FC<{ onBack: () => void }> = ({ onBack }) => (
 );
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MAIN COMPONENT
+// MAIN COMPONENT — Bottom Drawer
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const HelpPopup: React.FC<HelpPopupProps> = ({ isOpen, onClose }) => {
   const [view, setView] = useState<View>('home');
-  const panelRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Reset view to home every time the popup opens
   useEffect(() => {
-    if (isOpen) {
-      setView('home');
-    }
+    if (isOpen) setView('home');
   }, [isOpen]);
 
-  // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -803,80 +687,139 @@ export const HelpPopup: React.FC<HelpPopupProps> = ({ isOpen, onClose }) => {
     return () => window.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
 
-  // Close when clicking outside the panel
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    // Delay listener to avoid the triggering click from closing it immediately
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
   const navigateTo = useCallback((v: View) => setView(v), []);
-  const goHome = useCallback(() => setView('home'), []);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          ref={panelRef}
-          className="fixed bottom-5 right-5 z-[60] w-[420px] h-[600px] max-h-[calc(100vh-3rem)] bg-[#18181c] border border-white/[0.10] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-          initial={{ opacity: 0, y: 20, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.96 }}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
-        >
-          {/* Top bar with close button */}
-          <div className="flex items-center justify-between px-5 pt-4 pb-0">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#C08B5C] to-[#A8734A] flex items-center justify-center">
-                <span className="text-[10px] font-bold text-white">V</span>
-              </div>
-              <span className="text-[11px] font-medium text-white/40">Vasthu Help</span>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-7 h-7 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors"
-            >
-              <X className="w-3.5 h-3.5 text-white/50" />
-            </button>
-          </div>
+        <>
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 z-[59] bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={onClose}
+          />
 
-          {/* View content with slide transitions */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={view}
-                className="h-full"
-                initial={{
-                  opacity: 0,
-                  x: view === 'home' ? -20 : 20,
-                }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{
-                  opacity: 0,
-                  x: view === 'home' ? 20 : -20,
-                }}
-                transition={{ duration: 0.2, ease: 'easeInOut' }}
-              >
-                {view === 'home' && <HomeView onNavigate={navigateTo} />}
-                {view === 'faq' && <FAQView onBack={goHome} />}
-                {view === 'contact' && <ContactView onBack={goHome} />}
-                {view === 'guides' && <GuidesView onBack={goHome} />}
-                {view === 'whats-new' && <WhatsNewView onBack={goHome} />}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </motion.div>
+          {/* Drawer */}
+          <motion.div
+            ref={drawerRef}
+            className="fixed bottom-0 left-1/2 z-[60] w-full max-w-[700px] h-[540px] max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col"
+            style={{
+              background: designTokens.colors.help.bgDeep,
+              borderRadius: '24px 24px 0 0',
+              border: `1px solid ${designTokens.colors.help.border}`,
+              borderBottom: 'none',
+              boxShadow: '0 -8px 40px rgba(192,139,92,0.08), 0 -4px 80px rgba(0,0,0,0.4)',
+              x: '-50%',
+            }}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          >
+            {/* Copper orb gradient */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'radial-gradient(ellipse 300px 200px at 80% 5%, rgba(192,139,92,0.10), transparent 70%)',
+                borderRadius: 'inherit',
+              }}
+            />
+            {/* Noise texture */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                opacity: designTokens.colors.help.noiseOpacity,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+                backgroundSize: '128px 128px',
+                borderRadius: 'inherit',
+              }}
+            />
+
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1 relative z-10 flex-shrink-0">
+              <div className="w-9 h-1 rounded-full bg-white/15" />
+            </div>
+
+            {/* Copper accent bar */}
+            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-copper-500/50 to-transparent flex-shrink-0 relative z-10" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-3 pb-2 relative z-10 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div
+                    className="w-8 h-8 rounded-xl bg-gradient-to-br from-copper-500 to-copper-600 flex items-center justify-center"
+                    style={{ boxShadow: '0 0 20px rgba(192,139,92,0.25), inset 0 1px 0 rgba(255,255,255,0.15)' }}
+                  >
+                    <span className="text-[12px] font-bold text-white">V</span>
+                  </div>
+                  <div className="absolute -inset-[3px] rounded-[14px] border border-copper-500/30 animate-pulse" style={{ animationDuration: '3s' }} />
+                </div>
+                <div>
+                  <h2 className="text-[14px] font-display font-semibold leading-tight">
+                    <span className="bg-gradient-to-r from-[#D4A27F] via-white/90 to-[#C08B5C] bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_4s_ease-in-out_infinite]">Vasthu</span>
+                    <span className="text-white/90"> Help</span>
+                  </h2>
+                  <p className="text-[11px] text-white/35 leading-tight mt-0.5">How can we help you today?</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors duration-200 p-1.5 rounded-lg hover:bg-white/[0.05]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Tab bar */}
+            <div className="flex items-center gap-1 px-6 relative z-10 flex-shrink-0 border-b border-white/[0.06]">
+              {TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = view === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setView(tab.key)}
+                    className={`relative flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-medium transition-colors duration-200 ${
+                      isActive ? 'text-copper-400' : 'text-white/35 hover:text-white/60'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    {tab.label}
+                    {isActive && (
+                      <motion.div
+                        className="absolute bottom-0 left-1 right-1 h-[2px] rounded-full bg-copper-500"
+                        layoutId="help-tab-indicator"
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* View content */}
+            <div className="flex-1 min-h-0 overflow-hidden relative z-10">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={view}
+                  className="h-full"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                >
+                  {view === 'home' && <HomeView onNavigate={navigateTo} />}
+                  {view === 'faq' && <FAQView />}
+                  {view === 'contact' && <ContactView />}
+                  {view === 'guides' && <GuidesView />}
+                  {view === 'whats-new' && <WhatsNewView />}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

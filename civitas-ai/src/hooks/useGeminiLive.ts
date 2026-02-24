@@ -24,6 +24,8 @@ export interface VoiceTurn {
 export interface ConnectOptions {
   token: string;
   tokenType?: 'ephemeral' | 'api_key';
+  /** Model name returned by the backend token endpoint (overrides the default) */
+  model?: string;
   systemInstructions: string;
   language?: string;
   voiceName?: string;
@@ -211,6 +213,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     const {
       token,
       tokenType,
+      model: backendModel,
       systemInstructions,
       language,
       voiceName,
@@ -220,6 +223,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
       userId,
       thinkingBudget,
     } = opts;
+    const resolvedModel = backendModel || GEMINI_LIVE_MODEL;
 
     // Store opts for auto-reconnect (token will be refreshed on reconnect by useVoiceSession)
     lastConnectOptsRef.current = opts;
@@ -237,7 +241,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
     const wsUrl =
       `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?${authParam}=${token}`;
 
-    console.log('[useGeminiLive] Connecting:', { tokenType, version: 'v1beta', model: GEMINI_LIVE_MODEL, toolCount: tools?.length });
+    console.log('[useGeminiLive] Connecting:', { tokenType, version: 'v1beta', model: resolvedModel, toolCount: tools?.length });
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
@@ -297,7 +301,7 @@ export function useGeminiLive(): UseGeminiLiveReturn {
       // Build setup message (structure matches official Python SDK wire format)
       const setupMsg: Record<string, unknown> = {
         setup: {
-          model: `models/${GEMINI_LIVE_MODEL}`,
+          model: `models/${resolvedModel}`,
           generationConfig: {
             responseModalities: ['AUDIO'],
             temperature: 0.9,
@@ -690,9 +694,9 @@ export function useGeminiLive(): UseGeminiLiveReturn {
 
   const sessionLimitSeconds = cameraUsed ? SESSION_LIMIT_WITH_CAMERA : SESSION_LIMIT_AUDIO_ONLY;
 
-  // Start session timer when connected
+  // Start session timer when session is established (status reaches 'listening')
   useEffect(() => {
-    if (status === 'connected') {
+    if (status === 'listening') {
       sessionStartRef.current = Date.now();
       sessionWarningFiredRef.current = false;
 
