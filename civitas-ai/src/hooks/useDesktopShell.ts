@@ -18,9 +18,11 @@ import { uploadFile } from '../services/fileStorage';
 import { parsePropertyQuery, parseChatQuery } from '../utils/v2Helpers';
 import { useThinkingQueue } from './useThinkingQueue';
 import type { ThinkingStepInput } from './useThinkingQueue';
+import { useSubscription } from './useSubscription';
 import { parseDraftBlocks } from '../utils/parseDraftBlocks';
 import { useInboundMessages } from './useInboundMessages';
 import type { InboundMessage } from '../components/chat/tool-cards/InboundMessageCard';
+import { DEFAULT_MODEL_ID } from '../constants/models';
 // import { usePortfolio } from '../contexts/PortfolioContext';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
@@ -45,7 +47,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'chat' | 'marketplace' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'integrations';
+export type TabType = 'home' | 'deals' | 'teams' | 'chat' | 'marketplace' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'integrations';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -67,6 +69,12 @@ export interface ReportDrawerState {
   propertyAddress?: string;
 }
 
+// Report billing confirmation state
+export interface ReportBillingState {
+  isOpen: boolean;
+  pendingReportType: InvestmentReportFormat | null;
+}
+
 // Command Center state (for property intelligence workspace)
 export interface CommandCenterState {
   selectedPropertyId: string | null;
@@ -75,7 +83,7 @@ export interface CommandCenterState {
   isPanePinned: boolean;
 }
 
-const NAVIGABLE_TABS: TabType[] = ['chat', 'reports', 'portfolio', 'analysis'];
+const NAVIGABLE_TABS: TabType[] = ['home', 'deals', 'chat', 'reports', 'portfolio', 'analysis'];
 const isNavigableTab = (tab?: string): tab is TabType =>
   !!tab && NAVIGABLE_TABS.includes(tab as TabType);
 
@@ -141,9 +149,9 @@ export function useDesktopShell() {
   // latest value without needing it in its dependency array.
   const [selectedModel, setSelectedModelRaw] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('civitas-selected-model') || 'gemini-2.5-flash';
+      return localStorage.getItem('civitas-selected-model') || DEFAULT_MODEL_ID;
     }
-    return 'gemini-2.5-flash';
+    return DEFAULT_MODEL_ID;
   });
   const selectedModelRef = useRef(selectedModel);
   const setSelectedModel = (modelId: string) => {
@@ -163,7 +171,7 @@ export function useDesktopShell() {
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('chat');
+  const [activeTab, setActiveTab] = useState<TabType>('home');
   const [activeProperty, setActiveProperty] = useState<any | null>(null);
 
   // Inbound message SSE listener
@@ -260,6 +268,13 @@ export function useDesktopShell() {
     isPanePinned: false,
   });
 
+  // Report billing confirmation
+  const [reportBilling, setReportBilling] = useState<ReportBillingState>({
+    isOpen: false,
+    pendingReportType: null,
+  });
+  const { isPro, isFree, remaining: subRemaining } = useSubscription();
+
   // Track latest P&L output for report generation
   const [latestPnlOutput, setLatestPnlOutput] = useState<PnLOutput | null>(null);
 
@@ -279,6 +294,9 @@ export function useDesktopShell() {
   // Native model thinking text (Claude extended thinking, Gemini thought parts)
   const [nativeThinkingText, setNativeThinkingText] = useState<string | null>(null);
   const nativeThinkingRef = useRef<string>('');
+
+  // Active model label for ThinkingIndicator badge (set by model-selected events)
+  const [activeModelLabel, setActiveModelLabel] = useState<string>('');
 
   // --- Mode suggestion from AI (research/strategist → hunter switch) ---
   const modeSuggestionRef = useRef<{ suggestedMode: string; reason: string; autoQuery: string } | null>(null);
@@ -305,6 +323,12 @@ export function useDesktopShell() {
   const finalReceivedRef = useRef<boolean>(false);
   // Track draft blocks already extracted mid-stream so we don't duplicate on final
   const draftBlocksExtractedRef = useRef<boolean>(false);
+  // Web search sources to attach to the current message when finalizing
+  const pendingWebSourcesRef = useRef<Message['webSources']>(null);
+  // Track if web search ran for this message (so we can show fallback when final is empty)
+  const webSearchRanRef = useRef<boolean>(false);
+  // Pure reasoning steps from reasoning-delta only (excludes operational tool steps)
+  const reasoningTraceRef = useRef<{ text: string; source: string }[]>([]);
   // Stall detection: timestamp of last event received
   const lastEventTimeRef = useRef<number>(Date.now());
 
@@ -410,8 +434,11 @@ export function useDesktopShell() {
     }
   }, [threadMap]);
 
-  // Persist messages and auto-save to history
+  // Persist messages and auto-save to history (skip when temporary chat)
   useEffect(() => {
+    if (isCurrentChatTemporary) {
+      return;
+    }
     window.localStorage.setItem('civitas-chat-messages', JSON.stringify(messages));
 
     if (messages.length > 0) {
@@ -436,7 +463,7 @@ export function useDesktopShell() {
         return prev;
       });
     }
-  }, [messages, activeChatId]);
+  }, [messages, activeChatId, isCurrentChatTemporary]);
 
   // Control smart suggestions display
   useEffect(() => {
@@ -582,9 +609,13 @@ export function useDesktopShell() {
     inlineActionsRef.current = [];
     modeSuggestionRef.current = null;
     thinkingTraceRef.current = [];
+    reasoningTraceRef.current = [];
+    setActiveModelLabel('');
     thinkingStartTimeRef.current = Date.now();
     pendingFinalizationRef.current = null;
     finalReceivedRef.current = false;
+    pendingWebSourcesRef.current = null;
+    webSearchRanRef.current = false;
     nativeThinkingRef.current = '';
     setNativeThinkingText(null);
     draftBlocksExtractedRef.current = false;
@@ -768,6 +799,78 @@ export function useDesktopShell() {
         break;
       }
 
+      // ── Unified Event: model-selected (auto model routing) ──
+      case 'model-selected': {
+        const msEvt = event as any;
+        const msName = msEvt.model_name || msEvt.model_id || 'Unknown';
+        const msReason = msEvt.reason || '';
+        logger.info(`[useDesktopShell] Auto-selected model: ${msName}`, { reason: msReason });
+        setActiveModelLabel(msName);
+        thinkingQueue.push({
+          stage: 'understanding',
+          message: `Using ${msName}${msReason ? ` \u2014 ${msReason.charAt(0).toLowerCase() + msReason.slice(1)}` : ''}`,
+          source: 'Auto',
+        });
+        break;
+      }
+
+      // ── Unified Event: reasoning-delta (structured reasoning step) ──
+      case 'reasoning-delta': {
+        const rdEvt = event as any;
+        const rdText = rdEvt.text || '';
+        const rdSource = rdEvt.source || 'Agent Reasoning';
+        if (rdText) {
+          thinkingQueue.push({ stage: 'composing', message: rdText, source: rdSource });
+          const alreadyInRdTrace = thinkingTraceRef.current.some(s => s.text === rdText);
+          if (!alreadyInRdTrace) {
+            thinkingTraceRef.current.push({ text: rdText, source: rdSource });
+          }
+          // reasoningTraceRef stores ONLY reasoning-delta steps (AI analysis from <thinking> tags)
+          // — excludes operational steps like "Searching the web", "Reading sources", etc.
+          const alreadyInReasoningTrace = reasoningTraceRef.current.some(s => s.text === rdText);
+          if (!alreadyInReasoningTrace) {
+            reasoningTraceRef.current.push({ text: rdText, source: rdSource });
+          }
+        }
+        break;
+      }
+
+      // ── Unified Event: tool-start (tool invocation begins) ──
+      case 'tool-start': {
+        const tsEvt = event as any;
+        const tsLabel = tsEvt.label || `Running ${tsEvt.tool_name || 'tool'}`;
+        if (tsEvt.tool_name === 'web_search') webSearchRanRef.current = true;
+        thinkingQueue.push({ stage: 'gathering', message: tsLabel, source: 'Tool Execution' });
+        thinkingTraceRef.current.push({ text: tsLabel, source: 'Tool Execution' });
+        break;
+      }
+
+      // ── Unified Event: tool-progress (intermediate tool update) ──
+      case 'tool-progress': {
+        const tpEvt = event as any;
+        const tpLabel = tpEvt.label || 'Processing...';
+        thinkingQueue.push({ stage: 'gathering', message: tpLabel, source: 'Tool Execution' });
+        break;
+      }
+
+      // ── Unified Event: tool-end (tool completed) ──
+      case 'tool-end': {
+        const teEvt = event as any;
+        const teSummary = teEvt.result_summary || `${teEvt.label || 'Tool'} complete`;
+        thinkingQueue.push({ stage: 'gathering', message: teSummary, source: 'Tool Execution' });
+        break;
+      }
+
+      // ── Unified Event: step-start / step-end (processing step lifecycle) ──
+      case 'step-start':
+      case 'step-end':
+        break;
+
+      // ── Unified Event: reasoning-start / reasoning-end (reasoning lifecycle) ──
+      case 'reasoning-start':
+      case 'reasoning-end':
+        break;
+
       // ── V2 Canonical Event: thinking_token (native reasoning stream) ──
       case 'thinking_token': {
         const thinkDelta = (event as any).delta || '';
@@ -880,7 +983,7 @@ export function useDesktopShell() {
 
             logger.info(`[useDesktopShell] Mode auto-switched to ${toMode}`, { switchReason, autoQuery });
             setCurrentMode(toMode as AgentMode);
-            const modeLabels: Record<string, string> = { hunter: 'Hunter', research: 'Research', strategist: 'Strategist' };
+            const modeLabels: Record<string, string> = { hunter: 'Deep Search', research: 'Deep Research', strategist: 'Expert Strategist' };
             showToast(`Switched to ${modeLabels[toMode] || toMode} mode — ${switchReason}`, 'info');
 
             if (autoQuery) {
@@ -896,6 +999,27 @@ export function useDesktopShell() {
             const switchHint = `\n\n---\n**Tip:** ${sugReason}\n`;
             pushToWordBuffer(switchHint);
             startDrainLoop(messageId);
+            break;
+          }
+          case 'model_selected': {
+            const modelName = payload.model_name || payload.model_id || 'Unknown';
+            const reason = payload.reason || '';
+            logger.info(`[useDesktopShell] Auto-selected model: ${modelName}`, { reason });
+            setActiveModelLabel(modelName);
+            thinkingQueue.push({
+              stage: 'understanding',
+              message: `Using ${modelName}${reason ? ` — ${reason.charAt(0).toLowerCase() + reason.slice(1)}` : ''}`,
+              source: 'Auto',
+            });
+            break;
+          }
+          case 'web_sources': {
+            const sources = payload.sources || [];
+            pendingWebSourcesRef.current = sources.map((s: { title?: string; url: string; snippet?: string }) => ({
+              title: s.title,
+              url: s.url,
+              snippet: s.snippet,
+            }));
             break;
           }
           case 'rentals': {
@@ -984,7 +1108,11 @@ export function useDesktopShell() {
         setIsLoading(false);
         isStreamingRef.current = false;
 
-        const { cleanContent: finalCleanContent, draftTools: rawFinalDraftTools } = parseDraftBlocks(finalText);
+        let finalTextToUse = finalText;
+        if (!finalTextToUse?.trim() && (pendingWebSourcesRef.current?.length || webSearchRanRef.current)) {
+          finalTextToUse = "I found sources but couldn't generate a summary. Try rephrasing or ask a more specific question.";
+        }
+        const { cleanContent: finalCleanContent, draftTools: rawFinalDraftTools } = parseDraftBlocks(finalTextToUse);
         // Skip tools already extracted mid-stream
         const finalDraftTools = draftBlocksExtractedRef.current ? [] : rawFinalDraftTools;
         console.log('[SSE final] draftTools:', finalDraftTools.length, 'eagerly extracted:', draftBlocksExtractedRef.current, 'clean:', finalCleanContent.slice(0, 120));
@@ -994,9 +1122,12 @@ export function useDesktopShell() {
         const finalSteps = thinkingTraceRef.current.length > 0 ? [...thinkingTraceRef.current] : undefined;
         const finalToolsUsed = currentToolsRef.current.map(t => t.tool).filter(Boolean);
         const finalTrace = finalSteps ? { steps: finalSteps, durationMs: finalDuration, toolsUsed: finalToolsUsed } : undefined;
+        const finalReasoningSteps = reasoningTraceRef.current.length > 0 ? [...reasoningTraceRef.current] : undefined;
+        const finalReasoningTrace = finalReasoningSteps ? { steps: finalReasoningSteps, durationMs: finalDuration } : undefined;
         const finalModeSuggestion = modeSuggestionRef.current;
         modeSuggestionRef.current = null;
         const finalNativeThinking = nativeThinkingRef.current || undefined;
+        const finalWebSources = pendingWebSourcesRef.current;
 
         pendingFinalizationRef.current = (mId: string) => {
           setMessages(prev => {
@@ -1010,9 +1141,11 @@ export function useDesktopShell() {
                 timestamp: new Date(),
                 isStreaming: false,
                 ...(finalTrace ? { thinkingTrace: finalTrace } : {}),
+                ...(finalReasoningTrace ? { reasoningTrace: finalReasoningTrace } : {}),
                 ...(finalModeSuggestion ? { modeSuggestion: finalModeSuggestion } : {}),
                 ...(finalDraftTools.length > 0 ? { tools: finalDraftTools } : {}),
                 ...(finalNativeThinking ? { nativeThinkingText: finalNativeThinking } : {}),
+                ...(finalWebSources?.length ? { webSources: finalWebSources } : {}),
               } as Message];
             }
             return prev.map(m =>
@@ -1021,12 +1154,16 @@ export function useDesktopShell() {
                 content: finalCleanContent,
                 isStreaming: false,
                 ...(finalTrace ? { thinkingTrace: finalTrace } : {}),
+                ...(finalReasoningTrace ? { reasoningTrace: finalReasoningTrace } : {}),
                 ...(finalModeSuggestion ? { modeSuggestion: finalModeSuggestion } : {}),
                 ...(finalDraftTools.length > 0 ? { tools: [...(m.tools || []), ...finalDraftTools] } : {}),
                 ...(finalNativeThinking ? { nativeThinkingText: finalNativeThinking } : {}),
+                ...(finalWebSources?.length ? { webSources: finalWebSources } : {}),
               } : m
             );
           });
+          pendingWebSourcesRef.current = null;
+          webSearchRanRef.current = false;
         };
 
         if (rafIdRef.current === null) {
@@ -1312,9 +1449,9 @@ export function useDesktopShell() {
 
         // Show toast notification
         const modeLabels: Record<string, string> = {
-          hunter: 'Hunter',
-          research: 'Research',
-          strategist: 'Strategist',
+          hunter: 'Deep Search',
+          research: 'Deep Research',
+          strategist: 'Expert Strategist',
         };
         showToast(
           `Switched to ${modeLabels[toMode] || toMode} mode — ${reason}`,
@@ -1356,6 +1493,7 @@ export function useDesktopShell() {
         const v2ModeSuggestion = modeSuggestionRef.current;
         modeSuggestionRef.current = null;
         const v2NativeThinking = nativeThinkingRef.current || undefined;
+        const v2WebSources = pendingWebSourcesRef.current;
 
         const { cleanContent: v2CleanContent, draftTools: v2DraftTools } = parseDraftBlocks(v2Content);
 
@@ -1374,6 +1512,7 @@ export function useDesktopShell() {
                 ...(v2ModeSuggestion ? { modeSuggestion: v2ModeSuggestion } : {}),
                 ...(v2DraftTools.length > 0 ? { tools: v2DraftTools } : {}),
                 ...(v2NativeThinking ? { nativeThinkingText: v2NativeThinking } : {}),
+                ...(v2WebSources?.length ? { webSources: v2WebSources } : {}),
               } as Message];
             }
             return prev.map(m =>
@@ -1388,10 +1527,13 @@ export function useDesktopShell() {
                     tools: [...(m.tools || []), ...v2DraftTools]
                   } : {}),
                   ...(v2NativeThinking ? { nativeThinkingText: v2NativeThinking } : {}),
+                  ...(v2WebSources?.length ? { webSources: v2WebSources } : {}),
                 }
                 : m
             );
           });
+          pendingWebSourcesRef.current = null;
+          webSearchRanRef.current = false;
         };
 
         if (rafIdRef.current === null) {
@@ -1683,26 +1825,59 @@ export function useDesktopShell() {
         const doneThinkingTrace = doneTraceSteps
           ? { steps: doneTraceSteps, durationMs: doneDuration, toolsUsed: doneToolsUsed }
           : undefined;
-        const doneFinalContent = streamContentRef.current;
+        const doneReasoningSteps = reasoningTraceRef.current.length > 0
+          ? [...reasoningTraceRef.current]
+          : undefined;
+        const doneReasoningTrace = doneReasoningSteps
+          ? { steps: doneReasoningSteps, durationMs: doneDuration }
+          : undefined;
+        let doneFinalContent = streamContentRef.current;
+        if (!doneFinalContent?.trim() && (pendingWebSourcesRef.current?.length || webSearchRanRef.current)) {
+          doneFinalContent = "I found sources but couldn't generate a summary. Try rephrasing or ask a more specific question.";
+        }
         const { cleanContent: doneCleanContent, draftTools: doneDraftTools } = parseDraftBlocks(doneFinalContent);
         const doneNativeThinking = nativeThinkingRef.current || undefined;
+        const doneWebSources = pendingWebSourcesRef.current;
 
         pendingFinalizationRef.current = (mId: string) => {
-          setMessages(prev => prev.map(m =>
-            m.id === mId
-              ? {
-                ...m,
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === mId);
+            if (!exists) {
+              return [...prev, {
+                id: mId,
                 content: doneCleanContent,
+                role: 'assistant',
+                type: 'assistant',
+                timestamp: new Date(),
                 isStreaming: false,
                 ...(doneInlineActions.length > 0 ? { inlineActions: doneInlineActions } : {}),
                 ...(doneThinkingTrace ? { thinkingTrace: doneThinkingTrace } : {}),
-                ...(doneDraftTools.length > 0 ? {
-                  tools: [...(m.tools || []), ...doneDraftTools]
-                } : {}),
+                ...(doneReasoningTrace ? { reasoningTrace: doneReasoningTrace } : {}),
+                ...(doneDraftTools.length > 0 ? { tools: doneDraftTools } : {}),
                 ...(doneNativeThinking ? { nativeThinkingText: doneNativeThinking } : {}),
-              }
-              : m
-          ));
+                ...(doneWebSources?.length ? { webSources: doneWebSources } : {}),
+              } as Message];
+            }
+            return prev.map(m =>
+              m.id === mId
+                ? {
+                  ...m,
+                  content: doneCleanContent,
+                  isStreaming: false,
+                  ...(doneInlineActions.length > 0 ? { inlineActions: doneInlineActions } : {}),
+                  ...(doneThinkingTrace ? { thinkingTrace: doneThinkingTrace } : {}),
+                  ...(doneReasoningTrace ? { reasoningTrace: doneReasoningTrace } : {}),
+                  ...(doneDraftTools.length > 0 ? {
+                    tools: [...(m.tools || []), ...doneDraftTools]
+                  } : {}),
+                  ...(doneNativeThinking ? { nativeThinkingText: doneNativeThinking } : {}),
+                  ...(doneWebSources?.length ? { webSources: doneWebSources } : {}),
+                }
+                : m
+            );
+          });
+          pendingWebSourcesRef.current = null;
+          webSearchRanRef.current = false;
         };
 
         // If drain loop is not running (e.g. no content was streamed), finalize now
@@ -1866,13 +2041,18 @@ export function useDesktopShell() {
         };
       } else if (extra?.propertyContext) {
         endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
-        requestBody = parseChatQuery(trimmedMessage, 'research', effectiveThreadId, language, extra.propertyContext, identity, recentHistory, profContext, prefs, selectedModelRef.current);
-      } else if (currentMode === 'hunter') {
-        endpoint = `${CIVITAS_API_BASE}/v2/property/search/stream`;
-        requestBody = parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation, language }, currentMode, selectedModelRef.current);
+        requestBody = parseChatQuery(trimmedMessage, 'research', effectiveThreadId, language, extra.propertyContext, identity, recentHistory, profContext, prefs, selectedModelRef.current, isCurrentChatTemporary);
       } else {
-        endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
-        requestBody = parseChatQuery(trimmedMessage, currentMode as 'research' | 'strategist', effectiveThreadId, language, undefined, identity, recentHistory, profContext, prefs, selectedModelRef.current);
+        const effectiveMode = currentMode;
+        const effectiveModel = selectedModelRef.current;
+
+        if (effectiveMode === 'hunter') {
+          endpoint = `${CIVITAS_API_BASE}/v2/property/search/stream`;
+          requestBody = parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation, language }, effectiveMode, effectiveModel);
+        } else {
+          endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
+          requestBody = parseChatQuery(trimmedMessage, effectiveMode as 'research' | 'strategist', effectiveThreadId, language, undefined, identity, recentHistory, profContext, prefs, effectiveModel, isCurrentChatTemporary);
+        }
       }
 
       console.log(`[useDesktopShell] Calling ${shouldUseV2 ? `V2 ${currentMode}` : 'V1'} endpoint:`, endpoint, `model=${selectedModelRef.current}`);
@@ -2228,7 +2408,7 @@ export function useDesktopShell() {
             undefined, // actionContext
             undefined, // attachment
             currentThreadId || undefined, // threadId
-            currentMode // mode
+            currentMode
           );
           fullResponse = response.content;
           navigate = response.navigate;
@@ -2534,13 +2714,12 @@ export function useDesktopShell() {
     }));
   };
 
-  const generateReportWithType = async (reportType: InvestmentReportFormat) => {
+  const executeReportGeneration = async (reportType: InvestmentReportFormat) => {
     setReportDrawer(prev => ({ ...prev, isLoading: true, error: null }));
 
     logger.info('[useDesktopShell] Generating report', { reportType, propertyAddress: reportDrawer.propertyAddress });
 
     try {
-      // Build valuation data from latest P&L output if available
       const valuationData = latestPnlOutput
         ? {
           strategy: latestPnlOutput.meta.strategy,
@@ -2580,8 +2759,11 @@ export function useDesktopShell() {
         isLoading: false,
       }));
 
-      // Notify Reports page to refresh its list
       window.dispatchEvent(new CustomEvent('reports-updated'));
+
+      if (response.charge_amount_cents) {
+        showToast(`Report generated. $${(response.charge_amount_cents / 100).toFixed(2)} added to your billing period.`, 'success');
+      }
 
       logger.info('[useDesktopShell] Report generated successfully', { reportType });
     } catch (err) {
@@ -2593,6 +2775,26 @@ export function useDesktopShell() {
       }));
       logger.error('[useDesktopShell] Report generation failed', { error: message });
     }
+  };
+
+  const generateReportWithType = async (reportType: InvestmentReportFormat) => {
+    if (isPro || isFree) {
+      setReportBilling({ isOpen: true, pendingReportType: reportType });
+      return;
+    }
+    await executeReportGeneration(reportType);
+  };
+
+  const confirmReportBilling = async () => {
+    const reportType = reportBilling.pendingReportType;
+    setReportBilling({ isOpen: false, pendingReportType: null });
+    if (reportType) {
+      await executeReportGeneration(reportType);
+    }
+  };
+
+  const cancelReportBilling = () => {
+    setReportBilling({ isOpen: false, pendingReportType: null });
   };
 
   const clearReport = () => {
@@ -2741,14 +2943,14 @@ export function useDesktopShell() {
     if (newMode === currentMode) return;
 
     const modeLabels: Record<AgentMode, string> = {
-      hunter: 'Hunter',
-      research: 'Research',
-      strategist: 'Strategist',
+      hunter: 'Deep Search',
+      research: 'Deep Research',
+      strategist: 'Expert Strategist',
     };
     const modeDescriptions: Record<AgentMode, string> = {
-      hunter: '**Deal Hunter activated.** I search, score, and vet deals — no fluff. Every property gets a verdict: **Buy, Negotiate, or Pass.** Give me a city or address and I\'ll run the numbers.',
-      research: '**Research Analyst activated.** I dig deep into markets, trends, and fundamentals — with citations. I\'ll match my depth to your experience level. Ask me about any market or investing concept.',
-      strategist: '**Portfolio Strategist activated.** I think in decades, not deals. Every recommendation connects to your broader portfolio: risk exposure, diversification, and long-term wealth. Tell me your goals and current position.',
+      hunter: '**Deep Search activated.** I run exhaustive property analysis — income potential, risk factors, financing scenarios, and neighborhood context. Every property gets a thorough verdict. Give me a city or address.',
+      research: '**Deep Research activated.** I synthesize multiple data sources — market stats, economic indicators, census data, and policy analysis — to give you the complete picture. Ask me about any market or concept.',
+      strategist: '**Expert Strategist activated.** I think like an institutional portfolio manager — scenario modeling, tax optimization, risk-adjusted returns, and multi-decade planning. Tell me your goals and current position.',
     };
 
     // Only inject transition message if there are existing messages in the conversation
@@ -2824,6 +3026,11 @@ export function useDesktopShell() {
     clearReport,
     updateLatestPnlOutput,
 
+    // Report Billing
+    reportBilling,
+    confirmReportBilling,
+    cancelReportBilling,
+
     // Thinking / Tools
     thinking,
     completedTools,
@@ -2835,6 +3042,7 @@ export function useDesktopShell() {
       isDone: thinkingQueue.isDone,
       elapsedSeconds: thinkingQueue.elapsedSeconds,
     },
+    activeModelLabel,
     handleRegenerate,
     refreshToolResults,
     toolResultsByThread,

@@ -228,30 +228,36 @@ export function useThinkingQueue(): ThinkingQueueState {
       }
 
       const pending = pendingRef.current;
+      const dedupKey = `${input.stage}::${input.source || ''}`;
 
-      // Dedup against last pending step
-      if (pending.length > 0 && pending[pending.length - 1].stage === input.stage) {
-        pending[pending.length - 1] = makeStep(input);
-        return;
+      // Dedup against last pending step (by stage+source so different
+      // tools sharing the same stage don't collapse each other)
+      if (pending.length > 0) {
+        const lastPending = pending[pending.length - 1];
+        const lastKey = `${lastPending.stage}::${lastPending.source || ''}`;
+        if (lastKey === dedupKey) {
+          pending[pending.length - 1] = makeStep(input);
+          return;
+        }
       }
 
       // Dedup against last visible step (only when nothing pending)
       const visible = visibleRef.current;
-      if (
-        pending.length === 0 &&
-        visible.length > 0 &&
-        visible[visible.length - 1].stage === input.stage
-      ) {
-        updateVisible(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            message: input.message,
-            source: input.source,
-          };
-          return updated;
-        });
-        return;
+      if (pending.length === 0 && visible.length > 0) {
+        const lastVisible = visible[visible.length - 1];
+        const lastVisKey = `${lastVisible.stage}::${lastVisible.source || ''}`;
+        if (lastVisKey === dedupKey) {
+          updateVisible(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              message: input.message,
+              source: input.source,
+            };
+            return updated;
+          });
+          return;
+        }
       }
 
       // Enqueue the new step and start the reveal pump

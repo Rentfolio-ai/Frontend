@@ -44,8 +44,22 @@ export interface SubscriptionStatus {
         watchlist_properties: number;
     };
     usage_this_month?: Record<string, number>;
-    /** True if the user has never had a Pro subscription — eligible for 50% first-month coupon */
     first_month_eligible?: boolean;
+    needs_plan_migration?: boolean;
+}
+
+export interface ActionChargeResult {
+    success: boolean;
+    action_type: string;
+    amount_cents: number;
+    period_total_cents: number;
+}
+
+export interface CurrentUsage {
+    report_generation?: { count: number; total_cents: number };
+    deal_close?: { count: number; total_cents: number };
+    period_total_cents: number;
+    action_prices: Record<string, number>;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,6 +164,60 @@ export const subscriptionService = {
 
         if (!response.ok) {
             throw new Error('Failed to cancel subscription');
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Record a billable action (report_generation or deal_close)
+     */
+    recordAction: async (
+        actionType: 'report_generation' | 'deal_close',
+        metadata?: Record<string, unknown>,
+    ): Promise<ActionChargeResult> => {
+        const response = await fetch(`${API_BASE_URL}/api/billing/record-action`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ action_type: actionType, metadata }),
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(err.detail || 'Failed to record action');
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Get metered usage for the current billing period
+     */
+    getCurrentUsage: async (): Promise<CurrentUsage> => {
+        const response = await fetch(`${API_BASE_URL}/api/billing/current-usage`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch current usage');
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Migrate from old $100/month plan to new $29/month + metered plan
+     */
+    migrateSubscription: async (): Promise<{ success: boolean; effective_date?: string }> => {
+        const response = await fetch(`${API_BASE_URL}/api/billing/migrate-subscription`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            throw new Error(err.detail || 'Failed to migrate subscription');
         }
 
         return response.json();

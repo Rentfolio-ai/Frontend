@@ -12,6 +12,8 @@ import {
   OutlookIcon,
   WhatsAppIcon,
   IMessageIcon,
+  GoogleMeetIcon,
+  ZoomIcon,
 } from '../integrations/BrandIcons';
 import { VoiceSampleRecorder } from '../integrations/VoiceSampleRecorder';
 
@@ -28,7 +30,7 @@ interface IntegrationStatus {
   voice_profile?: { status: string };
 }
 
-type CategoryFilter = 'all' | 'email' | 'messaging' | 'voice';
+type CategoryFilter = 'all' | 'email' | 'messaging' | 'voice' | 'meetings';
 
 interface IntegrationDef {
   id: string;
@@ -86,6 +88,24 @@ const INTEGRATIONS: IntegrationDef[] = [
     capabilityTag: 'AI Voice',
     description: 'Clone your voice so Vasthu can make calls for you',
   },
+  {
+    id: 'google_meet',
+    title: 'Google Meet',
+    category: 'meetings',
+    icon: GoogleMeetIcon,
+    brandBg: 'bg-green-500/10',
+    capabilityTag: 'Video calls',
+    description: 'Create and join Google Meet video calls',
+  },
+  {
+    id: 'zoom',
+    title: 'Zoom',
+    category: 'meetings',
+    icon: ZoomIcon,
+    brandBg: 'bg-blue-500/10',
+    capabilityTag: 'Video calls',
+    description: 'Create and join Zoom video meetings',
+  },
 ];
 
 const CATEGORY_LABELS: Record<CategoryFilter, string> = {
@@ -93,7 +113,17 @@ const CATEGORY_LABELS: Record<CategoryFilter, string> = {
   email: 'Email',
   messaging: 'Messaging',
   voice: 'Voice',
+  meetings: 'Meetings',
 };
+
+const MEETING_IDS = new Set(['google_meet', 'zoom']);
+
+const MeetingBadge: React.FC = () => (
+  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-400">
+    <ExternalLink className="w-3 h-3" />
+    Available
+  </span>
+);
 
 const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
   <span
@@ -259,7 +289,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
   );
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<CategoryFilter, number> = { all: INTEGRATIONS.length, email: 0, messaging: 0, voice: 0 };
+    const counts: Record<CategoryFilter, number> = { all: INTEGRATIONS.length, email: 0, messaging: 0, voice: 0, meetings: 0 };
     for (const i of INTEGRATIONS) counts[i.category]++;
     return counts;
   }, []);
@@ -281,6 +311,12 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
         case 'voice_profile':
           setShowVoiceRecorder(true);
           break;
+        case 'google_meet':
+          window.open('https://meet.google.com/new', '_blank');
+          break;
+        case 'zoom':
+          window.open('https://zoom.us/start/videomeeting', '_blank');
+          break;
         default:
           break;
       }
@@ -290,6 +326,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
 
   const getActionLabel = useCallback(
     (id: string): string => {
+      if (MEETING_IDS.has(id)) return 'New Meeting';
       if (isConnected(id)) return 'Disconnect';
       if (id === 'voice_profile') {
         const vs = status.voice_profile?.status;
@@ -402,6 +439,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                     const connected = isConnected(integration.id);
                     const detail = getDetail(integration.id);
                     const isVoice = integration.id === 'voice_profile';
+                    const isMeeting = MEETING_IDS.has(integration.id);
                     const actionLabel = getActionLabel(integration.id);
 
                     return (
@@ -418,7 +456,9 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                           <div className={`w-10 h-10 rounded-xl ${isVoice ? integration.brandBg : ''} flex items-center justify-center flex-shrink-0 overflow-hidden`}>
                             <Icon className={isVoice ? 'w-5 h-5 text-[#C08B5C]' : 'w-10 h-10'} />
                           </div>
-                          {isVoice ? (
+                          {isMeeting ? (
+                            <MeetingBadge />
+                          ) : isVoice ? (
                             <VoiceStatusBadge status={voiceStatus} />
                           ) : (
                             <StatusBadge connected={connected} />
@@ -461,9 +501,11 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                             onClick={() => handleAction(integration.id)}
                             disabled={actionLabel === 'Processing…'}
                             className={`px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                              connected
-                                ? 'text-white/40 hover:text-red-400/80 bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.06] hover:border-red-500/20'
-                                : 'text-white/80 bg-[#C08B5C]/20 hover:bg-[#C08B5C]/30 border border-[#C08B5C]/20'
+                              isMeeting
+                                ? 'text-white/80 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/20'
+                                : connected
+                                  ? 'text-white/40 hover:text-red-400/80 bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.06] hover:border-red-500/20'
+                                  : 'text-white/80 bg-[#C08B5C]/20 hover:bg-[#C08B5C]/30 border border-[#C08B5C]/20'
                             } disabled:opacity-40 disabled:cursor-not-allowed`}
                           >
                             {actionLabel}

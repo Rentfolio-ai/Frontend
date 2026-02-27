@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ArrowLeft,
     Check,
@@ -11,11 +11,14 @@ import {
     Infinity,
     BarChart3,
     FileText,
+    AlertCircle,
+    DollarSign,
+    TrendingUp,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckoutModal } from '../payments/CheckoutModal';
 import { useSubscription } from '../../hooks/useSubscription';
-import { subscriptionService } from '../../services/subscriptionService';
+import { subscriptionService, type CurrentUsage } from '../../services/subscriptionService';
 
 interface UpgradePageProps {
     onBack: () => void;
@@ -50,44 +53,44 @@ const PLANS = [
     {
         key: 'pro' as const,
         name: 'Pro',
-        monthlyPrice: 100,
-        annualPrice: 80,
-        desc: 'Unlimited access to everything.',
+        monthlyPrice: 29,
+        annualPrice: 23,
+        desc: 'Full access + pay-per-action for reports and deals.',
         premium: true,
         features: [
             { label: '100,000 AI tokens / month', group: 'core' },
             { label: 'Unlimited property analyses', group: 'core' },
-            { label: 'Unlimited PDF reports', group: 'core' },
+            { label: 'PDF reports at $5 each', group: 'core' },
+            { label: 'Deal close tracking at $15 each', group: 'core' },
             { label: 'Advanced market intelligence', group: 'advanced' },
             { label: 'All 3 AI modes', group: 'advanced' },
             { label: 'Voice mode with AI advisors', group: 'advanced', badge: 'Beta' },
             { label: 'ROI & Cap Rate forecasting', group: 'advanced' },
             { label: 'Priority execution queue', group: 'support' },
-            { label: 'API access', group: 'support', badge: 'Pro' },
         ],
     },
 ] as const;
 
 const FAQS = [
     {
-        q: 'Can I change my plan at any time?',
-        a: 'Yes, you can upgrade or downgrade your plan at any time. Changes to your subscription will take effect immediately.',
+        q: 'How does usage-based billing work?',
+        a: 'Your Pro subscription is $29/month for full platform access. PDF report generation ($5 each) and deal close fees ($15 each) are metered — they accumulate during your billing period and appear on your next invoice.',
     },
     {
         q: 'What payment methods are accepted?',
         a: 'We accept all major credit cards (Visa, Mastercard, Amex) and debit cards via Stripe. Apple Pay and Google Pay are also supported.',
     },
     {
-        q: 'How does the first month discount work?',
-        a: 'New Pro subscribers automatically receive 50% off their first month. You will be billed $50 for the first month, then the regular rate thereafter.',
-    },
-    {
         q: 'Are there any hidden fees?',
-        a: 'No hidden monthly fees. Report downloads (PDFs) are billed at $2.00 each. Viewing reports within the app is always included.',
+        a: 'No. Your base subscription is $29/month. You only pay extra when you generate reports or mark deals as closed. All other features are included.',
     },
     {
         q: 'How do cancellations work?',
-        a: 'You can cancel your subscription at any time. You will retain access to Pro features until the end of your current billing cycle.',
+        a: 'You can cancel your subscription at any time. You will retain access to Pro features until the end of your current billing cycle. Outstanding metered charges are settled in your final invoice.',
+    },
+    {
+        q: 'What counts as a "deal close"?',
+        a: 'A deal close is self-reported. When you mark a property as "Closed" in your Deals page, a $15 fee is added to your billing period. This only happens when you explicitly change the status.',
     },
 ];
 
@@ -96,14 +99,39 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
     const [showCheckout, setShowCheckout] = useState(false);
     const [faqOpen, setFaqOpen] = useState<number | null>(null);
     const [isAnnual, setIsAnnual] = useState(false);
+    const [currentUsage, setCurrentUsage] = useState<CurrentUsage | null>(null);
+    const [migrating, setMigrating] = useState(false);
 
-    const isFirstMonth = subscription.first_month_eligible ?? true;
     const [selectingFree, setSelectingFree] = useState(false);
     const [cancelling, setCancelling] = useState(false);
 
     const currentTier = subscription.tier;
     const usage = subscription.usage_this_month ?? {};
     const limits = subscription.limits;
+    const needsMigration = subscription.needs_plan_migration ?? false;
+
+    useEffect(() => {
+        if (isPro) {
+            subscriptionService.getCurrentUsage()
+                .then(setCurrentUsage)
+                .catch(() => {});
+        }
+    }, [isPro]);
+
+    const handleMigrate = async () => {
+        setMigrating(true);
+        try {
+            const result = await subscriptionService.migrateSubscription();
+            if (result.success) {
+                await refetch();
+                alert(`Plan updated! New pricing takes effect ${result.effective_date ? `on ${new Date(result.effective_date).toLocaleDateString()}` : 'at your next billing cycle'}.`);
+            }
+        } catch (err) {
+            console.error('Migration failed:', err);
+        } finally {
+            setMigrating(false);
+        }
+    };
 
     const handleSelectFree = async () => {
         setSelectingFree(true);
@@ -202,6 +230,93 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                         </div>
                     </motion.section>
 
+                    {/* ── Migration Banner (for old $100/mo users) ── */}
+                    {needsMigration && (
+                        <motion.section initial="hidden" animate="visible" variants={reveal}>
+                            <div className="rounded-2xl border border-[#C08B5C]/25 bg-[#C08B5C]/[0.04] p-6 md:p-8">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-[#C08B5C]/15 flex items-center justify-center flex-shrink-0">
+                                        <AlertCircle className="w-5 h-5 text-[#C08B5C]" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-[15px] font-semibold text-white mb-1">We've updated our pricing</h3>
+                                        <p className="text-[13px] text-white/50 leading-relaxed mb-4">
+                                            Your current $100/month plan will transition to $29/month + pay-per-action.
+                                            You'll save on your base subscription and only pay for reports ($5 each) and deal closings ($15 each) as you use them.
+                                        </p>
+                                        <button
+                                            onClick={handleMigrate}
+                                            disabled={migrating}
+                                            className="px-5 py-2.5 rounded-xl bg-[#C08B5C] text-[#0A0A0C] text-[13px] font-semibold hover:bg-[#D4A27F] transition-colors disabled:opacity-50"
+                                        >
+                                            {migrating ? 'Switching...' : 'Switch to New Plan'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.section>
+                    )}
+
+                    {/* ── Add-on Pricing ── */}
+                    {isPro && (
+                        <motion.section initial="hidden" animate="visible" variants={reveal}>
+                            <h2 className="text-base font-medium text-white mb-4">Add-on Pricing</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5 flex items-center gap-4">
+                                    <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                                        <FileText className="w-4 h-4 text-white/40" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[13px] font-medium text-white/70">PDF Report</div>
+                                        <div className="text-[12px] text-white/30">$5.00 per report generated</div>
+                                    </div>
+                                </div>
+                                <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5 flex items-center gap-4">
+                                    <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                                        <DollarSign className="w-4 h-4 text-white/40" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[13px] font-medium text-white/70">Deal Close</div>
+                                        <div className="text-[12px] text-white/30">$15.00 per closed deal</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.section>
+                    )}
+
+                    {/* ── Current Period Charges ── */}
+                    {isPro && currentUsage && (
+                        <motion.section initial="hidden" animate="visible" variants={reveal}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-base font-medium text-white">Current Billing Period</h2>
+                                <span className="text-[11px] text-white/25 font-mono">
+                                    {new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    {' — '}
+                                    {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                            </div>
+                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+                                <div className="space-y-3">
+                                    <BillingLine label="Base subscription" amount={2900} />
+                                    <BillingLine
+                                        label={`Reports generated (${currentUsage.report_generation?.count ?? 0})`}
+                                        amount={currentUsage.report_generation?.total_cents ?? 0}
+                                    />
+                                    <BillingLine
+                                        label={`Deals closed (${currentUsage.deal_close?.count ?? 0})`}
+                                        amount={currentUsage.deal_close?.total_cents ?? 0}
+                                    />
+                                    <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between">
+                                        <span className="text-[13px] font-medium text-white/70">Estimated next invoice</span>
+                                        <span className="text-[15px] font-semibold text-white">
+                                            ${((2900 + (currentUsage.period_total_cents ?? 0)) / 100).toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.section>
+                    )}
+
                     {/* ── Annual / Monthly Toggle ── */}
                     <motion.section initial="hidden" animate="visible" variants={reveal} className="flex flex-col items-center gap-3">
                         <h2 className="text-xl font-semibold text-white tracking-tight">Choose your plan</h2>
@@ -262,11 +377,6 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                                 <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-gradient-to-r from-[#C08B5C] to-[#D4A27F] text-[#0A0A0C]">
                                                     Recommended
                                                 </span>
-                                                {isFirstMonth && (
-                                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-[#C08B5C]/25 text-[#D4A27F]">
-                                                        50% off first month
-                                                    </span>
-                                                )}
                                             </div>
                                         )}
                                         {isCurrent && (
@@ -445,7 +555,6 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                 isOpen={showCheckout}
                 onClose={() => setShowCheckout(false)}
                 plan="pro"
-                isFirstMonth={isFirstMonth}
                 onSuccess={handleCheckoutSuccess}
             />
         </div>
@@ -503,6 +612,17 @@ function TrustBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
         <div className="flex items-center gap-2 text-white/25">
             {icon}
             <span className="text-[11px] font-medium">{label}</span>
+        </div>
+    );
+}
+
+/* ── Billing Line sub-component ── */
+
+function BillingLine({ label, amount }: { label: string; amount: number }) {
+    return (
+        <div className="flex items-center justify-between">
+            <span className="text-[13px] text-white/40">{label}</span>
+            <span className="text-[13px] font-mono text-white/60">${(amount / 100).toFixed(2)}</span>
         </div>
     );
 }

@@ -350,9 +350,9 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
 
   // Agent Mode Logic
   const modes: { id: AgentMode, label: string, icon: React.ReactNode, description: string }[] = [
-    { id: 'hunter', label: 'Hunter', icon: <HunterIcon className="w-3.5 h-3.5" />, description: 'Search listings, score deals, run financial analysis' },
-    { id: 'research', label: 'Research', icon: <ResearchIcon className="w-3.5 h-3.5" />, description: 'Market trends, comparisons, education — no listings' },
-    { id: 'strategist', label: 'Strategist', icon: <StrategistIcon className="w-3.5 h-3.5" />, description: 'Portfolio strategy, risk modeling, long-term planning' },
+    { id: 'hunter', label: 'Deep Search', icon: <HunterIcon className="w-3.5 h-3.5" />, description: 'In-depth property analysis, deal scoring, full due diligence' },
+    { id: 'research', label: 'Deep Research', icon: <ResearchIcon className="w-3.5 h-3.5" />, description: 'Comprehensive market research, policy analysis, data synthesis' },
+    { id: 'strategist', label: 'Expert Strategist', icon: <StrategistIcon className="w-3.5 h-3.5" />, description: 'Portfolio strategy, risk modeling, long-term wealth planning' },
   ];
 
   const currentModeData = modes.find(m => m.id === currentMode) || modes[0];
@@ -379,11 +379,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(({
         </div>
       )}
 
-      <div className={`relative rounded-xl backdrop-blur-xl bg-white/[0.06] border transition-all duration-200 shadow-lg shadow-black/10 ${currentMode === 'hunter' ? 'border-[#C08B5C]/15 hover:border-[#C08B5C]/25 focus-within:border-[#C08B5C]/35' :
-          currentMode === 'research' ? 'border-blue-400/15 hover:border-blue-400/25 focus-within:border-blue-400/35' :
-            currentMode === 'strategist' ? 'border-purple-400/15 hover:border-purple-400/25 focus-within:border-purple-400/35' :
-              'border-white/[0.08] hover:border-white/[0.14] focus-within:border-[#C08B5C]/25'
-        }`}>
+      <div className="relative rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.12] focus-within:border-white/[0.16] transition-colors">
 
         {attachment && (
           <div className="mx-3 mt-2.5">

@@ -337,6 +337,38 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
           )}
         </div>
 
+        {/* ── Enrichment badges ── */}
+        {(data as any).enrichment && (
+          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/[0.04]">
+            {(data as any).enrichment?.school_rating != null && (
+              <EnrichmentBadge
+                label={`Schools: ${_schoolGrade((data as any).enrichment.school_rating)}`}
+                color={_schoolColor((data as any).enrichment.school_rating)}
+              />
+            )}
+            {(data as any).enrichment?.walk_score != null && (
+              <EnrichmentBadge
+                label={`Walk ${(data as any).enrichment.walk_score}`}
+                color={_walkScoreColor((data as any).enrichment.walk_score)}
+              />
+            )}
+            {(data as any).enrichment?.flood_zone && (data as any).enrichment.flood_risk === 'high' && (
+              <EnrichmentBadge label="Flood Risk" color="text-red-400 bg-red-500/15" />
+            )}
+            {(data as any).enrichment?.crime_level && (
+              <EnrichmentBadge
+                label={`Crime: ${(data as any).enrichment.crime_level}`}
+                color={(data as any).enrichment.crime_level === 'Low' ? 'text-green-400 bg-green-500/15' : (data as any).enrichment.crime_level === 'High' ? 'text-red-400 bg-red-500/15' : 'text-yellow-400 bg-yellow-500/15'}
+              />
+            )}
+            {(data as any).enrichment?.data_freshness && (
+              <span className="text-[9px] text-white/25 self-center ml-auto">
+                {(data as any).enrichment.data_freshness}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* ── CTA ── */}
         <button
           onClick={(e) => {
@@ -405,5 +437,31 @@ const MetricBlock: React.FC<{ label: string; value: string; color?: string }> = 
 );
 
 const MetricDivider = () => <div className="w-px h-8 bg-white/[0.06] mx-2 flex-shrink-0" />;
+
+const EnrichmentBadge: React.FC<{ label: string; color: string }> = ({ label, color }) => (
+  <span className={cn('inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium', color)}>
+    {label}
+  </span>
+);
+
+function _schoolGrade(rating: number): string {
+  if (rating >= 9) return 'A';
+  if (rating >= 7) return 'B';
+  if (rating >= 5) return 'C';
+  if (rating >= 3) return 'D';
+  return 'F';
+}
+
+function _schoolColor(rating: number): string {
+  if (rating >= 7) return 'text-green-400 bg-green-500/15';
+  if (rating >= 5) return 'text-yellow-400 bg-yellow-500/15';
+  return 'text-red-400 bg-red-500/15';
+}
+
+function _walkScoreColor(score: number): string {
+  if (score >= 70) return 'text-green-400 bg-green-500/15';
+  if (score >= 50) return 'text-yellow-400 bg-yellow-500/15';
+  return 'text-red-400 bg-red-500/15';
+}
 
 export default PropertyGridCard;

@@ -740,7 +740,7 @@
 
 /* ── Chat font size (applied to message text) ── */
 .chat-message-text {
-  font-size: var(--chat-font-size, 15px);
+  font-size: var(--chat-font-size, 13.5px);
 }
 
 /* ── Compact prose for GPT-like density ── */
@@ -776,28 +776,20 @@
 
 /* ── Chat density (gap between messages) ── */
 .chat-message-list {
-  gap: var(--chat-density, 12px);
+  gap: var(--chat-density, 8px);
 }
 
-/* ── Warm gradient background for chat area ── */
+/* ── Chat area background ── */
 .chat-gradient-bg {
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(192, 139, 92, 0.06) 0%,
-    rgba(192, 139, 92, 0.025) 40%,
-    transparent 70%
-  );
+  background: transparent;
 }
 
 /* ── Accent-aware utility classes ── */
 
 /* User message bubble */
 .accent-user-bubble {
-  background: linear-gradient(to bottom right,
-      rgba(var(--accent-rgb, 192, 139, 92), 0.15),
-      rgba(var(--accent-rgb, 192, 139, 92), 0.07),
-      rgba(var(--accent-rgb, 192, 139, 92), 0.03));
-  box-shadow: 0 10px 15px -3px rgba(var(--accent-rgb, 192, 139, 92), 0.07);
+  background: rgba(var(--accent-rgb, 192, 139, 92), 0.10);
+  box-shadow: 0 2px 8px -2px rgba(var(--accent-rgb, 192, 139, 92), 0.06);
 }
 
 /* Gradient bar (headings, accents) */
@@ -889,4 +881,10 @@
 
 .high-contrast .border-white\/\[0\.08\] {
   border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Thinking indicator pulsing dots (Phase 7A) */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.75; }
 }

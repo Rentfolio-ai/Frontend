@@ -33,22 +33,19 @@ const getInitials = (fullName: string): string => {
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = AvatarSize.Medium, className = '' }) => {
   const sizeClasses: Record<AvatarSizeType, string> = {
-    [AvatarSize.Small]: 'w-8 h-8 text-xs',
-    [AvatarSize.Medium]: 'w-10 h-10 text-sm',
-    [AvatarSize.Large]: 'w-12 h-12 text-base'
+    [AvatarSize.Small]: 'w-6 h-6 text-[10px]',
+    [AvatarSize.Medium]: 'w-8 h-8 text-xs',
+    [AvatarSize.Large]: 'w-10 h-10 text-sm'
   };
 
-  // Memoize initials calculation to avoid recomputing on every render
   const initials = useMemo(() => getInitials(name), [name]);
 
   return (
     <div 
-      className={`${sizeClasses[size]} ${className} flex-shrink-0 rounded-full flex items-center justify-center font-semibold transition-all duration-200 hover:scale-105`}
+      className={`${sizeClasses[size]} ${className} flex-shrink-0 rounded-full flex items-center justify-center font-medium`}
       style={{
-        background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
-        color: '#ffffff',
-        boxShadow: '0px 2px 8px rgba(30, 64, 175, 0.3)',
-        border: '2px solid rgba(255, 255, 255, 0.2)'
+        background: 'rgba(255, 255, 255, 0.08)',
+        color: 'rgba(255, 255, 255, 0.7)',
       }}
       title={name}
     >

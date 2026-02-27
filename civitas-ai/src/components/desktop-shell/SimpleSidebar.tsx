@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Trash2, Pin, Edit3, MoreVertical, Archive, Search, X, Ellipsis } from 'lucide-react';
-import { SidebarMarketplaceIcon, SidebarReportsIcon } from '../ui/PremiumIcons';
+import { Trash2, Pin, Edit3, Archive, Search, X, Ellipsis, ChevronDown, Home, Briefcase, Store, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileMenuModal } from '../modals/ProfileMenuModal';
 import { Logo } from '../ui/Logo';
 
-// --- Date grouping helpers ---
 function getDateGroup(dateStr: string | undefined): string {
     if (!dateStr) return 'Older';
     const date = new Date(dateStr);
@@ -31,18 +29,21 @@ function getDateGroup(dateStr: string | undefined): string {
 
 const GROUP_ORDER = ['Today', 'Yesterday', 'Previous 7 Days', 'Previous 30 Days'];
 
-const COLLAPSED_WIDTH = 56;
-const EXPANDED_WIDTH = 260;
+const COLLAPSED_WIDTH = 48;
+const EXPANDED_WIDTH = 240;
 
 interface SimpleSidebarProps {
     onNewChat: () => void;
     onChatClick: () => void;
+    onHomeClick: () => void;
+    onDealsClick: () => void;
     onAnalyticsClick: () => void;
     onReportsClick: () => void;
     onSettingsClick?: () => void;
     onHelpClick?: () => void;
     onUpgradeClick?: () => void;
     onAboutClick?: () => void;
+    onTeamsClick?: () => void;
     onMarketplaceClick?: () => void;
     onSearchClick?: () => void;
     onFilesClick?: () => void;
@@ -57,16 +58,72 @@ interface SimpleSidebarProps {
     isCurrentChatTemporary?: boolean;
 }
 
+interface NavItemProps {
+    icon: React.FC<{ size?: number; className?: string }>;
+    label: string;
+    isActive: boolean;
+    onClick: () => void;
+    iconSize?: number;
+}
+
+const PencilNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
+    <Edit3 size={size} className={className} strokeWidth={1.8} />
+);
+
+const HomeNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
+    <Home size={size} className={className} strokeWidth={1.8} />
+);
+
+const DealsNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
+    <Briefcase size={size} className={className} strokeWidth={1.8} />
+);
+
+const MarketplaceNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
+    <Store size={size} className={className} strokeWidth={1.8} />
+);
+
+const ReportsNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
+    <FileText size={size} className={className} strokeWidth={1.8} />
+);
+
+const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick, iconSize = 16 }) => (
+    <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors text-[13px] ${
+            isActive
+                ? 'bg-white/[0.06] text-white/90'
+                : 'text-white/45 hover:text-white/70 hover:bg-white/[0.04]'
+        }`}
+    >
+        <Icon size={iconSize} className={`flex-shrink-0 ${isActive ? 'text-white/90' : 'text-white/40'}`} />
+        <span>{label}</span>
+    </button>
+);
+
+const CollapsedNavItem: React.FC<{ icon: React.FC<{ size?: number; className?: string }>; isActive: boolean; onClick: () => void; title: string; iconSize?: number }> = ({ icon: Icon, isActive, onClick, title, iconSize = 18 }) => (
+    <button
+        onClick={onClick}
+        className={`p-1.5 rounded-md transition-colors ${isActive ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
+        title={title}
+    >
+        <Icon size={iconSize} className={isActive ? 'text-white/90' : 'text-white/40'} />
+    </button>
+);
+
 export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
-    onNewChat,
+    onNewChat: _onNewChat,
+    onChatClick,
+    onHomeClick,
+    onDealsClick,
     onAnalyticsClick: _onAnalyticsClick,
     onReportsClick,
+    onTeamsClick,
     onMarketplaceClick,
     onSettingsClick,
     onHelpClick,
     onUpgradeClick,
     onAboutClick,
-    activeTab = 'chat',
+    activeTab = 'home',
     chatHistory,
     activeChatId,
     onLoadChat,
@@ -81,10 +138,15 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [chatHistoryExpanded, setChatHistoryExpanded] = useState(activeTab === 'chat');
     const { user: currentUser } = useAuth();
     const sidebarRef = useRef<HTMLDivElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (activeTab === 'chat') setChatHistoryExpanded(true);
+    }, [activeTab]);
 
     const activeChats = chatHistory.filter(c => !c.isArchived);
 
@@ -167,12 +229,12 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     );
 
     const renderChatItem = (chat: ChatSession) => {
-        const isActive = chat.id === activeChatId;
+        const isActive = chat.id === activeChatId && activeTab === 'chat';
         return (
             <div
                 key={chat.id}
                 onClick={() => { onLoadChat(chat.id); }}
-                className="group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150"
+                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all duration-150"
                 style={{ backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent' }}
                 onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
@@ -180,7 +242,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                 {chat.isPinned && <Pin className="w-3 h-3 flex-shrink-0 text-white/25" />}
                 <span
                     className="flex-1 truncate"
-                    style={{ color: isActive ? '#ECECF1' : '#8e8ea0', fontSize: '14px', fontWeight: isActive ? 500 : 400 }}
+                    style={{ color: isActive ? '#ECECF1' : '#8e8ea0', fontSize: '13px', fontWeight: isActive ? 500 : 400 }}
                 >
                     {chat.title || 'New conversation'}
                 </span>
@@ -232,212 +294,180 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                 className={`fixed left-0 top-0 h-full z-50 flex flex-col overflow-hidden ${!isOpen ? 'items-center' : ''}`}
                 style={{
                     width: isOpen ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`,
-                    backgroundColor: '#222228',
-                    borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: '#1e1e22',
+                    borderRight: '1px solid rgba(255, 255, 255, 0.05)',
                     transition: 'width 200ms ease-out',
                 }}
             >
                 {isOpen ? (
                     <>
-                        {/* Header: Logo + New Chat pencil */}
-                        <div className="flex items-center justify-between px-3 pt-3 pb-2 flex-shrink-0">
+                        {/* Header */}
+                        <div className="flex items-center px-2.5 pt-2.5 pb-1.5 flex-shrink-0">
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.06]"
+                                className="p-1 rounded-md transition-colors hover:bg-white/[0.04]"
                                 title="Collapse sidebar"
                             >
-                                <Logo showText={false} className="w-7 h-7" variant="light" />
-                            </button>
-                            <button
-                                onClick={() => onNewChat()}
-                                className="p-2 rounded-lg transition-colors hover:bg-white/[0.06] text-white/50 hover:text-white/80"
-                                title="New chat"
-                            >
-                                <Edit3 className="w-[18px] h-[18px]" strokeWidth={1.5} />
+                                <Logo showText={false} className="w-6 h-6" variant="light" />
                             </button>
                         </div>
 
-                        {/* Navigation */}
-                        <div className="px-2 pb-2 flex-shrink-0 space-y-0.5">
+                        {/* Primary Navigation */}
+                        <div className="px-1.5 pb-0.5 flex-shrink-0 space-y-px">
+                            <NavItem icon={HomeNavIcon} label="Home" isActive={activeTab === 'home'} onClick={onHomeClick} />
+                            <NavItem icon={DealsNavIcon} label="Deals" isActive={activeTab === 'deals'} onClick={onDealsClick} />
+                            <NavItem icon={PencilNavIcon} label="Vasthu AI" isActive={activeTab === 'chat'} onClick={onChatClick} />
+                        </div>
+
+                        <div className="mx-3 my-1 h-px bg-white/[0.04]" />
+
+                        {/* Secondary Navigation */}
+                        <div className="px-1.5 pb-0.5 flex-shrink-0 space-y-px">
+                            <NavItem icon={MarketplaceNavIcon} label="Marketplace" isActive={activeTab === 'marketplace'} onClick={() => onMarketplaceClick?.()} />
+                            <NavItem icon={ReportsNavIcon} label="Reports" isActive={activeTab === 'reports'} onClick={onReportsClick} />
+                        </div>
+
+                        <div className="mx-3 my-1 h-px bg-white/[0.04]" />
+
+                        {/* Chat History (collapsible) */}
+                        <div className="flex-shrink-0 px-1.5">
                             <button
-                                onClick={() => onMarketplaceClick?.()}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-[14px] ${
-                                    activeTab === 'marketplace'
-                                        ? 'bg-white/[0.08] text-white/90 font-medium'
-                                        : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
-                                }`}
+                                onClick={() => setChatHistoryExpanded(!chatHistoryExpanded)}
+                                className="w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-white/25 hover:text-white/40 hover:bg-white/[0.03] transition-colors"
                             >
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                                    activeTab === 'marketplace'
-                                        ? 'bg-white/[0.06]'
-                                        : 'bg-white/[0.03]'
-                                }`}>
-                                    <SidebarMarketplaceIcon size={20} className={activeTab === 'marketplace' ? 'text-white/90' : 'text-white/40'} />
-                                </div>
-                                <span>Marketplace</span>
-                            </button>
-                            <button
-                                onClick={() => onReportsClick()}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-[14px] ${
-                                    activeTab === 'reports'
-                                        ? 'bg-white/[0.08] text-white/90 font-medium'
-                                        : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
-                                }`}
-                            >
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                                    activeTab === 'reports'
-                                        ? 'bg-white/[0.06]'
-                                        : 'bg-white/[0.03]'
-                                }`}>
-                                    <SidebarReportsIcon size={20} className={activeTab === 'reports' ? 'text-white/90' : 'text-white/40'} />
-                                </div>
-                                <span>Reports</span>
+                                <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${chatHistoryExpanded ? '' : '-rotate-90'}`} />
+                                <span className="text-[10px] font-medium uppercase tracking-wider">Chats</span>
+                                {activeChats.length > 0 && (
+                                    <span className="ml-auto text-[10px] text-white/15">{activeChats.length}</span>
+                                )}
                             </button>
                         </div>
 
-                        {/* Search bar */}
-                        <AnimatePresence>
-                            {isSearching && (
+                        <AnimatePresence initial={false}>
+                            {chatHistoryExpanded && (
                                 <motion.div
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="px-3 pb-2 overflow-hidden flex-shrink-0"
+                                    transition={{ duration: 0.2 }}
+                                    className="flex-1 overflow-hidden flex flex-col min-h-0"
                                 >
-                                    <div className="relative">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
-                                        <input
-                                            ref={searchInputRef}
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Search chats..."
-                                            className="w-full pl-8 pr-8 py-1.5 rounded-lg text-[13px] text-white/80 placeholder-white/25 bg-white/[0.04] border border-white/[0.06] focus:border-white/10 focus:outline-none transition-colors"
-                                        />
-                                        {searchQuery && (
-                                            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-white/10">
-                                                <X className="w-3 h-3 text-white/30" />
+                                    {/* Search bar */}
+                                    <AnimatePresence>
+                                        {isSearching && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="px-3 pb-2 overflow-hidden flex-shrink-0"
+                                            >
+                                                <div className="relative">
+                                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+                                                    <input
+                                                        ref={searchInputRef}
+                                                        type="text"
+                                                        value={searchQuery}
+                                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                                        placeholder="Search chats..."
+                                                        className="w-full pl-8 pr-8 py-1.5 rounded-lg text-[13px] text-white/80 placeholder-white/25 bg-white/[0.04] border border-white/[0.06] focus:border-white/10 focus:outline-none transition-colors"
+                                                    />
+                                                    {searchQuery && (
+                                                        <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-white/10">
+                                                            <X className="w-3 h-3 text-white/30" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
+                                        {!isSearching && (
+                                            <button
+                                                onClick={() => { setIsSearching(true); setSearchQuery(''); }}
+                                                className="w-full flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-white/25 hover:text-white/40 hover:bg-white/[0.03] transition-colors text-[12px]"
+                                            >
+                                                <Search className="w-3.5 h-3.5" />
+                                                <span>Search</span>
+                                                <span className="ml-auto text-[10px] text-white/15">⌘K</span>
                                             </button>
+                                        )}
+
+                                        {groupedChats.pinned.length > 0 && (
+                                            <div className="mb-1">
+                                                <div className="px-3 py-1">
+                                                    <span className="text-[10px] font-medium text-white/20">Pinned</span>
+                                                </div>
+                                                {groupedChats.pinned.map(renderChatItem)}
+                                            </div>
+                                        )}
+
+                                        {groupedChats.orderedGroupNames.map(groupName => {
+                                            const chats = groupedChats.groups[groupName];
+                                            if (!chats || chats.length === 0) return null;
+                                            return (
+                                                <div key={groupName} className="mb-1">
+                                                    <div className="px-3 py-1">
+                                                        <span className="text-[10px] font-medium text-white/20">{groupName}</span>
+                                                    </div>
+                                                    {chats.map(renderChatItem)}
+                                                </div>
+                                            );
+                                        })}
+
+                                        {filteredChats.length === 0 && (
+                                            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                                                <div className="text-white/20 text-[12px]">
+                                                    {searchQuery ? 'No matching chats' : 'No conversations yet'}
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* Chat history */}
-                        <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
-                            {/* Search toggle hint */}
-                            {!isSearching && (
-                                <button
-                                    onClick={() => { setIsSearching(true); setSearchQuery(''); }}
-                                    className="w-full flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-white/25 hover:text-white/40 hover:bg-white/[0.03] transition-colors text-[12px]"
-                                >
-                                    <Search className="w-3.5 h-3.5" />
-                                    <span>Search</span>
-                                    <span className="ml-auto text-[10px] text-white/15">⌘K</span>
-                                </button>
-                            )}
-
-                            {groupedChats.pinned.length > 0 && (
-                                <div className="mb-1">
-                                    <div className="px-3 py-1.5">
-                                        <span className="text-[11px] font-medium text-white/20">Pinned</span>
-                                    </div>
-                                    {groupedChats.pinned.map(renderChatItem)}
-                                </div>
-                            )}
-
-                            {groupedChats.orderedGroupNames.map(groupName => {
-                                const chats = groupedChats.groups[groupName];
-                                if (!chats || chats.length === 0) return null;
-                                return (
-                                    <div key={groupName} className="mb-1">
-                                        <div className="px-3 py-1.5">
-                                            <span className="text-[11px] font-medium text-white/20">{groupName}</span>
-                                        </div>
-                                        {chats.map(renderChatItem)}
-                                    </div>
-                                );
-                            })}
-
-                            {filteredChats.length === 0 && (
-                                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                                    <div className="text-white/20 text-[13px]">
-                                        {searchQuery ? 'No matching chats' : 'No conversations yet'}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {/* Spacer when chat history is collapsed */}
+                        {!chatHistoryExpanded && <div className="flex-1" />}
 
                         {/* User profile */}
-                        <div className="border-t px-2 pt-2 pb-2.5 flex-shrink-0" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
-                            <button onClick={() => setShowProfileMenu(true)} className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/[0.04]">
-                                <UserAvatar size={28} />
-                                <span className="flex-1 truncate text-left text-[14px] font-medium text-white/60">{currentUser?.name || 'User'}</span>
-                                <MoreVertical className="w-4 h-4 text-white/20" />
+                        <div className="border-t px-1.5 pt-1.5 pb-2 flex-shrink-0" style={{ borderColor: 'rgba(255, 255, 255, 0.04)' }}>
+                            <button onClick={() => setShowProfileMenu(true)} className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors hover:bg-white/[0.04]">
+                                <UserAvatar size={24} />
+                                <span className="flex-1 truncate text-left text-[13px] text-white/50">{currentUser?.name || 'User'}</span>
                             </button>
                         </div>
                     </>
                 ) : (
                     <>
-                        {/* Collapsed: Logo + Pencil + Nav */}
-                        <div className="flex flex-col items-center pt-3 gap-2 flex-shrink-0 w-full">
+                        {/* Collapsed view */}
+                        <div className="flex flex-col items-center pt-2.5 gap-1 flex-shrink-0 w-full">
                             <button
                                 onClick={() => setIsOpen(true)}
-                                className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.06]"
+                                className="p-1 rounded-md transition-colors hover:bg-white/[0.04]"
                                 title="Expand sidebar"
                             >
-                                <Logo showText={false} className="w-7 h-7" variant="light" />
+                                <Logo showText={false} className="w-6 h-6" variant="light" />
                             </button>
 
-                            {/* New chat */}
-                            <button
-                                onClick={() => onNewChat()}
-                                className="p-2.5 rounded-lg transition-colors hover:bg-white/[0.06] text-white/50 hover:text-white/80"
-                                title="New chat"
-                            >
-                                <Edit3 className="w-[18px] h-[18px]" strokeWidth={1.5} />
-                            </button>
+                            <div className="w-5 h-px bg-white/[0.04] my-0.5" />
 
-                            {/* Divider */}
-                            <div className="w-6 h-px bg-white/[0.06] my-0.5" />
+                            <CollapsedNavItem icon={HomeNavIcon} isActive={activeTab === 'home'} onClick={onHomeClick} title="Home" />
+                            <CollapsedNavItem icon={DealsNavIcon} isActive={activeTab === 'deals'} onClick={onDealsClick} title="Deals" />
+                            <CollapsedNavItem icon={PencilNavIcon} isActive={activeTab === 'chat'} onClick={onChatClick} title="Vasthu AI" />
 
-                            {/* Nav icons */}
-                            <button
-                                onClick={() => onMarketplaceClick?.()}
-                                className="p-1.5 rounded-lg transition-all duration-200 hover:bg-white/[0.06]"
-                                title="Marketplace"
-                            >
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                                    activeTab === 'marketplace'
-                                        ? 'bg-white/[0.06]'
-                                        : 'bg-white/[0.03]'
-                                }`}>
-                                    <SidebarMarketplaceIcon size={22} className={activeTab === 'marketplace' ? 'text-white/90' : 'text-white/40'} />
-                                </div>
-                            </button>
-                            <button
-                                onClick={() => onReportsClick()}
-                                className="p-1.5 rounded-lg transition-all duration-200 hover:bg-white/[0.06]"
-                                title="Reports"
-                            >
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 ${
-                                    activeTab === 'reports'
-                                        ? 'bg-white/[0.06]'
-                                        : 'bg-white/[0.03]'
-                                }`}>
-                                    <SidebarReportsIcon size={22} className={activeTab === 'reports' ? 'text-white/90' : 'text-white/40'} />
-                                </div>
-                            </button>
+                            <div className="w-5 h-px bg-white/[0.04] my-0.5" />
+
+                            <CollapsedNavItem icon={MarketplaceNavIcon} isActive={activeTab === 'marketplace'} onClick={() => onMarketplaceClick?.()} title="Marketplace" />
+                            <CollapsedNavItem icon={ReportsNavIcon} isActive={activeTab === 'reports'} onClick={onReportsClick} title="Reports" />
                         </div>
 
                         <div className="flex-1" />
 
-                        {/* User avatar */}
-                        <div className="flex flex-col items-center pb-3.5 flex-shrink-0 w-full">
-                            <button onClick={() => setShowProfileMenu(true)} className="p-1.5 rounded-lg transition-colors hover:bg-white/[0.06]" title={currentUser?.name || 'Profile'}>
-                                <UserAvatar size={28} />
+                        <div className="flex flex-col items-center pb-3 flex-shrink-0 w-full">
+                            <button onClick={() => setShowProfileMenu(true)} className="p-1 rounded-md transition-colors hover:bg-white/[0.04]" title={currentUser?.name || 'Profile'}>
+                                <UserAvatar size={24} />
                             </button>
                         </div>
                     </>

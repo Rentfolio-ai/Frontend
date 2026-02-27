@@ -124,7 +124,7 @@ const DocumentationPage: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     ];
 
     const features = [
-        { icon: TrendingUp, title: 'Agent Modes: Hunter, Research, Strategist', desc: 'Deep dive into each reasoning mode, when to use them, and how they differ.', color: 'text-white/70', bg: 'bg-white/[0.05]' },
+        { icon: TrendingUp, title: 'Agent Modes: Deep Search, Deep Research, Expert Strategist', desc: 'Deep dive into each reasoning mode, when to use them, and how they differ.', color: 'text-white/70', bg: 'bg-white/[0.05]' },
         { icon: BarChart3, title: 'Reports & Deal Analysis', desc: 'Generate PDF reports, compare properties side-by-side, and run P&L scenarios.', color: 'text-white/70', bg: 'bg-white/[0.05]' },
         { icon: Layers, title: 'Portfolio Tracking', desc: 'Add properties to your portfolio, track performance, and get rebalancing suggestions.', color: 'text-white/70', bg: 'bg-white/[0.05]' },
         { icon: BookOpen, title: 'Market Research', desc: 'Analyze market trends, compare neighborhoods, and identify emerging investment areas.', color: 'text-white/70', bg: 'bg-white/[0.05]' },
@@ -178,7 +178,7 @@ export const HelpPage: React.FC<HelpPageProps> = ({ onBack, onNavigateToContact 
 
     const faqs = [
         { q: 'How do I set my investment preferences?', a: 'Go to Settings > Investment Preferences to configure your buy box, budget, strategy, and other criteria. This helps Vasthu provide personalized property recommendations.' },
-        { q: 'What are the different reasoning modes?', a: 'Vasthu has three modes: Hunter (fast deal scouting), Research (deep market analysis), and Strategist (portfolio-level planning). Switch modes from the chat input area.' },
+        { q: 'What are the different reasoning modes?', a: 'Vasthu has three modes: Deep Search (in-depth property analysis), Deep Research (comprehensive market research), and Expert Strategist (portfolio strategy and wealth planning). Switch modes from the chat input area.' },
         { q: 'How do I analyze a property deal?', a: 'Simply ask Vasthu about a property or paste a listing URL. The AI will analyze cash flow, ROI, cap rate, and other metrics based on your investment strategy.' },
         { q: 'Can I save properties and reports?', a: 'Yes! Bookmark properties for later review and generate reports for detailed analysis. All saved items are accessible from the sidebar.' },
         { q: 'How does billing work?', a: 'Free plan includes 2 analyses/month and 2 reports. Pro plan ($100/mo, 50% off first month) gives unlimited access to all features. Report downloads are $2 each.' },

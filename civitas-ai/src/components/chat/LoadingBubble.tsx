@@ -1,15 +1,8 @@
 import React from 'react';
-import { AgentAvatar } from '../common/AgentAvatar';
 
 export const LoadingBubble: React.FC = () => {
   return (
     <div className="flex gap-3 mb-3 animate-slide-in justify-start">
-      {/* AI Agent Avatar with professional pulse */}
-      <div className="flex-shrink-0 pt-1 relative">
-        <AgentAvatar size="md" />
-        <div className="absolute inset-0 rounded-full bg-[#D4A27F]/15 animate-pulse" style={{ animationDuration: '2s' }} />
-      </div>
-      
       {/* Real Estate Intelligence - Professional glassmorphic loading card */}
       <div className="relative">
         <div className="relative px-5 py-4 rounded-2xl rounded-tl-sm backdrop-blur-xl bg-blue-50/90 border border-blue-900/10 shadow-lg shadow-blue-900/5">

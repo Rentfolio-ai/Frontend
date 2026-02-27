@@ -61,24 +61,22 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#0C0C0E] text-white selection:bg-[#C08B5C]/30">
+    <div className="min-h-screen bg-white text-[#1A1A1A] selection:bg-[#C08B5C]/20">
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-white/[0.08] bg-[#0C0C0E]/90 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-20 border-b border-[#EBEBEA] bg-white/80 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-2 -ml-2 rounded-lg hover:bg-white/[0.06] transition-colors group"
+              className="p-2 -ml-2 rounded-lg hover:bg-[#FAFAF9] transition-colors group"
             >
-              <ArrowLeft className="w-5 h-5 text-white/40 group-hover:text-white/80 transition-colors" />
+              <ArrowLeft className="w-5 h-5 text-[#ABABAB] group-hover:text-[#6F6F6F] transition-colors" />
             </button>
-            <div className="h-4 w-[1px] bg-white/[0.1]" />
-            <div>
-              <h1 className="text-sm font-display font-semibold text-white tracking-wide">{title}</h1>
-            </div>
+            <div className="h-4 w-[1px] bg-[#EBEBEA]" />
+            <h1 className="text-[14px] font-semibold text-[#1A1A1A] tracking-tight">{title}</h1>
           </div>
-          <p className="text-xs font-sans text-white/30 hidden sm:block">
-            Last updated: <span className="text-white/50">{lastUpdated}</span>
+          <p className="text-[12px] text-[#ABABAB] hidden sm:block">
+            Last updated: <span className="text-[#6F6F6F]">{lastUpdated}</span>
           </p>
         </div>
       </header>
@@ -87,20 +85,17 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
         {/* Table of Contents Sidebar */}
         <aside className="hidden lg:block w-64 flex-shrink-0">
           <nav className="sticky top-28 space-y-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 px-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#ABABAB] px-3">
               On this page
             </p>
-            <div className="space-y-0.5 relative">
-              {/* Active Indicator Line */}
-              <div className="absolute left-0 w-[1px] bg-white/[0.1] h-full sm:hidden" />
-
+            <div className="space-y-0.5">
               {sections.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => scrollTo(s.id)}
                   className={`block w-full text-left text-[13px] py-1.5 px-3 rounded-md transition-all duration-200 border-l-[2px] ${activeSection === s.id
-                      ? 'border-[#C08B5C] text-[#D4A27F] bg-[#C08B5C]/5 font-medium'
-                      : 'border-transparent text-white/40 hover:text-white/80 hover:bg-white/[0.02]'
+                      ? 'border-[#C08B5C] text-[#C08B5C] bg-[#C08B5C]/[0.04] font-medium'
+                      : 'border-transparent text-[#6F6F6F] hover:text-[#1A1A1A] hover:bg-[#FAFAF9]'
                     }`}
                 >
                   {s.title}
@@ -108,10 +103,9 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
               ))}
             </div>
 
-            {/* Back to top helper */}
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2 text-[11px] text-white/20 hover:text-white/50 transition-colors px-3 pt-4"
+              className="flex items-center gap-2 text-[11px] text-[#ABABAB] hover:text-[#6F6F6F] transition-colors px-3 pt-4"
             >
               <ArrowUp className="w-3 h-3" />
               Back to top
@@ -125,57 +119,46 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
             {children}
           </div>
 
-          <div className="mt-20 pt-8 border-t border-white/[0.08] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-sans text-white/20">
-            <p>
-              This document may be updated periodically.
-            </p>
-            <p>
-              &copy; {new Date().getFullYear()} Civitas AI. All rights reserved.
-            </p>
+          <div className="mt-20 pt-8 border-t border-[#EBEBEA] flex flex-col sm:flex-row justify-between items-center gap-4 text-[12px] text-[#ABABAB]">
+            <p>This document may be updated periodically.</p>
+            <p>&copy; {new Date().getFullYear()} Civitas AI. All rights reserved.</p>
           </div>
         </main>
       </div>
 
-      {/* Styles */}
       <style>{`
-        /* Headings */
         .prose-legal h2 {
-          font-family: 'Outfit', sans-serif;
-          font-size: 1.5rem; /* 24px */
+          font-size: 1.5rem;
           font-weight: 600;
           letter-spacing: -0.01em;
-          color: rgba(255, 255, 255, 0.95);
+          color: #1A1A1A;
           margin-top: 3.5rem;
           margin-bottom: 1.25rem;
           padding-top: 1rem;
           scroll-margin-top: 6rem;
           line-height: 1.3;
         }
-        
+
         .prose-legal h2:first-child {
           margin-top: 0;
         }
 
         .prose-legal h3 {
-          font-family: 'Outfit', sans-serif;
-          font-size: 1.125rem; /* 18px */
+          font-size: 1.125rem;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.85);
+          color: #1A1A1A;
           margin-top: 2rem;
           margin-bottom: 0.75rem;
           letter-spacing: -0.01em;
         }
 
-        /* Body Text */
         .prose-legal p {
-          font-family: 'Inter', sans-serif;
-          font-size: 0.9375rem; /* 15px */
-          line-height: 1.75; /* Relaxed reading line-height */
-          color: rgba(255, 255, 255, 0.65);
+          font-size: 0.9375rem;
+          line-height: 1.75;
+          color: #6F6F6F;
           margin-bottom: 1.25rem;
         }
 
-        /* Lists */
         .prose-legal ul {
           list-style-type: disc;
           padding-left: 1.25rem;
@@ -183,21 +166,19 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
         }
 
         .prose-legal li {
-          font-family: 'Inter', sans-serif;
           font-size: 0.9375rem;
           line-height: 1.75;
-          color: rgba(255, 255, 255, 0.65);
+          color: #6F6F6F;
           margin-bottom: 0.5rem;
           padding-left: 0.5rem;
         }
-        
+
         .prose-legal li::marker {
-          color: rgba(255, 255, 255, 0.3);
+          color: #ABABAB;
         }
 
-        /* Inline Elements */
         .prose-legal strong {
-          color: rgba(255, 255, 255, 0.9);
+          color: #1A1A1A;
           font-weight: 600;
         }
 
@@ -205,22 +186,22 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
           color: #C08B5C;
           text-decoration: none;
           border-bottom: 1px solid rgba(192, 139, 92, 0.3);
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
           padding-bottom: 1px;
         }
 
         .prose-legal a:hover {
-          color: #D4A27F;
-          border-bottom-color: #D4A27F;
+          color: #A0714A;
+          border-bottom-color: #A0714A;
         }
-        
+
         .prose-legal code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8em;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-            color: rgba(255, 255, 255, 0.8);
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.8em;
+          background: #F5F5F4;
+          padding: 0.2em 0.4em;
+          border-radius: 4px;
+          color: #1A1A1A;
         }
       `}</style>
     </div>

@@ -96,7 +96,7 @@ export interface UserPreferences {
     preferredMode: 'hunter' | 'research' | 'strategist';
 
     // Start page preference (chosen during onboarding)
-    preferredStartPage: 'chat' | 'marketplace';
+    preferredStartPage: 'home' | 'chat' | 'marketplace';
 
     // Voice preferences
     voiceEnabled: boolean;
@@ -192,7 +192,7 @@ const defaultPreferences: UserPreferences = {
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     preferredMode: 'hunter',
-    preferredStartPage: 'chat',
+    preferredStartPage: 'home',
     inferredPreferences: null,
     clientLocation: null,
     voiceEnabled: true,

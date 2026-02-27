@@ -39,11 +39,9 @@ export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string, 
     query.min_beds = userPrefs.preferredBedrooms;
   }
 
-  // Property types from preferences (fall back to ["SFH"])
+  // Property types from preferences (only filter if user has set them)
   if (userPrefs?.preferredPropertyTypes?.length) {
     query.property_types = userPrefs.preferredPropertyTypes;
-  } else {
-    query.property_types = ["SFH"];
   }
 
   // Favorite markets for prioritization
@@ -86,6 +84,7 @@ export function parseChatQuery(
     clientLocation?: any;
   },
   modelId?: string,
+  isTemporary?: boolean,
 ): any {
   const query: any = {
     query: msg,
@@ -93,6 +92,7 @@ export function parseChatQuery(
   };
 
   if (modelId) query.model_id = modelId;
+  if (isTemporary) query.is_temporary = true;
 
   if (threadId) {
     query.thread_id = threadId;

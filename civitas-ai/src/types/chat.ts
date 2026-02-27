@@ -41,7 +41,7 @@ export type AgentMode = 'research' | 'strategist' | 'hunter';
 export interface ModelInfo {
   id: string;
   name: string;
-  provider: 'google' | 'openai' | 'anthropic' | 'xai';
+  provider: 'auto' | 'google' | 'openai' | 'anthropic' | 'xai';
   tier: 'free' | 'pro' | 'enterprise';
   description: string;
   context_window: number;
@@ -148,8 +148,16 @@ export interface Message {
     durationMs: number;
     toolsUsed: string[];
   };
+  /** Pure AI reasoning steps — only reasoning-delta events (analysis from <thinking> tags or native thinking).
+   *  Excludes operational steps like "Searching the web", "Reading sources", etc. */
+  reasoningTrace?: {
+    steps: { text: string; source: string }[];
+    durationMs: number;
+  };
   /** Native model thinking/reasoning text (Claude extended thinking, Gemini thought) */
   nativeThinkingText?: string;
+  /** Web search sources (title + url) for GPT-style source links */
+  webSources?: Array<{ title?: string; url: string; snippet?: string }>;
   /** Mode switch suggestion from AI (e.g. research → hunter) */
   modeSuggestion?: {
     suggestedMode: string;

@@ -16,7 +16,7 @@
  * - DealAnalyzerDrawer for P&L analysis
  */
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useDesktopShell, type TabType } from '../hooks/useDesktopShell';
 import { useThemeState } from '../hooks/useThemeState';
@@ -33,6 +33,8 @@ import { CommandSearch } from '../components/desktop-shell/CommandSearch';
 import { PropertyAnalysisPage } from '../components/pages/PropertyAnalysisPage';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
+import { ReportBillingModal } from '../components/reports/ReportBillingModal';
+import { useSubscription } from '../hooks/useSubscription';
 import { OnboardingTour } from '../components/onboarding';
 import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
@@ -53,6 +55,9 @@ import { MarketplacePage } from '@/components/marketplace/MarketplacePage';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { usePreferencesStore } from '../stores/preferencesStore';
 import { subscriptionService } from '../services/subscriptionService';
+import { HomePage } from '../components/home/HomePage';
+import { DealsPage } from '../components/deals/DealsPage';
+import { TeamsPage } from '../components/teams/TeamsPage';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -61,12 +66,14 @@ interface DesktopShellProps {
 
 
 
-const ONBOARDING_STORAGE_KEY = 'prophetatlas-onboarding-completed';
+const ONBOARDING_STORAGE_KEY = 'vasthu-onboarding-completed';
+const JUST_LOGGED_IN_KEY = 'vasthu-just-logged-in';
 
 
 export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const { user } = useAuth();
   const { toasts, closeToast, success, error } = useToast();
+  const { isPro, isFree, remaining } = useSubscription();
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -110,12 +117,16 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     reportDrawer,
     closeReportDrawer,
     generateReportWithType,
+    reportBilling,
+    confirmReportBilling,
+    cancelReportBilling,
     // Thinking state
     thinking,
     completedTools,
     reasoningSteps,
     nativeThinkingText,
     thinkingQueue,
+    activeModelLabel,
     handleRegenerate,
     activeProperty,
     handleViewPropertyDetails,
@@ -151,14 +162,24 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     handleSendComplete,
   } = useDesktopShell();
 
-  // Preferred start page: set active tab on first mount based on user preference
+  // Preferred start page: set active tab on first mount based on user preference (or force home after just logged in)
   const preferredStartPage = usePreferencesStore(s => s.preferredStartPage);
   const startPageAppliedRef = React.useRef(false);
   useEffect(() => {
-    if (!startPageAppliedRef.current && preferredStartPage === 'marketplace') {
-      setActiveTab('marketplace');
-      startPageAppliedRef.current = true;
-    } else {
+    if (!startPageAppliedRef.current) {
+      const justLoggedIn = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(JUST_LOGGED_IN_KEY);
+      if (justLoggedIn) {
+        sessionStorage.removeItem(JUST_LOGGED_IN_KEY);
+        setActiveTab('home');
+        startPageAppliedRef.current = true;
+        return;
+      }
+      if (preferredStartPage) {
+        const validPages: TabType[] = ['home', 'deals', 'chat', 'marketplace'];
+        if (validPages.includes(preferredStartPage as TabType)) {
+          setActiveTab(preferredStartPage as TabType);
+        }
+      }
       startPageAppliedRef.current = true;
     }
   }, [preferredStartPage, setActiveTab]);
@@ -221,6 +242,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
   // Saved reports - now fetches from backend API
   const {
+    reports: savedReports,
     refreshReports,
   } = useSavedReports();
 
@@ -251,6 +273,29 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     setActiveTab('reports');
     refreshReports();
   }, [setActiveTab, refreshReports]);
+
+  // Compute summary data for Home page overview widgets
+  const dealsPipeline = useMemo(() => {
+    const pipeline = { active: 0, under_contract: 0, closed: 0, lost: 0, total: bookmarks.length };
+    for (const b of bookmarks) {
+      const status = b.dealStatus || 'active';
+      if (status in pipeline) pipeline[status as keyof typeof pipeline]++;
+    }
+    return pipeline;
+  }, [bookmarks]);
+
+  const reportsSummary = useMemo(() => {
+    const buySignals = savedReports.filter(r =>
+      r.recommendation?.toLowerCase().includes('buy')
+    ).length;
+    return { totalReports: savedReports.length, buySignals };
+  }, [savedReports]);
+
+  const teamsSummary = useMemo(() => ({
+    partnerCount: 0,
+    sharedProperties: 0,
+    unreadMessages: 0,
+  }), []);
 
 
 
@@ -300,29 +345,25 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
   const handleOnboardingComplete = useCallback((redirectTab?: TabType) => {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     setShowOnboarding(false);
-    // Navigate to the tab specified by backend (defaults to 'chat')
-    if (redirectTab) {
-      setActiveTab(redirectTab);
-    }
+    setActiveTab(redirectTab || 'home');
   }, [setActiveTab]);
 
   // Handle onboarding skip
   const handleOnboardingSkip = useCallback((redirectTab?: TabType) => {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     setShowOnboarding(false);
-    // Navigate to the tab specified by backend (defaults to 'chat')
-    if (redirectTab) {
-      setActiveTab(redirectTab);
-    }
+    setActiveTab(redirectTab || 'home');
   }, [setActiveTab]);
 
   // Listen for navigation events from chat
   useEffect(() => {
     const handleNavigate = (event: CustomEvent) => {
       const { tab } = event.detail as { tab?: string };
-      let targetTab: TabType = 'chat';
+      let targetTab: TabType = 'home';
       if (tab === 'reports') targetTab = 'reports';
-      console.log(`🚀 Navigating to: ${targetTab}`);
+      else if (tab === 'chat') targetTab = 'chat';
+      else if (tab === 'deals') targetTab = 'deals';
+      else if (tab === 'home') targetTab = 'home';
       setActiveTab(targetTab);
     };
 
@@ -341,7 +382,10 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           handleNewChat();
           setActiveTab('chat');
         }}
-        onChatClick={() => setActiveTab('chat')}
+        onHomeClick={() => setActiveTab('home')}
+        onDealsClick={() => setActiveTab('deals')}
+        onTeamsClick={() => setActiveTab('teams')}
+        onChatClick={() => { handleNewChat(); setActiveTab('chat'); }}
         onMarketplaceClick={() => setActiveTab('marketplace')}
         onAnalyticsClick={() => setActiveTab('portfolio')}
         onReportsClick={() => setActiveTab('reports')}
@@ -370,12 +414,56 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       />
 
       {/* Content layer with left padding for sidebar */}
-      <div className="relative z-10 h-full flex flex-col pl-14">
+      <div className="relative z-10 h-full flex flex-col pl-12">
 
         {/* Main Content Area - Full height */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
           {/* Tab Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
+            {activeTab === 'home' && (
+              <ErrorBoundary pageName="Home">
+                <HomePage
+                  userName={user?.name?.split(' ')[0]}
+                  chatHistory={chatHistory}
+                  bookmarks={bookmarks}
+                  dealsPipeline={dealsPipeline}
+                  teamsSummary={teamsSummary}
+                  reportsSummary={reportsSummary}
+                  onNavigateToChat={() => setActiveTab('chat')}
+                  onNavigateToDeals={() => setActiveTab('deals')}
+                  onNavigateToReports={handleNavigateToReportsAndRefresh}
+                  onNavigateToTeams={() => setActiveTab('teams')}
+                  onNavigateToUpgrade={() => setActiveTab('upgrade')}
+                  onNewChat={() => { handleNewChat(); setActiveTab('chat'); }}
+                />
+              </ErrorBoundary>
+            )}
+            {activeTab === 'deals' && (
+              <ErrorBoundary pageName="Deals">
+                <DealsPage
+                  bookmarks={bookmarks}
+                  onViewProperty={(property) => {
+                    handleViewPropertyDetails(property);
+                    setActiveTab('analysis');
+                  }}
+                  onAnalyzeProperty={(property) => {
+                    setActiveTab('chat');
+                    setTimeout(() => {
+                      sendMessageWithStream(
+                        `Analyze this investment property for deal viability:\n\nAddress: ${property.address}\nCity: ${property.city}, ${property.state}\nPrice: $${property.price.toLocaleString()}${property.bedrooms ? `\nBedrooms: ${property.bedrooms} | Bathrooms: ${property.bathrooms}` : ''}\n\nRun full hunter pipeline: check deal killers, comparable sales, cash flow analysis, and give me a Buy/Negotiate/Pass verdict.`
+                      );
+                    }, 150);
+                  }}
+                  onBookmarkProperty={handleToggleBookmark}
+                  onBack={() => setActiveTab('home')}
+                />
+              </ErrorBoundary>
+            )}
+            {activeTab === 'teams' && (
+              <ErrorBoundary pageName="Teams">
+                <TeamsPage onBack={() => setActiveTab('home')} />
+              </ErrorBoundary>
+            )}
             {activeTab === 'chat' && (() => {
               const activeChat = chatHistory.find(c => c.id === activeChatId);
               return (
@@ -406,6 +494,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   thinkingIsDone={thinkingQueue?.isDone}
                   thinkingElapsed={thinkingQueue?.elapsedSeconds}
                   nativeThinkingText={nativeThinkingText}
+                  activeModelLabel={activeModelLabel}
                   onRefresh={handleRegenerate}
                   onViewDetails={handleViewPropertyDetails}
                   onCancel={cancelStream}
@@ -421,6 +510,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   onScrollDirectionChange={setIsScrollingDown}
                   isTemporary={isCurrentChatTemporary}
                   onToggleTemporary={handleToggleTemporary}
+                  onNavigateToTeams={() => setActiveTab('teams')}
                   commandCenter={commandCenter}
                   selectProperty={selectProperty}
                   addToComparisonDock={addToComparisonDock}
@@ -479,12 +569,13 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                       );
                     }, 150);
                   }}
+                  onBack={() => setActiveTab('home')}
                 />
               </ErrorBoundary>
             )}
             {activeTab === 'reports' && (
               <ErrorBoundary pageName="Reports">
-                <ReportsPage onNavigateToChat={() => setActiveTab('chat')} />
+                <ReportsPage onNavigateToChat={() => setActiveTab('chat')} onBack={() => setActiveTab('home')} />
               </ErrorBoundary>
             )}
 
@@ -496,7 +587,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             {activeTab === 'settings' && (
               <ErrorBoundary pageName="Settings">
                 <SettingsPage
-                  onBack={() => setActiveTab('chat')}
+                  onBack={() => setActiveTab('home')}
                   onNavigateToProfile={() => setActiveTab('profile')}
                   onNavigateToNotifications={() => setActiveTab('notifications')}
                   onNavigateToAppearance={() => setActiveTab('appearance')}
@@ -539,19 +630,19 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
             {/* Integrations + Help rendered as overlays below */}
             {activeTab === 'upgrade' && (
               <ErrorBoundary pageName="Upgrade">
-                <UpgradePage onBack={() => setActiveTab('chat')} />
+                <UpgradePage onBack={() => setActiveTab('home')} />
               </ErrorBoundary>
             )}
             {activeTab === 'about' && (
               <ErrorBoundary pageName="About">
-                <AboutPage onBack={() => setActiveTab('chat')} />
+                <AboutPage onBack={() => setActiveTab('home')} />
               </ErrorBoundary>
             )}
             {activeTab === 'analysis' && activeProperty && (
               <ErrorBoundary pageName="Property Analysis">
                 <PropertyAnalysisPage
                   property={activeProperty}
-                  onBack={() => setActiveTab('chat')}
+                  onBack={() => setActiveTab('deals')}
                 />
               </ErrorBoundary>
             )}
@@ -582,6 +673,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           inferredStrategy={reportDrawer.inferredStrategy}
           propertyAddress={reportDrawer.propertyAddress}
         />
+
+        {/* Report Billing Confirmation */}
+        {reportBilling.isOpen && (
+          <ReportBillingModal
+            isPro={isPro}
+            isFree={isFree}
+            onConfirm={confirmReportBilling}
+            onClose={cancelReportBilling}
+            onUpgrade={() => { cancelReportBilling(); setActiveTab('upgrade'); }}
+            freeReportsRemaining={remaining('reports')}
+          />
+        )}
 
         {/* Onboarding Tour */}
         <OnboardingTour

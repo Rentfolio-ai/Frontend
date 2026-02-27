@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { MessageList } from '../chat/MessageList';
 import { Composer, type ComposerRef } from '../chat/Composer';
-import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
+import { type AgentStatus } from '../common/AgentAvatar';
 import { ShortcutsModal } from '../ShortcutsModal';
 import { FAQModal } from '../FAQModal';
 
@@ -33,6 +33,7 @@ import { VoiceWaveform } from '../voice/VoiceWaveform';
 import { PersonaPickerModal } from '../voice/PersonaPickerModal';
 import { useVoiceSession } from '../../hooks/useVoiceSession';
 import { getPersonaById, type VoicePersona } from '../../config/voicePersonas';
+import { Timer, Users } from 'lucide-react';
 
 
 interface ChatTabViewProps {
@@ -64,6 +65,8 @@ interface ChatTabViewProps {
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
   nativeThinkingText?: string | null;
+  /** Active model display name for ThinkingIndicator badge */
+  activeModelLabel?: string;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   // Cancel and error handling
@@ -86,8 +89,33 @@ interface ChatTabViewProps {
   // Temporary chat (not saved to history)
   isTemporary?: boolean;
   onToggleTemporary?: () => void;
+  onNavigateToTeams?: () => void;
   onBuyTokenPack?: () => void;
 }
+
+const VasthuChatGlyph: React.FC<{ className?: string }> = ({ className }) => (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+    <path
+      d="M6.5 8L12 18L17.5 8"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M9.5 14.5H14.5"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      opacity="0.55"
+    />
+    <path
+      d="M12 3.7L13 6L15.3 7L13 8L12 10.3L11 8L8.7 7L11 6L12 3.7Z"
+      fill="currentColor"
+      opacity="0.65"
+    />
+  </svg>
+);
 
 // Extract entities from recent conversation messages
 function extractConversationContext(messages: Message[]): {
@@ -324,6 +352,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   thinkingIsDone,
   thinkingElapsed,
   nativeThinkingText,
+  activeModelLabel,
   onRefresh,
   onViewDetails,
   onCancel,
@@ -343,6 +372,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onSendComplete,
   isTemporary,
   onToggleTemporary,
+  onNavigateToTeams,
   onBuyTokenPack,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
@@ -352,7 +382,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   const [showInConvoSearch, setShowInConvoSearch] = useState(false);
   const [preferenceSuggestion, setPreferenceSuggestion] = useState<PreferenceSuggestion | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [showSuggestionChips, setShowSuggestionChips] = useState(true);
+  const [showSuggestionChips] = useState(true);
   const [contextBanner, setContextBanner] = useState<{ message: string; actions: BannerAction[] } | null>(null);
   const lastBannerMessageId = useRef<string | null>(null);
   const [voiceActive, setVoiceActive] = useState(false);
@@ -731,12 +761,34 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
 
   return (
     <div className="h-full flex flex-col relative max-w-[48rem] mx-auto w-full">
-
-
-
-
-
-      {/* Header buttons removed per user request */}
+      {/* Top bar: Temporary chat + Teams (right-aligned) */}
+      <div className="flex-shrink-0 w-full flex justify-end items-center gap-3 py-2 px-2">
+        {onToggleTemporary && (
+          <button
+            type="button"
+            onClick={onToggleTemporary}
+            title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Temporary chat (not saved)'}
+            className={`p-2 rounded-lg transition-colors ${
+              isTemporary
+                ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+                : 'text-white/60 hover:bg-white/10 hover:text-white/80'
+            }`}
+            aria-pressed={isTemporary}
+          >
+            <Timer className="w-5 h-5" />
+          </button>
+        )}
+        {onNavigateToTeams && (
+          <button
+            type="button"
+            onClick={onNavigateToTeams}
+            title="Teams"
+            className="p-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white/80 transition-colors"
+          >
+            <Users className="w-5 h-5" />
+          </button>
+        )}
+      </div>
 
       {/* Modals */}
       <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
@@ -746,24 +798,16 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
       {/* Messages or Empty State */}
       <div className="flex-1 overflow-hidden">
         {showEmptyState ? (
-          /* Notion-style: Avatar + Greeting + Composer + Cards below */
-          <div className="h-full flex flex-col items-center justify-center px-4 py-6 chat-gradient-bg">
-            <div className="w-full max-w-[680px] mx-auto space-y-5">
+          <div className="h-full flex flex-col items-center justify-center px-4 py-6">
+            <div className="w-full max-w-[680px] mx-auto space-y-4">
               {/* Avatar + Greeting */}
-              <div className="text-center space-y-3">
-                <div className="relative inline-block">
-                  <AgentAvatar size="lg" className="relative" status={agentStatus} />
+              <div className="flex flex-col items-center gap-3 px-4">
+                <div className="w-12 h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-white/60">
+                  <VasthuChatGlyph className="w-5 h-5" />
                 </div>
-                <div className="space-y-1.5 px-4">
-                  <h1 className="text-[22px] md:text-[26px] font-semibold text-white/95 tracking-tight leading-snug">
-                    {greeting.tagline}
-                  </h1>
-                  {greeting.subtitle && (
-                    <p className="text-[13px] text-white/40 font-normal leading-relaxed max-w-md mx-auto">
-                      {greeting.subtitle}
-                    </p>
-                  )}
-                </div>
+                <h1 className="text-[20px] font-medium text-white/80 tracking-tight">
+                  {greeting.tagline}
+                </h1>
               </div>
 
               {/* Composer - Main focus */}
@@ -794,77 +838,59 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   onTokenUpgrade={onNavigateToUpgrade}
                   onBuyTokenPack={onBuyTokenPack}
                 />
-                {/* Temporary toggle + disclaimer */}
-                <div className="flex items-center justify-center gap-3 mt-2">
+                <div className="flex items-center justify-center gap-2.5 mt-1.5">
                   {onToggleTemporary && (
                     <button
                       type="button"
                       onClick={onToggleTemporary}
-                      className={`flex items-center gap-1.5 text-[10.5px] transition-colors ${
+                      className={`flex items-center gap-1.5 text-[10px] transition-colors ${
                         isTemporary
                           ? 'text-amber-400/70 hover:text-amber-400'
-                          : 'text-white/20 hover:text-white/40'
+                          : 'text-white/15 hover:text-white/30'
                       }`}
                       title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Enable temporary chat (not saved to history)'}
                     >
                       <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${
-                        isTemporary ? 'bg-amber-400/30' : 'bg-white/[0.08]'
+                        isTemporary ? 'bg-amber-400/30' : 'bg-white/[0.06]'
                       }`}>
                         <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${
-                          isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/30'
+                          isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/20'
                         }`} />
                       </span>
                       <span>Temporary</span>
                     </button>
                   )}
-                  <p className="text-[10.5px] text-white/25">
+                  <p className="text-[10px] text-white/20">
                     Vasthu can make mistakes. Verify important information.
                   </p>
                 </div>
               </div>
 
-              {/* Suggestion Chips - Pill Shaped */}
               {showSuggestionChips && (
-                <div className="animate-in fade-in duration-200">
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    {suggestions.slice(0, 3).map((suggestion, index) => {
-                      const chipFallbackIcons = ['🏠', '📈', '📋', '🎯'];
-                      const label = suggestion.label;
-                      const query = suggestion.query;
-                      const key = suggestion.id || index;
-                      const icon = suggestion.icon || chipFallbackIcons[index % 4];
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  {suggestions.slice(0, 3).map((suggestion, index) => {
+                    const label = suggestion.label;
+                    const query = suggestion.query;
+                    const key = suggestion.id || index;
 
-                      return (
-                        <button
-                          key={key}
-                          onClick={() => {
-                            trackClick(suggestion);
-                            // Switch mode if chip targets a different mode
-                            if (suggestion.target_mode && suggestion.target_mode !== currentMode) {
-                              onModeChange(suggestion.target_mode as AgentMode);
-                              setTimeout(() => handleSendMessage(query), 300);
-                            } else {
-                              handleSendMessage(query);
-                            }
-                          }}
-                          className="group flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
-                        >
-                          <span className="text-xs opacity-60 group-hover:opacity-90 transition-opacity">{icon}</span>
-                          <span className="text-[12px] text-white/50 group-hover:text-white/80 font-medium leading-none">{label}</span>
-                        </button>
-                      );
-                    })}
-                    {/* Close button for suggestions */}
-                    <button
-                      onClick={() => setShowSuggestionChips(false)}
-                      className="flex items-center justify-center w-6 h-6 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-white/25 hover:text-white/60 transition-all"
-                      title="Hide suggestions"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          trackClick(suggestion);
+                          if (suggestion.target_mode && suggestion.target_mode !== currentMode) {
+                            onModeChange(suggestion.target_mode as AgentMode);
+                            setTimeout(() => handleSendMessage(query), 300);
+                          } else {
+                            handleSendMessage(query);
+                          }
+                        }}
+                        className="group px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.10] transition-colors"
+                      >
+                        <span className="text-[11px] text-white/40 group-hover:text-white/70 font-medium leading-none">{label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -913,6 +939,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 thinkingElapsed={thinkingElapsed}
                 nativeThinkingText={nativeThinkingText}
                 hasThinkingModel={modelSupportsThinking(selectedModel || '')}
+                activeModel={activeModelLabel}
                 userName={userName}
                 userAvatar={userAvatar}
                 onRefresh={onRefresh}
@@ -1004,9 +1031,6 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                       transition: 'opacity 0.25s ease, max-height 0.3s ease',
                     }}
                   >
-                    <div className="flex-shrink-0 mr-4 mt-1">
-                      <AgentAvatar status={agentStatus} className="w-9 h-9 shadow-lg shadow-blue-500/10" />
-                    </div>
                     <div className="flex flex-col max-w-[90%] md:max-w-[85%] items-start">
                       <div className="text-[15px] leading-relaxed text-slate-200">
                         {voiceAIPartial || '\u00A0'}

@@ -5,6 +5,7 @@
  */
 import { useState, useCallback, useMemo } from 'react';
 import { generateReport } from '../services/agentsApi';
+import { subscriptionService } from '../services/subscriptionService';
 import type { ReportData } from '../components/reports/ReportDrawer';
 import type { InvestmentReportFormat } from '../types/enums';
 import type { InvestmentStrategy, PnLOutput } from '../types/pnl';
@@ -41,19 +42,21 @@ interface UseReportGeneratorOptions {
 }
 
 interface UseReportGeneratorReturn {
-  // State
   report: ReportData | null;
   isLoading: boolean;
   error: string | null;
   isDrawerOpen: boolean;
 
-  // Actions
   generateReportWithType: (type: InvestmentReportFormat) => Promise<void>;
+  requestReport: (type: InvestmentReportFormat) => void;
+  confirmPendingReport: () => Promise<void>;
+  cancelPendingReport: () => void;
   openDrawer: () => void;
   closeDrawer: () => void;
   clearReport: () => void;
 
-  // Computed
+  pendingReportType: InvestmentReportFormat | null;
+  billingCharge: number | null;
   inferredReportType: InvestmentReportFormat;
   inferredStrategy: InvestmentStrategy | undefined;
 }
@@ -201,11 +204,12 @@ export function useReportGenerator(
     riskFactors,
   } = options;
 
-  // State
   const [report, setReport] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [pendingReportType, setPendingReportType] = useState<InvestmentReportFormat | null>(null);
+  const [billingCharge, setBillingCharge] = useState<number | null>(null);
 
   // Computed values
   const inferredReportType = useMemo(
@@ -326,6 +330,34 @@ export function useReportGenerator(
     ]
   );
 
+  const requestReport = useCallback((type: InvestmentReportFormat) => {
+    setPendingReportType(type);
+  }, []);
+
+  const confirmPendingReport = useCallback(async () => {
+    if (!pendingReportType) return;
+    const type = pendingReportType;
+    setPendingReportType(null);
+    await generateReportWithType(type);
+
+    try {
+      const result = await subscriptionService.recordAction('report', {
+        report_type: type,
+        property_address: propertyAddress || '',
+      });
+      if (result?.success) {
+        setBillingCharge(result.amount_cents / 100);
+        setTimeout(() => setBillingCharge(null), 5000);
+      }
+    } catch {
+      // billing recording is best-effort; report still delivered
+    }
+  }, [pendingReportType, generateReportWithType, propertyAddress]);
+
+  const cancelPendingReport = useCallback(() => {
+    setPendingReportType(null);
+  }, []);
+
   const openDrawer = useCallback(() => {
     setIsDrawerOpen(true);
   }, []);
@@ -340,19 +372,21 @@ export function useReportGenerator(
   }, []);
 
   return {
-    // State
     report,
     isLoading,
     error,
     isDrawerOpen,
 
-    // Actions
     generateReportWithType,
+    requestReport,
+    confirmPendingReport,
+    cancelPendingReport,
     openDrawer,
     closeDrawer,
     clearReport,
 
-    // Computed
+    pendingReportType,
+    billingCharge,
     inferredReportType,
     inferredStrategy,
   };

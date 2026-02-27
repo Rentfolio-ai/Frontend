@@ -19,3 +19,11 @@ export const WhatsAppIcon: React.FC<IconProps> = ({ className = 'w-6 h-6' }) => 
 export const IMessageIcon: React.FC<IconProps> = ({ className = 'w-6 h-6' }) => (
   <img src="/brand-logos/imessage.png" alt="iMessage" className={`${className} object-contain`} />
 );
+
+export const GoogleMeetIcon: React.FC<IconProps> = ({ className = 'w-6 h-6' }) => (
+  <img src="/brand-logos/google-meet.svg" alt="Google Meet" className={`${className} object-contain`} />
+);
+
+export const ZoomIcon: React.FC<IconProps> = ({ className = 'w-6 h-6' }) => (
+  <img src="/brand-logos/zoom.svg" alt="Zoom" className={`${className} object-contain`} />
+);

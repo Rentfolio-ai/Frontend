@@ -7,7 +7,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { cn } from '../../lib/utils';
 import { SuggestionChips } from './SuggestionChips';
 import type { Message } from '@/types/chat';
-import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
+import type { AgentStatus } from '../common/AgentAvatar';
 import { ActionButtons } from './ActionButtons';
 import { InlineActionsBar } from './InlineActionsBar';
 import { ToolMessage } from './ToolMessage';
@@ -107,7 +107,7 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   onAction,
-  agentStatus = 'online',
+  agentStatus: _agentStatus = 'online',
   onOpenDealAnalyzer,
   bookmarks,
   onToggleBookmark,
@@ -224,13 +224,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         isUser ? "justify-end" : "justify-start"
       )}
     >
-      {/* Agent Avatar (Left) */}
-      {!isUser && (
-        <div className="flex-shrink-0 mr-3 mt-0.5">
-          <AgentAvatar status={agentStatus} className="w-7 h-7 shadow-lg shadow-blue-500/10" />
-        </div>
-      )}
-
       <div className={cn(
         "flex flex-col max-w-[80%] md:max-w-[65%]",
         isUser ? "items-end" : "items-start"
@@ -274,18 +267,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             "relative whitespace-pre-wrap break-words overflow-hidden transition-all duration-200",
             message.isStreaming && "streaming-message",
             isUser && [
-              "rounded-2xl rounded-br-md",
+              "w-fit",
+              "rounded-xl rounded-br-sm",
               "accent-user-bubble",
-              "border border-white/[0.1]",
-              "px-3.5 py-2.5",
+              "border border-white/[0.07]",
+              "px-3 py-2",
               "text-[14px] leading-normal text-white/90",
-              "backdrop-blur-xl",
             ],
-            !isUser && "text-[15px] leading-relaxed",
+            !isUser && "text-[13.5px] leading-[1.7]",
             
           )}
           style={{
-            color: isUser ? '#F0FDFA' : '#E8DED2',
+            color: isUser ? '#F0FDFA' : 'rgba(232, 222, 210, 0.9)',
           }}
         >
 
@@ -925,23 +918,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         )}
 
-
         {/* AI Reasoning Trace — "Thought for Xs" collapsible panel */}
-        {!isUser && !message.isStreaming && (message.thinkingTrace?.steps?.length || message.nativeThinkingText) && (
+        {!isUser && !message.isStreaming && (
+          message.thinkingTrace?.steps?.length ||
+          message.nativeThinkingText ||
+          message.reasoningTrace?.steps?.length ||
+          message.webSources?.length ||
+          aiReasoningSteps.length > 0
+        ) && (
           <div className="w-full">
             <AIReasoningPanel
               trace={message.thinkingTrace || { steps: [], durationMs: 0, toolsUsed: [] }}
+              reasoningTrace={message.reasoningTrace}
               steps={aiReasoningSteps}
               nativeThinkingText={message.nativeThinkingText}
-            />
-          </div>
-        )}
-        {/* Legacy fallback: show reasoning steps even without thinkingTrace */}
-        {!isUser && !message.isStreaming && !message.thinkingTrace && !message.nativeThinkingText && aiReasoningSteps.length > 0 && (
-          <div className="w-full">
-            <AIReasoningPanel
-              trace={{ steps: [], durationMs: 0, toolsUsed: [] }}
-              steps={aiReasoningSteps}
+              webSources={message.webSources ?? undefined}
             />
           </div>
         )}
@@ -951,20 +942,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
       {isUser && (
         <div className="flex-shrink-0 ml-3 mt-1">
           <div className="relative group/user-avatar">
-            {/* Subtle outer glow on hover */}
-            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-[#C08B5C]/30 to-[#D4A27F]/30 opacity-0 group-hover/user-avatar:opacity-100 blur-sm transition-opacity duration-300" />
+            <div className="absolute -inset-0.5 rounded-full bg-[#C08B5C]/20 opacity-0 group-hover/user-avatar:opacity-100 blur-[3px] transition-opacity duration-300" />
 
-            {/* Avatar container */}
-            <div className="relative w-8 h-8 rounded-full overflow-hidden ring-[1.5px] ring-white/[0.12] shadow-lg shadow-black/20 group-hover/user-avatar:ring-[#C08B5C]/30 transition-all duration-300">
+            <div className="relative w-8 h-8 rounded-full overflow-hidden ring-[1px] ring-white/[0.08] shadow-md shadow-black/15 group-hover/user-avatar:ring-[#C08B5C]/25 transition-all duration-300">
               {userAvatar && userAvatar.length > 200 ? (
-                /* Profile picture / Memoji (base64 or URL) */
                 <img
                   src={userAvatar}
                   alt={userName || 'User'}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                /* Gradient initials fallback */
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#C08B5C] to-[#8A5D3B]">
                   <span className="text-[11px] font-bold text-white/90 leading-none">
                     {userName ? userName.split(' ')[0].charAt(0).toUpperCase() : 'U'}

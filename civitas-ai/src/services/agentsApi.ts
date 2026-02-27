@@ -23,9 +23,13 @@ const jsonHeaders: HeadersInit = {
 export interface PropertySearchParams {
   location: string;
   max_price?: number;
+  min_price?: number;
   min_bedrooms?: number;
   min_bathrooms?: number;
   property_type?: string;
+  property_types?: string[];
+  strategy?: string;
+  user_id?: string;
   limit?: number;
 }
 
@@ -202,6 +206,7 @@ export interface ReportResponse {
   cons?: string[];
   risk_factors?: string[];
   message?: string;
+  charge_amount_cents?: number;
 }
 
 // ============================================================================
@@ -209,16 +214,30 @@ export interface ReportResponse {
 // ============================================================================
 
 /**
- * Search for STR investment properties
+ * Search for investment properties via the V2 property endpoint.
  */
 export async function searchProperties(params: PropertySearchParams): Promise<PropertySearchResponse> {
-  const endpoint = `${API_BASE}/api/agents/search`;
+  const endpoint = `${API_BASE}/v2/property/search`;
+
+  const body: Record<string, unknown> = {
+    location: params.location,
+    include_ai: false,
+  };
+  if (params.limit) body.limit = params.limit;
+  if (params.max_price) body.max_price = params.max_price;
+  if (params.min_price) body.min_price = params.min_price;
+  if (params.min_bedrooms) body.min_beds = params.min_bedrooms;
+  if (params.min_bathrooms) body.min_baths = params.min_bathrooms;
+  if (params.property_types?.length) body.property_types = params.property_types;
+  if (params.property_type) body.property_types = [params.property_type];
+  if (params.strategy) body.strategy = params.strategy;
+  if (params.user_id) body.user_id = params.user_id;
 
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: jsonHeaders,
-      body: JSON.stringify(params),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -889,4 +908,234 @@ export async function deleteProperty(propertyId: string): Promise<{ success: boo
   return response.json();
 }
 
+// ============================================================================
+// Bookmarks API
+// ============================================================================
 
+export interface BookmarkData {
+  id: string;
+  user_id: string;
+  property_data: Record<string, any>;
+  display_name: string;
+  search_query?: string;
+  notes?: string;
+  tags?: string[];
+  bookmarked_at: string;
+  updated_at?: string;
+  deal_status?: 'active' | 'under_contract' | 'closed' | 'lost';
+  deal_closed_at?: string;
+}
+
+export async function getBookmarks(
+  userId: string,
+  limit = 50,
+  offset = 0,
+): Promise<{ bookmarks: BookmarkData[]; total: number }> {
+  const params = new URLSearchParams({ user_id: userId, limit: String(limit), offset: String(offset) });
+  const response = await fetch(`${API_BASE}/api/bookmarks?${params}`, {
+    method: 'GET',
+    headers: jsonHeaders,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to fetch bookmarks' }));
+    throw new Error(error.detail || 'Failed to fetch bookmarks');
+  }
+
+  return response.json();
+}
+
+export async function createBookmark(
+  userId: string,
+  data: {
+    property_data: Record<string, any>;
+    display_name: string;
+    search_query?: string;
+    notes?: string;
+    tags?: string[];
+  },
+): Promise<BookmarkData> {
+  const params = new URLSearchParams({ user_id: userId });
+  const response = await fetch(`${API_BASE}/api/bookmarks?${params}`, {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to create bookmark' }));
+    throw new Error(error.detail || 'Failed to create bookmark');
+  }
+
+  return response.json();
+}
+
+export async function deleteBookmark(
+  userId: string,
+  bookmarkId: string,
+): Promise<{ success: boolean; message: string }> {
+  const params = new URLSearchParams({ user_id: userId });
+  const response = await fetch(`${API_BASE}/api/bookmarks/${bookmarkId}?${params}`, {
+    method: 'DELETE',
+    headers: jsonHeaders,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to delete bookmark' }));
+    throw new Error(error.detail || 'Failed to delete bookmark');
+  }
+
+  return response.json();
+}
+
+export async function updateBookmarkStatus(
+  userId: string,
+  bookmarkId: string,
+  status: 'active' | 'under_contract' | 'closed' | 'lost',
+): Promise<BookmarkData> {
+  const params = new URLSearchParams({ user_id: userId });
+  const response = await fetch(`${API_BASE}/api/bookmarks/${bookmarkId}/status?${params}`, {
+    method: 'PUT',
+    headers: jsonHeaders,
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to update deal status' }));
+    throw new Error(error.detail || 'Failed to update deal status');
+  }
+
+  return response.json();
+}
+
+// ============================================================================
+// Market Trends API
+// ============================================================================
+
+export interface MarketTrendsData {
+  city: string;
+  state: string;
+  median_price?: number;
+  median_rent?: number;
+  months_inventory?: number;
+  avg_days_on_market?: number;
+  active_listings?: number;
+  median_price_per_sqft?: number;
+}
+
+export async function getMarketTrends(
+  city: string,
+  state: string,
+  zipCode?: string,
+): Promise<{ status: string; data: MarketTrendsData | null }> {
+  const params = new URLSearchParams({ city, state });
+  if (zipCode) params.set('zip_code', zipCode);
+
+  const response = await fetch(`${API_BASE}/v2/internal/market/stats?${params}`, {
+    method: 'GET',
+    headers: jsonHeaders,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to fetch market trends' }));
+    throw new Error(error.detail || 'Failed to fetch market trends');
+  }
+
+  return response.json();
+}
+
+
+// ─── Enrichment / Free Data APIs ───────────────────────────────────────────
+
+export interface SchoolRating {
+  name: string;
+  rating: number;
+  type: string;
+  distance_miles?: number;
+}
+
+export async function getSchoolRatings(
+  latitude: number,
+  longitude: number,
+  radiusMiles = 2,
+): Promise<{ status: string; data: SchoolRating[] | null }> {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    radius_miles: String(radiusMiles),
+  });
+  const response = await fetch(`${API_BASE}/v2/internal/free-data/school-ratings?${params}`, {
+    method: 'GET',
+    headers: jsonHeaders,
+  });
+  if (!response.ok) return { status: 'error', data: null };
+  return response.json();
+}
+
+export interface WalkScoreData {
+  walk_score?: number;
+  transit_score?: number;
+  bike_score?: number;
+  description?: string;
+}
+
+export async function getWalkScore(
+  address: string,
+  latitude: number,
+  longitude: number,
+): Promise<{ status: string; data: WalkScoreData | null }> {
+  const params = new URLSearchParams({
+    address,
+    latitude: String(latitude),
+    longitude: String(longitude),
+  });
+  const response = await fetch(`${API_BASE}/v2/internal/free-data/walk-score?${params}`, {
+    method: 'GET',
+    headers: jsonHeaders,
+  });
+  if (!response.ok) return { status: 'error', data: null };
+  return response.json();
+}
+
+export interface FloodZoneData {
+  flood_zone?: string;
+  risk_level?: string;
+  description?: string;
+}
+
+export async function getFloodZone(
+  latitude: number,
+  longitude: number,
+): Promise<{ status: string; data: FloodZoneData | null }> {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+  });
+  const response = await fetch(`${API_BASE}/v2/internal/free-data/flood-zone?${params}`, {
+    method: 'GET',
+    headers: jsonHeaders,
+  });
+  if (!response.ok) return { status: 'error', data: null };
+  return response.json();
+}
+
+export interface CrimeStatsData {
+  crime_rate?: string;
+  violent_crime_rate?: number;
+  property_crime_rate?: number;
+  safety_score?: number;
+  description?: string;
+}
+
+export async function getCrimeStats(
+  city: string,
+  state: string,
+): Promise<{ status: string; data: CrimeStatsData | null }> {
+  const params = new URLSearchParams({ city, state });
+  const response = await fetch(`${API_BASE}/v2/internal/free-data/crime-stats?${params}`, {
+    method: 'GET',
+    headers: jsonHeaders,
+  });
+  if (!response.ok) return { status: 'error', data: null };
+  return response.json();
+}

@@ -14,14 +14,10 @@ export const AgentModeSelector: React.FC<AgentModeSelectorProps> = ({
     onModeChange,
     disabled
 }) => {
-    // Define modes here for easy customization
     const modes: { id: AgentMode, label: string, icon: React.ReactNode, description?: string }[] = [
-        { id: 'research', label: 'Research', icon: <Search className="w-3 h-3" /> },
-        { id: 'strategist', label: 'Strategist', icon: <Brain className="w-3 h-3" /> },
-        { id: 'hunter', label: 'Hunter', icon: <Target className="w-3 h-3" /> },
-        // Future modes can be added here, e.g.:
-        // { id: 'builder', label: 'Build', icon: <Wrench className="w-4 h-4" /> },
-        // { id: 'planner', label: 'Plan', icon: <FileText className="w-4 h-4" /> },
+        { id: 'research', label: 'Deep Research', icon: <Search className="w-3 h-3" />, description: 'Comprehensive market research, policy analysis, data synthesis' },
+        { id: 'strategist', label: 'Expert Strategist', icon: <Brain className="w-3 h-3" />, description: 'Portfolio strategy, risk modeling, long-term wealth planning' },
+        { id: 'hunter', label: 'Deep Search', icon: <Target className="w-3 h-3" />, description: 'In-depth property analysis, deal scoring, full due diligence' },
     ];
 
     return (

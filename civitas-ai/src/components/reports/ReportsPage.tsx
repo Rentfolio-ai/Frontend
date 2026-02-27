@@ -1,21 +1,14 @@
-/**
- * ReportsPage
- * Premium SaaS dashboard for investment reports.
- * Tab navigation, table-first layout, healthcare-portal inspired.
- */
-
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import {
   Search, ExternalLink, Printer, Trash2, X,
-  FileText, RefreshCw, ArrowUpDown,
+  FileText, RefreshCw, ArrowUpDown, ArrowLeft,
   TrendingUp, BarChart3, DollarSign, MessageSquare,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { reportsService, type ReportSummary } from '../../services/reportsApi';
 import { cn } from '../../lib/utils';
 import { useToast } from '../../hooks/useToast';
-
-/* ── Configuration ─────────────────────────────────────────────────── */
+import { AmbientBackground } from '../ui/AmbientBackground';
 
 type SortField = 'type' | 'property' | 'recommendation' | 'date';
 type SortOrder = 'asc' | 'desc';
@@ -52,8 +45,6 @@ const REC_CONFIG: Record<string, { label: string; dotClass: string; textClass: s
   monitor:            { label: 'Monitor',   dotClass: 'bg-white/30',      textClass: 'text-white/40' },
 };
 
-/* ── Helpers ────────────────────────────────────────────────────────── */
-
 const getReportConfig = (type: string): ReportTypeConfig =>
   REPORT_CONFIG[type] || { label: type, shortLabel: type, color: '#555', textClass: 'text-white/50', bgClass: 'bg-white/5' };
 
@@ -87,8 +78,6 @@ const isRecent = (iso: string) => {
 const isBuySignal = (rec: string) =>
   ['buy', 'strong candidate'].includes(rec.toLowerCase());
 
-/* ── Sub-Components ─────────────────────────────────────────────────── */
-
 const KPIStrip: React.FC<{ reports: ReportSummary[] }> = ({ reports }) => {
   const total = reports.length;
   const buys = reports.filter(r => isBuySignal(r.recommendation)).length;
@@ -98,24 +87,21 @@ const KPIStrip: React.FC<{ reports: ReportSummary[] }> = ({ reports }) => {
   const avgCF = withCF.length > 0 ? withCF.reduce((s, r) => s + r.key_metrics.monthly_cash_flow, 0) / withCF.length : 0;
 
   const kpis = [
-    { label: 'Total Reports', value: String(total), icon: FileText, iconColor: 'text-white/30' },
-    { label: 'Buy Signals', value: String(buys), icon: TrendingUp, iconColor: 'text-white/30' },
-    { label: 'Avg Cap Rate', value: avgCap > 0 ? fmtPct(avgCap) : '--', icon: BarChart3, iconColor: 'text-white/30' },
-    { label: 'Avg Cash Flow', value: avgCF !== 0 ? `${fmtCurrency(avgCF)}/mo` : '--', icon: DollarSign, iconColor: 'text-white/30' },
+    { label: 'Total Reports', value: String(total), icon: FileText },
+    { label: 'Buy Signals', value: String(buys), icon: TrendingUp },
+    { label: 'Avg Cap Rate', value: avgCap > 0 ? fmtPct(avgCap) : '--', icon: BarChart3 },
+    { label: 'Avg Cash Flow', value: avgCF !== 0 ? `${fmtCurrency(avgCF)}/mo` : '--', icon: DollarSign },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-1 mb-4">
       {kpis.map((kpi) => (
-        <div
-          key={kpi.label}
-          className="rounded-xl bg-[#1a1a1f] border border-white/[0.06] px-4 py-3.5 hover:border-white/[0.08] transition-colors duration-200"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] text-white/35 font-medium">{kpi.label}</p>
-            <kpi.icon className={cn("w-3.5 h-3.5", kpi.iconColor)} />
+        <div key={kpi.label} className="rounded-lg bg-white/[0.03] border border-white/[0.04] px-3 py-2.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[10px] text-white/30 font-medium">{kpi.label}</p>
+            <kpi.icon className="w-3 h-3 text-white/20" />
           </div>
-          <p className="text-[20px] font-mono font-bold text-white/90 tracking-tight leading-none">{kpi.value}</p>
+          <p className="text-[17px] font-mono font-bold text-white/90 tracking-tight leading-none">{kpi.value}</p>
         </div>
       ))}
     </div>
@@ -123,20 +109,17 @@ const KPIStrip: React.FC<{ reports: ReportSummary[] }> = ({ reports }) => {
 };
 
 const EmptyState: React.FC<{ onAnalyze: () => void }> = ({ onAnalyze }) => (
-  <div className="flex flex-col items-center justify-center py-28 text-center">
-    <div className="w-14 h-14 rounded-full bg-white/[0.04] flex items-center justify-center mb-5">
-      <FileText className="w-6 h-6 text-white/20" strokeWidth={1.5} />
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <div className="w-12 h-12 rounded-full bg-white/[0.04] flex items-center justify-center mb-4">
+      <FileText className="w-5 h-5 text-white/20" strokeWidth={1.5} />
     </div>
-    <h2 className="text-[16px] font-medium text-white/70 mb-1.5">No reports yet</h2>
-    <p className="text-[13px] text-white/30 mb-6">
+    <h2 className="text-[14px] font-medium text-white/70 mb-1">No reports yet</h2>
+    <p className="text-[12px] text-white/30 mb-5">
       Analyze a property in chat to generate your first report.
     </p>
     <button
       onClick={onAnalyze}
-      className="flex items-center gap-2 px-5 py-2.5 rounded-lg
-        bg-white/[0.07] hover:bg-white/[0.10]
-        text-[13px] font-medium text-white/60 hover:text-white/80
-        transition-colors duration-150"
+      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.09] text-[12px] font-medium text-white/60 hover:text-white/80"
     >
       <MessageSquare className="w-3.5 h-3.5" strokeWidth={1.5} />
       Analyze a Property
@@ -145,15 +128,15 @@ const EmptyState: React.FC<{ onAnalyze: () => void }> = ({ onAnalyze }) => (
 );
 
 const LoadingSkeleton: React.FC = () => (
-  <div className="space-y-6">
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+  <div className="space-y-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-[80px] rounded-xl bg-[#1a1a1f] border border-white/[0.04] animate-pulse" />
+        <div key={i} className="h-[60px] rounded-lg bg-white/[0.03] border border-white/[0.04] animate-pulse" />
       ))}
     </div>
-    <div className="rounded-xl bg-[#1a1a1f] border border-white/[0.04] overflow-hidden">
+    <div className="rounded-lg bg-white/[0.03] border border-white/[0.04] overflow-hidden">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-[56px] border-b border-white/[0.03] animate-pulse" />
+        <div key={i} className="h-10 border-b border-white/[0.03] animate-pulse" />
       ))}
     </div>
   </div>
@@ -168,25 +151,25 @@ const ReportRow: React.FC<{
   const cfg = getReportConfig(report.report_type);
   const rec = getRecConfig(report.recommendation);
   return (
-    <tr onClick={onView} className="group hover:bg-white/[0.02] cursor-pointer transition-colors border-b border-white/[0.04] last:border-b-0">
-      <td className="px-5 py-4">
-        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/[0.05] text-white/50">
+    <tr onClick={onView} className="group hover:bg-white/[0.02] cursor-pointer border-b border-white/[0.04] last:border-b-0">
+      <td className="px-3 py-2.5">
+        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-white/[0.05] text-white/50">
           {cfg.shortLabel}
         </span>
       </td>
-      <td className="px-5 py-4">
-        <p className="text-[13px] text-white/65 group-hover:text-white/90 truncate max-w-[320px] transition-colors" title={report.property_address}>
+      <td className="px-3 py-2.5">
+        <p className="text-[12px] text-white/65 group-hover:text-white/90 truncate max-w-[300px]" title={report.property_address}>
           {report.property_address}
         </p>
       </td>
-      <td className="px-5 py-4">
+      <td className="px-3 py-2.5">
         <span className="flex items-center gap-1.5 w-fit">
           <span className={cn("w-1.5 h-1.5 rounded-full", rec.dotClass)} />
-          <span className={cn("text-[11px] font-semibold", rec.textClass)}>{rec.label}</span>
+          <span className={cn("text-[10px] font-semibold", rec.textClass)}>{rec.label}</span>
         </span>
       </td>
-      <td className="px-5 py-4">
-        <div className="flex items-center gap-3 text-[11px] font-mono text-white/30">
+      <td className="px-3 py-2.5">
+        <div className="flex items-center gap-2.5 text-[10px] font-mono text-white/30">
           {report.key_metrics?.cap_rate != null && !isNaN(report.key_metrics.cap_rate) && report.key_metrics.cap_rate > 0 && (
             <span>{fmtPct(report.key_metrics.cap_rate)} cap</span>
           )}
@@ -200,16 +183,16 @@ const ReportRow: React.FC<{
           )}
         </div>
       </td>
-      <td className="px-5 py-4">
-        <span className="text-[11px] font-mono text-white/20">{fmtDate(report.created_at)}</span>
+      <td className="px-3 py-2.5">
+        <span className="text-[10px] font-mono text-white/20">{fmtDate(report.created_at)}</span>
       </td>
-      <td className="px-5 py-4 text-right">
-        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={onOpenTab} className="p-1.5 rounded-lg hover:bg-white/[0.08] text-white/25 hover:text-white/60 transition-colors" title="Open in new tab">
-            <ExternalLink className="w-3.5 h-3.5" />
+      <td className="px-3 py-2.5 text-right">
+        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100">
+          <button onClick={onOpenTab} className="p-1 rounded hover:bg-white/[0.08] text-white/25 hover:text-white/60" title="Open in new tab">
+            <ExternalLink className="w-3 h-3" />
           </button>
-          <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-500/10 text-white/25 hover:text-red-400 transition-colors" title="Delete">
-            <Trash2 className="w-3.5 h-3.5" />
+          <button onClick={onDelete} className="p-1 rounded hover:bg-red-500/10 text-white/25 hover:text-red-400" title="Delete">
+            <Trash2 className="w-3 h-3" />
           </button>
         </div>
       </td>
@@ -230,59 +213,47 @@ const ReportViewerModal: React.FC<{
   const cfg = reportType ? getReportConfig(reportType) : null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-6xl h-[90vh] rounded-xl overflow-hidden flex flex-col bg-[#131316] border border-white/[0.08] shadow-2xl shadow-black/40"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 10 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-6xl h-[90vh] rounded-2xl overflow-hidden flex flex-col bg-[#131316] border border-white/[0.08] shadow-2xl shadow-black/40"
-          onClick={(e: React.MouseEvent) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between px-6 py-3.5 border-b border-white/[0.06] flex-shrink-0">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2.5 mb-0.5">
-                {cfg && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/[0.05] text-white/50">
-                    {cfg.shortLabel}
-                  </span>
-                )}
-                <h3 className="text-[14px] font-semibold text-white/90">{cfg ? cfg.label : 'Report'}</h3>
-              </div>
-              {reportAddress && <p className="text-[12px] text-white/35 truncate ml-[30px]">{reportAddress}</p>}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] flex-shrink-0">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              {cfg && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-white/[0.05] text-white/50">
+                  {cfg.shortLabel}
+                </span>
+              )}
+              <h3 className="text-[13px] font-semibold text-white/90">{cfg ? cfg.label : 'Report'}</h3>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button onClick={() => window.open(htmlUrl, '_blank')} className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors" title="Open in new tab">
-                <ExternalLink className="w-4 h-4" />
-              </button>
-              <button onClick={() => iframeRef.current?.contentWindow?.print()} className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors" title="Print / Save PDF">
-                <Printer className="w-4 h-4" />
-              </button>
-              <div className="w-px h-4 mx-1.5 bg-white/[0.06]" />
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            {reportAddress && <p className="text-[11px] text-white/35 truncate ml-[26px]">{reportAddress}</p>}
           </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={() => window.open(htmlUrl, '_blank')} className="p-1.5 rounded hover:bg-white/[0.06] text-white/30 hover:text-white/60" title="Open in new tab">
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => iframeRef.current?.contentWindow?.print()} className="p-1.5 rounded hover:bg-white/[0.06] text-white/30 hover:text-white/60" title="Print / Save PDF">
+              <Printer className="w-3.5 h-3.5" />
+            </button>
+            <div className="w-px h-4 mx-1 bg-white/[0.06]" />
+            <button onClick={onClose} className="p-1.5 rounded hover:bg-white/[0.06] text-white/30 hover:text-white/60">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
 
-          <div className="flex-1 bg-[#F7F8FA] relative">
-            <iframe ref={iframeRef} src={htmlUrl} className="w-full h-full border-0" title="Report Content" />
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        <div className="flex-1 bg-[#F7F8FA] relative">
+          <iframe ref={iframeRef} src={htmlUrl} className="w-full h-full border-0" title="Report Content" />
+        </div>
+      </div>
+    </div>
   );
 };
-
-/* ── Tab definitions ───────────────────────────────────────────────── */
 
 const TABS: { id: TabId; label: string; count?: (reports: ReportSummary[]) => number }[] = [
   { id: 'all', label: 'All' },
@@ -290,9 +261,7 @@ const TABS: { id: TabId; label: string; count?: (reports: ReportSummary[]) => nu
   { id: 'recent', label: 'Recent', count: (reports) => reports.filter(r => isRecent(r.created_at)).length },
 ];
 
-/* ── Main Component ─────────────────────────────────────────────────── */
-
-export const ReportsPage: React.FC<{ onNavigateToChat?: () => void }> = ({ onNavigateToChat }) => {
+export const ReportsPage: React.FC<{ onNavigateToChat?: () => void; onBack?: () => void }> = ({ onNavigateToChat, onBack }) => {
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -369,42 +338,68 @@ export const ReportsPage: React.FC<{ onNavigateToChat?: () => void }> = ({ onNav
     });
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: '#111114' }}>
-      {/* Header */}
-      <div className="px-8 pt-7 flex-shrink-0">
-        <div className="flex items-start justify-between mb-1">
-          <div>
-            <h1 className="text-[22px] font-semibold text-white/95 tracking-tight">Reports</h1>
-            <p className="text-[13px] text-white/25 mt-1">Investment analysis reports</p>
-          </div>
-
-          {hasReports && (
-            <div className="flex items-center gap-2 mt-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-                <input
-                  type="text"
-                  placeholder="Search reports..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="py-2 pl-9 pr-4 rounded-xl text-[13px] text-white placeholder-white/20 bg-[#1a1a1f] border border-white/[0.06] focus:outline-none focus:border-white/[0.12] transition-all w-56"
-                />
-              </div>
-              <button
-                onClick={() => loadReports(true)}
-                disabled={isRefreshing}
-                className="p-2 rounded-xl text-white/20 hover:text-white/50 bg-[#1a1a1f] border border-white/[0.06] hover:border-white/[0.10] transition-all"
-                title="Refresh"
-              >
-                <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
-              </button>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="h-full flex flex-col overflow-hidden bg-[#161619] relative"
+    >
+      <AmbientBackground variant="reports" />
+      <div className="px-6 pt-6 flex-shrink-0 relative z-10">
+        <div className="space-y-1 mb-1">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-1"
+                  title="Back to Home"
+                >
+                  <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                </button>
+              )}
+              <h1 className="text-lg font-bold gradient-text">Reports</h1>
             </div>
-          )}
+            {hasReports && (
+              <div className="flex items-center gap-2 flex-1 max-w-[320px]">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]
+                               text-[12px] text-white/80 placeholder:text-white/20
+                               focus:outline-none focus:border-[#C08B5C]/30 focus:ring-1 focus:ring-[#C08B5C]/20
+                               transition-all duration-150"
+                  />
+                </div>
+                <button
+                  onClick={() => loadReports(true)}
+                  disabled={isRefreshing}
+                  className="w-7 h-7 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center
+                             text-white/30 hover:text-[#D4A27F]/70 hover:border-[#C08B5C]/20 transition-all
+                             disabled:opacity-40 flex-shrink-0"
+                  title="Refresh"
+                >
+                  <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-[12px] text-white/35">
+              Investment analysis reports
+            </p>
+            <span className="text-[10px] text-white/20 font-mono">
+              {reports.length} reports
+            </span>
+          </div>
         </div>
 
-        {/* Tab navigation */}
         {hasReports && (
-          <div className="flex items-center gap-0 mt-5 border-b border-white/[0.06]">
+          <div className="flex items-center gap-0 mt-4 border-b border-white/[0.06]">
             {TABS.map(tab => {
               const count = tab.count ? tab.count(reports) : reports.length;
               const isActive = activeTab === tab.id;
@@ -413,27 +408,21 @@ export const ReportsPage: React.FC<{ onNavigateToChat?: () => void }> = ({ onNav
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "relative px-4 pb-3 text-[13px] font-medium transition-colors",
-                    isActive
-                      ? "text-white/90"
-                      : "text-white/35 hover:text-white/55"
+                    "relative px-3.5 pb-2.5 text-[12px] font-medium",
+                    isActive ? "text-white/90" : "text-white/35 hover:text-white/55"
                   )}
                 >
                   <span className="flex items-center gap-1.5">
                     {tab.label}
                     <span className={cn(
-                      "text-[11px] font-mono px-1.5 py-0 rounded",
+                      "text-[10px] font-mono px-1 rounded",
                       isActive ? "text-white/50" : "text-white/20"
                     )}>
                       {count}
                     </span>
                   </span>
                   {isActive && (
-                    <motion.div
-                      layoutId="tab-underline"
-                      className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/60 rounded-full"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/60 rounded-full" />
                   )}
                 </button>
               );
@@ -442,41 +431,43 @@ export const ReportsPage: React.FC<{ onNavigateToChat?: () => void }> = ({ onNav
         )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-8 pt-5 pb-8">
+      <div className="flex-1 overflow-y-auto px-6 pt-4 pb-6 relative z-10" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
         {isLoading ? (
           <LoadingSkeleton />
         ) : !hasReports ? (
           <EmptyState onAnalyze={() => onNavigateToChat?.()} />
         ) : (
           <>
-            <KPIStrip reports={reports} />
+            <span className="text-[12px] text-white/30 font-medium">Key Metrics</span>
+            <div className="mt-2">
+              <KPIStrip reports={reports} />
+            </div>
 
             {filteredReports.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <p className="text-[13px] text-white/30">
+              <div className="flex flex-col items-center justify-center py-16">
+                <p className="text-[12px] text-white/30">
                   {searchQuery ? `No reports matching "${searchQuery}"` : 'No reports in this tab'}
                 </p>
               </div>
             ) : (
-              <div className="rounded-xl overflow-hidden bg-[#1a1a1f] border border-white/[0.06]">
+              <div className="rounded-lg overflow-hidden bg-white/[0.03] border border-white/[0.04]">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-white/[0.06]">
+                    <tr className="border-b border-white/[0.05]">
                       {[
-                        { field: 'type' as SortField, label: 'Type', width: 'w-[100px]' },
+                        { field: 'type' as SortField, label: 'Type', width: 'w-[80px]' },
                         { field: 'property' as SortField, label: 'Property', width: '' },
-                        { field: 'recommendation' as SortField, label: 'Signal', width: 'w-[100px]' },
-                        { field: undefined as SortField | undefined, label: 'Metrics', width: 'w-[220px]' },
-                        { field: 'date' as SortField, label: 'Date', width: 'w-[100px]' },
-                        { field: undefined as SortField | undefined, label: '', width: 'w-[80px]' },
+                        { field: 'recommendation' as SortField, label: 'Signal', width: 'w-[80px]' },
+                        { field: undefined as SortField | undefined, label: 'Metrics', width: 'w-[200px]' },
+                        { field: 'date' as SortField, label: 'Date', width: 'w-[80px]' },
+                        { field: undefined as SortField | undefined, label: '', width: 'w-[60px]' },
                       ].map((col, i) => (
                         <th
                           key={i}
                           className={cn(
-                            "px-5 py-3.5 text-[10px] uppercase font-semibold text-white/25 tracking-wider select-none",
+                            "px-3 py-2.5 text-[10px] uppercase font-semibold text-white/25 tracking-wider select-none",
                             col.width,
-                            col.field && "cursor-pointer hover:text-white/50 transition-colors",
+                            col.field && "cursor-pointer hover:text-white/50",
                             i === 5 && "text-right"
                           )}
                           onClick={col.field ? () => handleSort(col.field!) : undefined}
@@ -515,6 +506,6 @@ export const ReportsPage: React.FC<{ onNavigateToChat?: () => void }> = ({ onNav
         reportType={viewingReport?.report_type}
         onClose={() => setViewingReport(null)}
       />
-    </div>
+    </motion.div>
   );
 };

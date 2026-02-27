@@ -106,9 +106,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
                 <InfoCard title="Operational Modes" className="h-full">
                     <div className="space-y-4">
                         {[
-                            { icon: MessageSquare, name: 'Research', desc: 'Market analysis & strategy formulation.' },
-                            { icon: Search, name: 'Hunter', desc: 'Property identification & scoring.' },
-                            { icon: BarChart3, name: 'Strategist', desc: 'Financial modeling & risk assessment.' },
+                            { icon: MessageSquare, name: 'Deep Research', desc: 'Comprehensive market analysis & data synthesis.' },
+                            { icon: Search, name: 'Deep Search', desc: 'In-depth property analysis & due diligence.' },
+                            { icon: BarChart3, name: 'Expert Strategist', desc: 'Portfolio strategy & risk-adjusted planning.' },
                         ].map(mode => (
                             <div key={mode.name} className="flex items-start gap-3.5 group">
                                 <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.08] transition-colors mt-0.5">

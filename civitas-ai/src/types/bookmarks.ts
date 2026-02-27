@@ -3,22 +3,23 @@
 
 import type { ScoutedProperty } from './backendTools';
 
+export type DealStatus = 'active' | 'under_contract' | 'closed' | 'lost';
+
 export interface BookmarkedProperty {
-  // Core property data from scout
   property: ScoutedProperty;
-  
-  // Bookmark metadata
-  id: string; // Unique bookmark ID
-  bookmarkedAt: string; // ISO timestamp
-  lastUpdatedAt: string; // ISO timestamp of last data refresh
-  
-  // User-added context
+
+  id: string;
+  bookmarkedAt: string;
+  lastUpdatedAt: string;
+
   notes?: string;
   tags?: string[];
-  
-  // Quick reference fields for display
-  displayName: string; // e.g., "123 Main St, Austin"
-  searchQuery?: string; // Original search that found this property
+
+  displayName: string;
+  searchQuery?: string;
+
+  dealStatus?: DealStatus;
+  dealClosedAt?: string;
 }
 
 export interface PropertyBookmarksState {

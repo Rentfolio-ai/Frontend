@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { ThinkingIndicator } from './ThinkingIndicator';
-import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
+import type { AgentStatus } from '../common/AgentAvatar';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { BookmarkedProperty } from '../../types/bookmarks';
@@ -33,6 +33,8 @@ interface MessageListProps {
   thinkingElapsed?: number;
   nativeThinkingText?: string | null;
   hasThinkingModel?: boolean;
+  /** Active model display name for ThinkingIndicator badge */
+  activeModel?: string;
   userName?: string;
   userAvatar?: string;
   onRefresh?: (messageId: string) => void;
@@ -74,6 +76,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   thinkingElapsed,
   nativeThinkingText,
   hasThinkingModel = false,
+  activeModel,
   userName,
   userAvatar,
   onRefresh,
@@ -194,9 +197,6 @@ export const MessageList: React.FC<MessageListProps> = ({
         {/* Thinking State - Always show when loading, even during early streaming */}
         {showThinkingState && (
           <div className="flex gap-3 items-start animate-fade-in mb-4">
-            <div className="flex-shrink-0">
-              <AgentAvatar size="md" status={agentStatus} />
-            </div>
             <div className="flex-1 pt-1">
               <ThinkingIndicator
                 thinking={thinking || { status: 'Thinking' }}
@@ -214,6 +214,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                 thinkingElapsed={thinkingElapsed}
                 nativeThinkingText={nativeThinkingText}
                 hasThinkingModel={hasThinkingModel}
+                activeModel={activeModel}
               />
             </div>
           </div>

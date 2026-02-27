@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, WifiOff, Search, RefreshCw } from 'lucide-react';
+import { Loader2, WifiOff, Search, RefreshCw, ArrowLeft } from 'lucide-react';
 import { MarketplaceHero } from './MarketplaceHero';
 import { MarketplaceCategoryTabs, type CategoryFilter } from './MarketplaceCategoryTabs';
 import { ProfessionalCard } from './ProfessionalCard';
@@ -48,6 +48,7 @@ interface MarketplacePageProps {
   onStartEmail?: (context: { name: string; email: string; category: string; specialty: string }) => void;
   onStartText?: (context: { name: string; phone: string; category: string; specialty: string }) => void;
   onStartCall?: (professional: Professional) => void;
+  onBack?: () => void;
 }
 
 export const MarketplacePage: React.FC<MarketplacePageProps> = ({
@@ -56,6 +57,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   onStartEmail,
   onStartText,
   onStartCall,
+  onBack,
 }) => {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('featured');
   const [activeLocation, setActiveLocation] = useState('all');
@@ -258,7 +260,18 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
         {/* Page header + inline search + refresh */}
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-3">
-            <h1 className="text-lg font-bold gradient-text flex-shrink-0">Marketplace</h1>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-1"
+                  title="Back to Home"
+                >
+                  <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                </button>
+              )}
+              <h1 className="text-lg font-bold gradient-text">Marketplace</h1>
+            </div>
             <div className="flex items-center gap-2 flex-1 max-w-[320px]">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" />

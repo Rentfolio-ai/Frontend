@@ -175,6 +175,10 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.9)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -192,6 +196,7 @@ export default {
         "count-up": "countUp 0.6s ease-out forwards",
         "score-reveal": "scoreReveal 1.2s ease-out forwards",
         "detection-appear": "detectionAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+        "marquee": "marquee 30s linear infinite",
       },
     },
   },

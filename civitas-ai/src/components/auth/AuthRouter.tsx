@@ -13,16 +13,40 @@ import { VisionProductPage } from '../../pages/product/VisionProductPage';
 import { VisionLandingPage } from '../../pages/vision/VisionLandingPage';
 import { VisionSignInPage } from '../../pages/vision/VisionSignInPage';
 import { VisionSignUpPage } from '../../pages/vision/VisionSignUpPage';
+import { HunterModePage } from '../../pages/modes/HunterModePage';
+import { ResearchModePage } from '../../pages/modes/ResearchModePage';
+import { StrategistModePage } from '../../pages/modes/StrategistModePage';
 import { LocationPermissionModal } from '../modals/LocationPermissionModal';
 
 type AuthView =
   | 'landing' | 'signin' | 'signup' | 'faq'
   | 'privacy-policy' | 'terms-of-service' | 'cookie-policy'
+  | 'hunter' | 'research' | 'strategist'
   | 'vision-landing' | 'vision-signin' | 'vision-signup' | 'vision-app';
 
 /** Returns true if the view belongs to the Vision product flow */
 const isVisionView = (view: AuthView) =>
   view === 'vision-landing' || view === 'vision-signin' || view === 'vision-signup' || view === 'vision-app';
+
+const JUST_LOGGED_IN_KEY = 'vasthu-just-logged-in';
+
+const URL_ROUTES: Record<string, AuthView> = {
+  '/': 'landing',
+  '/signin': 'signin',
+  '/signup': 'signup',
+  '/privacy-policy': 'privacy-policy',
+  '/privacy': 'privacy-policy',
+  '/terms-of-service': 'terms-of-service',
+  '/terms': 'terms-of-service',
+  '/cookie-policy': 'cookie-policy',
+  '/hunter': 'hunter',
+  '/research': 'research',
+  '/strategist': 'strategist',
+  '/vision': 'vision-landing',
+  '/vision/signin': 'vision-signin',
+  '/vision/signup': 'vision-signup',
+  '/vision/app': 'vision-app',
+};
 
 export const AuthRouter: React.FC = () => {
   const { user, isLoading, signIn, signUp, refreshUser } = useAuth();
@@ -53,24 +77,18 @@ export const AuthRouter: React.FC = () => {
     }
   }, [refreshUser]);
 
-  // Handle URL-based routing
+  // Handle URL-based routing (initial load and browser back/forward)
   useEffect(() => {
-    const path = window.location.pathname;
-    const urlRoutes: Record<string, AuthView> = {
-      '/privacy-policy': 'privacy-policy',
-      '/privacy': 'privacy-policy',
-      '/terms-of-service': 'terms-of-service',
-      '/terms': 'terms-of-service',
-      '/cookie-policy': 'cookie-policy',
-      '/vision': 'vision-landing',
-      '/vision/signin': 'vision-signin',
-      '/vision/signup': 'vision-signup',
-      '/vision/app': 'vision-app',
+    const syncViewFromPath = () => {
+      const path = window.location.pathname;
+      const matchedView = URL_ROUTES[path];
+      if (matchedView) {
+        setAuthView(matchedView);
+      }
     };
-    const matchedView = urlRoutes[path];
-    if (matchedView) {
-      setAuthView(matchedView);
-    }
+    syncViewFromPath();
+    window.addEventListener('popstate', syncViewFromPath);
+    return () => window.removeEventListener('popstate', syncViewFromPath);
   }, []);
 
   // ─── Legal pages — always accessible ──────────────────────────────────────
@@ -107,6 +125,10 @@ export const AuthRouter: React.FC = () => {
   // ─── Authenticated ────────────────────────────────────────────────────────
 
   if (user) {
+    // Ensure app URL is home after login/signup
+    if (!isVisionView(authView)) {
+      window.history.replaceState({}, '', '/');
+    }
     // Vision product — authenticated
     if (isVisionView(authView)) {
       return (
@@ -203,14 +225,47 @@ export const AuthRouter: React.FC = () => {
     );
   }
 
+  // ─── Mode marketing pages ───────────────────────────────────────────────────
+
+  const modeNavToSignUp = () => setAuthView('signup');
+  const modeNavToHome = () => {
+    window.history.replaceState({}, '', '/');
+    setAuthView('landing');
+  };
+
+  if (authView === 'hunter') {
+    return <HunterModePage onNavigateToSignUp={modeNavToSignUp} onNavigateToHome={modeNavToHome} />;
+  }
+  if (authView === 'research') {
+    return <ResearchModePage onNavigateToSignUp={modeNavToSignUp} onNavigateToHome={modeNavToHome} />;
+  }
+  if (authView === 'strategist') {
+    return <StrategistModePage onNavigateToSignUp={modeNavToSignUp} onNavigateToHome={modeNavToHome} />;
+  }
+
   // ─── Unauthenticated — Vasthu AI flow ─────────────────────────────────────
+
+  const navigateToLanding = () => {
+    window.history.replaceState({}, '', '/');
+    setAuthView('landing');
+  };
 
   if (authView === 'landing') {
     return (
       <LandingPage
-        onNavigateToSignIn={() => setAuthView('signin')}
-        onNavigateToSignUp={() => setAuthView('signup')}
+        onNavigateToSignIn={() => {
+          window.history.pushState({}, '', '/signin');
+          setAuthView('signin');
+        }}
+        onNavigateToSignUp={() => {
+          window.history.pushState({}, '', '/signup');
+          setAuthView('signup');
+        }}
         onNavigateToFAQ={() => setAuthView('faq')}
+        onNavigateToMode={(mode) => {
+          window.history.replaceState({}, '', `/${mode}`);
+          setAuthView(mode);
+        }}
       />
     );
   }
@@ -218,9 +273,15 @@ export const AuthRouter: React.FC = () => {
   if (authView === 'signup') {
     return (
       <SignUpPage
-        onSignUp={signUp}
-        onNavigateToSignIn={() => setAuthView('signin')}
-        onNavigateToLanding={() => setAuthView('landing')}
+        onSignUp={(userData) => {
+          sessionStorage.setItem(JUST_LOGGED_IN_KEY, '1');
+          signUp(userData);
+        }}
+        onNavigateToSignIn={() => {
+          window.history.pushState({}, '', '/signin');
+          setAuthView('signin');
+        }}
+        onNavigateToLanding={navigateToLanding}
       />
     );
   }
@@ -228,7 +289,7 @@ export const AuthRouter: React.FC = () => {
   if (authView === 'faq') {
     return (
       <FAQPage
-        onBackToHome={() => setAuthView('landing')}
+        onBackToHome={navigateToLanding}
       />
     );
   }
@@ -236,9 +297,15 @@ export const AuthRouter: React.FC = () => {
   // Default: sign-in for Vasthu AI
   return (
     <SignInPage
-      onSignIn={signIn}
-      onNavigateToSignUp={() => setAuthView('signup')}
-      onNavigateToLanding={() => setAuthView('landing')}
+      onSignIn={(userData) => {
+        sessionStorage.setItem(JUST_LOGGED_IN_KEY, '1');
+        signIn(userData);
+      }}
+      onNavigateToSignUp={() => {
+        window.history.pushState({}, '', '/signup');
+        setAuthView('signup');
+      }}
+      onNavigateToLanding={navigateToLanding}
     />
   );
 };

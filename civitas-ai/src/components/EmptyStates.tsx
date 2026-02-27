@@ -144,3 +144,35 @@ export const EmptyBookmarks: React.FC<{ onBrowseProperties?: () => void }> = ({
         />
     );
 };
+
+interface HomePanelEmptyStateProps {
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+    actionLabel?: string;
+    onAction?: () => void;
+}
+
+export const HomePanelEmptyState: React.FC<HomePanelEmptyStateProps> = ({
+    icon,
+    title,
+    description,
+    actionLabel,
+    onAction,
+}) => (
+    <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-8 text-center">
+        <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] mx-auto mb-3 flex items-center justify-center text-white/25">
+            {icon}
+        </div>
+        <div className="text-[13px] text-white/45">{title}</div>
+        <div className="text-[11px] text-white/25 mt-1">{description}</div>
+        {actionLabel && onAction && (
+            <button
+                onClick={onAction}
+                className="mt-3 text-[12px] font-medium text-[#C08B5C] hover:text-[#D4A27F] transition-colors"
+            >
+                {actionLabel}
+            </button>
+        )}
+    </div>
+);

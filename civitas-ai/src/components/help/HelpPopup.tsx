@@ -67,7 +67,7 @@ const FAQ_ITEMS = [
     category: 'Features',
     question: 'What are the different reasoning modes?',
     answer:
-      'Vasthu has three modes: Hunter (fast deal scouting), Research (deep market analysis), and Strategist (portfolio-level planning). Switch modes from the chat input area.',
+      'Vasthu has three modes: Deep Search (in-depth property analysis), Deep Research (comprehensive market research), and Expert Strategist (portfolio strategy and wealth planning). Switch modes from the chat input area.',
   },
   {
     id: 'faq-3',
@@ -187,11 +187,11 @@ const GUIDES = [
     id: 'agent-modes',
     icon: TrendingUp,
     title: 'Agent Modes',
-    desc: 'Hunter, Research, and Strategist deep dive.',
+    desc: 'Deep Search, Deep Research, and Expert Strategist deep dive.',
     content: [
-      'Hunter Mode: Fast deal scouting — finds properties matching your criteria quickly.',
-      'Research Mode: Deep market analysis — comprehensive data on neighborhoods and trends.',
-      'Strategist Mode: Portfolio-level planning — helps optimize your overall investment strategy.',
+      'Deep Search: In-depth property analysis — exhaustive due diligence, financing scenarios, and deal verdicts.',
+      'Deep Research: Comprehensive market research — multi-source data synthesis, policy analysis, and trend forecasting.',
+      'Expert Strategist: Portfolio strategy — scenario modeling, tax optimization, and risk-adjusted wealth planning.',
       'Switch modes from the persona selector in the chat input area.',
     ],
   },
@@ -252,7 +252,7 @@ const WHATS_NEW = [
 const QUICK_CARDS = [
   { icon: Sparkles, title: 'Getting Started', desc: 'Set up your account and run your first analysis', gradient: 'from-amber-500/20 to-orange-500/20', view: 'guides' as View },
   { icon: Zap, title: 'Analyze a Deal', desc: 'Underwrite any property with AI-powered metrics', gradient: 'from-blue-500/20 to-cyan-500/20', view: 'faq' as View },
-  { icon: TrendingUp, title: 'AI Modes', desc: 'Hunter, Research, and Strategist explained', gradient: 'from-violet-500/20 to-purple-500/20', view: 'guides' as View },
+  { icon: TrendingUp, title: 'AI Modes', desc: 'Deep Search, Deep Research, and Expert Strategist explained', gradient: 'from-violet-500/20 to-purple-500/20', view: 'guides' as View },
   { icon: Mic, title: 'Voice Mode', desc: 'Hands-free property research with voice', gradient: 'from-emerald-500/20 to-teal-500/20', view: 'guides' as View },
 ];
 

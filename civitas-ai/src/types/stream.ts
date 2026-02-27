@@ -55,7 +55,8 @@ export interface StreamTokenEvent extends StreamEventBase {
 export interface StreamDataEvent extends StreamEventBase {
   type: 'data';
   kind: 'properties' | 'rentals' | 'mode_switched' | 'mode_suggestion'
-      | 'confirm_action' | 'inline_actions' | 'confidence' | 'rewrite';
+      | 'confirm_action' | 'inline_actions' | 'confidence' | 'rewrite'
+      | 'web_sources' | 'model_selected';
   payload: any;
 }
 
@@ -272,6 +273,63 @@ export interface StreamModeSwitchedEvent {
   confidence?: number;
 }
 
+// ── Unified streaming protocol events (Vercel AI SDK inspired) ──
+
+export interface StreamModelSelectedEvent {
+  type: 'model-selected';
+  model_id: string;
+  model_name: string;
+  reason: string;
+}
+
+export interface StreamReasoningStartEvent {
+  type: 'reasoning-start';
+  subtag?: string;
+  source?: string;
+}
+
+export interface StreamReasoningDeltaEvent {
+  type: 'reasoning-delta';
+  text: string;
+  subtag?: string;
+  source?: string;
+}
+
+export interface StreamReasoningEndEvent {
+  type: 'reasoning-end';
+  subtag?: string;
+}
+
+export interface StreamUnifiedToolStartEvent {
+  type: 'tool-start';
+  tool_name: string;
+  label: string;
+}
+
+export interface StreamUnifiedToolProgressEvent {
+  type: 'tool-progress';
+  tool_name: string;
+  label: string;
+}
+
+export interface StreamUnifiedToolEndEvent {
+  type: 'tool-end';
+  tool_name: string;
+  label: string;
+  result_summary?: string;
+}
+
+export interface StreamStepStartEvent {
+  type: 'step-start';
+  step_id?: string;
+}
+
+export interface StreamStepEndEvent {
+  type: 'step-end';
+  step_id?: string;
+  duration_ms?: number;
+}
+
 // ── Union of all event types ─────────────────────────────────────
 
 export type StreamEvent =
@@ -285,6 +343,16 @@ export type StreamEvent =
   | StreamFinalEvent
   | StreamDoneEventV2
   | StreamPingEvent
+  // Unified streaming protocol (Vercel AI SDK inspired)
+  | StreamModelSelectedEvent
+  | StreamReasoningStartEvent
+  | StreamReasoningDeltaEvent
+  | StreamReasoningEndEvent
+  | StreamUnifiedToolStartEvent
+  | StreamUnifiedToolProgressEvent
+  | StreamUnifiedToolEndEvent
+  | StreamStepStartEvent
+  | StreamStepEndEvent
   // Legacy types (V1 backward compat)
   | StreamInitEvent
   | StreamThinkingEvent

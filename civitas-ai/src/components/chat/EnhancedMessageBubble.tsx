@@ -21,7 +21,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { Message } from '@/types/chat';
-import { AgentAvatar, type AgentStatus } from '../common/AgentAvatar';
+import type { AgentStatus } from '../common/AgentAvatar';
 
 // Import all new components
 import { CitationBadge, type Citation } from './CitationBadge';
@@ -127,13 +127,6 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
         isUser ? "justify-end" : "justify-start"
       )}
     >
-      {/* Agent Avatar */}
-      {!isUser && (
-        <div className="flex-shrink-0 mr-4 mt-1">
-          <AgentAvatar status={agentStatus} className="w-9 h-9" />
-        </div>
-      )}
-      
       <div className={cn(
         "flex flex-col max-w-[85%] md:max-w-[75%]",
         isUser ? "items-end" : "items-start"

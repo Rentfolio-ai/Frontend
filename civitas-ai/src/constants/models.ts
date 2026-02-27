@@ -5,6 +5,9 @@ import type { ModelInfo } from '../types/chat';
  * Used for immediate rendering without waiting for an API call.
  */
 export const AVAILABLE_MODELS: ModelInfo[] = [
+  // Auto — server-side smart selection
+  { id: 'auto', name: 'Auto', provider: 'auto', tier: 'free', description: 'Automatically picks the best model for your query.', context_window: 0, accessible: true },
+
   // Google Gemini
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'google', tier: 'free', description: 'Fast and capable. Great for most tasks.', context_window: 1_048_576, accessible: true },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google', tier: 'pro', description: 'Advanced reasoning, math, and code.', context_window: 1_048_576, accessible: false },
@@ -26,7 +29,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   { id: 'grok-4', name: 'Grok 4', provider: 'xai', tier: 'pro', description: 'Flagship Grok. Premium intelligence.', context_window: 256_000, accessible: false },
 ];
 
-export const DEFAULT_MODEL_ID = 'gemini-2.5-flash';
+export const DEFAULT_MODEL_ID = 'auto';
 
 const THINKING_PROVIDERS = new Set(['google', 'anthropic']);
 
