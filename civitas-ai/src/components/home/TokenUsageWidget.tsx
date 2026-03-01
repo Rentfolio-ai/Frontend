@@ -36,7 +36,7 @@ export const TokenUsageWidget: React.FC<{ onUpgrade: () => void }> = ({ onUpgrad
   if (loading) {
     return (
       <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-4">
-        <div className="animate-pulse flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="h-3 w-20 rounded bg-white/[0.05]" />
           <div className="flex-1 h-2 rounded-full bg-white/[0.05]" />
           <div className="h-3 w-24 rounded bg-white/[0.05]" />

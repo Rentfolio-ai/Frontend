@@ -1,8 +1,8 @@
 // FILE: src/components/chat/ThinkingIndicator.tsx
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ChevronRight, AlertCircle, RefreshCw, X, Sparkles } from 'lucide-react';
+import { ChevronRight, AlertCircle, RefreshCw, X } from 'lucide-react';
 import type { ThinkingState, CompletedTool } from '@/types/stream';
 import type { ReasoningStep } from './AIReasoningPanel';
 import type { ThinkingStep } from '@/hooks/useThinkingQueue';
@@ -54,27 +54,74 @@ export function parseThinkingSections(text: string): ThinkingSection[] {
   return paragraphs.map(p => ({ body: p }));
 }
 
+const VasthuThinkingGlyph: React.FC<{ active?: boolean; className?: string }> = ({ active = false, className = '' }) => (
+  <motion.svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`flex-shrink-0 ${className}`}
+    animate={active ? { opacity: [0.45, 0.8, 0.45] } : { opacity: 0.55 }}
+    transition={active ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : undefined}
+  >
+    <motion.path
+      d="M2.2 8C3.4 5.1 5.6 5.1 8 8C10.4 10.9 12.6 10.9 13.8 8C12.6 5.1 10.4 5.1 8 8C5.6 10.9 3.4 10.9 2.2 8Z"
+      stroke="currentColor"
+      strokeWidth="1.35"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      initial={{ pathLength: 0.75 }}
+      animate={active ? { pathLength: [0.75, 1, 0.75] } : { pathLength: 0.95 }}
+      transition={active ? { duration: 2.1, repeat: Infinity, ease: 'easeInOut' } : undefined}
+    />
+    {active && (
+      <motion.circle
+        cx="4.5"
+        cy="8"
+        r="1"
+        fill="currentColor"
+        animate={{ cx: [4.5, 11.5, 4.5], opacity: [0.2, 0.95, 0.2] }}
+        transition={{ duration: 2.1, repeat: Infinity, ease: 'easeInOut' }}
+      />
+    )}
+  </motion.svg>
+);
+
 export const ThinkingContent: React.FC<{
   text: string;
   isStreaming?: boolean;
   scrollRef?: React.RefObject<HTMLDivElement | null>;
-}> = ({ text, isStreaming = false, scrollRef }) => {
+  variant?: 'panel' | 'inline';
+}> = ({ text, isStreaming = false, scrollRef, variant = 'panel' }) => {
   const sections = React.useMemo(() => parseThinkingSections(text), [text]);
+  const isInline = variant === 'inline';
 
   return (
     <div
       ref={scrollRef}
-      className="max-h-[340px] overflow-y-auto rounded-lg bg-white/[0.02] border border-white/[0.04] px-3.5 py-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent space-y-2.5"
+      className={cn(
+        "max-h-[340px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent space-y-2.5",
+        isInline
+          ? "px-0 py-0.5"
+          : "rounded-lg bg-white/[0.02] border border-white/[0.04] px-3.5 py-3"
+      )}
     >
       {sections.map((section, idx) => (
         <div key={idx}>
           {section.heading && (
-            <p className="text-[11px] font-semibold text-[#C08B5C]/70 tracking-wide uppercase mb-1">
+            <p className={cn(
+              "font-semibold text-[#C08B5C]/70 tracking-wide uppercase mb-1",
+              isInline ? "text-[11px]" : "text-[11px]"
+            )}>
               {section.heading}
             </p>
           )}
           {section.body && (
-            <p className="text-[12px] leading-[19px] text-white/50">
+            <p className={cn(
+              "text-white/50",
+              isInline ? "text-[16px] leading-[28px]" : "text-[12px] leading-[19px]"
+            )}>
               {section.body}
             </p>
           )}
@@ -86,20 +133,6 @@ export const ThinkingContent: React.FC<{
     </div>
   );
 };
-
-/**
- * Convert step messages into a single flowing text for the unified expanded view.
- * Active (last) step gets a trailing "..." to show it's in progress.
- */
-function stepsToFlowingText(steps: ThinkingStep[], isActive: boolean): string {
-  return steps
-    .map((step, idx) => {
-      const isLast = idx === steps.length - 1;
-      const suffix = isLast && isActive ? '...' : '';
-      return step.message + suffix;
-    })
-    .join('\n\n');
-}
 
 interface ThinkingIndicatorProps {
   thinking: ThinkingState | null;
@@ -117,6 +150,8 @@ interface ThinkingIndicatorProps {
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
   nativeThinkingText?: string | null;
+  /** Reasoning-only prose built from reasoning-delta events (excludes operational status). */
+  reasoningText?: string | null;
   hasThinkingModel?: boolean;
   /** Short display name for the currently active model (e.g. "Claude Sonnet"). */
   activeModel?: string;
@@ -133,19 +168,22 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   thinkingIsDone = false,
   thinkingElapsed = 0,
   nativeThinkingText,
+  reasoningText,
   hasThinkingModel = false,
   activeModel,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const proseScrollRef = useRef<HTMLDivElement>(null);
+  const hasNativeThinking = !!nativeThinkingText;
+  const hasReasoningProse = !!reasoningText;
+  const hasAnyProse = hasNativeThinking || hasReasoningProse;
 
   useEffect(() => {
-    if (scrollRef.current && thinkingIsActive) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (proseScrollRef.current && thinkingIsActive) {
+      proseScrollRef.current.scrollTop = proseScrollRef.current.scrollHeight;
     }
-  }, [nativeThinkingText, thinkingIsActive, thinkingSteps.length]);
+  }, [nativeThinkingText, reasoningText, thinkingIsActive]);
 
-  const hasNativeThinking = !!nativeThinkingText;
   const thinkingLabel = hasNativeThinking ? extractThinkingLabel(nativeThinkingText!) : null;
 
   const meaningfulSteps = hasThinkingModel
@@ -153,10 +191,9 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     : thinkingSteps.filter(s => !GENERIC_MESSAGES.has(s.message));
   const hasSteps = meaningfulSteps.length > 0;
   const currentStep = hasSteps ? meaningfulSteps[meaningfulSteps.length - 1] : null;
-  const allSteps = meaningfulSteps;
   const legacyStatus = thinking?.title || thinking?.status || '';
   const showLegacy = !hasSteps && !!thinking;
-  const canExpand = hasNativeThinking || (!hasThinkingModel && allSteps.length > 0);
+  const canExpand = hasAnyProse || (thinkingIsActive && !thinkingIsDone);
 
   const timeText = thinkingElapsed > 0
     ? thinkingElapsed < 60
@@ -169,9 +206,12 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   if (thinkingIsDone) {
     headerText = `Thought for ${timeText || '0s'}`;
     headerKey = 'done';
-  } else if (hasNativeThinking && thinkingIsActive) {
-    headerText = thinkingLabel || 'Reasoning...';
-    headerKey = `native-${thinkingLabel}`;
+  } else if (thinkingIsActive && currentStep) {
+    headerText = currentStep.message;
+    headerKey = `live-${currentStep.id}`;
+  } else if (hasNativeThinking) {
+    headerText = thinkingLabel || 'Reasoning';
+    headerKey = `native-${thinkingLabel || 'reasoning'}`;
   } else if (hasThinkingModel) {
     headerText = 'Thinking...';
     headerKey = 'thinking-model';
@@ -186,19 +226,29 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     headerKey = 'default';
   }
 
-  const canShowExpanded = hasNativeThinking || (!hasThinkingModel && allSteps.length > 0);
+  const canShowExpanded = hasAnyProse || (thinkingIsActive && !thinkingIsDone);
 
-  if (!thinking && !hasSteps && !error && !hasNativeThinking) return null;
+  const proseContent = nativeThinkingText || reasoningText || '';
+  const proseSections = useMemo(
+    () => parseThinkingSections(proseContent),
+    [proseContent],
+  );
+  const latestSection = proseSections.length > 0 ? proseSections[proseSections.length - 1] : null;
+  const latestSectionKey = latestSection
+    ? `${proseSections.length}-${latestSection.heading || ''}-${latestSection.body}`.slice(0, 180)
+    : 'prose-empty';
+
+  if (!thinking && !hasSteps && !error && !hasAnyProse && !thinkingIsActive) return null;
 
   return (
     <div className={cn('max-w-3xl mx-auto', className)}>
-      {(hasSteps || showLegacy || hasNativeThinking) && (
+      {(hasSteps || showLegacy || hasAnyProse || thinkingIsActive) && (
         <div className="select-none">
           {/* Header — 7A: Smooth single-line transitions */}
           <button
             onClick={() => canExpand && setIsExpanded(!isExpanded)}
             className={cn(
-              'flex items-center gap-2 py-1.5 group w-full text-left',
+              'flex items-center gap-2.5 py-2.5 group w-full text-left',
               canExpand ? 'cursor-pointer' : 'cursor-default',
             )}
           >
@@ -206,44 +256,39 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
               <motion.span
                 animate={{ rotate: isExpanded ? 90 : 0 }}
                 transition={{ duration: 0.15 }}
-                className="text-white/30 group-hover:text-white/50 transition-colors flex-shrink-0"
+                className="text-white/30 group-hover:text-white/50 transition-colors flex-shrink-0 mt-[1px]"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </motion.span>
             ) : (
-              <span className="w-3.5 flex-shrink-0" />
+              <span className="w-4 flex-shrink-0" />
             )}
 
-            <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[#C08B5C]/60" />
+            <span className="text-white/45 mt-[1px]">
+              <VasthuThinkingGlyph active={thinkingIsActive && !thinkingIsDone} />
+            </span>
 
             {/* Animated header text — fades between steps */}
-            <span className="flex-1 min-w-0 relative overflow-hidden h-[20px]">
+            <span className="flex-1 min-w-0 relative overflow-hidden h-[26px]">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={headerKey}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
                   className={cn(
-                    'text-[13px] truncate font-medium absolute inset-0 flex items-center',
+                    'text-[16px] truncate font-medium absolute inset-0 flex items-center',
                     thinkingIsDone ? 'text-white/35' : 'text-white/50',
                   )}
                 >
                   {headerText}
-                  {!thinkingIsDone && thinkingIsActive && (
-                    <span className="inline-flex ml-0.5 gap-[2px]">
-                      <span className="w-[3px] h-[3px] rounded-full bg-current animate-[pulse-dot_1.5s_ease-in-out_infinite]" />
-                      <span className="w-[3px] h-[3px] rounded-full bg-current animate-[pulse-dot_1.5s_ease-in-out_0.3s_infinite]" />
-                      <span className="w-[3px] h-[3px] rounded-full bg-current animate-[pulse-dot_1.5s_ease-in-out_0.6s_infinite]" />
-                    </span>
-                  )}
                 </motion.span>
               </AnimatePresence>
             </span>
 
             {timeText && (
-              <span className="text-[11px] font-mono text-white/20 flex-shrink-0 tabular-nums ml-2">
+              <span className="text-[12px] font-mono text-white/20 flex-shrink-0 tabular-nums ml-2">
                 {timeText}
               </span>
             )}
@@ -256,58 +301,47 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
             )}
           </button>
 
-          {/* Expanded: animated building list (steps) or native thinking prose */}
+          {/* Expanded: flowing reasoning prose (only renders when prose exists) */}
           <AnimatePresence initial={false}>
-            {isExpanded && canShowExpanded && (
+            {isExpanded && canShowExpanded && hasAnyProse && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
               >
-                <div className="ml-5 mb-2 pl-4 border-l border-[#C08B5C]/20">
-                  {hasNativeThinking ? (
-                    <ThinkingContent
-                      text={nativeThinkingText!}
-                      isStreaming={thinkingIsActive}
-                      scrollRef={scrollRef}
-                    />
-                  ) : (
-                    /* Animated building list — each step fades in from below as it arrives */
-                    <ul
-                      ref={scrollRef}
-                      className="max-h-[280px] overflow-y-auto space-y-0.5 py-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                <div className="ml-8 mb-2 pl-3">
+                  {thinkingIsActive && !thinkingIsDone ? (
+                    <div
+                      ref={proseScrollRef}
+                      className="max-h-[420px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent py-0.5"
                     >
-                      <AnimatePresence initial={false}>
-                        {allSteps.map((step, idx) => {
-                          const isLast = idx === allSteps.length - 1;
-                          return (
-                            <motion.li
-                              key={step.id}
-                              initial={{ opacity: 0, y: 4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.18, ease: 'easeOut' }}
-                              className="flex items-center gap-2"
-                            >
-                              <span className="w-4 text-right text-[10px] text-[#C08B5C]/30 font-mono tabular-nums flex-shrink-0">
-                                {idx + 1}
-                              </span>
-                              <span className="text-[12px] leading-[18px] text-white/45 flex-1">
-                                {step.message}
-                              </span>
-                              {isLast && thinkingIsActive && (
-                                <span className="inline-flex gap-[2px] flex-shrink-0">
-                                  <span className="w-[3px] h-[3px] rounded-full bg-white/30 animate-[pulse-dot_1.5s_ease-in-out_infinite]" />
-                                  <span className="w-[3px] h-[3px] rounded-full bg-white/30 animate-[pulse-dot_1.5s_ease-in-out_0.3s_infinite]" />
-                                  <span className="w-[3px] h-[3px] rounded-full bg-white/30 animate-[pulse-dot_1.5s_ease-in-out_0.6s_infinite]" />
-                                </span>
-                              )}
-                            </motion.li>
-                          );
-                        })}
+                      <AnimatePresence mode="wait" initial={false}>
+                        <motion.div
+                          key={latestSectionKey}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeOut' }}
+                        >
+                          {latestSection?.heading && (
+                            <p className="text-[11px] font-semibold text-[#C08B5C]/70 tracking-wide uppercase mb-1">
+                              {latestSection.heading}
+                            </p>
+                          )}
+                          <p className="text-[14px] leading-[24px] text-white/45">
+                            {latestSection?.body}
+                          </p>
+                        </motion.div>
                       </AnimatePresence>
-                    </ul>
+                    </div>
+                  ) : (
+                    <ThinkingContent
+                      text={proseContent}
+                      isStreaming={false}
+                      scrollRef={proseScrollRef}
+                      variant="inline"
+                    />
                   )}
                 </div>
               </motion.div>
@@ -363,10 +397,12 @@ export const ThinkingIndicatorInline: React.FC<{ status: string; icon?: string }
   icon,
 }) => {
   return (
-    <div className="flex items-center gap-2 text-white/50 text-sm">
-      <Sparkles className="w-3.5 h-3.5 text-[#C08B5C]/60" />
+    <div className="flex items-center gap-2.5 text-white/50 text-sm">
+      <span className="text-white/45">
+        <VasthuThinkingGlyph active={true} className="w-4 h-4" />
+      </span>
       {icon && <span>{icon}</span>}
-      <span>{status}</span>
+      <span className="text-[15px] leading-6">{status}</span>
     </div>
   );
 };

@@ -59,7 +59,7 @@ export const PortfolioSummaryWidget: React.FC = () => {
   if (loading) {
     return (
       <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
-        <div className="animate-pulse grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-3 space-y-2">
               <div className="w-5 h-5 rounded bg-white/[0.05]" />

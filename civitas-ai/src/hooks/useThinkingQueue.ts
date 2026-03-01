@@ -70,11 +70,11 @@ export function isReasoningStage(stage: string): boolean {
 // ── Constants ───────────────────────────────────────────────────
 
 /** Time each step stays as the latest before the next is revealed. */
-const REVEAL_DELAY_NORMAL_MS = 1200;
+const REVEAL_DELAY_NORMAL_MS = 1800;
 /** Shorter delay when many events are queued (burst from backend batch). */
-const REVEAL_DELAY_BURST_MS = 600;
+const REVEAL_DELAY_BURST_MS = 1200;
 /** If this many or more events are pending, use the burst delay. */
-const BURST_THRESHOLD = 3;
+const BURST_THRESHOLD = 4;
 
 let stepIdCounter = 0;
 
@@ -241,30 +241,11 @@ export function useThinkingQueue(): ThinkingQueueState {
         }
       }
 
-      // Dedup against last visible step (only when nothing pending)
-      const visible = visibleRef.current;
-      if (pending.length === 0 && visible.length > 0) {
-        const lastVisible = visible[visible.length - 1];
-        const lastVisKey = `${lastVisible.stage}::${lastVisible.source || ''}`;
-        if (lastVisKey === dedupKey) {
-          updateVisible(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              message: input.message,
-              source: input.source,
-            };
-            return updated;
-          });
-          return;
-        }
-      }
-
       // Enqueue the new step and start the reveal pump
       pending.push(makeStep(input));
       ensureRevealPump();
     },
-    [startElapsedTimer, ensureRevealPump, updateVisible],
+    [startElapsedTimer, ensureRevealPump],
   );
 
   // ── Finish thinking ─────────────────────────────────────────

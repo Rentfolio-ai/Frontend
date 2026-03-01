@@ -93,7 +93,7 @@ export const MarketAlertsWidget: React.FC = () => {
       <div>
         <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25 mb-4">Market Alerts</h3>
         <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-5">
-          <div className="animate-pulse space-y-3">
+          <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-4 rounded bg-white/[0.04]" />
             ))}

@@ -125,6 +125,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     completedTools,
     reasoningSteps,
     nativeThinkingText,
+    reasoningText,
     thinkingQueue,
     activeModelLabel,
     handleRegenerate,
@@ -494,6 +495,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   thinkingIsDone={thinkingQueue?.isDone}
                   thinkingElapsed={thinkingQueue?.elapsedSeconds}
                   nativeThinkingText={nativeThinkingText}
+                  reasoningText={reasoningText}
                   activeModelLabel={activeModelLabel}
                   onRefresh={handleRegenerate}
                   onViewDetails={handleViewPropertyDetails}

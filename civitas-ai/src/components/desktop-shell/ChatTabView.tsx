@@ -65,6 +65,7 @@ interface ChatTabViewProps {
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
   nativeThinkingText?: string | null;
+  reasoningText?: string | null;
   /** Active model display name for ThinkingIndicator badge */
   activeModelLabel?: string;
   onRefresh?: (messageId: string) => void;
@@ -352,6 +353,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   thinkingIsDone,
   thinkingElapsed,
   nativeThinkingText,
+  reasoningText,
   activeModelLabel,
   onRefresh,
   onViewDetails,
@@ -938,6 +940,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 thinkingIsDone={thinkingIsDone}
                 thinkingElapsed={thinkingElapsed}
                 nativeThinkingText={nativeThinkingText}
+                reasoningText={reasoningText}
                 hasThinkingModel={modelSupportsThinking(selectedModel || '')}
                 activeModel={activeModelLabel}
                 userName={userName}

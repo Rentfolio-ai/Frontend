@@ -42,6 +42,7 @@ interface CommandCenterChatViewProps {
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
   nativeThinkingText?: string | null;
+  reasoningText?: string | null;
   activeModelLabel?: string;
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;

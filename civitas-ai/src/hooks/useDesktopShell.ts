@@ -295,6 +295,9 @@ export function useDesktopShell() {
   const [nativeThinkingText, setNativeThinkingText] = useState<string | null>(null);
   const nativeThinkingRef = useRef<string>('');
 
+  // Reasoning-only prose (built from reasoning-delta events, excludes operational steps)
+  const [reasoningText, setReasoningText] = useState<string | null>(null);
+
   // Active model label for ThinkingIndicator badge (set by model-selected events)
   const [activeModelLabel, setActiveModelLabel] = useState<string>('');
 
@@ -331,6 +334,30 @@ export function useDesktopShell() {
   const reasoningTraceRef = useRef<{ text: string; source: string }[]>([]);
   // Stall detection: timestamp of last event received
   const lastEventTimeRef = useRef<number>(Date.now());
+  // Last time a reasoning-delta event arrived (used to decide when to blend status into prose)
+  const lastReasoningDeltaTimeRef = useRef<number>(0);
+  // Live thinking one-line dedupe key (keeps concise flow stable)
+  const lastLiveThinkingKeyRef = useRef<string>('');
+
+  const normalizeThinkingLabel = useCallback((raw: string): string => {
+    const text = (raw || '').trim();
+    if (!text) return 'Working...';
+    const compact = text.replace(/\s+/g, ' ');
+    if (/^working\.\.\.$/i.test(compact)) return 'Working...';
+    return compact.length > 110 ? `${compact.slice(0, 107)}...` : compact;
+  }, []);
+
+  const pushLiveThinkingStep = useCallback((input: ThinkingStepInput) => {
+    const normalizedMessage = normalizeThinkingLabel(input.message);
+    const key = `${input.stage}::${input.source || ''}::${normalizedMessage}`;
+    if (key === lastLiveThinkingKeyRef.current) return;
+    lastLiveThinkingKeyRef.current = key;
+    thinkingQueue.push({
+      stage: input.stage,
+      source: input.source,
+      message: normalizedMessage,
+    });
+  }, [normalizeThinkingLabel, thinkingQueue]);
 
   // Cancel active stream
   const cancelStream = useCallback(() => {
@@ -521,6 +548,37 @@ export function useDesktopShell() {
     };
   }, [streamIntervalId]);
 
+  // Idle heartbeat: when no backend events arrive for 4s during active streaming,
+  // inject synthetic status labels to keep the one-liner and expanded view alive.
+  const heartbeatIndexRef = useRef(0);
+  useEffect(() => {
+    if (!isLoading) {
+      heartbeatIndexRef.current = 0;
+      return;
+    }
+    const HEARTBEAT_LABELS = [
+      'Still thinking...',
+      'Crafting response...',
+      'Formulating...',
+      'Analyzing data...',
+      'Composing...',
+    ];
+    const IDLE_THRESHOLD_MS = 4000;
+    const HEARTBEAT_INTERVAL_MS = 4000;
+
+    const id = setInterval(() => {
+      const elapsed = Date.now() - lastEventTimeRef.current;
+      if (elapsed < IDLE_THRESHOLD_MS) return;
+
+      const label = HEARTBEAT_LABELS[heartbeatIndexRef.current % HEARTBEAT_LABELS.length];
+      heartbeatIndexRef.current += 1;
+
+      pushLiveThinkingStep({ stage: 'thinking', message: label, source: 'System' });
+    }, HEARTBEAT_INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, [isLoading, pushLiveThinkingStep]);
+
   // Cleanup attachment URLs on unmount
   useEffect(() => {
     return () => {
@@ -616,10 +674,13 @@ export function useDesktopShell() {
     finalReceivedRef.current = false;
     pendingWebSourcesRef.current = null;
     webSearchRanRef.current = false;
+    lastLiveThinkingKeyRef.current = '';
     nativeThinkingRef.current = '';
     setNativeThinkingText(null);
+    setReasoningText(null);
     draftBlocksExtractedRef.current = false;
     lastEventTimeRef.current = Date.now();
+    lastReasoningDeltaTimeRef.current = 0;
     // Reset typewriter state
     wordBufferRef.current = [];
     displayedContentRef.current = '';
@@ -628,7 +689,7 @@ export function useDesktopShell() {
       clearTimeout(rafIdRef.current);
       rafIdRef.current = null;
     }
-  }, []);
+  }, [thinkingQueue]);
 
   // Auto-generate inline actions based on completed tools and current mode
   const generateInlineActions = useCallback((tools: CompletedTool[], mode: AgentMode) => {
@@ -783,7 +844,9 @@ export function useDesktopShell() {
         const statusStage = statusEvt.stage || 'understanding';
         const statusSource = statusEvt.source || 'System';
 
-        thinkingQueue.push({ stage: statusStage, message: statusLabel, source: statusSource });
+        if (statusSource !== 'Agent Reasoning') {
+          pushLiveThinkingStep({ stage: statusStage, message: statusLabel, source: statusSource });
+        }
 
         setThinking(prev => ({
           ...(prev || {}),
@@ -796,6 +859,22 @@ export function useDesktopShell() {
         if (!alreadyInStatusTrace && statusLabel !== 'Working...') {
           thinkingTraceRef.current.push({ text: statusLabel, source: statusSource });
         }
+
+        // Blend into expanded prose when reasoning-delta has gone stale (>3s).
+        // Skip generic labels that add no insight.
+        const GENERIC_PROSE_SKIP = new Set([
+          'Working...', 'Thinking...', 'Thinking', 'Thinking…',
+          'Reasoning...', 'Reasoning', 'Processing...',
+        ]);
+        const reasoningStale = lastReasoningDeltaTimeRef.current > 0
+          && (Date.now() - lastReasoningDeltaTimeRef.current > 3000);
+        if (reasoningStale && statusSource !== 'Agent Reasoning' && !GENERIC_PROSE_SKIP.has(statusLabel)) {
+          const alreadyInProse = reasoningTraceRef.current.some(s => s.text === statusLabel);
+          if (!alreadyInProse) {
+            reasoningTraceRef.current.push({ text: statusLabel, source: statusSource });
+            setReasoningText(reasoningTraceRef.current.map(s => s.text).join('\n\n'));
+          }
+        }
         break;
       }
 
@@ -806,11 +885,7 @@ export function useDesktopShell() {
         const msReason = msEvt.reason || '';
         logger.info(`[useDesktopShell] Auto-selected model: ${msName}`, { reason: msReason });
         setActiveModelLabel(msName);
-        thinkingQueue.push({
-          stage: 'understanding',
-          message: `Using ${msName}${msReason ? ` \u2014 ${msReason.charAt(0).toLowerCase() + msReason.slice(1)}` : ''}`,
-          source: 'Auto',
-        });
+        // Keep model selection in badge/UI state, not as the live one-line trace.
         break;
       }
 
@@ -820,16 +895,15 @@ export function useDesktopShell() {
         const rdText = rdEvt.text || '';
         const rdSource = rdEvt.source || 'Agent Reasoning';
         if (rdText) {
-          thinkingQueue.push({ stage: 'composing', message: rdText, source: rdSource });
+          lastReasoningDeltaTimeRef.current = Date.now();
           const alreadyInRdTrace = thinkingTraceRef.current.some(s => s.text === rdText);
           if (!alreadyInRdTrace) {
             thinkingTraceRef.current.push({ text: rdText, source: rdSource });
           }
-          // reasoningTraceRef stores ONLY reasoning-delta steps (AI analysis from <thinking> tags)
-          // — excludes operational steps like "Searching the web", "Reading sources", etc.
           const alreadyInReasoningTrace = reasoningTraceRef.current.some(s => s.text === rdText);
           if (!alreadyInReasoningTrace) {
             reasoningTraceRef.current.push({ text: rdText, source: rdSource });
+            setReasoningText(reasoningTraceRef.current.map(s => s.text).join('\n\n'));
           }
         }
         break;
@@ -840,8 +914,19 @@ export function useDesktopShell() {
         const tsEvt = event as any;
         const tsLabel = tsEvt.label || `Running ${tsEvt.tool_name || 'tool'}`;
         if (tsEvt.tool_name === 'web_search') webSearchRanRef.current = true;
-        thinkingQueue.push({ stage: 'gathering', message: tsLabel, source: 'Tool Execution' });
+        pushLiveThinkingStep({ stage: 'gathering', message: tsLabel, source: 'Tool Execution' });
         thinkingTraceRef.current.push({ text: tsLabel, source: 'Tool Execution' });
+
+        // Blend into expanded prose when reasoning-delta has gone stale
+        const tsReasoningStale = lastReasoningDeltaTimeRef.current > 0
+          && (Date.now() - lastReasoningDeltaTimeRef.current > 3000);
+        if (tsReasoningStale) {
+          const alreadyInProse = reasoningTraceRef.current.some(s => s.text === tsLabel);
+          if (!alreadyInProse) {
+            reasoningTraceRef.current.push({ text: tsLabel, source: 'Tool Execution' });
+            setReasoningText(reasoningTraceRef.current.map(s => s.text).join('\n\n'));
+          }
+        }
         break;
       }
 
@@ -849,7 +934,17 @@ export function useDesktopShell() {
       case 'tool-progress': {
         const tpEvt = event as any;
         const tpLabel = tpEvt.label || 'Processing...';
-        thinkingQueue.push({ stage: 'gathering', message: tpLabel, source: 'Tool Execution' });
+        pushLiveThinkingStep({ stage: 'gathering', message: tpLabel, source: 'Tool Execution' });
+
+        const tpReasoningStale = lastReasoningDeltaTimeRef.current > 0
+          && (Date.now() - lastReasoningDeltaTimeRef.current > 3000);
+        if (tpReasoningStale) {
+          const alreadyInProse = reasoningTraceRef.current.some(s => s.text === tpLabel);
+          if (!alreadyInProse) {
+            reasoningTraceRef.current.push({ text: tpLabel, source: 'Tool Execution' });
+            setReasoningText(reasoningTraceRef.current.map(s => s.text).join('\n\n'));
+          }
+        }
         break;
       }
 
@@ -857,7 +952,17 @@ export function useDesktopShell() {
       case 'tool-end': {
         const teEvt = event as any;
         const teSummary = teEvt.result_summary || `${teEvt.label || 'Tool'} complete`;
-        thinkingQueue.push({ stage: 'gathering', message: teSummary, source: 'Tool Execution' });
+        pushLiveThinkingStep({ stage: 'gathering', message: teSummary, source: 'Tool Execution' });
+
+        const teReasoningStale = lastReasoningDeltaTimeRef.current > 0
+          && (Date.now() - lastReasoningDeltaTimeRef.current > 3000);
+        if (teReasoningStale) {
+          const alreadyInProse = reasoningTraceRef.current.some(s => s.text === teSummary);
+          if (!alreadyInProse) {
+            reasoningTraceRef.current.push({ text: teSummary, source: 'Tool Execution' });
+            setReasoningText(reasoningTraceRef.current.map(s => s.text).join('\n\n'));
+          }
+        }
         break;
       }
 
@@ -1006,11 +1111,6 @@ export function useDesktopShell() {
             const reason = payload.reason || '';
             logger.info(`[useDesktopShell] Auto-selected model: ${modelName}`, { reason });
             setActiveModelLabel(modelName);
-            thinkingQueue.push({
-              stage: 'understanding',
-              message: `Using ${modelName}${reason ? ` — ${reason.charAt(0).toLowerCase() + reason.slice(1)}` : ''}`,
-              source: 'Auto',
-            });
             break;
           }
           case 'web_sources': {
@@ -1572,7 +1672,7 @@ export function useDesktopShell() {
           message: thinkingStatus,
           source: event.source,
         };
-        thinkingQueue.push(stepInput);
+        pushLiveThinkingStep(stepInput);
 
         // Also update the legacy thinking state for backward compat
         if (event.replace) {
@@ -1914,7 +2014,7 @@ export function useDesktopShell() {
         });
         break;
     }
-  }, [activeChatId, currentMode, updateThreadIdForChat]);
+  }, [activeChatId, currentMode, pushLiveThinkingStep, updateThreadIdForChat]);
 
   // Send message with SSE streaming
   const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }, extra?: { propertyContext?: any }) => {
@@ -3036,6 +3136,7 @@ export function useDesktopShell() {
     completedTools,
     reasoningSteps,
     nativeThinkingText,
+    reasoningText,
     thinkingQueue: {
       steps: thinkingQueue.steps,
       isActive: thinkingQueue.isActive,

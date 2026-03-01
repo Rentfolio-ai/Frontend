@@ -32,6 +32,7 @@ interface MessageListProps {
   thinkingIsDone?: boolean;
   thinkingElapsed?: number;
   nativeThinkingText?: string | null;
+  reasoningText?: string | null;
   hasThinkingModel?: boolean;
   /** Active model display name for ThinkingIndicator badge */
   activeModel?: string;
@@ -75,6 +76,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   thinkingIsDone,
   thinkingElapsed,
   nativeThinkingText,
+  reasoningText,
   hasThinkingModel = false,
   activeModel,
   userName,
@@ -213,6 +215,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                 thinkingIsDone={thinkingIsDone}
                 thinkingElapsed={thinkingElapsed}
                 nativeThinkingText={nativeThinkingText}
+                reasoningText={reasoningText}
                 hasThinkingModel={hasThinkingModel}
                 activeModel={activeModel}
               />

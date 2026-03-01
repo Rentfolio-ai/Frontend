@@ -169,7 +169,7 @@ export const HomePanelEmptyState: React.FC<HomePanelEmptyStateProps> = ({
         {actionLabel && onAction && (
             <button
                 onClick={onAction}
-                className="mt-3 text-[12px] font-medium text-[#C08B5C] hover:text-[#D4A27F] transition-colors"
+                className="mt-3 text-[12px] font-medium text-[#C08B5C] hover:text-[#D4A27F]"
             >
                 {actionLabel}
             </button>

@@ -143,11 +143,10 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
           >
             <div className="mt-1 ml-2 pl-4 border-l border-[#C08B5C]/20 pb-2">
 
@@ -158,22 +157,11 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
                 </div>
               )}
 
-              {/* 2. Reasoning steps from <thinking> tag analysis (reasoning-delta only) */}
+              {/* 2. Reasoning prose from reasoning-delta events */}
               {!hasNativeThinking && hasReasoningSteps && (
-                <ul className="space-y-1.5 py-1">
-                  {reasoningSteps.map((step, idx) => {
-                    // Strip subtag prefixes like "client_read — " for cleaner display
-                    const display = step.text.replace(/^\w+ — /, '');
-                    return (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#C08B5C]/35 text-[10px] mt-[2px] font-mono tabular-nums w-4 flex-shrink-0 text-right">
-                          {idx + 1}
-                        </span>
-                        <span className="text-[12px] leading-[18px] text-white/50">{display}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <ThinkingContent
+                  text={reasoningSteps.map(s => s.text.replace(/^\w+ — /, '')).join('\n\n')}
+                />
               )}
 
               {/* 3. Minimal fallback when there are only web sources (no reasoning) */}

@@ -45,9 +45,15 @@ interface RecentActivityWidgetProps {
   chatHistory: ChatSession[];
   bookmarks?: BookmarkedProperty[];
   onViewAll: () => void;
+  showHeader?: boolean;
 }
 
-export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ chatHistory, bookmarks, onViewAll }) => {
+export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({
+  chatHistory,
+  bookmarks,
+  onViewAll,
+  showHeader = true,
+}) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ActivityItem[]>([]);
@@ -130,11 +136,13 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ chat
   if (loading) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Recent Activity</h3>
-        </div>
+        {showHeader && (
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Recent Activity</h3>
+          </div>
+        )}
         <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-5">
-          <div className="animate-pulse space-y-4">
+          <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-7 h-7 rounded-lg bg-white/[0.05]" />
@@ -149,12 +157,14 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({ chat
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Recent Activity</h3>
-        <button onClick={onViewAll} className="text-[11px] text-[#C08B5C] font-medium hover:text-[#D4A27F]">
-          View all
-        </button>
-      </div>
+      {showHeader && (
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Recent Activity</h3>
+          <button onClick={onViewAll} className="text-[11px] text-[#C08B5C] font-medium hover:text-[#D4A27F]">
+            View all
+          </button>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <HomePanelEmptyState

@@ -1,6 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, BarChart3, FileText, Users } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { QuickActionsBar } from './QuickActionsBar';
 import { PortfolioSummaryWidget } from './PortfolioSummaryWidget';
 import { MarketAlertsWidget } from './MarketAlertsWidget';
@@ -10,7 +9,9 @@ import { TokenUsageWidget } from './TokenUsageWidget';
 import { DealsOverviewWidget, type DealsPipeline } from './DealsOverviewWidget';
 import { TeamsOverviewWidget, type TeamsSummary } from './TeamsOverviewWidget';
 import { ReportsOverviewWidget, type ReportsSummary } from './ReportsOverviewWidget';
-import { AmbientBackground } from '../ui/AmbientBackground';
+import { HomeGuideRail } from './HomeGuideRail';
+import { HomeMetricsStrip } from './HomeMetricsStrip';
+import { buildHomePriorityQueue, type HomePriorityTarget } from './homePriority';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 
@@ -51,7 +52,11 @@ export const HomePage: React.FC<HomePageProps> = ({
   onNewChat,
 }) => {
   const firstName = userName || 'there';
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   const defaultPipeline: DealsPipeline = { active: 0, under_contract: 0, closed: 0, lost: 0, total: 0 };
   const defaultTeams: TeamsSummary = { partnerCount: 0, sharedProperties: 0, unreadMessages: 0 };
@@ -60,68 +65,37 @@ export const HomePage: React.FC<HomePageProps> = ({
   const teams = teamsSummary || defaultTeams;
   const reports = reportsSummary || defaultReports;
 
-  const contextHint = pipeline.total === 0
-    ? 'Start by searching deals and save your first property.'
-    : reports.totalReports === 0
-      ? 'You have saved deals. Generate your first report to compare options.'
-      : teams.partnerCount === 0
-        ? 'Invite a partner to collaborate on live deals.'
-        : 'You are all set. Continue from your top priority below.';
+  const priorities = buildHomePriorityQueue({
+    pipeline,
+    teams,
+    reports,
+    bookmarksCount: bookmarks.length,
+    chatCount: chatHistory.length,
+  }).slice(0, 3);
+
+  const targetHandlers: Record<HomePriorityTarget, () => void> = {
+    chat: onNavigateToChat,
+    deals: onNavigateToDeals,
+    reports: onNavigateToReports,
+    teams: onNavigateToTeams,
+  };
 
   return (
-    <div className="h-full overflow-y-auto bg-[#161619] relative overflow-x-hidden" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
-      <AmbientBackground variant="home" />
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-5xl mx-auto px-6 py-6 space-y-6 relative z-10"
-      >
+    <div
+      className="h-full overflow-y-auto bg-[#161619] overflow-x-hidden"
+      style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}
+    >
+      <div className="max-w-[780px] mx-auto px-6 md:px-8 py-10 space-y-8">
 
-        {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-lg font-bold gradient-text">
+        {/* ── Greeting ── */}
+        <div>
+          <h1 className="text-[28px] font-semibold text-white/92 leading-tight">
             {getGreeting()}, {firstName}
           </h1>
-          <p className="text-[12px] text-white/35">{today}</p>
+          <p className="text-[13px] text-white/35 mt-1">{today}</p>
         </div>
 
-        {/* Sticky Action Rail */}
-        <div className="sticky top-0 z-20 pt-1">
-          <div className="rounded-xl border border-white/[0.06] bg-[#1b1b20]/90 backdrop-blur-md px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <button
-                onClick={onNewChat}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#C08B5C]/20 border border-[#C08B5C]/30 text-[#E2B491] text-[13px] font-semibold hover:bg-[#C08B5C]/25 transition-colors"
-              >
-                Start analysis <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={onNavigateToDeals}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
-                >
-                  <BarChart3 className="w-3.5 h-3.5" /> Deals
-                </button>
-                <button
-                  onClick={onNavigateToReports}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
-                >
-                  <FileText className="w-3.5 h-3.5" /> Reports
-                </button>
-                <button
-                  onClick={onNavigateToTeams}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] text-white/60 hover:text-white/80 hover:bg-white/[0.04] transition-colors"
-                >
-                  <Users className="w-3.5 h-3.5" /> Teams
-                </button>
-              </div>
-            </div>
-            <p className="text-[11px] text-white/35 mt-2">{contextHint}</p>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
+        {/* ── Shortcuts ── */}
         <QuickActionsBar
           onNewAnalysis={onNewChat}
           onSearchDeals={onNavigateToDeals}
@@ -129,52 +103,106 @@ export const HomePage: React.FC<HomePageProps> = ({
           onVoiceChat={onNavigateToChat}
         />
 
-        {/* Today Overview */}
-        <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[12px] text-white/30 font-medium">Today overview</span>
-            <span className="text-[10px] text-white/20 uppercase tracking-widest">Live</span>
+        {/* ── Divider ── */}
+        <div className="border-b border-white/[0.04]" />
+
+        {/* ── Key Metrics ── */}
+        <div>
+          <HomeMetricsStrip
+            pipeline={pipeline}
+            teams={teams}
+            reports={reports}
+            watchlistCount={bookmarks.length}
+          />
+        </div>
+
+        <div className="border-b border-white/[0.04]" />
+
+        {/* ── Today Focus ── */}
+        <div>
+          <h2 className="text-[14px] font-medium text-white/50 mb-4">Today</h2>
+          <div className="space-y-1">
+            {priorities.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-4 py-2.5 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      item.urgency === 'high'
+                        ? 'bg-red-400/70'
+                        : item.urgency === 'medium'
+                          ? 'bg-amber-400/70'
+                          : 'bg-white/20'
+                    }`}
+                  />
+                  <span className="text-[13px] text-white/75 truncate">{item.title}</span>
+                </div>
+                <button
+                  onClick={targetHandlers[item.target]}
+                  className="flex-shrink-0 inline-flex items-center gap-1 text-[12px] text-white/30 hover:text-[#C08B5C] whitespace-nowrap"
+                >
+                  {item.ctaLabel}
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
           </div>
+        </div>
+
+        <div className="border-b border-white/[0.04]" />
+
+        {/* ── Recent Activity ── */}
+        <div>
+          <h2 className="text-[14px] font-medium text-white/50 mb-4">Recent activity</h2>
+          <RecentActivityWidget
+            chatHistory={chatHistory}
+            bookmarks={bookmarks}
+            onViewAll={onNavigateToChat}
+            showHeader={false}
+          />
+        </div>
+
+        <div className="border-b border-white/[0.04]" />
+
+        {/* ── Portfolio ── */}
+        <div>
+          <h2 className="text-[14px] font-medium text-white/50 mb-4">Portfolio</h2>
           <PortfolioSummaryWidget />
         </div>
 
-        {/* Overview */}
+        {/* ── Operations (compact) ── */}
         <div>
-          <span className="text-[12px] text-white/30 font-medium">Overview</span>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+          <h2 className="text-[14px] font-medium text-white/50 mb-4">Operations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <DealsOverviewWidget pipeline={pipeline} onViewAll={onNavigateToDeals} />
             <TeamsOverviewWidget summary={teams} onViewAll={onNavigateToTeams} />
             <ReportsOverviewWidget summary={reports} onViewAll={onNavigateToReports} />
           </div>
         </div>
 
-        {/* Activity */}
+        {/* ── Market ── */}
         <div>
-          <span className="text-[12px] text-white/30 font-medium">Activity</span>
-          <div className="mt-2">
-            <RecentActivityWidget chatHistory={chatHistory} bookmarks={bookmarks} onViewAll={onNavigateToChat} />
-          </div>
-        </div>
-
-        {/* Market */}
-        <div>
-          <span className="text-[12px] text-white/30 font-medium">Market</span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+          <h2 className="text-[14px] font-medium text-white/50 mb-4">Market pulse</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <MarketAlertsWidget />
             <SavedPropertiesWidget bookmarks={bookmarks} onViewAll={onNavigateToDeals} />
           </div>
         </div>
 
-        {/* Usage */}
-        <div>
-          <span className="text-[12px] text-white/30 font-medium">Usage</span>
-          <div className="mt-2">
-            <TokenUsageWidget onUpgrade={onNavigateToUpgrade} />
-          </div>
-        </div>
+        <div className="border-b border-white/[0.04]" />
 
-        <div className="h-8" />
-      </motion.div>
+        {/* ── Learn ── */}
+        <HomeGuideRail />
+
+        <div className="border-b border-white/[0.04]" />
+
+        {/* ── Usage ── */}
+        <TokenUsageWidget onUpgrade={onNavigateToUpgrade} />
+
+        <div className="h-6" />
+      </div>
     </div>
   );
 };
