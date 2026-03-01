@@ -1,15 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Minus } from 'lucide-react';
 import { getMarketTrends } from '../../services/agentsApi';
+import type { MarketTrendsData } from '../../services/agentsApi';
 import { usePreferencesStore } from '../../stores/preferencesStore';
-import { HomePanelEmptyState } from '../EmptyStates';
 
-interface MarketRow {
+interface MarketRow extends MarketTrendsData {
   city: string;
   state: string;
-  metric: string;
-  change: number | null;
-  direction: 'up' | 'down' | 'flat';
 }
 
 const DEFAULT_MARKETS = [
@@ -26,17 +23,14 @@ function parseMarketString(m: string): { city: string; state: string } | null {
   return null;
 }
 
-const DirectionIcon: React.FC<{ dir: 'up' | 'down' | 'flat' }> = ({ dir }) => {
-  if (dir === 'up') return <TrendingUp className="w-3.5 h-3.5" />;
-  if (dir === 'down') return <TrendingDown className="w-3.5 h-3.5" />;
-  return <Minus className="w-3.5 h-3.5" />;
-};
+function fmtPrice(val?: number): string {
+  if (!val) return '--';
+  if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
+  return `$${val.toFixed(0)}`;
+}
 
-const dirColor = {
-  up: 'text-emerald-400',
-  down: 'text-red-400',
-  flat: 'text-amber-400',
-};
+const LEVEL2_CARD = 'rounded-xl bg-[#1C1C21] border border-white/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.4)] overflow-hidden';
 
 export const MarketAlertsWidget: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -62,24 +56,11 @@ export const MarketAlertsWidget: React.FC = () => {
         results.forEach((result, i) => {
           const market = trackedMarkets[i];
           if (result.status === 'fulfilled' && result.value.data) {
-            const d = result.value.data;
-            const rent = d.median_rent;
-            const medianPrice = d.median_price;
-            if (rent || medianPrice) {
-              parsed.push({
-                city: market.city,
-                state: market.state,
-                metric: rent
-                  ? `Median Rent $${rent.toLocaleString()}`
-                  : `Median Price $${(medianPrice || 0).toLocaleString()}`,
-                change: null,
-                direction: 'flat',
-              });
-            }
+            parsed.push({ ...result.value.data, city: market.city, state: market.state });
           }
         });
 
-        setRows(parsed.length > 0 ? parsed : []);
+        setRows(parsed);
       } catch {
         setRows([]);
       } finally {
@@ -90,63 +71,67 @@ export const MarketAlertsWidget: React.FC = () => {
 
   if (loading) {
     return (
-      <div>
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25 mb-4">Market Alerts</h3>
-        <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-5">
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-4 rounded bg-white/[0.04]" />
-            ))}
-          </div>
+      <div className={LEVEL2_CARD}>
+        <div className="px-4 py-2.5 bg-[#18181C] border-b border-white/[0.05]">
+          <div className="h-3 w-28 rounded bg-white/[0.06]" />
         </div>
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="px-4 py-3 flex gap-4 border-b border-white/[0.03]">
+            <div className="h-3 w-24 rounded bg-white/[0.05]" />
+            <div className="h-3 w-16 rounded bg-white/[0.05]" />
+            <div className="h-3 w-16 rounded bg-white/[0.05]" />
+          </div>
+        ))}
       </div>
     );
   }
 
   if (rows.length === 0) {
     return (
-      <div>
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25 mb-4">Market Alerts</h3>
-        <HomePanelEmptyState
-          icon={<Minus className="w-4 h-4" />}
-          title="No market data available"
-          description="Add favorite markets in preferences to track them here."
-        />
+      <div className="flex items-center gap-3 py-3 text-[13px] text-white/35">
+        <Minus className="w-4 h-4 text-white/20" />
+        <span>No market data</span>
+        <span className="text-white/15">&middot;</span>
+        <span className="text-white/25">Add favorite markets in preferences</span>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Market Alerts</h3>
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-white/15">Live</span>
+    <div className={LEVEL2_CARD}>
+      <div className="grid grid-cols-[1fr_80px_80px_64px_64px] gap-2 px-4 py-2.5 bg-[#18181C] border-b border-white/[0.05] text-[10px] uppercase tracking-wider text-white/25">
+        <span>Market</span>
+        <span className="text-right">Med. Price</span>
+        <span className="text-right">Med. Rent</span>
+        <span className="text-right">DOM</span>
+        <span className="text-right">Inventory</span>
       </div>
 
-      <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] divide-y divide-white/[0.04]">
-        {rows.map((row) => (
-          <div
-            key={`${row.city}-${row.metric}`}
-            className="flex items-center justify-between px-4 py-3 hover:bg-white/[0.02]"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="text-[10px] font-bold text-white/25 w-6 text-center">{row.state}</span>
-              <div className="min-w-0">
-                <div className="text-[13px] text-white/80">{row.city}</div>
-                <div className="text-[10px] text-white/25 truncate">{row.metric}</div>
-              </div>
-            </div>
-            {row.change != null ? (
-              <div className={`flex items-center gap-1.5 text-[12px] font-semibold ${dirColor[row.direction]}`}>
-                <DirectionIcon dir={row.direction} />
-                <span>{row.change > 0 ? '+' : ''}{row.change}%</span>
-              </div>
-            ) : (
-              <span className="text-[11px] text-white/20">--</span>
-            )}
+      {rows.map((row) => (
+        <div
+          key={`${row.city}-${row.state}`}
+          className="grid grid-cols-[1fr_80px_80px_64px_64px] gap-2 px-4 py-2.5 border-b border-white/[0.03] hover:bg-white/[0.02] items-center transition-colors duration-100"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="text-[10px] font-bold text-white/25 bg-white/[0.05] rounded px-1.5 py-0.5 w-7 text-center flex-shrink-0">
+              {row.state}
+            </span>
+            <span className="text-[13px] text-white/80 truncate">{row.city}</span>
           </div>
-        ))}
-      </div>
+          <span className="text-[13px] text-white/75 font-mono text-right">
+            {fmtPrice(row.median_price)}
+          </span>
+          <span className="text-[13px] text-white/75 font-mono text-right">
+            {row.median_rent ? `$${row.median_rent.toLocaleString()}` : '--'}
+          </span>
+          <span className="text-[12px] text-white/50 text-right">
+            {row.avg_days_on_market != null ? `${row.avg_days_on_market}d` : '--'}
+          </span>
+          <span className="text-[12px] text-white/50 text-right">
+            {row.active_listings != null ? row.active_listings.toLocaleString() : '--'}
+          </span>
+        </div>
+      ))}
     </div>
   );
 };

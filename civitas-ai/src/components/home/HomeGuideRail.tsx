@@ -1,168 +1,180 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ExternalLink, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 
-interface GuideItem {
-  id: string;
+interface Reading {
   title: string;
-  tag: string;
-  readMins: number;
+  summary: string;
   url: string;
-}
-
-interface MarketReadItem {
-  id: string;
-  title: string;
-  category: string;
   source: string;
-  url: string;
+  readTime: string;
+  category: 'strategy' | 'market' | 'beginner';
 }
 
-const LAST_GUIDE_KEY = 'home_last_opened_guide';
-
-const INTRO_GUIDES: GuideItem[] = [
+const READINGS: Reading[] = [
   {
-    id: 'guide-beginner-basics',
-    title: 'Real estate investing fundamentals',
-    tag: 'Beginner',
-    readMins: 8,
-    url: 'https://www.investopedia.com/articles/mortgages-real-estate/08/buy-rental-property.asp',
+    title: '5 Ways to Improve Cash Flow on Rental Properties',
+    summary: 'Practical tactics from expense reduction to rent optimization that directly impact your monthly returns.',
+    url: 'https://www.biggerpockets.com/blog/increase-rental-property-cash-flow',
+    source: 'BiggerPockets',
+    readTime: '7 min',
+    category: 'strategy',
   },
   {
-    id: 'guide-emerging-markets',
-    title: 'Emerging markets playbook',
-    tag: 'Markets',
-    readMins: 7,
-    url: 'https://www.worldbank.org/en/publication/global-economic-prospects',
+    title: 'When to Sell vs. Refinance an Investment Property',
+    summary: 'A decision framework for evaluating whether to exit, refi, or 1031 exchange based on market conditions.',
+    url: 'https://www.investopedia.com/articles/personal-finance/111214/top-10-features-profitable-rental-property.asp',
+    source: 'Investopedia',
+    readTime: '9 min',
+    category: 'strategy',
   },
   {
-    id: 'guide-risk-basics',
-    title: 'Risk management for investors',
-    tag: 'Risk',
-    readMins: 6,
-    url: 'https://www.freddiemac.com/research',
+    title: 'Portfolio Diversification for Real Estate Investors',
+    summary: 'Why geographic and asset-class diversification reduces risk and how to structure a balanced RE portfolio.',
+    url: 'https://www.investopedia.com/terms/d/diversification.asp',
+    source: 'Investopedia',
+    readTime: '6 min',
+    category: 'strategy',
   },
   {
-    id: 'guide-due-diligence',
-    title: 'Due diligence before close',
-    tag: 'Checklist',
-    readMins: 5,
-    url: 'https://www.biggerpockets.com/blog/real-estate-due-diligence-checklist',
-  },
-];
-
-const DAILY_MARKET_READS: MarketReadItem[] = [
-  {
-    id: 'read-redfin-trends',
-    title: 'Housing demand trends',
-    category: 'Demand',
-    source: 'Redfin',
-    url: 'https://www.redfin.com/news/data-center/',
-  },
-  {
-    id: 'read-freddie-insights',
-    title: 'Mortgage rates outlook',
-    category: 'Rates',
+    title: '2026 Housing Market Outlook: What Investors Should Know',
+    summary: 'Key macro trends, rate forecasts, and inventory projections shaping investment decisions this year.',
+    url: 'https://www.freddiemac.com/research/forecast',
     source: 'Freddie Mac',
-    url: 'https://www.freddiemac.com/pmms',
+    readTime: '10 min',
+    category: 'market',
+  },
+  {
+    title: 'Emerging Markets to Watch for RE Investment',
+    summary: 'Data-driven analysis of secondary cities with strong population growth and rental yield potential.',
+    url: 'https://www.redfin.com/news/housing-market-predictions/',
+    source: 'Redfin',
+    readTime: '8 min',
+    category: 'market',
+  },
+  {
+    title: 'How Interest Rates Impact Property Values',
+    summary: 'Understanding the cap rate / interest rate relationship and its effect on your portfolio valuation.',
+    url: 'https://www.investopedia.com/articles/mortgages-real-estate/08/interest-rate-affect-housing.asp',
+    source: 'Investopedia',
+    readTime: '5 min',
+    category: 'market',
+  },
+  {
+    title: 'Real Estate Investing for Beginners: The Complete Guide',
+    summary: 'Everything you need to know to get started with your first rental property investment.',
+    url: 'https://www.biggerpockets.com/guides/intro-to-real-estate-investing',
+    source: 'BiggerPockets',
+    readTime: '15 min',
+    category: 'beginner',
+  },
+  {
+    title: 'Understanding Cap Rate, CoC Return, and NOI',
+    summary: 'The three financial metrics every investor must know before analyzing any deal.',
+    url: 'https://www.investopedia.com/terms/c/capitalizationrate.asp',
+    source: 'Investopedia',
+    readTime: '6 min',
+    category: 'beginner',
+  },
+  {
+    title: 'Global Housing Trends and Economic Outlook',
+    summary: 'World Bank data on housing affordability, urbanization, and cross-border investment flows.',
+    url: 'https://www.worldbank.org/en/topic/urbandevelopment/overview',
+    source: 'World Bank',
+    readTime: '12 min',
+    category: 'beginner',
   },
 ];
 
-function openExternal(url: string) {
-  if (typeof window === 'undefined') return;
-  window.open(url, '_blank', 'noopener,noreferrer');
-}
+const CATEGORY_LABELS: Record<string, string> = {
+  strategy: 'Portfolio Strategy',
+  market: 'Market Analysis',
+  beginner: 'Beginner Guides',
+};
 
-export const HomeGuideRail: React.FC = () => {
-  const [lastGuideId, setLastGuideId] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      return window.localStorage.getItem(LAST_GUIDE_KEY);
-    } catch {
-      return null;
-    }
-  });
+const CATEGORY_ACCENT: Record<string, string> = {
+  strategy: 'bg-[#C08B5C]',
+  market: 'bg-sky-500',
+  beginner: 'bg-emerald-500',
+};
 
-  const continueGuide = useMemo(
-    () => INTRO_GUIDES.find((g) => g.id === lastGuideId) || null,
-    [lastGuideId],
-  );
+const CATEGORY_ORDER: Reading['category'][] = ['strategy', 'market', 'beginner'];
+const MAX_PER_CATEGORY = 2;
 
-  const onOpenGuide = (guide: GuideItem) => {
-    setLastGuideId(guide.id);
-    try {
-      window.localStorage.setItem(LAST_GUIDE_KEY, guide.id);
-    } catch { /* ignore */ }
-    openExternal(guide.url);
-  };
+export const InvestorReadings: React.FC = () => {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded
+    ? READINGS
+    : CATEGORY_ORDER.flatMap(cat =>
+        READINGS.filter(r => r.category === cat).slice(0, MAX_PER_CATEGORY)
+      );
+
+  const grouped = CATEGORY_ORDER.map(cat => ({
+    category: cat,
+    label: CATEGORY_LABELS[cat],
+    accent: CATEGORY_ACCENT[cat],
+    items: visible.filter(r => r.category === cat),
+  })).filter(g => g.items.length > 0);
 
   return (
-    <div className="space-y-6">
-      {/* Learn */}
-      <div>
-        <h2 className="text-[14px] font-medium text-white/50 mb-3">Learn</h2>
+    <div>
+      {grouped.map((group) => (
+        <div key={group.category} className="mb-6 last:mb-0">
+          <h3 className="text-[11px] uppercase tracking-wider text-white/25 font-medium mb-3">
+            {group.label}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {group.items.map((reading) => (
+              <a
+                key={reading.url}
+                href={reading.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative flex flex-col rounded-lg bg-[#1C1C21] border border-white/[0.04] p-4
+                  hover:bg-[#201F26] hover:border-white/[0.07] transition-colors duration-100 overflow-hidden"
+              >
+                {/* Category left accent */}
+                <div className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-full ${group.accent} opacity-40`} />
 
-        {continueGuide && (
-          <button
-            onClick={() => onOpenGuide(continueGuide)}
-            className="w-full text-left mb-3 px-3 py-2 rounded-md bg-[#C08B5C]/10 hover:bg-[#C08B5C]/16"
-          >
-            <span className="text-[10px] uppercase tracking-widest text-[#D4A27F]">
-              Continue learning
-            </span>
-            <span className="block text-[13px] text-white/85 mt-0.5">
-              {continueGuide.title}
-            </span>
-          </button>
-        )}
-
-        <div className="space-y-0">
-          {INTRO_GUIDES.map((guide) => (
-            <button
-              key={guide.id}
-              onClick={() => onOpenGuide(guide)}
-              className="w-full text-left flex items-center justify-between gap-4 py-2 hover:bg-white/[0.02] rounded-md px-1 -mx-1 group"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="text-[11px] font-medium text-white/30 w-16 flex-shrink-0">
-                  {guide.tag}
-                </span>
-                <span className="text-[13px] text-white/70 truncate">
-                  {guide.title}
-                </span>
-              </div>
-              <span className="text-[11px] text-white/25 flex-shrink-0">
-                {guide.readMins} min
-              </span>
-            </button>
-          ))}
+                <div className="pl-2.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[13px] font-medium text-white/75 group-hover:text-white/90 leading-snug line-clamp-1 flex-1">
+                      {reading.title}
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-white/0 group-hover:text-[#C08B5C] flex-shrink-0 transition-colors duration-150" />
+                  </div>
+                  <p className="text-[11px] text-white/32 leading-relaxed line-clamp-1 mb-2.5">
+                    {reading.summary}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/35">
+                      {reading.source}
+                    </span>
+                    <span className="flex items-center gap-0.5 text-[10px] text-white/20">
+                      <Clock className="w-3 h-3" />
+                      {reading.readTime}
+                    </span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
+      ))}
 
-      {/* Market reads */}
-      <div>
-        <h3 className="text-[13px] font-medium text-white/40 mb-3">Market reads</h3>
-        <div className="space-y-0">
-          {DAILY_MARKET_READS.map((read) => (
-            <button
-              key={read.id}
-              onClick={() => openExternal(read.url)}
-              className="w-full text-left flex items-center justify-between gap-4 py-2 hover:bg-white/[0.02] rounded-md px-1 -mx-1 group"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="text-[11px] font-medium text-white/30 w-16 flex-shrink-0">
-                  {read.category}
-                </span>
-                <span className="text-[13px] text-white/70 truncate">
-                  {read.title}
-                </span>
-              </div>
-              <span className="text-[11px] text-white/25 flex-shrink-0">
-                {read.source}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {(expanded || READINGS.length > visible.length) && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-1 text-[12px] text-white/30 hover:text-[#C08B5C] mt-3 transition-colors"
+        >
+          {expanded ? (
+            <>Show less <ChevronUp className="w-3.5 h-3.5" /></>
+          ) : (
+            <>See all {READINGS.length} readings <ChevronDown className="w-3.5 h-3.5" /></>
+          )}
+        </button>
+      )}
     </div>
   );
 };
+
+export { InvestorReadings as HomeGuideRail };

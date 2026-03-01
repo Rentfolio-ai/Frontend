@@ -54,10 +54,28 @@ export function parsePropertyQuery(msg: string, userPrefs?: any, mode?: string, 
     query.user_id = userPrefs.user_id;
   }
 
+  // Client geolocation for "near me" inference
+  if (userPrefs?.clientLocation) {
+    query.client_location = userPrefs.clientLocation;
+  }
+
+  // Financial DNA so backend can default P&L without asking
+  if (userPrefs?.financialDna) {
+    query.financial_dna = userPrefs.financialDna;
+  }
+
+  // Investment criteria (min cash flow, CoC, cap rate) for scoring/filtering
+  if (userPrefs?.investmentCriteria) {
+    query.investment_criteria = userPrefs.investmentCriteria;
+  }
+
   // Language preference
   if (userPrefs?.language && userPrefs.language !== 'en-US') {
     query.response_language = userPrefs.language;
   }
+
+  const modeHint = inferModeHint(msg);
+  if (modeHint) query.suggested_mode = modeHint;
 
   console.log('[v2Helpers] Parsed hunter query:', query);
   return query;
@@ -82,6 +100,10 @@ export function parseChatQuery(
     favoriteMarkets?: string[];
     financialDna?: any;
     clientLocation?: any;
+    investmentCriteria?: any;
+    interactionProfile?: any;
+    preferredBedrooms?: number | null;
+    preferredPropertyTypes?: string[];
   },
   modelId?: string,
   isTemporary?: boolean,
@@ -123,8 +145,29 @@ export function parseChatQuery(
     query.user_preferences = userPreferences;
   }
 
+  const modeHint = inferModeHint(msg);
+  if (modeHint) query.suggested_mode = modeHint;
+
   console.log('[v2Helpers] Parsed chat query:', query);
   return query;
+}
+
+/**
+ * Lightweight client-side intent hint so the backend can fast-path
+ * tool selection without waiting for the LLM to classify.
+ * Returns null when uncertain.
+ */
+export function inferModeHint(msg: string): string | null {
+  const m = msg.toLowerCase();
+  if (/\b(find|search|show me|looking for)\b/.test(m) && /\b(propert|home|house|condo|apartment|rental)\b/.test(m))
+    return 'hunter';
+  if (/\b(analy[zs]|deal|roi|cap rate|cash.?on.?cash|p&l|financials)\b/.test(m))
+    return 'strategist';
+  if (/\b(market|trend|stats|census|demographic|population|growth)\b/.test(m))
+    return 'research';
+  if (/\b(compliance|zoning|regulation|permit|license|str law|hoa)\b/.test(m))
+    return 'research';
+  return null;
 }
 
 /**
