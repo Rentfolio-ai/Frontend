@@ -24,7 +24,8 @@ export type ToolKind =
   | 'report'
   | 'scout_properties'
   | 'send_email'
-  | 'send_text';
+  | 'send_text'
+  | 'inbound_message';
 
 export interface Citation {
   id: number;
@@ -97,6 +98,17 @@ export interface InlineAction {
   query?: string;  // Pre-built contextual query (sent instead of label when clicked)
   target_mode?: 'hunter' | 'research' | 'strategist';  // Mode to switch to before executing
   style?: 'primary' | 'secondary' | 'danger';
+}
+
+export interface PageContextData {
+  page: string;
+  focusedItemId?: string;
+  data?: {
+    pipelineStats?: any;
+    bookmarkedDeals?: any[];
+    activeProperty?: any;
+    professionals?: any[];
+  }
 }
 
 // Property context data attached when sending a property for AI analysis

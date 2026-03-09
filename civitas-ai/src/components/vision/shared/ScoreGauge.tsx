@@ -114,7 +114,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.04)"
+            stroke="rgba(0,0,0,0.03)"
             strokeWidth={strokeWidth}
           />
 
@@ -147,7 +147,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
               {displayValue}
             </span>
             <span
-              className="text-white/30 font-medium"
+              className="text-muted-foreground/50 font-medium"
               style={{ fontSize: size * 0.11 }}
             >
               / 100
@@ -158,7 +158,7 @@ export const ScoreGauge: React.FC<ScoreGaugeProps> = ({
 
       {/* Label */}
       {label && (
-        <span className="text-xs font-medium text-white/40 tracking-wide uppercase">
+        <span className="text-xs font-medium text-muted-foreground/70 tracking-wide uppercase">
           {label}
         </span>
       )}

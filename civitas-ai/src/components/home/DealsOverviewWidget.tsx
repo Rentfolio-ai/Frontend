@@ -23,24 +23,24 @@ const STATUS_CONFIG = [
 
 export const DealsOverviewWidget: React.FC<DealsOverviewWidgetProps> = ({ pipeline, onViewAll }) => {
   return (
-    <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-5">
+    <div className="rounded-xl bg-black/[0.02] border border-black/[0.04] p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <CircleDot className="w-4 h-4 text-[#C08B5C]/50" />
-          <h3 className="text-[13px] font-semibold text-white/80">Deal Pipeline</h3>
+          <h3 className="text-[13px] font-semibold text-foreground/80">Deal Pipeline</h3>
         </div>
-        <button onClick={onViewAll} className="flex items-center gap-1 text-[11px] text-white/25 hover:text-white/50">
+        <button onClick={onViewAll} className="flex items-center gap-1 text-[11px] text-muted-foreground/50 hover:text-muted-foreground">
           View all <ArrowRight className="w-3 h-3" />
         </button>
       </div>
 
-      <div className="text-[28px] font-semibold text-white/90 mb-3">{pipeline.total}</div>
+      <div className="text-[28px] font-semibold text-foreground mb-3">{pipeline.total}</div>
 
       <div className="grid grid-cols-2 gap-2">
         {STATUS_CONFIG.map(({ key, label, color, dot }) => (
           <div key={key} className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${dot}`} />
-            <span className="text-[11px] text-white/30">{label}</span>
+            <span className="text-[11px] text-muted-foreground/50">{label}</span>
             <span className={`text-[12px] font-semibold ml-auto ${color}`}>
               {pipeline[key]}
             </span>

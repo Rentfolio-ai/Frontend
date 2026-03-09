@@ -71,7 +71,7 @@ const getListingTypeBadge = (type: string): { bg: string; text: string } => {
     case 'new construction':
       return { bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-400' };
     default:
-      return { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400' };
+      return { bg: 'bg-slate-100 dark:bg-muted', text: 'text-muted-foreground dark:text-muted-foreground' };
   }
 };
 
@@ -121,7 +121,7 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
   return (
     <div className={cn(
       'group rounded-lg transition-all',
-      'hover:bg-slate-100/80 dark:hover:bg-slate-800/50',
+      'hover:bg-slate-100/80 dark:hover:bg-muted/50',
       isBookmarked && 'bg-blue-50/60 dark:bg-blue-900/20'
     )}>
       {/* Main Row */}
@@ -141,7 +141,7 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
             isBookmarked
               ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/40'
-              : 'text-slate-400 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
+              : 'text-muted-foreground hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-muted border border-slate-200 dark:border-border'
           )}
           title={isBookmarked ? 'Remove bookmark' : 'Bookmark property'}
           aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark property'}
@@ -162,11 +162,11 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
             onToggleBookmark();
           }}
         >
-          <span className="font-medium text-sm text-slate-700 dark:text-slate-200 truncate">
+          <span className="font-medium text-sm text-slate-700 dark:text-foreground/80 truncate">
             {property.address}
           </span>
           {locationStr && (
-            <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
+            <span className="text-xs text-muted-foreground dark:text-muted-foreground/70 flex-shrink-0">
               {locationStr}
             </span>
           )}
@@ -185,13 +185,13 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
         {/* Metrics */}
         <div className="flex items-center gap-3 flex-shrink-0">
           {/* Property specs */}
-          <span className="text-xs text-slate-400 hidden sm:inline">
+          <span className="text-xs text-muted-foreground hidden sm:inline">
             {property.bedrooms}bd · {property.bathrooms}ba
           </span>
 
           {/* HOA Fee indicator */}
           {property.hoa_fee !== undefined && property.hoa_fee > 0 && (
-            <span className="text-[10px] text-slate-400 hidden md:inline" title="Monthly HOA">
+            <span className="text-[10px] text-muted-foreground hidden md:inline" title="Monthly HOA">
               HOA {formatHoaFee(property.hoa_fee)}
             </span>
           )}
@@ -202,14 +202,14 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
               'text-xs font-medium px-1.5 py-0.5 rounded',
               isHighROI
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                : 'text-slate-500'
+                : 'text-muted-foreground/70'
             )}>
               {cashOnCash.toFixed(1)}%
             </span>
           )}
 
           {/* Price */}
-          <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+          <span className="font-semibold text-sm text-slate-900 dark:text-foreground">
             {formatPrice(property.price)}
           </span>
 
@@ -237,8 +237,8 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
             }}
             className={cn(
               'flex-shrink-0 p-1 rounded transition-all',
-              'text-slate-300 hover:text-slate-500',
-              isExpanded && 'text-slate-500'
+              'text-foreground/70 hover:text-muted-foreground/70',
+              isExpanded && 'text-muted-foreground/70'
             )}
             title={isExpanded ? 'Show less' : 'Show more'}
           >
@@ -262,7 +262,7 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
             onClick={(e) => e.stopPropagation()}
             className={cn(
               'flex-shrink-0 p-1 rounded transition-all',
-              'text-slate-300 hover:text-slate-500',
+              'text-foreground/70 hover:text-muted-foreground/70',
               'opacity-0 group-hover:opacity-100'
             )}
             title="View listing"
@@ -273,7 +273,7 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
 
         {/* Updated indicator for bookmarked items */}
         {isBookmarked && lastUpdated && (
-          <span className="text-[10px] text-slate-400 flex-shrink-0 hidden lg:inline">
+          <span className="text-[10px] text-muted-foreground flex-shrink-0 hidden lg:inline">
             {formatRelativeTime(lastUpdated)}
           </span>
         )}
@@ -285,22 +285,22 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
           {/* MLS & Lot Size Row */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             {property.mls_number && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground/70 dark:text-muted-foreground">
                 <span className="font-medium">MLS#</span> {property.mls_number}
               </span>
             )}
             {property.lot_size && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground/70 dark:text-muted-foreground">
                 <span className="font-medium">Lot:</span> {formatSqft(property.lot_size)} sqft
               </span>
             )}
             {property.sqft && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground/70 dark:text-muted-foreground">
                 <span className="font-medium">Living:</span> {formatSqft(property.sqft)} sqft
               </span>
             )}
             {property.year_built && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-muted-foreground/70 dark:text-muted-foreground">
                 <span className="font-medium">Built:</span> {property.year_built}
               </span>
             )}
@@ -308,7 +308,7 @@ const PropertyBookmarkItem: React.FC<PropertyBookmarkItemProps> = ({
 
           {/* Description */}
           {property.description && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed line-clamp-3">
               {property.description}
             </p>
           )}

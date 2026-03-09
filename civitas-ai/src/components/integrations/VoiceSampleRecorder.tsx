@@ -96,15 +96,15 @@ export const VoiceSampleRecorder: React.FC<VoiceSampleRecorderProps> = ({ onComp
   const progressPct = Math.min((seconds / MIN_SECONDS) * 100, 100);
 
   return (
-    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-5 max-w-sm">
-      <h3 className="text-[14px] font-semibold text-white/85 mb-1">Voice Sample</h3>
-      <p className="text-[11px] text-white/35 mb-4">
+    <div className="rounded-xl bg-black/[0.02] border border-black/[0.06] p-5 max-w-sm">
+      <h3 className="text-[14px] font-semibold text-foreground/85 mb-1">Voice Sample</h3>
+      <p className="text-[11px] text-muted-foreground/60 mb-4">
         Read the script below naturally for at least {MIN_SECONDS} seconds so we can clone your voice for calls.
       </p>
 
       {/* Script to read */}
-      <div className="rounded-lg bg-white/[0.02] border border-white/[0.05] px-3 py-2.5 mb-4">
-        <p className="text-[12px] text-white/50 leading-relaxed italic">
+      <div className="rounded-lg bg-black/[0.02] border border-black/[0.05] px-3 py-2.5 mb-4">
+        <p className="text-[12px] text-muted-foreground leading-relaxed italic">
           "Hello, I'm interested in learning more about your services. I've been looking at properties
           in the area and would love to discuss investment opportunities. Could you tell me about your
           experience working with real estate investors? I'm particularly interested in understanding
@@ -113,16 +113,16 @@ export const VoiceSampleRecorder: React.FC<VoiceSampleRecorderProps> = ({ onComp
       </div>
 
       {/* Waveform / status area */}
-      <div className="h-16 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center justify-center mb-3 relative overflow-hidden">
+      <div className="h-16 rounded-lg bg-black/[0.02] border border-black/[0.05] flex items-center justify-center mb-3 relative overflow-hidden">
         {phase === 'idle' && (
-          <span className="text-[11px] text-white/20">Press record to begin</span>
+          <span className="text-[11px] text-muted-foreground/40">Press record to begin</span>
         )}
         {phase === 'recording' && (
           <>
             <div className="absolute inset-0 bg-red-500/5" />
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[13px] font-mono text-white/60">
+              <span className="text-[13px] font-mono text-muted-foreground">
                 {String(Math.floor(seconds / 60)).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}
               </span>
             </div>
@@ -131,7 +131,7 @@ export const VoiceSampleRecorder: React.FC<VoiceSampleRecorderProps> = ({ onComp
           </>
         )}
         {phase === 'uploading' && (
-          <span className="flex items-center gap-2 text-[11px] text-white/40">
+          <span className="flex items-center gap-2 text-[11px] text-muted-foreground/70">
             <Loader2 className="w-4 h-4 animate-spin" />
             Processing voice sample...
           </span>
@@ -170,7 +170,7 @@ export const VoiceSampleRecorder: React.FC<VoiceSampleRecorderProps> = ({ onComp
                        transition-all ${
                          seconds >= MIN_SECONDS
                            ? 'bg-[#C08B5C]/20 hover:bg-[#C08B5C]/30 text-[#D4A27F] border border-[#C08B5C]/20'
-                           : 'bg-white/[0.04] text-white/30 border border-white/[0.06]'
+                           : 'bg-black/[0.03] text-muted-foreground/50 border border-black/[0.06]'
                        }`}
           >
             <Square className="w-3 h-3" />
@@ -181,7 +181,7 @@ export const VoiceSampleRecorder: React.FC<VoiceSampleRecorderProps> = ({ onComp
           <button
             onClick={() => setPhase('idle')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium
-                       bg-white/[0.04] hover:bg-white/[0.08] text-white/50 border border-white/[0.06]
+                       bg-black/[0.03] hover:bg-black/[0.06] text-muted-foreground border border-black/[0.06]
                        transition-all"
           >
             <RotateCcw className="w-3 h-3" />

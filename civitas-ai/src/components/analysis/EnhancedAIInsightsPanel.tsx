@@ -82,11 +82,11 @@ const VerdictBadge: React.FC<{ verdict: string }> = ({ verdict }) => {
 const QuickQuestion: React.FC<{ question: string; onClick: () => void }> = ({ question, onClick }) => (
   <button
     onClick={onClick}
-    className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all text-left text-sm text-slate-300 group"
+    className="px-4 py-2 rounded-lg bg-black/5 border border-black/8 hover:border-[#C08B5C]/50 hover:bg-black/8 transition-all text-left text-sm text-foreground/70 group"
   >
     <div className="flex items-center justify-between">
       <span>{question}</span>
-      <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#D4A27F] transition-colors" />
+      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/70 group-hover:text-[#D4A27F] transition-colors" />
     </div>
   </button>
 );
@@ -139,8 +139,8 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
             <Sparkles className="w-5 h-5 text-purple-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">AI Insights</h3>
-            <p className="text-xs text-slate-500">Analysis from Vasthu AI</p>
+            <h3 className="text-lg font-bold text-foreground">AI Insights</h3>
+            <p className="text-xs text-muted-foreground/70">Analysis from Vasthu AI</p>
           </div>
         </div>
         
@@ -148,12 +148,12 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
           {verdict && <VerdictBadge verdict={verdict} />}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+            className="p-2 rounded-lg hover:bg-black/5 transition-colors"
           >
             {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-slate-400" />
+              <ChevronUp className="w-5 h-5 text-muted-foreground" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-slate-400" />
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
             )}
           </button>
         </div>
@@ -169,7 +169,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
             className="space-y-4 overflow-hidden"
           >
             {isLoading ? (
-              <div className="p-6 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-6 rounded-xl bg-black/5 border border-black/8">
                 <div className="flex items-center gap-3">
                   <motion.div
                     animate={{ rotate: 360 }}
@@ -177,7 +177,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                   >
                     <Sparkles className="w-5 h-5 text-purple-400" />
                   </motion.div>
-                  <span className="text-sm text-slate-400">Analyzing deal...</span>
+                  <span className="text-sm text-muted-foreground">Analyzing deal...</span>
                 </div>
               </div>
             ) : insights ? (
@@ -193,7 +193,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                         <div className="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2">
                           Key Insight
                         </div>
-                        <div className="text-sm text-slate-200 leading-relaxed">
+                        <div className="text-sm text-foreground/80 leading-relaxed">
                           {toonInsights.thought}
                         </div>
                       </div>
@@ -203,7 +203,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
 
                 {/* Observations */}
                 {toonInsights.observations && toonInsights.observations.length > 0 && (
-                  <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-5 rounded-xl bg-black/5 border border-black/8">
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-lg bg-[#C08B5C]/20">
                         <Eye className="w-4 h-4 text-[#D4A27F]" />
@@ -214,7 +214,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                         </div>
                         <ul className="space-y-2">
                           {toonInsights.observations.map((obs, index) => (
-                            <li key={index} className="flex items-start gap-2 text-sm text-slate-300">
+                            <li key={index} className="flex items-start gap-2 text-sm text-foreground/70">
                               <span className="text-[#D4A27F] mt-0.5">•</span>
                               <span>{obs}</span>
                             </li>
@@ -236,7 +236,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                         <div className="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">
                           Recommendation
                         </div>
-                        <div className="text-sm text-slate-200 leading-relaxed">
+                        <div className="text-sm text-foreground/80 leading-relaxed">
                           {toonInsights.opinion}
                         </div>
                       </div>
@@ -246,7 +246,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
 
                 {/* Next Steps */}
                 {toonInsights.next_steps && toonInsights.next_steps.length > 0 && (
-                  <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-5 rounded-xl bg-black/5 border border-black/8">
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-lg bg-blue-500/20">
                         <ArrowRight className="w-4 h-4 text-blue-400" />
@@ -257,7 +257,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                         </div>
                         <ol className="space-y-2">
                           {toonInsights.next_steps.map((step, index) => (
-                            <li key={index} className="flex items-start gap-3 text-sm text-slate-300">
+                            <li key={index} className="flex items-start gap-3 text-sm text-foreground/70">
                               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 text-xs flex items-center justify-center font-semibold">
                                 {index + 1}
                               </span>
@@ -271,8 +271,8 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                 )}
               </div>
             ) : (
-              <div className="p-6 rounded-xl bg-white/5 border border-white/10 text-center text-slate-400">
-                <Sparkles className="w-8 h-8 mx-auto mb-3 text-slate-600" />
+              <div className="p-6 rounded-xl bg-black/5 border border-black/8 text-center text-muted-foreground">
+                <Sparkles className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
                 <div className="text-sm">Ask AI a question to get insights</div>
               </div>
             )}
@@ -280,7 +280,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
             {/* Ask AI Section */}
             {onAskQuestion && (
               <div className="space-y-3">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
                   Ask Vasthu AI
                 </div>
                 
@@ -307,7 +307,7 @@ export const EnhancedAIInsightsPanel: React.FC<EnhancedAIInsightsPanelProps> = (
                       }
                     }}
                     placeholder="Ask a custom question..."
-                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 focus:border-[#C08B5C]/50 focus:ring-2 focus:ring-[#C08B5C]/20 text-sm text-white placeholder:text-slate-500 transition-all"
+                    className="w-full px-4 py-3 pr-12 rounded-xl bg-black/5 border border-black/8 focus:border-[#C08B5C]/50 focus:ring-2 focus:ring-[#C08B5C]/20 text-sm text-foreground placeholder:text-muted-foreground/70 transition-all"
                   />
                   <button
                     onClick={() => customQuestion.trim() && handleAskQuestion(customQuestion)}

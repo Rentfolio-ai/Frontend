@@ -44,13 +44,13 @@ export function Toast({ id, message, type = 'info', duration = 5000, action, onC
       initial={{ opacity: 0, y: 50, scale: 0.3 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border border-white/20 backdrop-blur-md bg-gradient-to-r ${bgColors[type]} min-w-[320px] max-w-md`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border border-black/12 backdrop-blur-md bg-gradient-to-r ${bgColors[type]} min-w-[320px] max-w-md`}
     >
       <div className="flex-shrink-0">
         {icons[type]}
       </div>
 
-      <div className="flex-1 text-white font-medium text-sm">
+      <div className="flex-1 text-foreground font-medium text-sm">
         {message}
       </div>
 
@@ -60,7 +60,7 @@ export function Toast({ id, message, type = 'info', duration = 5000, action, onC
             action.onClick();
             onClose(id);
           }}
-          className="px-3 py-1 text-xs font-semibold bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+          className="px-3 py-1 text-xs font-semibold bg-black/12 hover:bg-white/30 rounded-lg transition-colors"
         >
           {action.label}
         </button>
@@ -68,7 +68,7 @@ export function Toast({ id, message, type = 'info', duration = 5000, action, onC
 
       <button
         onClick={() => onClose(id)}
-        className="flex-shrink-0 text-white/80 hover:text-white transition-colors"
+        className="flex-shrink-0 text-foreground/80 hover:text-foreground transition-colors"
         aria-label="Close"
       >
         <X className="w-4 h-4" />

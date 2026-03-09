@@ -119,7 +119,7 @@ export const InvestorReadings: React.FC = () => {
     <div>
       {grouped.map((group) => (
         <div key={group.category} className="mb-6 last:mb-0">
-          <h3 className="text-[11px] uppercase tracking-wider text-white/25 font-medium mb-3">
+          <h3 className="text-[11px] uppercase tracking-wider text-muted-foreground/50 font-medium mb-3">
             {group.label}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -129,27 +129,27 @@ export const InvestorReadings: React.FC = () => {
                 href={reading.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative flex flex-col rounded-lg bg-[#1C1C21] border border-white/[0.04] p-4
-                  hover:bg-[#201F26] hover:border-white/[0.07] transition-colors duration-100 overflow-hidden"
+                className="group relative flex flex-col rounded-lg bg-card border border-black/[0.04] p-4
+                  hover:bg-surface hover:border-black/[0.06] transition-colors duration-100 overflow-hidden"
               >
                 {/* Category left accent */}
                 <div className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-full ${group.accent} opacity-40`} />
 
                 <div className="pl-2.5">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[13px] font-medium text-white/75 group-hover:text-white/90 leading-snug line-clamp-1 flex-1">
+                    <span className="text-[13px] font-medium text-foreground/75 group-hover:text-foreground leading-snug line-clamp-1 flex-1">
                       {reading.title}
                     </span>
-                    <ExternalLink className="w-3 h-3 text-white/0 group-hover:text-[#C08B5C] flex-shrink-0 transition-colors duration-150" />
+                    <ExternalLink className="w-3 h-3 text-foreground/0 group-hover:text-[#C08B5C] flex-shrink-0 transition-colors duration-150" />
                   </div>
-                  <p className="text-[11px] text-white/32 leading-relaxed line-clamp-1 mb-2.5">
+                  <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-1 mb-2.5">
                     {reading.summary}
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.06] text-white/35">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/[0.05] text-muted-foreground/60">
                       {reading.source}
                     </span>
-                    <span className="flex items-center gap-0.5 text-[10px] text-white/20">
+                    <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground/40">
                       <Clock className="w-3 h-3" />
                       {reading.readTime}
                     </span>
@@ -164,7 +164,7 @@ export const InvestorReadings: React.FC = () => {
       {(expanded || READINGS.length > visible.length) && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-[12px] text-white/30 hover:text-[#C08B5C] mt-3 transition-colors"
+          className="flex items-center gap-1 text-[12px] text-muted-foreground/50 hover:text-[#C08B5C] mt-3 transition-colors"
         >
           {expanded ? (
             <>Show less <ChevronUp className="w-3.5 h-3.5" /></>

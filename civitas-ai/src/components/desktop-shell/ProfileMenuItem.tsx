@@ -18,18 +18,18 @@ export const ProfileMenuItem: React.FC<MenuItemProps> = ({
     shortcut,
     badge,
     hasArrow,
-    className = "text-white/70 hover:text-white"
+    className = "text-foreground/70 hover:text-foreground"
 }) => {
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 
+            className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-black/5 
                   transition-all group ${className}`}
         >
             <Icon className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1 text-left text-sm font-medium">{label}</span>
             {shortcut && (
-                <span className="text-xs text-white/30 font-mono">{shortcut}</span>
+                <span className="text-xs text-muted-foreground/50 font-mono">{shortcut}</span>
             )}
             {badge && (
                 <span className="px-1.5 py-0.5 text-[10px] font-bold rounded 
@@ -38,7 +38,7 @@ export const ProfileMenuItem: React.FC<MenuItemProps> = ({
                 </span>
             )}
             {hasArrow && (
-                <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/50 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
             )}
         </button>
     );

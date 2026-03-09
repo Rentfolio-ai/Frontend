@@ -73,9 +73,9 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
     // Status configurations
     const statusConfig = {
         empty: {
-            color: 'text-white/50',
-            bgColor: 'bg-white/5 hover:bg-white/10',
-            borderColor: 'border-white/10',
+            color: 'text-muted-foreground',
+            bgColor: 'bg-black/5 hover:bg-black/8',
+            borderColor: 'border-black/8',
             ringColor: 'stroke-white/10',
             text: 'Set preferences'
         },
@@ -215,14 +215,14 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 5, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute bottom-full mb-1.5 left-0 z-50 w-60 p-2.5 rounded-lg bg-slate-900/95 backdrop-blur-md border border-white/10 shadow-2xl"
+                            className="absolute bottom-full mb-1.5 left-0 z-50 w-60 p-2.5 rounded-lg bg-popover/95 backdrop-blur-md border border-black/8 shadow-2xl"
                         >
                             {/* Header */}
-                            <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/10">
-                                <span className="text-[10px] font-semibold text-white/70">Quick Preferences</span>
+                            <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-black/8">
+                                <span className="text-[10px] font-semibold text-foreground/70">Quick Preferences</span>
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="p-0.5 rounded-md hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors"
+                                    className="p-0.5 rounded-md hover:bg-black/8 text-muted-foreground/70 hover:text-foreground/70 transition-colors"
                                 >
                                     <X className="w-3 h-3" />
                                 </button>
@@ -230,7 +230,7 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
 
                             {/* Strategy */}
                             <div className="mb-2">
-                                <label className="flex items-center gap-1 text-[9px] font-medium text-white/50 uppercase tracking-wider mb-1.5">
+                                <label className="flex items-center gap-1 text-[9px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                                     <Target className="w-2.5 h-2.5" />
                                     Strategy
                                 </label>
@@ -243,7 +243,7 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
                                                 'flex-1 px-1.5 py-1 rounded-md text-[10px] font-medium transition-all',
                                                 defaultStrategy === strategy
                                                     ? 'bg-primary text-white'
-                                                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
+                                                    : 'bg-black/5 text-muted-foreground hover:bg-black/8 hover:text-foreground'
                                             )}
                                         >
                                             {strategyLabels[strategy]}
@@ -254,7 +254,7 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
 
                             {/* Budget */}
                             <div className="mb-2">
-                                <label className="flex items-center gap-1 text-[9px] font-medium text-white/50 uppercase tracking-wider mb-1.5">
+                                <label className="flex items-center gap-1 text-[9px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                                     <DollarSign className="w-2.5 h-2.5" />
                                     Max Budget
                                 </label>
@@ -267,7 +267,7 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
                                                 'px-2 py-1 rounded-md text-[10px] font-medium transition-all',
                                                 budgetRange?.max === opt.value
                                                     ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                                                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
+                                                    : 'bg-black/5 text-muted-foreground hover:bg-black/8 hover:text-foreground'
                                             )}
                                         >
                                             {opt.label}
@@ -279,7 +279,7 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
                             {/* Favorite Markets Preview */}
                             {favoriteMarkets.length > 0 && (
                                 <div className="mb-2">
-                                    <label className="flex items-center gap-1 text-[9px] font-medium text-white/50 uppercase tracking-wider mb-1.5">
+                                    <label className="flex items-center gap-1 text-[9px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                                         <Home className="w-2.5 h-2.5" />
                                         Markets
                                     </label>
@@ -287,13 +287,13 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
                                         {favoriteMarkets.slice(0, 3).map((market) => (
                                             <span
                                                 key={market}
-                                                className="px-1.5 py-0.5 rounded-full bg-white/5 text-white/60 text-[9px] font-medium"
+                                                className="px-1.5 py-0.5 rounded-full bg-black/5 text-muted-foreground text-[9px] font-medium"
                                             >
                                                 {market}
                                             </span>
                                         ))}
                                         {favoriteMarkets.length > 3 && (
-                                            <span className="px-1.5 py-0.5 text-white/40 text-[9px]">
+                                            <span className="px-1.5 py-0.5 text-muted-foreground/70 text-[9px]">
                                                 +{favoriteMarkets.length - 3} more
                                             </span>
                                         )}
@@ -308,7 +308,7 @@ export const QuickPreferencesChip: React.FC<QuickPreferencesChipProps> = ({
                                         setIsOpen(false);
                                         onOpenFullPreferences();
                                     }}
-                                    className="w-full mt-1.5 py-1.5 rounded-md bg-white/5 text-white/60 text-[10px] font-medium hover:bg-white/10 hover:text-white transition-colors flex items-center justify-center gap-1"
+                                    className="w-full mt-1.5 py-1.5 rounded-md bg-black/5 text-muted-foreground text-[10px] font-medium hover:bg-black/8 hover:text-foreground transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Settings className="w-3 h-3" />
                                     All Preferences

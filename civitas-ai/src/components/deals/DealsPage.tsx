@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Search, SlidersHorizontal, LayoutGrid, List, X, ChevronDown, Sparkles, ArrowLeft } from 'lucide-react';
-import { DealsTable } from './DealsTable';
+import { Search, SlidersHorizontal, X, ChevronDown, Sparkles, ArrowLeft, Clock } from 'lucide-react';
+// import { DealsTable } from './DealsTable'; // view mode removed in redesign
 import { DealsGrid } from './DealsGrid';
-import { DealCloseModal } from './DealCloseModal';
+import { DealsKanban } from './DealsKanban';
+import { DealCloseModal, type DealCloseDetails } from './DealCloseModal';
 import type { ScoutedProperty } from '../../types/backendTools';
 import type { BookmarkedProperty, DealStatus } from '../../types/bookmarks';
 import { searchProperties, getBookmarks, getPortfolios, getPortfolioSummary, updateBookmarkStatus } from '../../services/agentsApi';
@@ -11,8 +12,6 @@ import type { PropertySearchParams, Portfolio, BookmarkData } from '../../servic
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { usePreferencesStore } from '../../stores/preferencesStore';
-import { AmbientBackground } from '../ui/AmbientBackground';
-
 type DealTab = 'all' | 'saved' | 'portfolio' | 'recent';
 type ViewMode = 'table' | 'grid';
 type DealStatusFilter = 'all' | 'active' | 'under_contract' | 'closed' | 'lost';
@@ -62,7 +61,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
   const userId = user?.id || '';
 
   const [activeTab, setActiveTab] = useState<DealTab>('all');
-  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+  const [_viewMode, _setViewMode] = useState<ViewMode>(() =>
     (localStorage.getItem('deals-view-mode') as ViewMode) || 'table'
   );
   const [showTip, setShowTip] = useState(() =>
@@ -75,7 +74,8 @@ export const DealsPage: React.FC<DealsPageProps> = ({
   const [totalCount, setTotalCount] = useState(0);
   const [filters, setFilters] = useState<ActiveFilter[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const abortRef = useRef<AbortController | null>(null);
 
   const {
     budgetRange: prefBudget,
@@ -113,9 +113,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
 
   const bookmarkedIds = new Set(bookmarks.map(b => b.property?.listing_id).filter(Boolean));
 
-  useEffect(() => {
-    localStorage.setItem('deals-view-mode', viewMode);
-  }, [viewMode]);
+  // viewMode persisted but always grid in redesigned UI
 
   const getEffectiveLocation = useCallback((query?: string) => {
     return query
@@ -128,6 +126,8 @@ export const DealsPage: React.FC<DealsPageProps> = ({
 
   const fetchProperties = useCallback(async (query?: string) => {
     if (activeTab !== 'all') return;
+    if (abortRef.current) abortRef.current.abort();
+    abortRef.current = new AbortController();
     setLoading(true);
     try {
       const { defaultStrategy, user_id: prefUserId } = usePreferencesStore.getState();
@@ -151,7 +151,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
       const uid = userId || prefUserId;
       if (uid && uid !== 'default') params.user_id = uid;
 
-      const res = await searchProperties(params);
+      const res = await searchProperties(params, abortRef.current?.signal);
       const mapped: ScoutedProperty[] = (res?.properties || []).map((p: any) => ({
         listing_id: p.listing_id || p.id || String(Math.random()),
         address: p.address || '',
@@ -171,8 +171,10 @@ export const DealsPage: React.FC<DealsPageProps> = ({
       }));
       setProperties(mapped);
       setTotalCount(res?.total_found || mapped.length);
-    } catch {
-      setProperties([]);
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        setProperties([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -183,6 +185,12 @@ export const DealsPage: React.FC<DealsPageProps> = ({
       fetchProperties();
     }
   }, [activeTab, currentPage, fetchProperties]);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'saved' && userId) {
@@ -289,7 +297,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
     setCloseModal({ property, bookmarkId, currentStatus, targetStatus });
   };
 
-  const confirmStatusChange = async (bookmarkId: string, status: DealStatus) => {
+  const confirmStatusChange = async (bookmarkId: string, status: DealStatus, _details?: DealCloseDetails) => {
     if (!userId) return;
     await updateBookmarkStatus(userId, bookmarkId, status);
     setDealStatuses(prev => {
@@ -299,6 +307,16 @@ export const DealsPage: React.FC<DealsPageProps> = ({
       return next;
     });
   };
+
+  // Stale under_contract deals for nudge banner
+  const staleUnderContractCount = (() => {
+    let count = 0;
+    dealStatuses.forEach((status) => {
+      if (status === 'under_contract') count++;
+    });
+    return count;
+  })();
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   const displayProperties = (() => {
     let props: ScoutedProperty[] = [];
@@ -325,8 +343,8 @@ export const DealsPage: React.FC<DealsPageProps> = ({
 
   const isTabLoading = activeTab === 'all' ? loading
     : activeTab === 'saved' ? savedLoading
-    : activeTab === 'portfolio' ? portfolioLoading
-    : false;
+      : activeTab === 'portfolio' ? portfolioLoading
+        : false;
 
   const totalPages = Math.max(1, Math.ceil((activeTab === 'all' ? totalCount : displayProperties.length) / ITEMS_PER_PAGE));
 
@@ -335,126 +353,141 @@ export const DealsPage: React.FC<DealsPageProps> = ({
   };
 
   return (
-    <div className="h-full overflow-y-auto bg-[#161619] relative overflow-x-hidden" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
-      <AmbientBackground variant="deals" />
+    <div className="h-full overflow-y-auto bg-background relative overflow-x-hidden" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(0,0,0,0.06) transparent' }}>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 max-w-3xl mx-auto px-6 py-6"
+        className="relative z-10 max-w-[900px] mx-auto px-6 py-8"
       >
         <div className="space-y-5">
 
+          {/* Header */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {onBack && (
-                  <button
-                    onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-1"
-                    title="Back to Home"
-                  >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
-                  </button>
-                )}
-                <h1 className="text-lg font-bold gradient-text">Deals</h1>
-              </div>
-              <div className="flex items-center gap-2 flex-1 max-w-[320px]">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="Search..."
-                    className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]
-                               text-[12px] text-white/80 placeholder:text-white/20
-                               focus:outline-none focus:border-[#C08B5C]/30 focus:ring-1 focus:ring-[#C08B5C]/20
-                               transition-all duration-150"
-                  />
-                </div>
+            <div className="flex items-center gap-2">
+              {onBack && (
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0
-                             transition-all ${
-                    showFilters
-                      ? 'bg-[#C08B5C]/[0.08] border border-[#C08B5C]/20 text-[#C08B5C]'
-                      : 'bg-white/[0.03] border border-white/[0.06] text-white/30 hover:text-[#D4A27F]/70 hover:border-[#C08B5C]/20'
-                  }`}
-                  title="Filters"
+                  onClick={onBack}
+                  className="w-8 h-8 rounded-lg hover:bg-black/[0.03] flex items-center justify-center transition-all group -ml-1"
                 >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
-              </div>
+              )}
+              <h1 className="text-[26px] font-semibold text-foreground tracking-[-0.02em]">Deals</h1>
             </div>
-            <div className="flex items-center justify-between">
-              <p className="text-[12px] text-white/35">
-                Find, analyze, and track investment properties
-              </p>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex items-center rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5">
-                  <button
-                    onClick={() => setViewMode('table')}
-                    className={`p-1.5 rounded-md ${viewMode === 'table' ? 'bg-white/[0.08] text-white/80' : 'text-white/30'}`}
-                    title="Table view"
-                  >
-                    <List className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-white/[0.08] text-white/80' : 'text-white/30'}`}
-                    title="Grid view"
-                  >
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <p className="text-[13px] text-muted-foreground/60">Discover investment properties</p>
+          </div>
+
+          {/* Smart Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Search locations, addresses, or describe what you're looking for..."
+              className="w-full pl-11 pr-4 py-3 rounded-xl bg-background border border-black/[0.06]
+                         text-[14px] text-foreground/80 placeholder:text-muted-foreground/50
+                         focus:outline-none focus:border-[#C08B5C]/30 focus:ring-1 focus:ring-[#C08B5C]/15
+                         transition-all duration-150"
+              data-wand-id="deals-search"
+              data-wand-type="input"
+              data-wand-label="Deals search"
+            />
+          </div>
+
+          {/* Filter Chips */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {filters.map(f => (
+              <span key={f.key} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#C08B5C]/30 bg-[#C08B5C]/[0.06] text-[11px] text-[#C08B5C] font-medium">
+                {f.label}
+                <button onClick={() => removeFilter(f.key)} className="text-[#C08B5C]/50 hover:text-[#C08B5C]">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-black/[0.08] text-[11px] text-muted-foreground/60 font-medium hover:border-black/[0.12] hover:text-muted-foreground transition-colors"
+            >
+              <SlidersHorizontal className="w-3 h-3" /> Filter
+            </button>
+            {filters.length > 0 && (
+              <button onClick={() => setFilters([])} className="text-[11px] text-[#C08B5C] hover:text-[#D4A27F] font-semibold">
+                Clear all
+              </button>
+            )}
           </div>
 
           {showTip && (
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-[#C08B5C]/[0.06] border border-[#C08B5C]/[0.12]">
               <Sparkles className="w-4 h-4 text-[#C08B5C]/60 flex-shrink-0" />
-              <p className="text-[11px] text-white/50 flex-1">
-                Select a property and click <span className="text-[#C08B5C] font-medium">Analyze with AI</span> to run it through our Hunter deal pipeline for a Buy/Negotiate/Pass verdict.
+              <p className="text-[11px] text-muted-foreground flex-1">
+                Select a property and click <span className="text-[#C08B5C] font-medium">Analyze ✨</span> to analyze any deal.
               </p>
               <button
                 onClick={() => { setShowTip(false); localStorage.setItem('deals-tip-dismissed', '1'); }}
-                className="p-1 rounded hover:bg-white/[0.04] text-white/20 hover:text-white/40 flex-shrink-0"
+                className="p-1 rounded hover:bg-black/[0.03] text-muted-foreground/40 hover:text-muted-foreground/70 flex-shrink-0"
               >
                 <X className="w-3 h-3" />
               </button>
             </div>
           )}
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/[0.03] border border-white/[0.05] w-fit">
-              {TABS.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => { setActiveTab(tab.key); setCurrentPage(1); }}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-semibold ${
-                    activeTab === tab.key
-                      ? 'bg-white/[0.08] text-white/90'
-                      : 'text-white/35 hover:bg-white/[0.03]'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+          {/* Nudge banner for stale under_contract deals */}
+          {staleUnderContractCount > 0 && !nudgeDismissed && (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/[0.06] border border-amber-500/[0.12]">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-medium text-foreground/80">
+                  {staleUnderContractCount} deal{staleUnderContractCount !== 1 ? 's' : ''} under contract
+                </p>
+                <p className="text-[11px] text-muted-foreground/60">
+                  Have any of these closed? Update their status to keep your pipeline accurate.
+                </p>
+              </div>
+              <button
+                onClick={() => { setStatusFilter('under_contract'); setNudgeDismissed(true); }}
+                className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-[11px] font-semibold hover:bg-amber-500/15 flex-shrink-0"
+              >
+                Review
+              </button>
+              <button
+                onClick={() => setNudgeDismissed(true)}
+                className="p-1 rounded hover:bg-black/[0.03] text-muted-foreground/40 hover:text-muted-foreground/70 flex-shrink-0"
+              >
+                <X className="w-3 h-3" />
+              </button>
             </div>
+          )}
+
+          {/* Tabs — clean underline style */}
+          <div className="flex items-center gap-6 border-b border-black/[0.06]">
+            {TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setCurrentPage(1); }}
+                className={`pb-2.5 text-[13px] font-medium border-b-2 transition-colors ${activeTab === tab.key
+                  ? 'border-[#C08B5C] text-foreground/85'
+                  : 'border-transparent text-muted-foreground/60 hover:text-foreground/55'
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
 
             {(activeTab === 'saved' || activeTab === 'portfolio') && (
-              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/[0.03] border border-white/[0.05] w-fit">
+              <div className="ml-auto flex items-center gap-1 pb-2">
                 {STATUS_FILTERS.map(sf => (
                   <button
                     key={sf.key}
                     onClick={() => setStatusFilter(sf.key)}
-                    className={`px-2.5 py-1.5 rounded-md text-[10px] font-semibold ${
-                      statusFilter === sf.key
-                        ? 'bg-white/[0.08] text-white/90'
-                        : 'text-white/30 hover:bg-white/[0.03]'
-                    }`}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-semibold ${statusFilter === sf.key
+                      ? 'bg-black/[0.06] text-foreground/80'
+                      : 'text-muted-foreground/50 hover:bg-black/[0.02]'
+                      }`}
                   >
                     {sf.label}
                   </button>
@@ -463,72 +496,56 @@ export const DealsPage: React.FC<DealsPageProps> = ({
             )}
 
             {activeTab === 'portfolio' && portfolios.length > 0 && (
-              <div className="relative">
+              <div className="relative ml-auto pb-2">
                 <select
                   value={selectedPortfolioId}
                   onChange={e => setSelectedPortfolioId(e.target.value)}
-                  className="appearance-none px-3 py-1.5 pr-7 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/70 font-medium focus:outline-none focus:border-[#C08B5C]/30"
+                  className="appearance-none px-3 py-1.5 pr-7 rounded-lg bg-black/[0.03] border border-black/[0.06] text-[11px] text-foreground/70 font-medium focus:outline-none focus:border-[#C08B5C]/30"
                 >
                   {portfolios.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/25 pointer-events-none" />
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/50 pointer-events-none" />
               </div>
             )}
           </div>
 
-          {filters.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {filters.map(f => (
-                <span key={f.key} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/55 font-medium">
-                  {f.label}
-                  <button onClick={() => removeFilter(f.key)} className="text-white/30 hover:text-white/60">
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-              <button onClick={() => setFilters([])} className="text-[11px] text-[#C08B5C] hover:text-[#D4A27F] font-semibold">
-                Clear all
-              </button>
-            </div>
-          )}
-
           {showFilters && (
-            <div className="rounded-lg bg-white/[0.03] border border-white/[0.05] p-4">
+            <div className="rounded-lg bg-black/[0.02] border border-black/[0.05] p-4">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/25 mb-2.5 block">City / State</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2.5 block">City / State</label>
                   <input
                     type="text"
                     value={filterLocation}
                     onChange={e => setFilterLocation(e.target.value)}
                     placeholder={getEffectiveLocation() || 'e.g. Austin, TX'}
-                    className="w-full px-3 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[12px] text-white/80 placeholder-white/15 focus:outline-none focus:border-[#C08B5C]/30"
+                    className="w-full px-3 py-2.5 rounded-lg bg-black/[0.03] border border-black/[0.06] text-[12px] text-foreground/80 placeholder-white/15 focus:outline-none focus:border-[#C08B5C]/30"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/25 mb-2.5 block">Price Range</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2.5 block">Price Range</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={filterMinPrice}
                       onChange={e => setFilterMinPrice(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder="Min"
-                      className="w-full px-3 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[12px] text-white/80 placeholder-white/15 focus:outline-none focus:border-[#C08B5C]/30"
+                      className="w-full px-3 py-2.5 rounded-lg bg-black/[0.03] border border-black/[0.06] text-[12px] text-foreground/80 placeholder-white/15 focus:outline-none focus:border-[#C08B5C]/30"
                     />
-                    <span className="text-white/15 text-[11px]">-</span>
+                    <span className="text-muted-foreground/40 text-[11px]">-</span>
                     <input
                       type="text"
                       value={filterMaxPrice}
                       onChange={e => setFilterMaxPrice(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder="Max"
-                      className="w-full px-3 py-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[12px] text-white/80 placeholder-white/15 focus:outline-none focus:border-[#C08B5C]/30"
+                      className="w-full px-3 py-2.5 rounded-lg bg-black/[0.03] border border-black/[0.06] text-[12px] text-foreground/80 placeholder-white/15 focus:outline-none focus:border-[#C08B5C]/30"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/25 mb-2.5 block">Bedrooms</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2.5 block">Bedrooms</label>
                   <div className="flex items-center gap-1.5">
                     {[
                       { label: '1+', value: 1 },
@@ -539,11 +556,10 @@ export const DealsPage: React.FC<DealsPageProps> = ({
                       <button
                         key={opt.value}
                         onClick={() => setFilterBeds(filterBeds === opt.value ? null : opt.value)}
-                        className={`px-3 py-2 rounded-lg border text-[11px] font-medium transition-colors ${
-                          filterBeds === opt.value
-                            ? 'bg-[#C08B5C]/[0.12] border-[#C08B5C]/30 text-[#C08B5C]'
-                            : 'bg-white/[0.04] border-white/[0.06] text-white/45 hover:bg-white/[0.06]'
-                        }`}
+                        className={`px-3 py-2 rounded-lg border text-[11px] font-medium transition-colors ${filterBeds === opt.value
+                          ? 'bg-[#C08B5C]/[0.12] border-[#C08B5C]/30 text-[#C08B5C]'
+                          : 'bg-black/[0.03] border-black/[0.06] text-muted-foreground/70 hover:bg-black/[0.05]'
+                          }`}
                       >
                         {opt.label}
                       </button>
@@ -551,7 +567,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-white/25 mb-2.5 block">Property Type</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2.5 block">Property Type</label>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {['SFH', 'Condo', 'Multi', 'Town'].map(opt => (
                       <button
@@ -559,11 +575,10 @@ export const DealsPage: React.FC<DealsPageProps> = ({
                         onClick={() => setFilterPropertyTypes(prev =>
                           prev.includes(opt) ? prev.filter(t => t !== opt) : [...prev, opt]
                         )}
-                        className={`px-3 py-2 rounded-lg border text-[11px] font-medium transition-colors ${
-                          filterPropertyTypes.includes(opt)
-                            ? 'bg-[#C08B5C]/[0.12] border-[#C08B5C]/30 text-[#C08B5C]'
-                            : 'bg-white/[0.04] border-white/[0.06] text-white/45 hover:bg-white/[0.06]'
-                        }`}
+                        className={`px-3 py-2 rounded-lg border text-[11px] font-medium transition-colors ${filterPropertyTypes.includes(opt)
+                          ? 'bg-[#C08B5C]/[0.12] border-[#C08B5C]/30 text-[#C08B5C]'
+                          : 'bg-black/[0.03] border-black/[0.06] text-muted-foreground/70 hover:bg-black/[0.05]'
+                          }`}
                       >
                         {opt}
                       </button>
@@ -571,7 +586,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-white/[0.04]">
+              <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-black/[0.04]">
                 <button
                   onClick={() => {
                     setFilterLocation('');
@@ -597,24 +612,22 @@ export const DealsPage: React.FC<DealsPageProps> = ({
           )}
 
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-white/20 font-medium">
+            <span className="text-[11px] text-muted-foreground/40 font-medium">
               {isTabLoading ? 'Searching...' : `Showing ${displayProperties.length} of ${activeTab === 'all' ? totalCount : displayProperties.length} results`}
             </span>
           </div>
 
           {isTabLoading ? (
-            <div className="space-y-1.5">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="rounded-xl bg-black/[0.02] border border-black/[0.05] aspect-[4/3] animate-pulse" />
               ))}
             </div>
-          ) : viewMode === 'table' ? (
-            <DealsTable
+          ) : activeTab === 'saved' || activeTab === 'portfolio' ? (
+            <DealsKanban
               properties={displayProperties}
               onViewProperty={onViewProperty}
               onAnalyzeProperty={onAnalyzeProperty}
-              onBookmarkProperty={onBookmarkProperty}
-              bookmarkedIds={bookmarkedIds}
               dealStatuses={dealStatuses}
               onStatusChange={handleStatusChange}
               bookmarkIdMap={bookmarkIdMap}
@@ -637,7 +650,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-white/35 hover:text-white/70 hover:bg-white/[0.04] disabled:opacity-25 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-muted-foreground/60 hover:text-foreground/70 hover:bg-black/[0.03] disabled:opacity-25 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -645,20 +658,19 @@ export const DealsPage: React.FC<DealsPageProps> = ({
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-[12px] font-semibold ${
-                    currentPage === page
-                      ? 'bg-[#C08B5C]/[0.12] text-[#C08B5C] border border-[#C08B5C]/20'
-                      : 'text-white/35 hover:text-white/70 hover:bg-white/[0.04]'
-                  }`}
+                  className={`w-8 h-8 rounded-lg text-[12px] font-semibold ${currentPage === page
+                    ? 'bg-[#C08B5C]/[0.12] text-[#C08B5C] border border-[#C08B5C]/20'
+                    : 'text-muted-foreground/60 hover:text-foreground/70 hover:bg-black/[0.03]'
+                    }`}
                 >
                   {page}
                 </button>
               ))}
-              {totalPages > 7 && <span className="text-white/15 text-[12px] px-1">...</span>}
+              {totalPages > 7 && <span className="text-muted-foreground/40 text-[12px] px-1">...</span>}
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-white/35 hover:text-white/70 hover:bg-white/[0.04] disabled:opacity-25 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-muted-foreground/60 hover:text-foreground/70 hover:bg-black/[0.03] disabled:opacity-25 disabled:cursor-not-allowed"
               >
                 Next
               </button>

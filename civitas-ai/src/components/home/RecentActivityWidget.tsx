@@ -138,15 +138,15 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({
       <div>
         {showHeader && (
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Recent Activity</h3>
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">Recent Activity</h3>
           </div>
         )}
-        <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-5">
+        <div className="rounded-xl bg-black/[0.02] border border-black/[0.04] p-5">
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-white/[0.05]" />
-                <div className="flex-1 h-3 rounded bg-white/[0.05]" />
+                <div className="w-7 h-7 rounded-lg bg-black/[0.04]" />
+                <div className="flex-1 h-3 rounded bg-black/[0.04]" />
               </div>
             ))}
           </div>
@@ -159,7 +159,7 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({
     <div>
       {showHeader && (
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-white/25">Recent Activity</h3>
+          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/50">Recent Activity</h3>
           <button onClick={onViewAll} className="text-[11px] text-[#C08B5C] font-medium hover:text-[#D4A27F]">
             View all
           </button>
@@ -175,22 +175,22 @@ export const RecentActivityWidget: React.FC<RecentActivityWidgetProps> = ({
           onAction={onViewAll}
         />
       ) : (
-        <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] divide-y divide-white/[0.04]">
+        <div className="rounded-xl bg-black/[0.02] border border-black/[0.04] divide-y divide-black/[0.04]">
           {items.map((item) => {
             const meta = TYPE_META[item.type] || TYPE_META.chat;
             const Icon = meta.icon;
             return (
-              <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02]">
+              <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.02]">
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${meta.bg}`}>
                   <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-[13px] text-white/75 truncate block">{item.title}</span>
+                  <span className="text-[13px] text-foreground/75 truncate block">{item.title}</span>
                 </div>
                 <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${meta.bg} ${meta.color}`}>
                   {meta.badge}
                 </span>
-                <span className="text-[11px] text-white/20 flex-shrink-0 tabular-nums">{timeAgo(item.timestamp)}</span>
+                <span className="text-[11px] text-muted-foreground/40 flex-shrink-0 tabular-nums">{timeAgo(item.timestamp)}</span>
               </div>
             );
           })}

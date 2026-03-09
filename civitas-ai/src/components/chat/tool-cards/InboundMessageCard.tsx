@@ -52,7 +52,7 @@ export const InboundMessageCard: React.FC<InboundMessageCardProps> = ({
       </div>
 
       {/* Left-aligned bubble */}
-      <div className="rounded-2xl rounded-bl-sm bg-white/[0.04] border border-white/[0.06] px-3.5 py-2.5 max-w-[85%]">
+      <div className="rounded-2xl rounded-bl-sm bg-black/[0.03] border border-black/[0.06] px-3.5 py-2.5 max-w-[85%]">
         {isEmail && subject && (
           <div className="text-[11px] font-semibold text-[#D4A27F]/60 mb-1 truncate">{subject}</div>
         )}

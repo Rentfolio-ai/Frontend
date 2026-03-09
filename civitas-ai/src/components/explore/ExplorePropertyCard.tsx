@@ -73,11 +73,11 @@ export const ExplorePropertyCard: React.FC<ExplorePropertyCardProps> = ({
     <div
       className={`
         group flex flex-col rounded-xl cursor-pointer
-        bg-[#1a1a1f] border transition-all duration-200
-        hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/25 hover:bg-[#1e1e24]
+        bg-popover border transition-all duration-200
+        hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/25 hover:bg-surface-elevated
         ${isHighlighted
-          ? 'border-white/[0.15] shadow-lg shadow-black/20 -translate-y-0.5'
-          : 'border-white/[0.06] hover:border-white/[0.10]'
+          ? 'border-black/[0.12] shadow-lg shadow-black/20 -translate-y-0.5'
+          : 'border-black/[0.06] hover:border-black/[0.08]'
         }
       `}
       onClick={() => onAnalyze?.()}
@@ -101,15 +101,15 @@ export const ExplorePropertyCard: React.FC<ExplorePropertyCardProps> = ({
             >
               <Heart
                 className={`w-4 h-4 transition-colors duration-150 ${
-                  isBookmarked ? 'fill-red-500 text-red-500' : 'text-white/70 hover:text-white'
+                  isBookmarked ? 'fill-red-500 text-red-500' : 'text-foreground/70 hover:text-foreground'
                 }`}
               />
             </button>
           </PhotoCarousel>
         ) : (
-          <div className="aspect-[4/3] bg-[#16161a] flex flex-col items-center justify-center gap-2">
-            <Home className="w-8 h-8 text-white/10" />
-            <span className="text-[10px] text-white/15 font-medium">No photo</span>
+          <div className="aspect-[4/3] bg-card flex flex-col items-center justify-center gap-2">
+            <Home className="w-8 h-8 text-muted-foreground/30" />
+            <span className="text-[10px] text-muted-foreground/40 font-medium">No photo</span>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleBookmark?.(); }}
               className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-full bg-black/40
@@ -117,7 +117,7 @@ export const ExplorePropertyCard: React.FC<ExplorePropertyCardProps> = ({
             >
               <Heart
                 className={`w-4 h-4 transition-colors duration-150 ${
-                  isBookmarked ? 'fill-red-500 text-red-500' : 'text-white/70'
+                  isBookmarked ? 'fill-red-500 text-red-500' : 'text-foreground/70'
                 }`}
               />
             </button>
@@ -127,18 +127,18 @@ export const ExplorePropertyCard: React.FC<ExplorePropertyCardProps> = ({
 
       {/* Content -- flex-shrink-0 ensures this never collapses */}
       <div className="px-3 pt-2.5 pb-3 flex flex-col gap-0.5 flex-shrink-0">
-        <span className="text-[16px] font-bold text-white/95 leading-snug">{fmtPrice(property.price)}</span>
+        <span className="text-[16px] font-bold text-foreground leading-snug">{fmtPrice(property.price)}</span>
 
         {specsLine && (
-          <span className="text-[13px] text-white/55 font-medium leading-snug">{specsLine}</span>
+          <span className="text-[13px] text-muted-foreground/70 font-medium leading-snug">{specsLine}</span>
         )}
 
-        <p className="text-[12px] text-white/40 leading-snug truncate mt-0.5" title={address}>
+        <p className="text-[12px] text-muted-foreground/70 leading-snug truncate mt-0.5" title={address}>
           {address}{cityState ? `, ${cityState}` : ''}
         </p>
 
         {metricParts.length > 0 && (
-          <span className="text-[11px] font-mono text-white/30 mt-1 leading-snug">
+          <span className="text-[11px] font-mono text-muted-foreground/50 mt-1 leading-snug">
             {metricParts.join(' · ')}
           </span>
         )}

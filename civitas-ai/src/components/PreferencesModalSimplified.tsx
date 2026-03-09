@@ -214,20 +214,20 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
             }}
         >
             {/* Modal Container */}
-            <div className="relative w-full max-w-2xl bg-[#1a1a1a] rounded-2xl shadow-2xl border border-white/[0.08] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-2xl bg-popover rounded-2xl shadow-2xl border border-black/[0.08] overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                 
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-white/[0.04]">
+                <div className="px-8 py-6 border-b border-black/[0.04]">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-semibold tracking-tight text-white/95">Investment Preferences</h2>
-                            <p className="text-sm text-white/50 mt-1">Set your criteria and Civitas will find better matches</p>
+                            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Investment Preferences</h2>
+                            <p className="text-sm text-muted-foreground mt-1">Set your criteria and Civitas will find better matches</p>
                         </div>
                         <button
                             onClick={handleCancel}
-                            className="p-2 hover:bg-white/[0.05] rounded-lg transition-colors"
+                            className="p-2 hover:bg-black/[0.04] rounded-lg transition-colors"
                         >
-                            <X className="w-5 h-5 text-white/60" />
+                            <X className="w-5 h-5 text-muted-foreground" />
                         </button>
                     </div>
                 </div>
@@ -237,7 +237,7 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                     
                     {/* Strategy Section */}
                     <section>
-                        <label className="block text-sm font-medium text-white/70 mb-3">Strategy</label>
+                        <label className="block text-sm font-medium text-foreground/70 mb-3">Strategy</label>
                         <div className="space-y-2">
                             {[
                                 { id: 'STR', label: 'Short-Term Rental', desc: 'Airbnb, VRBO' },
@@ -250,8 +250,8 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                                     className={cn(
                                         'w-full flex items-center gap-3 px-4 py-3 rounded-lg border transition-all text-left',
                                         strategy === option.id
-                                            ? 'bg-white/[0.08] border-white/[0.20]'
-                                            : 'bg-white/[0.02] border-white/[0.08] hover:bg-white/[0.04]'
+                                            ? 'bg-black/[0.06] border-black/[0.15]'
+                                            : 'bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.03]'
                                     )}
                                 >
                                     <div className={cn(
@@ -263,8 +263,8 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="text-sm font-medium text-white/90">{option.label}</div>
-                                        <div className="text-xs text-white/50">{option.desc}</div>
+                                        <div className="text-sm font-medium text-foreground">{option.label}</div>
+                                        <div className="text-xs text-muted-foreground">{option.desc}</div>
                                     </div>
                                 </button>
                             ))}
@@ -273,32 +273,32 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
 
                     {/* Budget Range Section */}
                     <section>
-                        <label className="block text-sm font-medium text-white/70 mb-3">Budget Range</label>
+                        <label className="block text-sm font-medium text-foreground/70 mb-3">Budget Range</label>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Min</label>
+                                <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Min</label>
                                 <input
                                     type="text"
                                     value={formatCurrency(minBudget)}
                                     onChange={(e) => setMinBudget(e.target.value.replace(/,/g, ''))}
                                     className={cn(
-                                        'w-full h-10 px-3 py-2 bg-white/[0.02] border rounded-lg text-sm text-white/90 placeholder-white/40',
-                                        'focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all',
-                                        budgetError ? 'border-red-500/50' : 'border-white/[0.10]'
+                                        'w-full h-10 px-3 py-2 bg-black/[0.02] border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50',
+                                        'focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all',
+                                        budgetError ? 'border-red-500/50' : 'border-black/[0.08]'
                                     )}
                                     placeholder="200,000"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Max</label>
+                                <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Max</label>
                                 <input
                                     type="text"
                                     value={formatCurrency(maxBudget)}
                                     onChange={(e) => setMaxBudget(e.target.value.replace(/,/g, ''))}
                                     className={cn(
-                                        'w-full h-10 px-3 py-2 bg-white/[0.02] border rounded-lg text-sm text-white/90 placeholder-white/40',
-                                        'focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all',
-                                        budgetError ? 'border-red-500/50' : 'border-white/[0.10]'
+                                        'w-full h-10 px-3 py-2 bg-black/[0.02] border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50',
+                                        'focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all',
+                                        budgetError ? 'border-red-500/50' : 'border-black/[0.08]'
                                     )}
                                     placeholder="400,000"
                                 />
@@ -311,17 +311,17 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
 
                     {/* Target Markets Section */}
                     <section>
-                        <label className="block text-sm font-medium text-white/70 mb-3">Target Markets</label>
+                        <label className="block text-sm font-medium text-foreground/70 mb-3">Target Markets</label>
                         <div className="flex flex-wrap gap-2 mb-3">
                             {markets.map((market) => (
                                 <span
                                     key={market}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.08] border border-white/[0.10] rounded-full text-sm text-white/90"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.06] border border-black/[0.08] rounded-full text-sm text-foreground"
                                 >
                                     {market}
                                     <button
                                         onClick={() => handleRemoveMarket(market)}
-                                        className="hover:text-white transition-colors"
+                                        className="hover:text-foreground transition-colors"
                                     >
                                         <X className="w-3 h-3" />
                                     </button>
@@ -330,7 +330,7 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMarketDropdown(!showMarketDropdown)}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.02] border border-white/[0.10] rounded-full text-sm text-white/60 hover:bg-white/[0.05] hover:text-white/80 transition-all"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.02] border border-black/[0.08] rounded-full text-sm text-muted-foreground hover:bg-black/[0.04] hover:text-foreground/80 transition-all"
                                 >
                                     <Plus className="w-3 h-3" />
                                     Add Market
@@ -342,13 +342,13 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                                             className="fixed inset-0 z-10"
                                             onClick={() => setShowMarketDropdown(false)}
                                         />
-                                        <div className="absolute top-full left-0 mt-2 w-64 bg-slate-900/95 backdrop-blur-xl border border-white/[0.10] rounded-lg shadow-2xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                                        <div className="absolute top-full left-0 mt-2 w-64 bg-popover/95 backdrop-blur-xl border border-black/[0.08] rounded-lg shadow-2xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                                             <input
                                                 type="text"
                                                 value={marketSearch}
                                                 onChange={(e) => setMarketSearch(e.target.value)}
                                                 placeholder="Search cities..."
-                                                className="w-full px-3 py-2 bg-white/[0.05] border-b border-white/[0.10] text-sm text-white/90 placeholder-white/40 focus:outline-none"
+                                                className="w-full px-3 py-2 bg-black/[0.04] border-b border-black/[0.08] text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
                                                 autoFocus
                                             />
                                             <div className="max-h-48 overflow-y-auto">
@@ -356,13 +356,13 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                                                     <button
                                                         key={market}
                                                         onClick={() => handleAddMarket(market)}
-                                                        className="w-full px-3 py-2 text-left text-sm text-white/80 hover:bg-white/[0.05] transition-colors"
+                                                        className="w-full px-3 py-2 text-left text-sm text-foreground/80 hover:bg-black/[0.04] transition-colors"
                                                     >
                                                         {market}
                                                     </button>
                                                 ))}
                                                 {filteredMarkets.length === 0 && (
-                                                    <div className="px-3 py-4 text-sm text-white/40 text-center">
+                                                    <div className="px-3 py-4 text-sm text-muted-foreground/70 text-center">
                                                         No markets found
                                                     </div>
                                                 )}
@@ -376,7 +376,7 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
 
                     {/* Property Types Section */}
                     <section>
-                        <label className="block text-sm font-medium text-white/70 mb-3">Property Types</label>
+                        <label className="block text-sm font-medium text-foreground/70 mb-3">Property Types</label>
                         <div className="space-y-2">
                             {[
                                 { id: 'Single Family', label: 'Single Family Homes' },
@@ -386,15 +386,15 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                             ].map((type) => (
                                 <label
                                     key={type.id}
-                                    className="flex items-center gap-3 px-4 py-3 rounded-lg border border-white/[0.08] hover:bg-white/[0.02] cursor-pointer transition-colors"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-lg border border-black/[0.08] hover:bg-black/[0.02] cursor-pointer transition-colors"
                                 >
                                     <input
                                         type="checkbox"
                                         checked={propertyTypes.includes(type.id)}
                                         onChange={() => togglePropertyTypeLocal(type.id)}
-                                        className="w-4 h-4 rounded border-white/30 bg-white/[0.05] text-white focus:ring-white/20 focus:ring-offset-0"
+                                        className="w-4 h-4 rounded border-black/20 bg-black/[0.04] text-foreground focus:ring-black/20 focus:ring-offset-0"
                                     />
-                                    <span className="text-sm text-white/90">{type.label}</span>
+                                    <span className="text-sm text-foreground">{type.label}</span>
                                 </label>
                             ))}
                         </div>
@@ -402,14 +402,14 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
 
                     {/* Property Details Section */}
                     <section>
-                        <label className="block text-sm font-medium text-white/70 mb-3">Property Details <span className="text-white/40">(Optional)</span></label>
+                        <label className="block text-sm font-medium text-foreground/70 mb-3">Property Details <span className="text-muted-foreground/70">(Optional)</span></label>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Bedrooms</label>
+                                <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Bedrooms</label>
                                 <select
                                     value={bedrooms}
                                     onChange={(e) => setBedrooms(e.target.value)}
-                                    className="w-full h-10 px-3 py-2 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                    className="w-full h-10 px-3 py-2 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                 >
                                     <option value="any">Any</option>
                                     <option value="1">1+</option>
@@ -420,11 +420,11 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Bathrooms</label>
+                                <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Bathrooms</label>
                                 <select
                                     value={bathrooms}
                                     onChange={(e) => setBathrooms(e.target.value)}
-                                    className="w-full h-10 px-3 py-2 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                    className="w-full h-10 px-3 py-2 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                 >
                                     <option value="any">Any</option>
                                     <option value="1">1+</option>
@@ -439,7 +439,7 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                     <section>
                         <button
                             onClick={() => setShowFinancial(!showFinancial)}
-                            className="flex items-center justify-between w-full text-sm font-medium text-white/70 mb-3 hover:text-white/90 transition-colors"
+                            className="flex items-center justify-between w-full text-sm font-medium text-foreground/70 mb-3 hover:text-foreground transition-colors"
                         >
                             <span>Financial Assumptions</span>
                             {showFinancial ? <ChevronUp className="w-4 h-4 transition-transform" /> : <ChevronDown className="w-4 h-4 transition-transform" />}
@@ -449,59 +449,59 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                             <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Down Payment</label>
+                                        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Down Payment</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 value={downPayment}
                                                 onChange={(e) => setDownPayment(e.target.value)}
-                                                className="w-full h-10 px-3 py-2 pr-8 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                                className="w-full h-10 px-3 py-2 pr-8 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/40">%</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/70">%</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Interest Rate</label>
+                                        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Interest Rate</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 value={interestRate}
                                                 onChange={(e) => setInterestRate(e.target.value)}
-                                                className="w-full h-10 px-3 py-2 pr-8 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                                className="w-full h-10 px-3 py-2 pr-8 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/40">%</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/70">%</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Management Fee</label>
+                                        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Management Fee</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 value={mgmtFee}
                                                 onChange={(e) => setMgmtFee(e.target.value)}
-                                                className="w-full h-10 px-3 py-2 pr-8 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                                className="w-full h-10 px-3 py-2 pr-8 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/40">%</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/70">%</span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Vacancy Rate</label>
+                                        <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Vacancy Rate</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 value={vacancy}
                                                 onChange={(e) => setVacancy(e.target.value)}
-                                                className="w-full h-10 px-3 py-2 pr-8 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                                className="w-full h-10 px-3 py-2 pr-8 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/40">%</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/70">%</span>
                                         </div>
                                     </div>
                                 </div>
                                 <button
                                     onClick={useTypicalValues}
-                                    className="text-xs text-white/50 hover:text-white/70 transition-colors"
+                                    className="text-xs text-muted-foreground hover:text-foreground/70 transition-colors"
                                 >
                                     Use typical values
                                 </button>
@@ -513,41 +513,41 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                     <section>
                         <button
                             onClick={() => setShowGoals(!showGoals)}
-                            className="flex items-center justify-between w-full text-sm font-medium text-white/70 mb-3 hover:text-white/90 transition-colors"
+                            className="flex items-center justify-between w-full text-sm font-medium text-foreground/70 mb-3 hover:text-foreground transition-colors"
                         >
-                            <span>Investment Goals <span className="text-white/40">(Optional)</span></span>
+                            <span>Investment Goals <span className="text-muted-foreground/70">(Optional)</span></span>
                             {showGoals ? <ChevronUp className="w-4 h-4 transition-transform" /> : <ChevronDown className="w-4 h-4 transition-transform" />}
                         </button>
                         
                         {showGoals && (
                             <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
                                 <div>
-                                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Minimum Monthly Cash Flow</label>
+                                    <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Minimum Monthly Cash Flow</label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-white/40">$</span>
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/70">$</span>
                                         <input
                                             type="text"
                                             value={minCashFlow}
                                             onChange={(e) => setMinCashFlow(e.target.value)}
-                                            className="w-full h-10 px-3 py-2 pl-8 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                            className="w-full h-10 px-3 py-2 pl-8 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                             placeholder="200"
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Target Annual Return</label>
+                                    <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">Target Annual Return</label>
                                     <div className="relative">
                                         <input
                                             type="text"
                                             value={targetReturn}
                                             onChange={(e) => setTargetReturn(e.target.value)}
-                                            className="w-full h-10 px-3 py-2 pr-8 bg-white/[0.02] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                                            className="w-full h-10 px-3 py-2 pr-8 bg-black/[0.02] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                                             placeholder="8"
                                         />
-                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/40">%</span>
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/70">%</span>
                                     </div>
                                 </div>
-                                <p className="text-xs text-white/40">These are optional - leave blank if unsure</p>
+                                <p className="text-xs text-muted-foreground/70">These are optional - leave blank if unsure</p>
                             </div>
                         )}
                     </section>
@@ -555,10 +555,10 @@ export const PreferencesModalSimplified: React.FC<PreferencesModalSimplifiedProp
                 </div>
 
                 {/* Footer */}
-                <div className="px-8 py-4 border-t border-white/[0.04] flex items-center justify-end gap-3">
+                <div className="px-8 py-4 border-t border-black/[0.04] flex items-center justify-end gap-3">
                     <button
                         onClick={handleCancel}
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:bg-white/[0.05] transition-colors"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-foreground/70 hover:bg-black/[0.04] transition-colors"
                     >
                         Cancel
                     </button>

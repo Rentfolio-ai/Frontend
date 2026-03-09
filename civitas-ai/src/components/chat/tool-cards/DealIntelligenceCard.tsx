@@ -45,7 +45,7 @@ const HeroMetric: React.FC<{
     transition={{ delay, duration: 0.3 }}
     className="flex flex-col items-center text-center"
   >
-    <span className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-0.5">
+    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold mb-0.5">
       {label}
     </span>
     <span
@@ -54,7 +54,7 @@ const HeroMetric: React.FC<{
         accent
           ? 'text-[#D4A27F]'
           : positive === undefined
-            ? 'text-white'
+            ? 'text-foreground'
             : positive
               ? 'text-emerald-400'
               : 'text-rose-400'
@@ -77,10 +77,10 @@ const SecondaryMetric: React.FC<{
     transition={{ delay, duration: 0.25 }}
     className="flex flex-col items-center text-center"
   >
-    <span className="text-[9px] uppercase tracking-wider text-white/30 font-medium">
+    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-medium">
       {label}
     </span>
-    <span className="text-sm font-semibold text-white/80">{value}</span>
+    <span className="text-sm font-semibold text-foreground/80">{value}</span>
   </motion.div>
 );
 
@@ -96,7 +96,7 @@ const SensitivityHeatmap: React.FC<{ scenarios: SensitivityScenario[] }> = ({
   const max = Math.max(...values);
 
   const getCellColor = (v: number): string => {
-    if (max === min) return 'bg-white/[0.04]';
+    if (max === min) return 'bg-black/[0.03]';
     const ratio = (v - min) / (max - min); // 0..1
     if (v >= 0) {
       const alpha = Math.round(5 + ratio * 15); // 5-20
@@ -113,10 +113,10 @@ const SensitivityHeatmap: React.FC<{ scenarios: SensitivityScenario[] }> = ({
       transition={{ delay: 0.35, duration: 0.3 }}
       className="mt-2"
     >
-      <div className="text-[9px] uppercase tracking-wider text-white/30 font-medium mb-1.5">
+      <div className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-medium mb-1.5">
         Sensitivity (Monthly CF)
       </div>
-      <div className="grid grid-cols-3 gap-px rounded-lg overflow-hidden border border-white/[0.06]">
+      <div className="grid grid-cols-3 gap-px rounded-lg overflow-hidden border border-black/[0.06]">
         {scenarios.slice(0, 9).map((s, i) => (
           <div
             key={i}
@@ -133,7 +133,7 @@ const SensitivityHeatmap: React.FC<{ scenarios: SensitivityScenario[] }> = ({
             >
               ${Math.round(s.monthlyCashflow).toLocaleString()}
             </span>
-            <span className="text-[8px] text-white/25 leading-tight mt-0.5 whitespace-nowrap">
+            <span className="text-[8px] text-muted-foreground/50 leading-tight mt-0.5 whitespace-nowrap">
               {s.label
                 .replace('Base Rent / Base Vac', 'Base')
                 .replace(' / ', '\n')
@@ -184,7 +184,7 @@ const Sparkline: React.FC<{ projection: ProjectionYear[] }> = ({
       className="mt-2"
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[9px] uppercase tracking-wider text-white/30 font-medium">
+        <span className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-medium">
           {projection.length}-Year Cashflow
         </span>
         <span
@@ -234,11 +234,11 @@ const IncomeVsExpenseBar: React.FC<{
       className="mt-2"
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[9px] uppercase tracking-wider text-white/30 font-medium">
+        <span className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-medium">
           Income Allocation
         </span>
       </div>
-      <div className="flex h-2.5 rounded-full overflow-hidden border border-white/[0.06]">
+      <div className="flex h-2.5 rounded-full overflow-hidden border border-black/[0.06]">
         <div
           className="bg-emerald-500/60 transition-all"
           style={{ width: `${remainPct}%` }}
@@ -256,15 +256,15 @@ const IncomeVsExpenseBar: React.FC<{
         />
       </div>
       <div className="flex items-center gap-3 mt-1">
-        <span className="flex items-center gap-1 text-[8px] text-white/30">
+        <span className="flex items-center gap-1 text-[8px] text-muted-foreground/50">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60" />
           Cashflow
         </span>
-        <span className="flex items-center gap-1 text-[8px] text-white/30">
+        <span className="flex items-center gap-1 text-[8px] text-muted-foreground/50">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50" />
           OpEx
         </span>
-        <span className="flex items-center gap-1 text-[8px] text-white/30">
+        <span className="flex items-center gap-1 text-[8px] text-muted-foreground/50">
           <span className="w-1.5 h-1.5 rounded-full bg-rose-500/50" />
           Debt
         </span>
@@ -366,16 +366,16 @@ export const DealIntelligenceCard: React.FC<DealIntelligenceCardProps> = ({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="rounded-xl bg-white/[0.03] border border-white/[0.06] backdrop-blur overflow-hidden"
+      className="rounded-xl bg-black/[0.02] border border-black/[0.06] backdrop-blur overflow-hidden"
     >
       {/* ---- Header strip ---- */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/[0.06]">
         <div className="flex items-center gap-2 min-w-0">
           <div className="p-1.5 rounded-md bg-[#C08B5C]/15">
             <BarChart3 className="w-3.5 h-3.5 text-[#D4A27F]" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-xs font-semibold text-white truncate">
+            <h4 className="text-xs font-semibold text-foreground truncate">
               {data.propertyAddress || 'Deal Intelligence'}
             </h4>
           </div>
@@ -401,7 +401,7 @@ export const DealIntelligenceCard: React.FC<DealIntelligenceCardProps> = ({
       </div>
 
       {/* ---- Hero metrics row (3 columns) ---- */}
-      <div className="grid grid-cols-3 divide-x divide-white/[0.04] px-2 py-3">
+      <div className="grid grid-cols-3 divide-x divide-black/[0.04] px-2 py-3">
         <HeroMetric
           label="Monthly CF"
           value={`${isPositive ? '+' : ''}$${Math.round(monthlyCashflow).toLocaleString()}`}
@@ -424,7 +424,7 @@ export const DealIntelligenceCard: React.FC<DealIntelligenceCardProps> = ({
 
       {/* ---- Advanced metrics row (if available) ---- */}
       {advanced && (
-        <div className="grid grid-cols-3 divide-x divide-white/[0.04] px-2 py-2 border-t border-white/[0.04]">
+        <div className="grid grid-cols-3 divide-x divide-black/[0.04] px-2 py-2 border-t border-black/[0.04]">
           <SecondaryMetric
             label="IRR"
             value={
@@ -476,7 +476,7 @@ export const DealIntelligenceCard: React.FC<DealIntelligenceCardProps> = ({
       <div className="px-4">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between py-2 text-[10px] font-medium text-white/30 hover:text-white/50 transition-colors"
+          className="w-full flex items-center justify-between py-2 text-[10px] font-medium text-muted-foreground/50 hover:text-muted-foreground transition-colors"
         >
           <span>Details &amp; Scenarios</span>
           <motion.div
@@ -509,7 +509,7 @@ export const DealIntelligenceCard: React.FC<DealIntelligenceCardProps> = ({
       </div>
 
       {/* ---- Footer: CTA + Export ---- */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-t border-white/[0.04]">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-t border-black/[0.04]">
         {onOpenAnalyzer && (
           <button
             onClick={() =>
@@ -524,7 +524,7 @@ export const DealIntelligenceCard: React.FC<DealIntelligenceCardProps> = ({
         {output && (
           <button
             onClick={handleExport}
-            className="flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
+            className="flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-black/[0.03] border border-black/[0.06] text-muted-foreground/70 hover:text-muted-foreground hover:bg-black/[0.05] transition-colors"
           >
             <Download className="w-3 h-3" />
           </button>

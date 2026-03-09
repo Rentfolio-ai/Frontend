@@ -255,7 +255,7 @@ export const NeighborhoodTrajectoryCard: React.FC<NeighborhoodTrajectoryCardProp
                                             </div>
                                         )}
                                     </div>
-                                    <span className="text-xs font-semibold px-2 py-0.5 bg-white/50 rounded">
+                                    <span className="text-xs font-semibold px-2 py-0.5 bg-black/50 rounded">
                                         {signal.strength}
                                     </span>
                                 </div>

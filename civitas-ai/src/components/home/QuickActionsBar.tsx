@@ -80,9 +80,9 @@ export const SuggestedPrompts: React.FC<SuggestedPromptsProps> = ({
           key={card.title}
           onClick={() => onSendPrompt(card.query)}
           className="group relative flex items-start gap-4 rounded-xl p-6 min-h-[100px] text-left overflow-hidden
-            bg-[#1C1C21] border border-white/[0.06]
+            bg-card border border-black/[0.06]
             shadow-[0_2px_8px_rgba(0,0,0,0.4)]
-            hover:bg-[#201F26] hover:shadow-[0_4px_20px_rgba(192,139,92,0.06),0_4px_16px_rgba(0,0,0,0.5)] hover:border-white/[0.09]
+            hover:bg-surface hover:shadow-[0_4px_20px_rgba(192,139,92,0.06),0_4px_16px_rgba(0,0,0,0.5)] hover:border-black/[0.07]
             hover:-translate-y-px transition-all duration-150"
         >
           <div
@@ -91,14 +91,14 @@ export const SuggestedPrompts: React.FC<SuggestedPromptsProps> = ({
           />
 
           <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#C08B5C]/[0.08] flex items-center justify-center">
-            <card.icon className="w-[18px] h-[18px] text-white/30 group-hover:text-[#C08B5C]/80 transition-colors duration-150" />
+            <card.icon className="w-[18px] h-[18px] text-muted-foreground/50 group-hover:text-[#C08B5C]/80 transition-colors duration-150" />
           </div>
 
           <div className="min-w-0">
-            <span className="block text-[15px] font-medium text-white/85 group-hover:text-white/95 leading-snug">
+            <span className="block text-[15px] font-medium text-foreground/85 group-hover:text-foreground/95 leading-snug">
               {card.title}
             </span>
-            <span className="block text-[13px] text-white/30 leading-relaxed mt-1">
+            <span className="block text-[13px] text-muted-foreground/50 leading-relaxed mt-1">
               {card.description}
             </span>
           </div>

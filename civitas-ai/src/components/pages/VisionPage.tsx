@@ -312,15 +312,15 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
   // ── Render views ───────────────────────────────────────
 
   return (
-    <div className="h-full w-full bg-[#0a0a0c] text-white flex flex-col overflow-hidden">
+    <div className="h-full w-full bg-background text-foreground flex flex-col overflow-hidden">
       {/* Sub-header: view controls (no branding — wrapper handles that) */}
       {(view === 'results' || view === 'analyzing') && (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-black/5 flex-shrink-0">
           <div className="flex items-center gap-2">
             {view === 'results' && (
               <button
                 onClick={newScan}
-                className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground/70 hover:text-foreground/70 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 New scan
@@ -331,10 +331,10 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
             {view !== 'history' && (
               <button
                 onClick={openHistory}
-                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                className="p-2 rounded-lg hover:bg-black/5 transition-colors"
                 title="History"
               >
-                <HistoryIcon className="w-[18px] h-[18px] text-white/40" />
+                <HistoryIcon className="w-[18px] h-[18px] text-muted-foreground/70" />
               </button>
             )}
           </div>
@@ -382,13 +382,13 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
               </div>
 
               {/* Camera controls */}
-              <div className="flex items-center justify-center gap-6 py-6 bg-[#0a0a0c]">
+              <div className="flex items-center justify-center gap-6 py-6 bg-background">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-3 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                  className="p-3 rounded-full bg-black/5 hover:bg-black/8 transition-colors"
                   title="Upload image"
                 >
-                  <Upload className="w-6 h-6 text-white/60" />
+                  <Upload className="w-6 h-6 text-muted-foreground" />
                 </button>
                 <button
                   onClick={capturePhoto}
@@ -398,10 +398,10 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                 </button>
                 <button
                   onClick={openHistory}
-                  className="p-3 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                  className="p-3 rounded-full bg-black/5 hover:bg-black/8 transition-colors"
                   title="View history"
                 >
-                  <HistoryIcon className="w-6 h-6 text-white/60" />
+                  <HistoryIcon className="w-6 h-6 text-muted-foreground" />
                 </button>
               </div>
 
@@ -449,7 +449,7 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                         isActive
                           ? 'bg-violet-500/10 border border-violet-500/20'
                           : isDone
-                          ? 'bg-white/[0.02] border border-white/5'
+                          ? 'bg-black/[0.02] border border-black/5'
                           : 'opacity-30'
                       }`}
                     >
@@ -458,9 +458,9 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                       ) : isActive ? (
                         <Loader2 className="w-5 h-5 text-violet-400 animate-spin flex-shrink-0" />
                       ) : (
-                        <Icon className="w-5 h-5 text-white/30 flex-shrink-0" />
+                        <Icon className="w-5 h-5 text-muted-foreground/50 flex-shrink-0" />
                       )}
-                      <span className={`text-sm ${isActive ? 'text-white' : isDone ? 'text-white/60' : 'text-white/30'}`}>
+                      <span className={`text-sm ${isActive ? 'text-foreground' : isDone ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>
                         {stage.label}
                       </span>
                     </motion.div>
@@ -504,10 +504,10 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                   </div>
                 )}
                 <div className="flex-1 space-y-2">
-                  <div className="text-xs text-white/40 uppercase tracking-wider">
+                  <div className="text-xs text-muted-foreground/70 uppercase tracking-wider">
                     {formatDamageClass(analysisResult.room_type)}
                   </div>
-                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium border ${conditionColors[analysisResult.condition] || 'bg-white/10 text-white/60'}`}>
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium border ${conditionColors[analysisResult.condition] || 'bg-black/8 text-muted-foreground'}`}>
                     {analysisResult.condition === 'critical' ? (
                       <XCircle className="w-3.5 h-3.5" />
                     ) : analysisResult.condition === 'poor' ? (
@@ -517,7 +517,7 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                     )}
                     {analysisResult.condition.charAt(0).toUpperCase() + analysisResult.condition.slice(1)} Condition
                   </div>
-                  <div className="text-xs text-white/30">
+                  <div className="text-xs text-muted-foreground/50">
                     {analysisResult.detections.length} issue{analysisResult.detections.length !== 1 ? 's' : ''} detected
                     {' · '}
                     {analysisResult.inference_time_ms.toFixed(0)}ms
@@ -526,7 +526,7 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
               </div>
 
               {/* Deal Score */}
-              <div className="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+              <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-violet-400" />
@@ -534,10 +534,10 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                   </div>
                   <span className="text-2xl font-bold">
                     {analysisResult.investment_metrics.deal_score}
-                    <span className="text-sm text-white/30 font-normal">/100</span>
+                    <span className="text-sm text-muted-foreground/50 font-normal">/100</span>
                   </span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-black/5 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${analysisResult.investment_metrics.deal_score}%` }}
@@ -551,7 +551,7 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                     }`}
                   />
                 </div>
-                <div className="flex items-center justify-between mt-3 text-xs text-white/40">
+                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground/70">
                   <span>Risk: {analysisResult.investment_metrics.risk_level}</span>
                   <span>Value-add: {(analysisResult.investment_metrics.value_add_potential * 100).toFixed(0)}%</span>
                   <span>BRRRR: {analysisResult.investment_metrics.brrrr_viable ? 'Yes' : 'No'}</span>
@@ -560,21 +560,21 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
 
               {/* Detected Issues */}
               {analysisResult.detections.length > 0 && (
-                <div className="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+                <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-4 h-4 text-orange-400" />
                     <span className="text-sm font-medium">Detected Issues</span>
                   </div>
                   <div className="space-y-2">
                     {analysisResult.detections.map((det, i) => (
-                      <div key={i} className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
+                      <div key={i} className="flex items-center justify-between py-1.5 border-b border-black/5 last:border-0">
                         <div className="flex items-center gap-2">
                           <div className={`w-2 h-2 rounded-full ${
                             det.severity === 'critical' ? 'bg-red-500' :
                             det.severity === 'high' ? 'bg-orange-500' :
                             det.severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
                           }`} />
-                          <span className="text-sm text-white/70">{formatDamageClass(det.damage_class)}</span>
+                          <span className="text-sm text-foreground/70">{formatDamageClass(det.damage_class)}</span>
                         </div>
                         <span className={`text-xs font-medium ${severityColors[det.severity]}`}>
                           {det.severity}
@@ -586,23 +586,23 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
               )}
 
               {/* Renovation Costs */}
-              <div className="bg-white/[0.03] rounded-xl border border-white/5 overflow-hidden">
+              <div className="bg-black/[0.02] rounded-xl border border-black/5 overflow-hidden">
                 <button
                   onClick={() => setCostsExpanded(!costsExpanded)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-white/[0.02] transition-colors"
+                  className="w-full flex items-center justify-between p-4 hover:bg-black/[0.02] transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-emerald-400" />
                     <span className="text-sm font-medium">Renovation Costs</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white/60">
+                    <span className="text-sm text-muted-foreground">
                       {formatCurrency(analysisResult.renovation_costs.standard_rental)}
                     </span>
                     {costsExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-white/30" />
+                      <ChevronUp className="w-4 h-4 text-muted-foreground/50" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-white/30" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground/50" />
                     )}
                   </div>
                 </button>
@@ -623,8 +623,8 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                             { label: 'Standard', value: analysisResult.renovation_costs.standard_rental, color: 'text-violet-400' },
                             { label: 'Premium', value: analysisResult.renovation_costs.premium_upgrade, color: 'text-amber-400' },
                           ].map(tier => (
-                            <div key={tier.label} className="bg-white/[0.03] rounded-lg p-3 text-center">
-                              <div className="text-[10px] text-white/30 uppercase tracking-wider mb-1">{tier.label}</div>
+                            <div key={tier.label} className="bg-black/[0.02] rounded-lg p-3 text-center">
+                              <div className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-1">{tier.label}</div>
                               <div className={`text-sm font-semibold ${tier.color}`}>{formatCurrency(tier.value)}</div>
                             </div>
                           ))}
@@ -632,11 +632,11 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
 
                         {/* Individual repairs */}
                         {analysisResult.renovation_costs.repairs.length > 0 && (
-                          <div className="space-y-1.5 pt-2 border-t border-white/5">
+                          <div className="space-y-1.5 pt-2 border-t border-black/5">
                             {analysisResult.renovation_costs.repairs.map((repair, i) => (
                               <div key={i} className="flex justify-between text-xs">
-                                <span className="text-white/50">{repair.description}</span>
-                                <span className="text-white/70">{formatCurrency(repair.standard_cost)}</span>
+                                <span className="text-muted-foreground">{repair.description}</span>
+                                <span className="text-foreground/70">{formatCurrency(repair.standard_cost)}</span>
                               </div>
                             ))}
                           </div>
@@ -648,16 +648,16 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
               </div>
 
               {/* Strategy Recommendation */}
-              <div className="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+              <div className="bg-black/[0.02] rounded-xl p-4 border border-black/5">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-4 h-4 text-blue-400" />
                   <span className="text-sm font-medium">Recommended Strategy</span>
                 </div>
-                <p className="text-sm text-white/60 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {analysisResult.investment_metrics.recommended_strategy}
                 </p>
                 {analysisResult.investment_metrics.estimated_arv && (
-                  <div className="mt-2 text-xs text-white/40">
+                  <div className="mt-2 text-xs text-muted-foreground/70">
                     Estimated ARV: {formatCurrency(analysisResult.investment_metrics.estimated_arv)}
                   </div>
                 )}
@@ -679,7 +679,7 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                       if (analysisResult) m.generateVisionPDF(analysisResult, capturedImage);
                     }).catch(() => alert('PDF export coming soon'));
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 text-white/60 hover:bg-white/10 transition-colors text-sm font-medium"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-black/5 text-muted-foreground hover:bg-black/8 transition-colors text-sm font-medium"
                 >
                   <Download className="w-4 h-4" />
                   Export PDF
@@ -687,7 +687,7 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
               </div>
 
               {/* Model version footer */}
-              <div className="text-center text-[10px] text-white/20 pt-2">
+              <div className="text-center text-[10px] text-muted-foreground/40 pt-2">
                 Model: {analysisResult.model_version} · {analysisResult.inference_time_ms.toFixed(0)}ms
               </div>
             </motion.div>
@@ -715,10 +715,10 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
 
               {historyLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-6 h-6 text-white/30 animate-spin" />
+                  <Loader2 className="w-6 h-6 text-muted-foreground/50 animate-spin" />
                 </div>
               ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-white/30">
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/50">
                   <ScanEye className="w-12 h-12 mb-3 opacity-30" />
                   <p className="text-sm">No analyses yet</p>
                   <button
@@ -740,19 +740,19 @@ export const VisionPage: React.FC<VisionPageProps> = ({ onBack } = {}) => {
                           setView('results');
                         }
                       }}
-                      className="bg-white/[0.03] rounded-xl border border-white/5 overflow-hidden hover:bg-white/[0.05] transition-colors text-left"
+                      className="bg-black/[0.02] rounded-xl border border-black/5 overflow-hidden hover:bg-black/[0.04] transition-colors text-left"
                     >
                       {item.image_url && (
                         <img src={item.image_url} alt="" className="w-full h-24 object-cover" />
                       )}
                       <div className="p-3">
-                        <div className="text-xs text-white/40 mb-1">
+                        <div className="text-xs text-muted-foreground/70 mb-1">
                           {new Date(item.analyzed_at).toLocaleDateString()}
                         </div>
                         <div className="text-sm font-medium">
                           {formatDamageClass(item.room_type || 'unknown')}
                         </div>
-                        <div className={`inline-flex text-[10px] px-1.5 py-0.5 rounded mt-1 ${conditionColors[item.condition_rating] || 'bg-white/5 text-white/40'}`}>
+                        <div className={`inline-flex text-[10px] px-1.5 py-0.5 rounded mt-1 ${conditionColors[item.condition_rating] || 'bg-black/5 text-muted-foreground/70'}`}>
                           {item.condition_rating || 'N/A'}
                         </div>
                       </div>

@@ -78,8 +78,8 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({
         </AnimatePresence>
       ) : (
         <div className="w-full h-full bg-gradient-to-b from-[#1a1a1f] to-[#16161a] flex flex-col items-center justify-center gap-1.5">
-          <Home className="w-7 h-7 text-white/15" />
-          <span className="text-[10px] text-white/20 font-medium">No image</span>
+          <Home className="w-7 h-7 text-muted-foreground/40" />
+          <span className="text-[10px] text-muted-foreground/40 font-medium">No image</span>
         </div>
       )}
 
@@ -92,7 +92,7 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({
           <button
             onClick={handlePrev}
             className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm
-                       flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60
+                       flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-black/60
                        opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -100,7 +100,7 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({
           <button
             onClick={handleNext}
             className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm
-                       flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60
+                       flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-black/60
                        opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
           >
             <ChevronRight className="w-4 h-4" />
@@ -128,7 +128,7 @@ export const PhotoCarousel: React.FC<PhotoCarouselProps> = ({
 
       {/* Photo count badge */}
       {hasMultiple && (
-        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/50 backdrop-blur-sm text-[9px] text-white/80 font-medium z-10">
+        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/50 backdrop-blur-sm text-[9px] text-foreground/80 font-medium z-10">
           {currentIndex + 1}/{photos.length}
         </span>
       )}

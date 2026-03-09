@@ -39,7 +39,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     positive: 'text-emerald-400',
     negative: 'text-red-400',
     warning: 'text-yellow-400',
-    neutral: 'text-slate-300',
+    neutral: 'text-foreground/70',
   };
 
   const sizeStyles = {
@@ -71,13 +71,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
         </div>
         
         {/* Label */}
-        <div className="text-sm font-medium text-slate-400 mt-1">
+        <div className="text-sm font-medium text-muted-foreground mt-1">
           {label}
         </div>
         
         {/* Trend */}
         {trend && (
-          <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
+          <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground/70">
             {sentiment === 'positive' ? (
               <TrendingUp className="w-3 h-3 text-emerald-400" />
             ) : sentiment === 'negative' ? (
@@ -89,7 +89,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
         
         {/* Benchmark */}
         {benchmark && (
-          <div className="text-xs text-slate-500 mt-1">
+          <div className="text-xs text-muted-foreground/70 mt-1">
             {benchmark}
           </div>
         )}
@@ -107,7 +107,7 @@ const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({ source, status }) => 
   const statusConfig = {
     active: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
     limited: { icon: AlertTriangle, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
-    inactive: { icon: AlertCircle, color: 'text-slate-500', bg: 'bg-slate-500/10' },
+    inactive: { icon: AlertCircle, color: 'text-muted-foreground/70', bg: 'bg-slate-500/10' },
   };
 
   const { icon: Icon, color, bg } = statusConfig[status];
@@ -135,16 +135,16 @@ const ScenarioDropdown: React.FC<ScenarioDropdownProps> = ({ active, scenarios, 
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-colors text-left"
+        className="w-full px-4 py-3 rounded-xl bg-black/5 border border-black/8 hover:border-black/12 transition-colors text-left"
       >
-        <div className="text-xs text-slate-500 mb-0.5">Scenario</div>
+        <div className="text-xs text-muted-foreground/70 mb-0.5">Scenario</div>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-white">{active}</span>
+          <span className="text-sm font-medium text-foreground">{active}</span>
           <motion.div
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Info className="w-4 h-4 text-slate-400" />
+            <Info className="w-4 h-4 text-muted-foreground" />
           </motion.div>
         </div>
       </button>
@@ -153,7 +153,7 @@ const ScenarioDropdown: React.FC<ScenarioDropdownProps> = ({ active, scenarios, 
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-0 right-0 mt-2 py-2 rounded-xl bg-slate-800 border border-white/10 shadow-xl z-50"
+          className="absolute top-full left-0 right-0 mt-2 py-2 rounded-xl bg-muted border border-black/8 shadow-xl z-50"
         >
           {scenarios.map((scenario) => (
             <button
@@ -163,8 +163,8 @@ const ScenarioDropdown: React.FC<ScenarioDropdownProps> = ({ active, scenarios, 
                 setIsOpen(false);
               }}
               className={cn(
-                'w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors',
-                active === scenario ? 'text-[#D4A27F] font-medium' : 'text-slate-300'
+                'w-full px-4 py-2 text-left text-sm hover:bg-black/5 transition-colors',
+                active === scenario ? 'text-[#D4A27F] font-medium' : 'text-foreground/70'
               )}
             >
               {scenario}
@@ -268,8 +268,8 @@ export const KeyMetricsPanel: React.FC<KeyMetricsPanelProps> = ({
       />
       
       {/* Data Sources */}
-      <div className="p-4 rounded-2xl bg-white/3 backdrop-blur-xl border border-white/10">
-        <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+      <div className="p-4 rounded-2xl bg-white/3 backdrop-blur-xl border border-black/8">
+        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Data Sources
         </div>
         <div className="space-y-2">
@@ -283,9 +283,9 @@ export const KeyMetricsPanel: React.FC<KeyMetricsPanelProps> = ({
         </div>
         
         {/* Confidence Indicator */}
-        <div className="mt-4 pt-4 border-t border-white/10">
+        <div className="mt-4 pt-4 border-t border-black/8">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">Confidence</span>
+            <span className="text-xs text-muted-foreground/70">Confidence</span>
             <span className={cn('text-xs font-bold uppercase', confidenceColors[confidence])}>
               {confidence}
             </span>

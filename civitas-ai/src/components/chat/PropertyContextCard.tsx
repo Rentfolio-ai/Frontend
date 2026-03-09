@@ -33,9 +33,9 @@ export const PropertyContextCard: React.FC<PropertyContextCardProps> = ({ data }
   const cityState = [data.city, data.state].filter(Boolean).join(', ');
 
   return (
-    <div className="flex gap-3 p-2.5 rounded-xl bg-white/[0.06] border border-white/[0.1] backdrop-blur-sm max-w-[340px] mb-2">
+    <div className="flex gap-3 p-2.5 rounded-xl bg-black/[0.05] border border-black/[0.08] backdrop-blur-sm max-w-[340px] mb-2">
       {/* Thumbnail */}
-      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-white/[0.04]">
+      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-black/[0.03]">
         {data.image_url ? (
           <img
             src={data.image_url}
@@ -45,7 +45,7 @@ export const PropertyContextCard: React.FC<PropertyContextCardProps> = ({ data }
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Home className="w-6 h-6 text-white/15" />
+            <Home className="w-6 h-6 text-muted-foreground/40" />
           </div>
         )}
       </div>
@@ -55,16 +55,16 @@ export const PropertyContextCard: React.FC<PropertyContextCardProps> = ({ data }
         {/* Price + address */}
         <div>
           {data.price && (
-            <span className="text-[14px] font-bold text-white/90">{fmtPrice(data.price)}</span>
+            <span className="text-[14px] font-bold text-foreground">{fmtPrice(data.price)}</span>
           )}
-          <p className="text-[11px] text-white/50 truncate leading-tight">{address}</p>
+          <p className="text-[11px] text-muted-foreground truncate leading-tight">{address}</p>
           {cityState && (
-            <p className="text-[10px] text-white/30 truncate">{cityState}</p>
+            <p className="text-[10px] text-muted-foreground/50 truncate">{cityState}</p>
           )}
         </div>
 
         {/* Specs */}
-        <div className="flex items-center gap-2 text-[10px] text-white/40">
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground/70">
           {data.beds != null && (
             <span className="flex items-center gap-0.5">
               <Bed className="w-3 h-3" /> {data.beds}
@@ -86,7 +86,7 @@ export const PropertyContextCard: React.FC<PropertyContextCardProps> = ({ data }
         {metrics && (metrics.cap_rate != null || metrics.monthly_cash_flow != null || metrics.cash_on_cash_roi != null) && (
           <div className="flex items-center gap-2 text-[10px]">
             {metrics.cap_rate != null && (
-              <span className="text-white/50">CAP {fmtPct(metrics.cap_rate)}</span>
+              <span className="text-muted-foreground">CAP {fmtPct(metrics.cap_rate)}</span>
             )}
             {metrics.monthly_cash_flow != null && (
               <span className={metrics.monthly_cash_flow >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}>
@@ -94,7 +94,7 @@ export const PropertyContextCard: React.FC<PropertyContextCardProps> = ({ data }
               </span>
             )}
             {metrics.cash_on_cash_roi != null && (
-              <span className="text-white/50">CoC {fmtPct(metrics.cash_on_cash_roi)}</span>
+              <span className="text-muted-foreground">CoC {fmtPct(metrics.cash_on_cash_roi)}</span>
             )}
           </div>
         )}

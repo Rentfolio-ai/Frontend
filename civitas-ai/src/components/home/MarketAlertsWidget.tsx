@@ -30,7 +30,7 @@ function fmtPrice(val?: number): string {
   return `$${val.toFixed(0)}`;
 }
 
-const LEVEL2_CARD = 'rounded-xl bg-[#1C1C21] border border-white/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.4)] overflow-hidden';
+const LEVEL2_CARD = 'rounded-xl bg-card border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.4)] overflow-hidden';
 
 export const MarketAlertsWidget: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -72,14 +72,14 @@ export const MarketAlertsWidget: React.FC = () => {
   if (loading) {
     return (
       <div className={LEVEL2_CARD}>
-        <div className="px-4 py-2.5 bg-[#18181C] border-b border-white/[0.05]">
-          <div className="h-3 w-28 rounded bg-white/[0.06]" />
+        <div className="px-4 py-2.5 bg-surface border-b border-black/[0.05]">
+          <div className="h-3 w-28 rounded bg-black/[0.05]" />
         </div>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="px-4 py-3 flex gap-4 border-b border-white/[0.03]">
-            <div className="h-3 w-24 rounded bg-white/[0.05]" />
-            <div className="h-3 w-16 rounded bg-white/[0.05]" />
-            <div className="h-3 w-16 rounded bg-white/[0.05]" />
+          <div key={i} className="px-4 py-3 flex gap-4 border-b border-black/[0.05]">
+            <div className="h-3 w-24 rounded bg-black/[0.04]" />
+            <div className="h-3 w-16 rounded bg-black/[0.04]" />
+            <div className="h-3 w-16 rounded bg-black/[0.04]" />
           </div>
         ))}
       </div>
@@ -88,18 +88,18 @@ export const MarketAlertsWidget: React.FC = () => {
 
   if (rows.length === 0) {
     return (
-      <div className="flex items-center gap-3 py-3 text-[13px] text-white/35">
-        <Minus className="w-4 h-4 text-white/20" />
+      <div className="flex items-center gap-3 py-3 text-[13px] text-muted-foreground/60">
+        <Minus className="w-4 h-4 text-muted-foreground/40" />
         <span>No market data</span>
-        <span className="text-white/15">&middot;</span>
-        <span className="text-white/25">Add favorite markets in preferences</span>
+        <span className="text-muted-foreground/40">&middot;</span>
+        <span className="text-muted-foreground/50">Add favorite markets in preferences</span>
       </div>
     );
   }
 
   return (
     <div className={LEVEL2_CARD}>
-      <div className="grid grid-cols-[1fr_80px_80px_64px_64px] gap-2 px-4 py-2.5 bg-[#18181C] border-b border-white/[0.05] text-[10px] uppercase tracking-wider text-white/25">
+      <div className="grid grid-cols-[1fr_80px_80px_64px_64px] gap-2 px-4 py-2.5 bg-surface border-b border-black/[0.05] text-[10px] uppercase tracking-wider text-muted-foreground/50">
         <span>Market</span>
         <span className="text-right">Med. Price</span>
         <span className="text-right">Med. Rent</span>
@@ -110,24 +110,24 @@ export const MarketAlertsWidget: React.FC = () => {
       {rows.map((row) => (
         <div
           key={`${row.city}-${row.state}`}
-          className="grid grid-cols-[1fr_80px_80px_64px_64px] gap-2 px-4 py-2.5 border-b border-white/[0.03] hover:bg-white/[0.02] items-center transition-colors duration-100"
+          className="grid grid-cols-[1fr_80px_80px_64px_64px] gap-2 px-4 py-2.5 border-b border-black/[0.05] hover:bg-black/[0.02] items-center transition-colors duration-100"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-[10px] font-bold text-white/25 bg-white/[0.05] rounded px-1.5 py-0.5 w-7 text-center flex-shrink-0">
+            <span className="text-[10px] font-bold text-muted-foreground/50 bg-black/[0.04] rounded px-1.5 py-0.5 w-7 text-center flex-shrink-0">
               {row.state}
             </span>
-            <span className="text-[13px] text-white/80 truncate">{row.city}</span>
+            <span className="text-[13px] text-foreground/80 truncate">{row.city}</span>
           </div>
-          <span className="text-[13px] text-white/75 font-mono text-right">
+          <span className="text-[13px] text-foreground/75 font-mono text-right">
             {fmtPrice(row.median_price)}
           </span>
-          <span className="text-[13px] text-white/75 font-mono text-right">
+          <span className="text-[13px] text-foreground/75 font-mono text-right">
             {row.median_rent ? `$${row.median_rent.toLocaleString()}` : '--'}
           </span>
-          <span className="text-[12px] text-white/50 text-right">
+          <span className="text-[12px] text-muted-foreground text-right">
             {row.avg_days_on_market != null ? `${row.avg_days_on_market}d` : '--'}
           </span>
-          <span className="text-[12px] text-white/50 text-right">
+          <span className="text-[12px] text-muted-foreground text-right">
             {row.active_listings != null ? row.active_listings.toLocaleString() : '--'}
           </span>
         </div>

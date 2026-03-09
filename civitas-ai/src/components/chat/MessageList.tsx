@@ -36,6 +36,7 @@ interface MessageListProps {
   hasThinkingModel?: boolean;
   /** Active model display name for ThinkingIndicator badge */
   activeModel?: string;
+  reasoningEffort?: 'low' | 'medium' | 'high';
   userName?: string;
   userAvatar?: string;
   onRefresh?: (messageId: string) => void;
@@ -79,6 +80,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   reasoningText,
   hasThinkingModel = false,
   activeModel,
+  reasoningEffort,
   userName,
   userAvatar,
   onRefresh,
@@ -218,6 +220,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                 reasoningText={reasoningText}
                 hasThinkingModel={hasThinkingModel}
                 activeModel={activeModel}
+                reasoningEffort={reasoningEffort}
               />
             </div>
           </div>
@@ -235,7 +238,7 @@ export const MessageList: React.FC<MessageListProps> = ({
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.2 }}
             onClick={() => scrollToBottom()}
-            className="fixed bottom-28 right-8 z-20 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 hover:text-white hover:bg-white/20 shadow-lg transition-colors"
+            className="fixed bottom-28 right-8 z-20 p-3 rounded-full bg-black/8 backdrop-blur-md border border-black/12 text-foreground/80 hover:text-foreground hover:bg-black/12 shadow-lg transition-colors"
             aria-label="Scroll to bottom"
           >
             <ArrowDown className="w-5 h-5" />

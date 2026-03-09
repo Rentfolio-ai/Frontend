@@ -150,77 +150,77 @@ const FEATURES: {
   bg: string;
   tint: string;
 }[] = [
-  {
-    tag: 'UNDERWRITING',
-    title: 'Know the numbers before you call the agent',
-    desc: 'Cash flow projections, cap rate analysis, CoC ROI, and 30-year return modeling from live market data. Choose from 9+ report types — STR, LTR, ADU, flip analysis, portfolio strategy, and more. Every property gets an AI verdict with a confidence score.',
-    Mockup: DealUnderwritingMockup,
-    Icon: DealUnderwritingIcon,
-    reverse: false,
-    bg: 'bg-white',
-    tint: 'from-[#C08B5C]/[0.06] to-[#C08B5C]/[0.01]',
-  },
-  {
-    tag: 'AI MODES',
-    title: 'Three deep modes, one smart router',
-    desc: 'Deep Search runs exhaustive property due diligence with financing scenarios and deal verdicts. Deep Research synthesizes market data, policy, and economic indicators. Expert Strategist models portfolio scenarios with tax optimization. Auto mode picks the best AI model for every query — so you get quality without thinking about it.',
-    Mockup: AIChatModesMockup,
-    Icon: AIChatModesIcon,
-    reverse: true,
-    bg: 'bg-[#FAFAF9]',
-    tint: 'from-[#8B5CF6]/[0.06] to-[#8B5CF6]/[0.01]',
-  },
-  {
-    tag: 'INTELLIGENCE',
-    title: 'Data from 15+ sources, one clear picture',
-    desc: 'Rental trends, appreciation heatmaps, and demand signals across 50+ metros. Vasthu pulls from MLS, Census, county records, HUD fair market rents, FEMA flood zones, school ratings, Walk Score, crime statistics, and building permits — so every angle is covered.',
-    Mockup: MarketIntelMockup,
-    Icon: MarketIntelIcon,
-    reverse: false,
-    bg: 'bg-white',
-    tint: 'from-[#3B82F6]/[0.06] to-[#3B82F6]/[0.01]',
-  },
-  {
-    tag: 'DEAL PIPELINE',
-    title: 'Track every deal from sourcing to close',
-    desc: 'Manage properties across status stages — Active, Under Contract, Closed — with multiple portfolios and saved lists. Run AI analysis on any property with one click, generate 9+ report types, and let Vasthu score every deal so nothing slips through the cracks.',
-    Mockup: DealPipelineMockup,
-    Icon: DealPipelineIcon,
-    reverse: true,
-    bg: 'bg-[#FAFAF9]',
-    tint: 'from-[#14B8A6]/[0.06] to-[#14B8A6]/[0.01]',
-  },
-  {
-    tag: 'TEAMS & PARTNERSHIPS',
-    title: 'Invest together, move faster',
-    desc: 'Partner with other investors on shared properties. Assign roles — Lead Investor, Partner, Advisor — track equity splits, and manage shared deal flow. Chat with partners in real-time, sync emails, and keep everyone aligned from sourcing through close.',
-    Mockup: TeamsMockup,
-    Icon: TeamsIcon,
-    reverse: false,
-    bg: 'bg-white',
-    tint: 'from-[#7C3AED]/[0.06] to-[#7C3AED]/[0.01]',
-  },
-  {
-    tag: 'VOICE & COMMUNICATION',
-    title: 'Talk to your AI analyst',
-    desc: 'Use voice to search properties hands-free while driving between showings. Email agents, text contractors, and call lenders — all from a single interface powered by Vasthu\'s AI.',
-    Mockup: VoiceCommunicationMockup,
-    Icon: VoiceAssistantIcon,
-    reverse: true,
-    bg: 'bg-[#FAFAF9]',
-    tint: 'from-[#EF4444]/[0.06] to-[#EF4444]/[0.01]',
-  },
-  {
-    tag: 'MARKETPLACE',
-    title: 'Find the right professionals',
-    desc: 'Browse vetted real estate agents, mortgage brokers, contractors, and property managers in your target market. Read reviews, compare ratings, and connect directly through Vasthu\'s chat or voice.',
-    Mockup: MarketplaceMockup,
-    Icon: ProfessionalReportsIcon,
-    reverse: false,
-    bg: 'bg-white',
-    tint: 'from-[#10B981]/[0.06] to-[#10B981]/[0.01]',
-  },
-];
+    {
+      tag: 'UNDERWRITING',
+      title: 'Know the numbers before you call the agent',
+      desc: 'Cash flow projections, cap rate analysis, CoC ROI, and 30-year return modeling from live market data. Choose from 9+ report types — STR, LTR, ADU, flip analysis, portfolio strategy, and more. Every property gets an AI verdict with a confidence score.',
+      Mockup: DealUnderwritingMockup,
+      Icon: DealUnderwritingIcon,
+      reverse: false,
+      bg: 'bg-white',
+      tint: 'from-[#C08B5C]/[0.06] to-[#C08B5C]/[0.01]',
+    },
+    {
+      tag: 'AI MODES',
+      title: 'Three deep modes, one smart router',
+      desc: 'Deep Search runs exhaustive property due diligence with financing scenarios and deal verdicts. Deep Research synthesizes market data, policy, and economic indicators. Expert Strategist models portfolio scenarios with tax optimization. Auto mode picks the best AI model for every query — so you get quality without thinking about it.',
+      Mockup: AIChatModesMockup,
+      Icon: AIChatModesIcon,
+      reverse: true,
+      bg: 'bg-[#FAFAF9]',
+      tint: 'from-[#8B5CF6]/[0.06] to-[#8B5CF6]/[0.01]',
+    },
+    {
+      tag: 'INTELLIGENCE',
+      title: 'Data from 15+ sources, one clear picture',
+      desc: 'Rental trends, appreciation heatmaps, and demand signals across 50+ metros. Vasthu pulls from MLS, Census, county records, HUD fair market rents, FEMA flood zones, school ratings, Walk Score, crime statistics, and building permits — so every angle is covered.',
+      Mockup: MarketIntelMockup,
+      Icon: MarketIntelIcon,
+      reverse: false,
+      bg: 'bg-white',
+      tint: 'from-[#3B82F6]/[0.06] to-[#3B82F6]/[0.01]',
+    },
+    {
+      tag: 'DEAL PIPELINE',
+      title: 'Track every deal from sourcing to close',
+      desc: 'Manage properties across status stages — Active, Under Contract, Closed — with multiple portfolios and saved lists. Run AI analysis on any property with one click, generate 9+ report types, and let Vasthu score every deal so nothing slips through the cracks.',
+      Mockup: DealPipelineMockup,
+      Icon: DealPipelineIcon,
+      reverse: true,
+      bg: 'bg-[#FAFAF9]',
+      tint: 'from-[#14B8A6]/[0.06] to-[#14B8A6]/[0.01]',
+    },
+    {
+      tag: 'TEAMS & PARTNERSHIPS',
+      title: 'Invest together, move faster',
+      desc: 'Partner with other investors on shared properties. Assign roles — Lead Investor, Partner, Advisor — track equity splits, and manage shared deal flow. Chat with partners in real-time, sync emails, and keep everyone aligned from sourcing through close.',
+      Mockup: TeamsMockup,
+      Icon: TeamsIcon,
+      reverse: false,
+      bg: 'bg-white',
+      tint: 'from-[#7C3AED]/[0.06] to-[#7C3AED]/[0.01]',
+    },
+    {
+      tag: 'VOICE & COMMUNICATION',
+      title: 'Talk to your AI analyst',
+      desc: 'Use voice to search properties hands-free while driving between showings. Email agents, text contractors, and call lenders — all from a single interface powered by Vasthu\'s AI.',
+      Mockup: VoiceCommunicationMockup,
+      Icon: VoiceAssistantIcon,
+      reverse: true,
+      bg: 'bg-[#FAFAF9]',
+      tint: 'from-[#EF4444]/[0.06] to-[#EF4444]/[0.01]',
+    },
+    {
+      tag: 'MARKETPLACE',
+      title: 'Find the right professionals',
+      desc: 'Browse vetted real estate agents, mortgage brokers, contractors, and property managers in your target market. Read reviews, compare ratings, and connect directly through Vasthu\'s chat or voice.',
+      Mockup: MarketplaceMockup,
+      Icon: ProfessionalReportsIcon,
+      reverse: false,
+      bg: 'bg-white',
+      tint: 'from-[#10B981]/[0.06] to-[#10B981]/[0.01]',
+    },
+  ];
 
 const USE_CASES: {
   persona: string;
@@ -230,31 +230,31 @@ const USE_CASES: {
   Mockup: React.FC;
   iconColor: string;
 }[] = [
-  {
-    persona: 'Individual Investors',
-    headline: 'Deep analysis on your first deal in minutes',
-    desc: 'Skip the spreadsheet. Vasthu pulls from 15+ data sources, runs full underwriting, checks flood zones, schools, and crime — then gives you a clear verdict so you can make offers with confidence.',
-    metric: '10 min avg to first analysis',
-    Mockup: DealUnderwritingMockup,
-    iconColor: '#C08B5C',
-  },
-  {
-    persona: 'Portfolio Managers',
-    headline: 'Track every deal from sourcing to close',
-    desc: 'Manage deal pipeline across statuses, run 9+ report types, and monitor cap rates and cash flow across your entire portfolio. Vasthu scores every property so underperformers never hide.',
-    metric: '12% avg portfolio ROI',
-    Mockup: DealPipelineMockup,
-    iconColor: '#8B5CF6',
-  },
-  {
-    persona: 'Investment Partnerships',
-    headline: 'Collaborate with partners in real time',
-    desc: 'Invite partners, assign equity splits, and track shared properties together. Chat, sync emails, and make joint decisions — from sourcing through close — all inside Vasthu.',
-    metric: '5x faster deal pipeline',
-    Mockup: TeamsMockup,
-    iconColor: '#10B981',
-  },
-];
+    {
+      persona: 'Individual Investors',
+      headline: 'Deep analysis on your first deal in minutes',
+      desc: 'Skip the spreadsheet. Vasthu pulls from 15+ data sources, runs full underwriting, checks flood zones, schools, and crime — then gives you a clear verdict so you can make offers with confidence.',
+      metric: '10 min avg to first analysis',
+      Mockup: DealUnderwritingMockup,
+      iconColor: '#C08B5C',
+    },
+    {
+      persona: 'Portfolio Managers',
+      headline: 'Track every deal from sourcing to close',
+      desc: 'Manage deal pipeline across statuses, run 9+ report types, and monitor cap rates and cash flow across your entire portfolio. Vasthu scores every property so underperformers never hide.',
+      metric: '12% avg portfolio ROI',
+      Mockup: DealPipelineMockup,
+      iconColor: '#8B5CF6',
+    },
+    {
+      persona: 'Investment Partnerships',
+      headline: 'Collaborate with partners in real time',
+      desc: 'Invite partners, assign equity splits, and track shared properties together. Chat, sync emails, and make joint decisions — from sourcing through close — all inside Vasthu.',
+      metric: '5x faster deal pipeline',
+      Mockup: TeamsMockup,
+      iconColor: '#10B981',
+    },
+  ];
 
 const FAQ_ITEMS = [
   { q: 'What data sources does Vasthu use?', a: 'Vasthu aggregates 15+ sources: RentCast, Zillow, MLS, US Census, county records, HUD fair market rents, FEMA flood zones, GreatSchools ratings, Walk Score, crime statistics, building permits, and more — delivering comprehensive intelligence across 50+ metros.' },
@@ -610,7 +610,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             </div>
             <div className="mt-auto pb-12 pt-8 space-y-3">
-              <button onClick={() => { setMobileMenuOpen(false); onNavigateToSignUp(); }} className="w-full py-3 rounded-full bg-[#1A1A1A] text-white font-medium text-[14px]">Get started</button>
+              <button onClick={() => { setMobileMenuOpen(false); onNavigateToSignUp(); }} className="w-full py-3 rounded-full bg-background text-foreground font-medium text-[14px]">Get started</button>
               <button onClick={() => { setMobileMenuOpen(false); onNavigateToSignIn(); }} className="w-full py-3 text-[#ABABAB] text-[14px]">Sign in</button>
             </div>
           </div>
@@ -632,11 +632,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             {recentUser ? (
-              <button onClick={handleContinue} className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[#1A1A1A] text-white font-medium text-[15px] hover:bg-[#333] transition-colors duration-150">
+              <button onClick={handleContinue} className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-background text-foreground font-medium text-[15px] hover:bg-[#333] transition-colors duration-150">
                 Continue as {recentUser.name.split(' ')[0]} <ArrowRightIcon className="w-4 h-4" />
               </button>
             ) : (
-              <button onClick={onNavigateToSignUp} className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[#1A1A1A] text-white font-medium text-[15px] hover:bg-[#333] transition-colors duration-150">
+              <button onClick={onNavigateToSignUp} className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-background text-foreground font-medium text-[15px] hover:bg-[#333] transition-colors duration-150">
                 Get Vasthu free <ArrowRightIcon className="w-4 h-4" />
               </button>
             )}
@@ -668,18 +668,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ─── Hero Feature Cards ──────────────────────────────────── */}
-      <section className="pb-8 md:pb-12 px-6">
-        <div className="max-w-[960px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="relative pb-16 md:pb-24 px-6 overflow-hidden">
+        {/* Background glows for glassmorphism effect */}
+        <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[80px] pointer-events-none transform -translate-y-1/2" />
+        <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[80px] pointer-events-none transform -translate-y-1/2" />
+
+        <div className="relative max-w-[1080px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { title: 'Deep AI analysis', desc: 'Three specialized modes that leave no stone unturned.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><rect x="2" y="11" width="4" height="7" rx="1" fill="#C08B5C"/><rect x="8" y="7" width="4" height="11" rx="1" fill="#C08B5C" opacity="0.7"/><rect x="14" y="3" width="4" height="15" rx="1" fill="#C08B5C" opacity="0.5"/></svg> },
-            { title: '15+ data sources', desc: 'HUD, FEMA, schools, crime, Walk Score, MLS, and more.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><path d="M2 15l5-5 3 3 8-10" stroke="#3B82F6" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-            { title: 'Team collaboration', desc: 'Partner with investors. Share deals, chat, and track equity.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="7" r="3" stroke="#8B5CF6" strokeWidth="1.3" fill="none"/><circle cx="13" cy="7" r="3" stroke="#8B5CF6" strokeWidth="1.3" fill="none" opacity="0.6"/><path d="M2 17c0-3 2.5-5 5-5s5 2 5 5" stroke="#8B5CF6" strokeWidth="1.3" fill="none" strokeLinecap="round"/></svg> },
-            { title: 'Smart model routing', desc: 'Auto mode picks the best AI model for every query.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6" stroke="#10B981" strokeWidth="1.3" fill="none"/><path d="M10 6v4l3 2" stroke="#10B981" strokeWidth="1.3" strokeLinecap="round"/><circle cx="10" cy="10" r="1.5" fill="#10B981"/></svg> },
-          ].map(card => (
-            <div key={card.title} className="group p-6 rounded-2xl border border-[#E5E5E4] bg-white transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_4px_12px_rgba(0,0,0,0.06),0_12px_28px_rgba(0,0,0,0.05)] hover:border-[#D4D4D3] hover:-translate-y-0.5">
-              <div className="mb-3.5 w-10 h-10 rounded-xl bg-[#FAFAF9] border border-[#EBEBEA] flex items-center justify-center text-[#1A1A1A] group-hover:bg-[#C08B5C]/[0.06] group-hover:border-[#C08B5C]/15 transition-colors duration-200">{card.icon}</div>
-              <h3 className="text-[15px] font-semibold text-[#1A1A1A] mb-1.5 tracking-tight">{card.title}</h3>
-              <p className="text-[13px] text-[#6F6F6F] leading-[1.55]">{card.desc}</p>
+            { title: 'Deep AI analysis', desc: 'Three specialized modes that leave no stone unturned.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><rect x="2" y="11" width="4" height="7" rx="1" fill="#C08B5C" /><rect x="8" y="7" width="4" height="11" rx="1" fill="#C08B5C" opacity="0.7" /><rect x="14" y="3" width="4" height="15" rx="1" fill="#C08B5C" opacity="0.5" /></svg> },
+            { title: '15+ data sources', desc: 'HUD, FEMA, schools, crime, Walk Score, MLS, and more.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><path d="M2 15l5-5 3 3 8-10" stroke="#3B82F6" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg> },
+            { title: 'Team collaboration', desc: 'Partner with investors. Share deals, chat, and track equity.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><circle cx="7" cy="7" r="3" stroke="#8B5CF6" strokeWidth="1.3" fill="none" /><circle cx="13" cy="7" r="3" stroke="#8B5CF6" strokeWidth="1.3" fill="none" opacity="0.6" /><path d="M2 17c0-3 2.5-5 5-5s5 2 5 5" stroke="#8B5CF6" strokeWidth="1.3" fill="none" strokeLinecap="round" /></svg> },
+            { title: 'Smart model routing', desc: 'Auto mode picks the best AI model for every query.', icon: <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6" stroke="#10B981" strokeWidth="1.3" fill="none" /><path d="M10 6v4l3 2" stroke="#10B981" strokeWidth="1.3" strokeLinecap="round" /><circle cx="10" cy="10" r="1.5" fill="#10B981" /></svg> },
+          ].map((card, i) => (
+            <div key={card.title} style={{ animationDelay: `${i * 100}ms` }} className="group relative p-8 rounded-[2rem] bg-white/70 backdrop-blur-3xl border border-white/60 shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_24px_48px_rgba(37,99,235,0.12),0_8px_24px_rgba(0,0,0,0.04)] hover:-translate-y-2 transition-all duration-500 overflow-hidden transform-gpu flex flex-col items-start ring-1 ring-black/[0.05] hover:ring-blue-500/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/90 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              <div className="mb-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-indigo-600 transition-all duration-500 shadow-sm relative z-10 scale-95 group-hover:scale-100 group-hover:text-foreground group-hover:-rotate-3">{card.icon}</div>
+              <h3 className="text-[19px] font-bold text-[#1A1A1A] mb-2.5 tracking-tight relative z-10 group-hover:text-blue-600 transition-colors duration-500">{card.title}</h3>
+              <p className="text-[15px] text-[#6F6F6F] leading-[1.6] relative z-10">{card.desc}</p>
             </div>
           ))}
         </div>
@@ -750,9 +755,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Learn more <ArrowRightIcon className="w-3 h-3" />
                 </button>
               </div>
-              <div className={`relative ${feature.reverse ? 'lg:[direction:ltr]' : ''}`}>
-                <div className={`absolute inset-0 -m-3 rounded-2xl bg-gradient-to-br ${feature.tint} pointer-events-none`} />
-                <div className="relative rounded-2xl border border-[#E5E5E4] bg-white overflow-hidden shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.04),0_12px_24px_rgba(0,0,0,0.06),0_24px_48px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.02]">
+              <div className={`relative group ${feature.reverse ? 'lg:[direction:ltr]' : ''}`}>
+                <div className={`absolute inset-0 -m-4 rounded-[2.5rem] bg-gradient-to-br ${feature.tint} opacity-40 group-hover:opacity-80 group-hover:scale-110 transition-all duration-700 pointer-events-none blur-3xl`} />
+                <div className="relative rounded-[2rem] bg-white/40 backdrop-blur-3xl overflow-hidden border border-white/70 shadow-[0_16px_48px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.02)] ring-1 ring-black/[0.02] transform-gpu transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.1),0_8px_16px_rgba(0,0,0,0.04)] group-hover:-translate-y-3">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/20 to-transparent pointer-events-none transition-opacity duration-700 opacity-50 group-hover:opacity-100" />
                   <feature.Mockup />
                 </div>
               </div>
@@ -826,8 +832,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Scrolling quote cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {FEATURED_QUOTES.slice(1).map((q) => (
-              <div key={q.name} className="relative p-7 rounded-2xl bg-white border border-[#E5E5E4] shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.07),0_0_0_1px_rgba(0,0,0,0.02)] hover:border-[#D4D4D3] transition-all duration-200">
-                <p className="text-[15px] text-[#3D3D3D] leading-[1.7] mb-6">
+              <div key={q.name} className="relative p-7 rounded-2xl bg-white/60 backdrop-blur-xl border border-black/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:bg-white/80 transition-all duration-300 transform-gpu group">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl" />
+                <p className="text-[15px] text-[#3D3D3D] leading-[1.7] mb-6 relative z-10">
                   &ldquo;{q.quote}&rdquo;
                 </p>
                 <div className="flex items-center justify-between">
@@ -850,8 +857,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ─── Use Cases (Interactive Tabs) ─────────────────────────── */}
-      <section id="use-cases" className="py-16 md:py-20 px-6 bg-[#FAFAF9] scroll-mt-20">
-        <div className="max-w-[1080px] mx-auto">
+      <section id="use-cases" className="relative py-20 px-6 bg-[#FAFAF9] overflow-hidden scroll-mt-20">
+        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-amber-300/20 via-orange-300/10 to-rose-300/20 rounded-full blur-[100px] pointer-events-none transform -translate-x-1/2 -translate-y-1/2" />
+        <div className="relative max-w-[1080px] mx-auto z-10">
           <h2 className="text-[clamp(1.5rem,2.8vw,2.25rem)] font-bold text-[#1A1A1A] tracking-[-0.02em] mb-3 text-center">
             Built for every investor
           </h2>
@@ -864,11 +872,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button
                 key={uc.persona}
                 onClick={() => setActiveUseCase(i)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-medium transition-all duration-200 ${
-                  activeUseCase === i
-                    ? 'bg-[#1A1A1A] text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
-                    : 'bg-white border border-[#EBEBEA] text-[#6F6F6F] hover:border-[#CFCFCF] hover:text-[#1A1A1A]'
-                }`}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[13px] font-medium transition-all duration-200 ${activeUseCase === i
+                  ? 'bg-[#1A1A1A] text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)]'
+                  : 'bg-white border border-[#EBEBEA] text-[#6F6F6F] hover:border-[#CFCFCF] hover:text-[#1A1A1A]'
+                  }`}
               >
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: activeUseCase === i ? 'white' : uc.iconColor }} />
                 {uc.persona}
@@ -876,23 +883,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ))}
           </div>
 
-          <div className="rounded-2xl border border-[#EBEBEA] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr]">
-              <div className="p-8 lg:p-10 flex flex-col justify-center">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] mb-3 block" style={{ color: USE_CASES[activeUseCase].iconColor }}>{USE_CASES[activeUseCase].persona}</span>
-                <h3 className="text-[24px] font-bold text-[#1A1A1A] tracking-[-0.02em] leading-[1.2] mb-4">
+          <div className="rounded-[2.5rem] border border-white/80 bg-white/40 backdrop-blur-3xl shadow-[0_24px_54px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.02] overflow-hidden transition-all duration-700 transform-gpu hover:shadow-[0_40px_80px_rgba(0,0,0,0.1)] hover:-translate-y-2 relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/10 to-transparent pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] relative z-10 h-full">
+              <div className="p-10 lg:p-14 flex flex-col justify-center">
+                <span className="text-[11px] font-bold uppercase tracking-[0.15em] mb-4 block" style={{ color: USE_CASES[activeUseCase].iconColor }}>{USE_CASES[activeUseCase].persona}</span>
+                <h3 className="text-[28px] lg:text-[32px] font-bold text-[#1A1A1A] tracking-[-0.03em] leading-[1.15] mb-5">
                   {USE_CASES[activeUseCase].headline}
                 </h3>
-                <p className="text-[15px] text-[#6F6F6F] leading-[1.7] mb-6">{USE_CASES[activeUseCase].desc}</p>
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: `${USE_CASES[activeUseCase].iconColor}66` }} />
-                  <span className="text-[13px] font-medium text-[#6F6F6F]">{USE_CASES[activeUseCase].metric}</span>
+                <p className="text-[16px] text-[#6F6F6F] leading-[1.7] mb-8">{USE_CASES[activeUseCase].desc}</p>
+                <div className="flex items-center gap-3 mb-8 px-4 py-3 rounded-xl bg-white/60 border border-white/80 shadow-sm float-left w-fit">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: `${USE_CASES[activeUseCase].iconColor}` }} />
+                  <span className="text-[14px] font-semibold text-[#1A1A1A]">{USE_CASES[activeUseCase].metric}</span>
                 </div>
-                <button onClick={onNavigateToSignUp} className="text-[13px] font-medium text-[#C08B5C] hover:text-[#A8734A] transition-colors inline-flex items-center gap-1.5 self-start">
-                  Get started free <ArrowRightIcon className="w-3 h-3" />
+                <button onClick={onNavigateToSignUp} className="text-[14px] font-semibold text-[#C08B5C] hover:text-[#A8734A] transition-colors inline-flex items-center gap-2 self-start group/btn">
+                  Get started free <ArrowRightIcon className="w-4 h-4 transform transition-transform group-hover/btn:translate-x-1" />
                 </button>
               </div>
-              <div className="border-t lg:border-t-0 lg:border-l border-[#EBEBEA] bg-[#FAFAF9]/50">
+              <div className="border-t lg:border-t-0 lg:border-l border-white/60 bg-[#FAFAF9]/40 backdrop-blur-sm relative overflow-hidden flex items-center justify-center p-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/[0.03] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 {React.createElement(USE_CASES[activeUseCase].Mockup)}
               </div>
             </div>
@@ -977,11 +986,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <ul className="space-y-3.5 mb-10 flex-1">
                 {[
-                  { text: '25,000 AI tokens / month', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 5v3l2 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg> },
-                  { text: '2 property analyses / month', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                  { text: '2 PDF reports / month', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="2" stroke="currentColor" strokeWidth="1.3"/><line x1="6" y1="5" x2="10" y2="5" stroke="currentColor" strokeWidth="1"/><line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1"/></svg> },
-                  { text: 'Basic market insights', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><path d="M2 12l4-4 3 2 5-6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-                  { text: 'Single AI mode', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3"/></svg> },
+                  { text: '25,000 AI tokens / month', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.3" /><path d="M8 5v3l2 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg> },
+                  { text: '2 property analyses / month', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3" /><path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg> },
+                  { text: '2 PDF reports / month', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="2" stroke="currentColor" strokeWidth="1.3" /><line x1="6" y1="5" x2="10" y2="5" stroke="currentColor" strokeWidth="1" /><line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1" /></svg> },
+                  { text: 'Basic market insights', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><path d="M2 12l4-4 3 2 5-6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg> },
+                  { text: 'Single AI mode', icon: <svg className="w-3.5 h-3.5 text-[#ABABAB]" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.3" /></svg> },
                 ].map(f => (
                   <li key={f.text} className="flex items-center gap-3 text-[#6F6F6F] text-[13px]">
                     <div className="w-6 h-6 rounded-lg bg-[#F5F5F3] flex items-center justify-center flex-shrink-0">
@@ -1017,13 +1026,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <ul className="space-y-3.5 mb-10 flex-1">
                 {[
-                  { text: '100,000 AI tokens / month', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 5v3l2 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg> },
-                  { text: 'Unlimited analyses', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> },
-                  { text: 'PDF reports — $5 each', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="2" stroke="currentColor" strokeWidth="1.3"/><line x1="6" y1="5" x2="10" y2="5" stroke="currentColor" strokeWidth="1"/><line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1"/></svg> },
-                  { text: 'Deal close fee — $15 each', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M5 5h6M5 11h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg> },
-                  { text: 'All 3 AI modes + Auto routing', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="8" r="2" stroke="currentColor" strokeWidth="1.2"/><circle cx="8" cy="4" r="2" stroke="currentColor" strokeWidth="1.2"/><circle cx="11" cy="8" r="2" stroke="currentColor" strokeWidth="1.2"/></svg> },
-                  { text: 'Team collaboration', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="10.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M2 14c0-2.5 1.5-4 3.5-4h5c2 0 3.5 1.5 3.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg> },
-                  { text: 'Voice chat with AI', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><rect x="5.5" y="1" width="5" height="8" rx="2.5" stroke="currentColor" strokeWidth="1.2"/><path d="M3.5 7a4.5 4.5 0 009 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><line x1="8" y1="11.5" x2="8" y2="14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg> },
+                  { text: '100,000 AI tokens / month', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.3" /><path d="M8 5v3l2 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg> },
+                  { text: 'Unlimited analyses', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg> },
+                  { text: 'PDF reports — $5 each', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="2" stroke="currentColor" strokeWidth="1.3" /><line x1="6" y1="5" x2="10" y2="5" stroke="currentColor" strokeWidth="1" /><line x1="6" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1" /></svg> },
+                  { text: 'Deal close fee — $15 each', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M5 5h6M5 11h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg> },
+                  { text: 'All 3 AI modes + Auto routing', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><circle cx="5" cy="8" r="2" stroke="currentColor" strokeWidth="1.2" /><circle cx="8" cy="4" r="2" stroke="currentColor" strokeWidth="1.2" /><circle cx="11" cy="8" r="2" stroke="currentColor" strokeWidth="1.2" /></svg> },
+                  { text: 'Team collaboration', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" /><circle cx="10.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" /><path d="M2 14c0-2.5 1.5-4 3.5-4h5c2 0 3.5 1.5 3.5 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg> },
+                  { text: 'Voice chat with AI', icon: <svg className="w-3.5 h-3.5 text-[#C08B5C]" viewBox="0 0 16 16" fill="none"><rect x="5.5" y="1" width="5" height="8" rx="2.5" stroke="currentColor" strokeWidth="1.2" /><path d="M3.5 7a4.5 4.5 0 009 0" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /><line x1="8" y1="11.5" x2="8" y2="14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" /></svg> },
                 ].map(f => (
                   <li key={f.text} className="flex items-center gap-3 text-[#3D3D3D] text-[13px]">
                     <div className="w-6 h-6 rounded-lg bg-[#C08B5C]/10 flex items-center justify-center flex-shrink-0">
@@ -1153,7 +1162,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Get full access to all three AI modes, 15+ data sources, deal pipeline, and team collaboration. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-            <button onClick={onNavigateToSignUp} className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1A1A1A] text-white font-medium text-[15px] hover:bg-[#333] transition-colors duration-150">
+            <button onClick={onNavigateToSignUp} className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-background text-foreground font-medium text-[15px] hover:bg-[#333] transition-colors duration-150">
               Start free trial <ArrowRightIcon className="w-4 h-4" />
             </button>
             <button onClick={() => scrollTo('pricing')} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-[#EBEBEA] text-[#6F6F6F] font-medium text-[14px] hover:border-[#CFCFCF] hover:text-[#1A1A1A] transition-all duration-150">
@@ -1177,84 +1186,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ─── Footer ──────────────────────────────────────────────── */}
-      <footer className="bg-[#1A1A1A] pt-12 pb-8 px-6">
+      <footer className="bg-background pt-12 pb-8 px-6">
         <div className="max-w-[920px] mx-auto">
 
           {/* Row 1: Logo + Social + Language */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 border-b border-white/[0.08]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 border-b border-black/[0.08]">
             <div className="flex items-center gap-5">
               <div className="flex items-center gap-2">
                 <Logo variant="light" showText={false} className="w-[18px] h-[18px] opacity-50" />
-                <span className="text-[13px] font-medium text-white/50">Vasthu</span>
+                <span className="text-[13px] font-medium text-muted-foreground">Vasthu</span>
               </div>
               <div className="flex items-center gap-3">
-                <a href="#" className="text-white/35 hover:text-white/60 transition-colors duration-150">
+                <a href="#" className="text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-150">
                   <XTwitterIcon className="w-4 h-4" />
                 </a>
-                <a href="#" className="text-white/35 hover:text-white/60 transition-colors duration-150">
+                <a href="#" className="text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-150">
                   <LinkedInIcon className="w-4 h-4" />
                 </a>
-                <a href="#" className="text-white/35 hover:text-white/60 transition-colors duration-150">
+                <a href="#" className="text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-150">
                   <YouTubeIcon className="w-4 h-4" />
                 </a>
               </div>
             </div>
-            <button className="text-[12px] text-white/35 hover:text-white/60 transition-colors duration-150">
+            <button className="text-[12px] text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-150">
               English (US)
             </button>
           </div>
 
           {/* Row 2: 4-Column Link Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-8 pt-8 pb-8 border-b border-white/[0.08]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-8 pt-8 pb-8 border-b border-black/[0.08]">
             <div>
-              <p className="text-[11px] text-white/50 font-semibold tracking-wide uppercase mb-4">Product</p>
+              <p className="text-[11px] text-muted-foreground font-semibold tracking-wide uppercase mb-4">Product</p>
               <div className="space-y-2.5">
-                <button onClick={() => scrollTo('features')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Features</button>
-                <button onClick={() => scrollTo('pricing')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Pricing</button>
-                <button onClick={() => scrollTo('features')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Deal Pipeline</button>
-                <button onClick={() => scrollTo('features')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Teams</button>
-                <button onClick={() => scrollTo('features')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Marketplace</button>
+                <button onClick={() => scrollTo('features')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Features</button>
+                <button onClick={() => scrollTo('pricing')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Pricing</button>
+                <button onClick={() => scrollTo('features')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Deal Pipeline</button>
+                <button onClick={() => scrollTo('features')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Teams</button>
+                <button onClick={() => scrollTo('features')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Marketplace</button>
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-white/50 font-semibold tracking-wide uppercase mb-4">Modes</p>
+              <p className="text-[11px] text-muted-foreground font-semibold tracking-wide uppercase mb-4">Modes</p>
               <div className="space-y-2.5">
-                <button onClick={() => navigateToMode('hunter')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Deep Search</button>
-                <button onClick={() => navigateToMode('research')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Deep Research</button>
-                <button onClick={() => navigateToMode('strategist')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Expert Strategist</button>
+                <button onClick={() => navigateToMode('hunter')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Deep Search</button>
+                <button onClick={() => navigateToMode('research')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Deep Research</button>
+                <button onClick={() => navigateToMode('strategist')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Expert Strategist</button>
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-white/50 font-semibold tracking-wide uppercase mb-4">Support</p>
+              <p className="text-[11px] text-muted-foreground font-semibold tracking-wide uppercase mb-4">Support</p>
               <div className="space-y-2.5">
-                <button onClick={navigateToFAQ} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">FAQ</button>
-                <a href="mailto:support@civitasai.com" className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Contact</a>
-                <a href="/privacy-policy" className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Terms & Privacy</a>
-                <a href="/cookie-policy" className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Cookie Policy</a>
+                <button onClick={navigateToFAQ} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">FAQ</button>
+                <a href="mailto:support@civitasai.com" className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Contact</a>
+                <a href="/privacy-policy" className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Terms & Privacy</a>
+                <a href="/cookie-policy" className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Cookie Policy</a>
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-white/50 font-semibold tracking-wide uppercase mb-4">Vasthu for</p>
+              <p className="text-[11px] text-muted-foreground font-semibold tracking-wide uppercase mb-4">Vasthu for</p>
               <div className="space-y-2.5">
-                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Individual Investors</button>
-                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Portfolio Managers</button>
-                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">Investment Partnerships</button>
-                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-white/40 hover:text-white/70 transition-colors duration-150">First-Time Investors</button>
+                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Individual Investors</button>
+                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Portfolio Managers</button>
+                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">Investment Partnerships</button>
+                <button onClick={() => scrollTo('use-cases')} className="block text-[13px] text-muted-foreground/70 hover:text-foreground/70 transition-colors duration-150">First-Time Investors</button>
               </div>
             </div>
           </div>
 
           {/* Row 3: Copyright Bar */}
           <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <span className="text-white/25 text-[11px]">&copy; {new Date().getFullYear()} Civitas AI. All rights reserved.</span>
+            <span className="text-muted-foreground/50 text-[11px]">&copy; {new Date().getFullYear()} Civitas AI. All rights reserved.</span>
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-[11px] text-white/25">
+              <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" />
                 All systems operational
               </span>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-[11px] text-white/25 hover:text-white/50 transition-colors duration-150"
+                className="text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors duration-150"
               >
                 Back to top &uarr;
               </button>

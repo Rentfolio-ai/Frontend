@@ -100,16 +100,16 @@ export const DealsTable: React.FC<DealsTableProps> = ({
   });
 
   return (
-    <div className="rounded-lg bg-white/[0.03] border border-white/[0.05] overflow-hidden">
+    <div className="rounded-lg bg-black/[0.02] border border-black/[0.05] overflow-hidden">
       <table className="w-full">
         <thead>
-          <tr className="bg-white/[0.02]">
+          <tr className="bg-black/[0.02]">
             {COLUMNS.map(col => (
               <th
                 key={col.key}
                 onClick={() => handleSort(col.key)}
                 className={`px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest cursor-pointer select-none ${
-                  sortKey === col.key ? 'text-white/50' : 'text-white/20'
+                  sortKey === col.key ? 'text-muted-foreground' : 'text-muted-foreground/40'
                 } ${col.align || 'text-left'}`}
               >
                 <span className="inline-flex items-center gap-1">
@@ -135,24 +135,24 @@ export const DealsTable: React.FC<DealsTableProps> = ({
               <tr
                 key={property.listing_id}
                 onClick={() => onViewProperty(property)}
-                className="border-b border-white/[0.04] hover:bg-white/[0.02] cursor-pointer last:border-b-0"
+                className="border-b border-black/[0.04] hover:bg-black/[0.02] cursor-pointer last:border-b-0"
               >
                 <td className="px-3 py-2.5">
-                  <div className="text-[12px] text-white/65 font-medium truncate max-w-[200px]">
+                  <div className="text-[12px] text-muted-foreground/80 font-medium truncate max-w-[200px]">
                     {property.address}
                   </div>
                 </td>
                 <td className="px-3 py-2.5">
-                  <div className="text-[11px] text-white/40 font-medium">{property.city}, {property.state}</div>
+                  <div className="text-[11px] text-muted-foreground/70 font-medium">{property.city}, {property.state}</div>
                 </td>
                 <td className="px-3 py-2.5 text-right">
-                  <div className="text-[12px] font-mono font-semibold text-white/85">{formatPrice(property.price)}</div>
+                  <div className="text-[12px] font-mono font-semibold text-foreground/85">{formatPrice(property.price)}</div>
                 </td>
                 <td className="px-3 py-2.5 text-right">
-                  <div className="text-[11px] font-mono text-white/45">{getCapRate(property).toFixed(1)}%</div>
+                  <div className="text-[11px] font-mono text-muted-foreground/70">{getCapRate(property).toFixed(1)}%</div>
                 </td>
                 <td className="px-3 py-2.5 text-right">
-                  <div className="text-[11px] font-mono text-white/45">${getCashFlow(property).toLocaleString()}</div>
+                  <div className="text-[11px] font-mono text-muted-foreground/70">${getCashFlow(property).toLocaleString()}</div>
                 </td>
                 <td className="px-3 py-2.5 text-center">
                   {score > 0 ? (
@@ -160,7 +160,7 @@ export const DealsTable: React.FC<DealsTableProps> = ({
                       {score}
                     </span>
                   ) : (
-                    <span className="text-[9px] text-white/15">--</span>
+                    <span className="text-[9px] text-muted-foreground/40">--</span>
                   )}
                 </td>
                 <td className="px-3 py-2.5 text-center">
@@ -183,20 +183,20 @@ export const DealsTable: React.FC<DealsTableProps> = ({
                       {badge.label}
                     </button>
                   ) : (
-                    <span className="text-[9px] text-white/10">—</span>
+                    <span className="text-[9px] text-muted-foreground/30">—</span>
                   )}
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-0.5">
                     <button
                       onClick={(e) => { e.stopPropagation(); onBookmarkProperty(property); }}
-                      className="p-1 rounded hover:bg-white/[0.06]"
+                      className="p-1 rounded hover:bg-black/[0.05]"
                       title={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
                     >
                       {isBookmarked ? (
                         <Star className="w-3 h-3 text-[#C08B5C] fill-[#C08B5C]" />
                       ) : (
-                        <Bookmark className="w-3 h-3 text-white/25" />
+                        <Bookmark className="w-3 h-3 text-muted-foreground/50" />
                       )}
                     </button>
                     <button
@@ -209,10 +209,10 @@ export const DealsTable: React.FC<DealsTableProps> = ({
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onViewProperty(property); }}
-                      className="p-1 rounded hover:bg-white/[0.06]"
+                      className="p-1 rounded hover:bg-black/[0.05]"
                       title="View details"
                     >
-                      <ExternalLink className="w-3 h-3 text-white/25" />
+                      <ExternalLink className="w-3 h-3 text-muted-foreground/50" />
                     </button>
                   </div>
                 </td>
@@ -224,11 +224,11 @@ export const DealsTable: React.FC<DealsTableProps> = ({
 
       {sorted.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-2.5">
-            <Star className="w-4 h-4 text-white/15" />
+          <div className="w-10 h-10 rounded-lg bg-black/[0.03] border border-black/[0.06] flex items-center justify-center mb-2.5">
+            <Star className="w-4 h-4 text-muted-foreground/40" />
           </div>
-          <div className="text-[12px] font-medium text-white/35">No properties found</div>
-          <div className="text-[10px] text-white/20 mt-0.5">Try adjusting your search or filters</div>
+          <div className="text-[12px] font-medium text-muted-foreground/60">No properties found</div>
+          <div className="text-[10px] text-muted-foreground/40 mt-0.5">Try adjusting your search or filters</div>
         </div>
       )}
     </div>

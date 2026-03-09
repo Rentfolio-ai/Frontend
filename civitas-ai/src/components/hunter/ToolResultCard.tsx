@@ -74,7 +74,7 @@ export const ToolResultCard: React.FC<ToolResultCardProps> = ({
                     {collapsible && (
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="p-1 hover:bg-white/50 rounded transition-colors"
+                            className="p-1 hover:bg-black/50 rounded transition-colors"
                             aria-label={isExpanded ? 'Collapse' : 'Expand'}
                         >
                             {isExpanded ? (
@@ -91,7 +91,7 @@ export const ToolResultCard: React.FC<ToolResultCardProps> = ({
             {isExpanded && (
                 <div className="px-4 pb-4 space-y-4">
                     {/* Children content */}
-                    <div className="bg-white/50 rounded-lg p-3">
+                    <div className="bg-black/50 rounded-lg p-3">
                         {children}
                     </div>
 

@@ -86,7 +86,7 @@ const getRecommendationStyle = (rec: string) => {
     case 'negotiate':
       return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
     default:
-      return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+      return 'bg-slate-100 text-slate-700 dark:bg-muted dark:text-foreground/70';
   }
 };
 
@@ -123,16 +123,16 @@ const ReportViewerModal: React.FC<ReportViewerModalProps> = ({ report, onClose }
       />
       
       {/* Modal */}
-      <div className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-primary/10 dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col backdrop-blur-xl border border-primary/20">
+      <div className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-primary/10 dark:bg-card rounded-xl shadow-2xl overflow-hidden flex flex-col backdrop-blur-xl border border-primary/20">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-primary/20 dark:border-slate-700 bg-primary/8 dark:bg-slate-800/50 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-primary/20 dark:border-border bg-primary/8 dark:bg-muted/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <DocumentIcon className="w-5 h-5 text-blue-500" />
             <div>
-              <h2 className="font-semibold text-slate-800 dark:text-slate-200">
+              <h2 className="font-semibold text-slate-800 dark:text-foreground/80">
                 {report.report_type}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground">
                 {report.property_address}
               </p>
             </div>
@@ -146,21 +146,21 @@ const ReportViewerModal: React.FC<ReportViewerModalProps> = ({ report, onClose }
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-muted-foreground dark:text-muted-foreground"
               title="Print report"
             >
               <PrintIcon />
             </button>
             <button
               onClick={handleOpenNewTab}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-muted-foreground dark:text-muted-foreground"
               title="Open in new tab"
             >
               <ExternalLinkIcon />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-muted-foreground dark:text-muted-foreground"
               title="Close"
             >
               <CloseIcon />
@@ -197,10 +197,10 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, isSelected, onSelect, o
   return (
     <div 
       className={cn(
-        'group bg-primary/10 dark:bg-slate-800/50 rounded-xl border border-primary/20 p-4 hover:shadow-lg hover:bg-primary/15 transition-all cursor-pointer backdrop-blur-sm',
+        'group bg-primary/10 dark:bg-muted/50 rounded-xl border border-primary/20 p-4 hover:shadow-lg hover:bg-primary/15 transition-all cursor-pointer backdrop-blur-sm',
         isSelected 
           ? 'border-blue-500 ring-2 ring-blue-500/20' 
-          : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+          : 'border-slate-200 dark:border-border hover:border-blue-300'
       )}
       onClick={onSelect}
     >
@@ -209,10 +209,10 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, isSelected, onSelect, o
         <div className="flex items-center gap-2">
           <DocumentIcon className="w-5 h-5 text-blue-500" />
           <div>
-            <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
+            <h3 className="font-semibold text-slate-800 dark:text-foreground/80 text-sm">
               {report.report_type}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+            <p className="text-xs text-muted-foreground/70 dark:text-muted-foreground line-clamp-1">
               {report.property_address}
             </p>
           </div>
@@ -228,44 +228,44 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, isSelected, onSelect, o
       {/* Key Metrics */}
       {hasMetrics && (
         <div className="grid grid-cols-4 gap-2 mb-3">
-          <div className="text-center p-2 rounded bg-slate-50 dark:bg-slate-800">
+          <div className="text-center p-2 rounded bg-slate-50 dark:bg-muted">
             <div className={cn(
               'text-sm font-semibold',
               cashFlowPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
             )}>
               {formatCurrency(report.key_metrics.monthly_cash_flow)}
             </div>
-            <div className="text-[10px] text-slate-500 uppercase">CF/mo</div>
+            <div className="text-[10px] text-muted-foreground/70 uppercase">CF/mo</div>
           </div>
-          <div className="text-center p-2 rounded bg-slate-50 dark:bg-slate-800">
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          <div className="text-center p-2 rounded bg-slate-50 dark:bg-muted">
+            <div className="text-sm font-semibold text-slate-700 dark:text-foreground/70">
               {formatPercent(report.key_metrics.cap_rate)}
             </div>
-            <div className="text-[10px] text-slate-500 uppercase">Cap</div>
+            <div className="text-[10px] text-muted-foreground/70 uppercase">Cap</div>
           </div>
-          <div className="text-center p-2 rounded bg-slate-50 dark:bg-slate-800">
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          <div className="text-center p-2 rounded bg-slate-50 dark:bg-muted">
+            <div className="text-sm font-semibold text-slate-700 dark:text-foreground/70">
               {formatPercent(report.key_metrics.cash_on_cash)}
             </div>
-            <div className="text-[10px] text-slate-500 uppercase">CoC</div>
+            <div className="text-[10px] text-muted-foreground/70 uppercase">CoC</div>
           </div>
-          <div className="text-center p-2 rounded bg-slate-50 dark:bg-slate-800">
-            <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          <div className="text-center p-2 rounded bg-slate-50 dark:bg-muted">
+            <div className="text-sm font-semibold text-slate-700 dark:text-foreground/70">
               {report.key_metrics.dscr.toFixed(2)}
             </div>
-            <div className="text-[10px] text-slate-500 uppercase">DSCR</div>
+            <div className="text-[10px] text-muted-foreground/70 uppercase">DSCR</div>
           </div>
         </div>
       )}
       
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
-        <div className="text-xs text-slate-400">
+      <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-border">
+        <div className="text-xs text-muted-foreground">
           {formatDate(report.created_at)}
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
           title="Delete report"
         >
           <TrashIcon />
@@ -349,10 +349,10 @@ export const ReportsTabView: React.FC<ReportsTabViewProps> = () => {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+              <h1 className="text-2xl font-bold text-slate-800 dark:text-foreground/80">
                 Saved Reports
               </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground mt-1">
                 {isLoading ? 'Loading...' : `${reports.length} report${reports.length !== 1 ? 's' : ''} saved`}
               </p>
             </div>
@@ -361,8 +361,8 @@ export const ReportsTabView: React.FC<ReportsTabViewProps> = () => {
               disabled={isLoading}
               className={cn(
                 'p-2 rounded-lg transition-colors',
-                'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700',
-                'text-slate-600 dark:text-slate-400',
+                'bg-slate-100 hover:bg-slate-200 dark:bg-muted dark:hover:bg-slate-700',
+                'text-muted-foreground dark:text-muted-foreground',
                 isLoading && 'opacity-50 cursor-not-allowed'
               )}
               title="Refresh reports"
@@ -380,7 +380,7 @@ export const ReportsTabView: React.FC<ReportsTabViewProps> = () => {
           {isLoading && reports.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16">
               <LoadingSpinner className="text-blue-500 mb-4" />
-              <p className="text-sm text-slate-500">Loading reports...</p>
+              <p className="text-sm text-muted-foreground/70">Loading reports...</p>
             </div>
           )}
           
@@ -388,7 +388,7 @@ export const ReportsTabView: React.FC<ReportsTabViewProps> = () => {
           {error && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <span className="text-red-500 text-2xl mb-4">⚠️</span>
-              <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+              <h3 className="text-lg font-medium text-muted-foreground dark:text-muted-foreground mb-2">
                 {error}
               </h3>
               <button
@@ -403,11 +403,11 @@ export const ReportsTabView: React.FC<ReportsTabViewProps> = () => {
           {/* Empty State */}
           {!isLoading && !error && reports.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <EmptyReportsIcon className="text-slate-300 dark:text-slate-600 mb-4" />
-              <h3 className="text-lg font-medium text-slate-600 dark:text-slate-400 mb-2">
+              <EmptyReportsIcon className="text-foreground/70 dark:text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground dark:text-muted-foreground mb-2">
                 No saved reports yet
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-500 max-w-sm">
+              <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/70 max-w-sm">
                 Generate investment reports in chat and they'll appear here automatically.
               </p>
             </div>
@@ -420,10 +420,10 @@ export const ReportsTabView: React.FC<ReportsTabViewProps> = () => {
                 <div key={address}>
                   {/* Property Header (only show if multiple properties) */}
                   {Object.keys(reportsByProperty).length > 1 && (
-                    <h2 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3 flex items-center gap-2">
+                    <h2 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-500" />
                       {address}
-                      <span className="text-slate-400 dark:text-slate-500">
+                      <span className="text-muted-foreground dark:text-muted-foreground/70">
                         ({propertyReports.length})
                       </span>
                     </h2>

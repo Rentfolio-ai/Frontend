@@ -80,13 +80,13 @@ export const LiveCallCard: React.FC<LiveCallCardProps> = ({
   }, [callId]);
 
   return (
-    <div className="rounded-xl bg-white/[0.03] border border-white/[0.08] overflow-hidden max-w-md">
+    <div className="rounded-xl bg-black/[0.02] border border-black/[0.08] overflow-hidden max-w-md">
       {/* Header */}
-      <div className={`flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.06] ${
+      <div className={`flex items-center gap-2 px-4 py-2.5 border-b border-black/[0.06] ${
         isFinished ? '' : 'bg-emerald-500/5'
       }`}>
-        <Phone className={`w-4 h-4 ${isFinished ? 'text-white/30' : 'text-emerald-400'}`} />
-        <span className="text-[12px] font-medium text-white/70">
+        <Phone className={`w-4 h-4 ${isFinished ? 'text-muted-foreground/50' : 'text-emerald-400'}`} />
+        <span className="text-[12px] font-medium text-foreground/70">
           {isFinished ? 'Call completed' : 'Live call'} — {professionalName}
         </span>
         {!isFinished && (
@@ -100,36 +100,36 @@ export const LiveCallCard: React.FC<LiveCallCardProps> = ({
       <div className="px-4 py-3">
         <div className="flex items-center gap-2 mb-2">
           {!isFinished ? (
-            <Loader2 className="w-3.5 h-3.5 text-white/30 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 text-muted-foreground/50 animate-spin" />
           ) : status === 'completed' ? (
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/80" />
           ) : (
             <AlertCircle className="w-3.5 h-3.5 text-red-400/80" />
           )}
-          <span className="text-[12px] text-white/60">
+          <span className="text-[12px] text-muted-foreground">
             {STATUS_LABELS[status] || status}
           </span>
-          <span className="text-[11px] text-white/25 ml-auto">{toPhone}</span>
+          <span className="text-[11px] text-muted-foreground/50 ml-auto">{toPhone}</span>
         </div>
 
         {/* Transcript */}
         {transcript.length > 0 && (
-          <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto rounded-lg bg-white/[0.02] border border-white/[0.04] p-2">
+          <div className="mt-2 space-y-1.5 max-h-40 overflow-y-auto rounded-lg bg-black/[0.02] border border-black/[0.04] p-2">
             {transcript.map((t, i) => (
               <div key={i} className="text-[11px]">
                 <span className={`font-medium ${
-                  t.speaker === 'ai' ? 'text-[#D4A27F]/70' : 'text-white/50'
+                  t.speaker === 'ai' ? 'text-[#D4A27F]/70' : 'text-muted-foreground'
                 }`}>
                   {t.speaker === 'ai' ? 'You (Vasthu)' : 'Professional'}:
                 </span>
-                <span className="text-white/40 ml-1">{t.text}</span>
+                <span className="text-muted-foreground/70 ml-1">{t.text}</span>
               </div>
             ))}
           </div>
         )}
 
         {transcript.length === 0 && !isFinished && (
-          <p className="text-[11px] text-white/20 mt-1">
+          <p className="text-[11px] text-muted-foreground/40 mt-1">
             Transcript will appear as the conversation progresses...
           </p>
         )}
@@ -137,7 +137,7 @@ export const LiveCallCard: React.FC<LiveCallCardProps> = ({
 
       {/* Actions */}
       {!isFinished && (
-        <div className="flex items-center px-4 py-2.5 border-t border-white/[0.06]">
+        <div className="flex items-center px-4 py-2.5 border-t border-black/[0.06]">
           <button
             onClick={handleEnd}
             disabled={ending}

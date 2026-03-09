@@ -53,7 +53,7 @@ export const KeyboardHintsToggle: React.FC<{ onClick: () => void }> = ({ onClick
     return (
         <button
             onClick={onClick}
-            className="fixed bottom-4 right-4 w-10 h-10 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-colors flex items-center justify-center"
+            className="fixed bottom-4 right-4 w-10 h-10 bg-muted text-foreground rounded-full shadow-lg hover:bg-gray-700 transition-colors flex items-center justify-center"
             title="Keyboard shortcuts"
         >
             <Command className="w-5 h-5" />

@@ -17,7 +17,7 @@ import Map, {
 import type { MapRef, ViewStateChangeEvent } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Supercluster from 'supercluster';
-import { Home, Maximize2 } from 'lucide-react';
+import { Home, MapPin, Maximize2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { PropertyCardData } from '../chat/tool-cards/PropertyGridCard';
 
@@ -72,7 +72,7 @@ const ClusterPin: React.FC<{
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       className="rounded-full flex items-center justify-center font-bold cursor-pointer
         transition-all duration-150 hover:scale-110 active:scale-95
-        bg-[#23232b] border border-white/[0.12] text-white/70 shadow-md"
+        bg-card border border-black/[0.10] text-foreground/70 shadow-md"
       style={{ width: size, height: size, fontSize: size < 42 ? 11 : 13 }}
     >
       {count}
@@ -104,14 +104,14 @@ const PricePin: React.FC<{
           'transition-all duration-150 cursor-pointer whitespace-nowrap shadow-md',
           active
             ? 'bg-white text-[#111114] scale-110 -translate-y-0.5 shadow-lg'
-            : 'bg-[#23232b] border border-white/[0.12] text-white/90',
+            : 'bg-card border border-black/[0.10] text-foreground',
         )}
       >
         {fmtPrice(price)}
       </button>
       <div className={cn(
         'absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 shadow-sm',
-        active ? 'bg-white' : 'bg-[#23232b] border-r border-b border-white/[0.12]',
+        active ? 'bg-white' : 'bg-card border-r border-b border-black/[0.10]',
       )} />
     </div>
   );
@@ -128,7 +128,7 @@ const HoverTooltip: React.FC<{ property: PropertyCardData }> = ({ property }) =>
   const shortAddr = address.length > 24 ? address.slice(0, 24) + '...' : address;
 
   return (
-    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-[#1e1e24] border border-white/[0.08] shadow-xl w-[200px]">
+    <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg bg-surface-elevated border border-black/[0.08] shadow-xl w-[200px]">
       {photo ? (
         <img
           src={photo}
@@ -137,15 +137,15 @@ const HoverTooltip: React.FC<{ property: PropertyCardData }> = ({ property }) =>
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
       ) : (
-        <div className="w-10 h-10 rounded bg-[#16161a] flex items-center justify-center flex-shrink-0">
-          <Home className="w-4 h-4 text-white/10" />
+        <div className="w-10 h-10 rounded bg-card flex items-center justify-center flex-shrink-0">
+          <Home className="w-4 h-4 text-muted-foreground/30" />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-[12px] font-bold text-white/90">{fmtPrice(price)}</p>
-        <p className="text-[10px] text-white/40 truncate">{shortAddr}</p>
+        <p className="text-[12px] font-bold text-foreground">{fmtPrice(price)}</p>
+        <p className="text-[10px] text-muted-foreground/70 truncate">{shortAddr}</p>
         {(beds != null || baths != null) && (
-          <p className="text-[9px] text-white/25 mt-0.5">
+          <p className="text-[9px] text-muted-foreground/50 mt-0.5">
             {beds != null ? `${beds}bd` : ''}{beds != null && baths != null ? ' · ' : ''}{baths != null ? `${baths}ba` : ''}
           </p>
         )}
@@ -180,14 +180,14 @@ const PopupCard: React.FC<{
   ].filter(Boolean).join(' · ');
 
   return (
-    <div className="w-[280px] rounded-lg overflow-hidden bg-[#1e1e24] border border-white/[0.08] shadow-xl">
+    <div className="w-[280px] rounded-lg overflow-hidden bg-surface-elevated border border-black/[0.08] shadow-xl">
       {/* Photo */}
       <div className="relative h-[130px]">
         {photo ? (
           <img src={photo} alt={address} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-[#16161a] flex items-center justify-center">
-            <Home className="w-7 h-7 text-white/10" />
+          <div className="w-full h-full bg-card flex items-center justify-center">
+            <Home className="w-7 h-7 text-muted-foreground/30" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -198,11 +198,11 @@ const PopupCard: React.FC<{
 
       {/* Content */}
       <div className="p-3">
-        <p className="text-[12px] text-white/60 truncate mb-0.5">{address}{city ? `, ${city}` : ''}</p>
-        {specsText && <p className="text-[10px] text-white/30 mb-2.5">{specsText}</p>}
+        <p className="text-[12px] text-muted-foreground truncate mb-0.5">{address}{city ? `, ${city}` : ''}</p>
+        {specsText && <p className="text-[10px] text-muted-foreground/50 mb-2.5">{specsText}</p>}
 
         {(capRate != null || cashFlow != null) && (
-          <div className="flex items-center gap-4 text-[11px] font-mono text-white/40 mb-2.5">
+          <div className="flex items-center gap-4 text-[11px] font-mono text-muted-foreground/70 mb-2.5">
             {capRate != null && <span>{fmtPct(capRate)} cap</span>}
             {cashFlow != null && (
               <span className={isPositiveCF ? 'text-emerald-400/70' : 'text-rose-400/70'}>
@@ -215,7 +215,7 @@ const PopupCard: React.FC<{
         <button
           onClick={() => onAction?.(getId(property))}
           className="w-full py-2 rounded-md text-[11px] font-semibold transition-colors
-            bg-white/[0.06] hover:bg-white/[0.10] text-white/60 hover:text-white/80"
+            bg-black/[0.05] hover:bg-black/[0.07] text-muted-foreground hover:text-foreground/80"
         >
           View Details
         </button>
@@ -350,23 +350,44 @@ export const PropertyMapView: React.FC<PropertyMapViewProps> = ({
   }, [mappableProperties]);
 
   /* ── Empty / error states ── */
-  if (!MAPBOX_TOKEN) {
+  if (mappableProperties.length === 0) {
     return (
-      <div className={cn('flex items-center justify-center bg-[#16161a] border border-white/[0.06]', className)}>
-        <div className="text-center p-8">
-          <p className="text-[13px] text-white/30 mb-1">Map requires Mapbox token</p>
-          <p className="text-[11px] text-white/15">Add VITE_MAPBOX_TOKEN to your .env file</p>
+      <div className={cn('flex flex-col items-center justify-center bg-background h-full w-full relative overflow-hidden', className)}>
+        {/* Placeholder Map Pattern */}
+        <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#0F0D0B] via-transparent to-[#1A1816]/50 mix-blend-overlay"></div>
+
+        <div className="text-center p-8 z-10 relative">
+          <div className="w-20 h-20 mx-auto rounded-[24px] bg-gradient-to-b from-[#1E1A17] to-[#12100E] border border-black/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.8)] flex items-center justify-center mb-6 relative group overflow-hidden">
+            <div className="absolute inset-0 bg-[#C08B5C]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <MapPin className="w-8 h-8 text-[#C08B5C] drop-shadow-[0_0_12px_rgba(192,139,92,0.6)] group-hover:scale-110 transition-transform duration-500" />
+          </div>
+          <p className="text-[20px] font-bold text-foreground tracking-tight mb-2 drop-shadow-md">No map data available</p>
+          <p className="text-[14px] text-[#A89E92] max-w-sm mx-auto font-medium leading-relaxed drop-shadow-sm">Properties don't have location coordinates or a valid search wasn't performed.</p>
         </div>
       </div>
     );
   }
 
-  if (mappableProperties.length === 0) {
+  if (!MAPBOX_TOKEN) {
     return (
-      <div className={cn('flex items-center justify-center bg-[#16161a] border border-white/[0.06]', className)}>
-        <div className="text-center p-8">
-          <p className="text-[13px] text-white/30 mb-1">No map data available</p>
-          <p className="text-[11px] text-white/15">Properties don't have location coordinates</p>
+      <div className={cn('flex flex-col items-center justify-center bg-background h-full w-full relative overflow-hidden', className)}>
+        {/* Placeholder Map Pattern */}
+        <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-[#0F0D0B] via-transparent to-[#1A1816]/50 mix-blend-overlay"></div>
+
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-12 z-10">
+          <div className="w-20 h-20 rounded-[24px] bg-gradient-to-b from-[#1E1A17] to-[#12100E] border border-black/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.8)] flex items-center justify-center mb-6 relative group overflow-hidden">
+            <div className="absolute inset-0 bg-[#C08B5C]/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <MapPin className="w-8 h-8 text-[#C08B5C] drop-shadow-[0_0_12px_rgba(192,139,92,0.6)] group-hover:scale-110 transition-transform duration-500" />
+          </div>
+          <h2 className="text-[28px] font-black text-foreground tracking-tight mb-3 drop-shadow-md">Interactive Map</h2>
+          <p className="text-[16px] text-[#A89E92] max-w-md font-medium leading-relaxed drop-shadow-sm">
+            Map requires a Mapbox token. Map View gives you an immersive visualization of all your scouted deals.
+          </p>
+          <button className="mt-8 px-8 py-3.5 rounded-[12px] bg-black/[0.05] border border-black/[0.08] text-foreground/80 font-bold hover:bg-black/[0.07] hover:text-foreground transition-all shadow-md active:scale-95">
+            Add VITE_MAPBOX_TOKEN to .env
+          </button>
         </div>
       </div>
     );
@@ -378,9 +399,9 @@ export const PropertyMapView: React.FC<PropertyMapViewProps> = ({
 
   return (
     <div className={cn(
-      'relative overflow-hidden border border-white/[0.06]',
+      'relative overflow-hidden border border-black/[0.06]',
       '[&_.mapboxgl-popup]:!z-[9999]',
-      '[&_.mapboxgl-ctrl-group]:!bg-[#1e1e24] [&_.mapboxgl-ctrl-group]:!border-white/[0.08] [&_.mapboxgl-ctrl-group]:!rounded-md [&_.mapboxgl-ctrl-group]:!shadow-md',
+      '[&_.mapboxgl-ctrl-group]:!bg-surface-elevated [&_.mapboxgl-ctrl-group]:!border-black/[0.08] [&_.mapboxgl-ctrl-group]:!rounded-md [&_.mapboxgl-ctrl-group]:!shadow-md',
       '[&_.mapboxgl-ctrl-icon]:!invert [&_.mapboxgl-ctrl-icon]:!opacity-40',
       className,
     )}>
@@ -449,7 +470,7 @@ export const PropertyMapView: React.FC<PropertyMapViewProps> = ({
             offset={12}
             closeOnClick={false}
             closeButton={false}
-            className="[&_.mapboxgl-popup-content]:!bg-transparent [&_.mapboxgl-popup-content]:!p-0 [&_.mapboxgl-popup-content]:!shadow-none [&_.mapboxgl-popup-tip]:!border-b-[#1e1e24] [&_.mapboxgl-popup-tip]:!border-t-transparent"
+            className="[&_.mapboxgl-popup-content]:!bg-transparent [&_.mapboxgl-popup-content]:!p-0 [&_.mapboxgl-popup-content]:!shadow-none [&_.mapboxgl-popup-tip]:!border-b-border [&_.mapboxgl-popup-tip]:!border-t-transparent"
           >
             <HoverTooltip property={hoveredProperty} />
           </Popup>
@@ -467,8 +488,8 @@ export const PropertyMapView: React.FC<PropertyMapViewProps> = ({
             onClose={() => setClickedProperty(null)}
             className={cn(
               '[&_.mapboxgl-popup-content]:!bg-transparent [&_.mapboxgl-popup-content]:!p-0 [&_.mapboxgl-popup-content]:!shadow-none',
-              '[&_.mapboxgl-popup-tip]:!border-t-[#1e1e24]',
-              '[&_.mapboxgl-popup-close-button]:!text-white/40 [&_.mapboxgl-popup-close-button]:!text-lg [&_.mapboxgl-popup-close-button]:!right-2 [&_.mapboxgl-popup-close-button]:!top-2 [&_.mapboxgl-popup-close-button]:!z-10',
+              '[&_.mapboxgl-popup-tip]:!border-t-border',
+              '[&_.mapboxgl-popup-close-button]:!text-muted-foreground/70 [&_.mapboxgl-popup-close-button]:!text-lg [&_.mapboxgl-popup-close-button]:!right-2 [&_.mapboxgl-popup-close-button]:!top-2 [&_.mapboxgl-popup-close-button]:!z-10',
             )}
           >
             <PopupCard property={clickedProperty} onAction={handlePopupAction} />
@@ -477,7 +498,7 @@ export const PropertyMapView: React.FC<PropertyMapViewProps> = ({
       </Map>
 
       {/* Property count badge */}
-      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-[#1e1e24]/90 border border-white/[0.06] text-[11px] text-white/50 font-medium z-30 shadow-md">
+      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-surface-elevated/90 border border-black/[0.06] text-[11px] text-muted-foreground font-medium z-30 shadow-md">
         {onMap < totalProperties
           ? <span>{onMap} of {totalProperties} on map</span>
           : <span>{onMap} properties</span>
@@ -488,7 +509,7 @@ export const PropertyMapView: React.FC<PropertyMapViewProps> = ({
       <div className="absolute top-3 right-3 z-30">
         <button
           onClick={handleFitAll}
-          className="p-1.5 rounded-md bg-[#1e1e24]/90 border border-white/[0.06] text-white/40 hover:text-white/70 transition-colors shadow-md"
+          className="p-1.5 rounded-md bg-surface-elevated/90 border border-black/[0.06] text-muted-foreground/70 hover:text-foreground/70 transition-colors shadow-md"
           title="Fit all properties"
         >
           <Maximize2 className="w-3.5 h-3.5" />

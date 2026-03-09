@@ -127,13 +127,13 @@ const RangeSlider: React.FC<{
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[9px] text-white/20 uppercase tracking-wider font-semibold">{label}</span>
-        <span className="text-[10px] text-white/45 font-mono">
+        <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold">{label}</span>
+        <span className="text-[10px] text-muted-foreground/70 font-mono">
           {formatLabel(low)} – {formatLabel(high)}
         </span>
       </div>
       <div className="relative h-5 flex items-center">
-        <div className="absolute inset-x-0 h-[3px] rounded-full bg-white/[0.06]" />
+        <div className="absolute inset-x-0 h-[3px] rounded-full bg-black/[0.05]" />
         <div
           className="absolute h-[3px] rounded-full bg-gradient-to-r from-[#C08B5C]/60 to-[#D4A27F]/60"
           style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
@@ -174,11 +174,11 @@ const SingleSlider: React.FC<{
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[9px] text-white/20 uppercase tracking-wider font-semibold">{label}</span>
-        <span className="text-[10px] text-white/45 font-mono">{formatLabel(value)}</span>
+        <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold">{label}</span>
+        <span className="text-[10px] text-muted-foreground/70 font-mono">{formatLabel(value)}</span>
       </div>
       <div className="relative h-5 flex items-center">
-        <div className="absolute inset-x-0 h-[3px] rounded-full bg-white/[0.06]" />
+        <div className="absolute inset-x-0 h-[3px] rounded-full bg-black/[0.05]" />
         <div
           className="absolute h-[3px] rounded-full bg-gradient-to-r from-[#C08B5C]/60 to-[#D4A27F]/60"
           style={{ width: `${fillPct}%` }}
@@ -216,18 +216,18 @@ const MarketStatsBar: React.FC<{ topPicks: PropertyCardData[]; moreMatches: Prop
   }, [allProperties]);
 
   return (
-    <div className="mb-5 px-4 py-3 rounded-xl bg-[#1A1920]/50 border border-white/[0.06]">
-      <h2 className="text-[18px] font-bold text-white/90 mb-1.5">
+    <div className="mb-5 px-4 py-3 rounded-xl bg-background/50 border border-black/[0.06]">
+      <h2 className="text-[18px] font-bold text-foreground mb-1.5">
         {displayed} investment properties{location ? ` in ${location}` : ''}
       </h2>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-white/40 font-mono">
-        <span>AI analyzed <span className="text-white/55 font-semibold">{totalFound}</span> properties</span>
-        <span className="text-white/10">·</span>
-        <span>Median <span className="text-white/55 font-semibold">{fmtCurrency(medianPrice)}</span></span>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground/70 font-mono">
+        <span>AI analyzed <span className="text-muted-foreground/70 font-semibold">{totalFound}</span> properties</span>
+        <span className="text-muted-foreground/30">·</span>
+        <span>Median <span className="text-muted-foreground/70 font-semibold">{fmtCurrency(medianPrice)}</span></span>
         {avgCap > 0 && (
           <>
-            <span className="text-white/10">·</span>
-            <span>Avg Cap <span className="text-white/55 font-semibold">{avgCap.toFixed(1)}%</span></span>
+            <span className="text-muted-foreground/30">·</span>
+            <span>Avg Cap <span className="text-muted-foreground/70 font-semibold">{avgCap.toFixed(1)}%</span></span>
           </>
         )}
       </div>
@@ -243,8 +243,8 @@ const Pill: React.FC<{ label: string; active: boolean; onClick: () => void }> = 
     className={cn(
       'px-2.5 py-1 rounded-md text-[10px] font-medium transition-all',
       active
-        ? 'bg-white/[0.08] text-white/70 border border-white/[0.08]'
-        : 'text-white/25 hover:text-white/40 hover:bg-white/[0.03] border border-transparent'
+        ? 'bg-black/[0.06] text-foreground/70 border border-black/[0.08]'
+        : 'text-muted-foreground/50 hover:text-muted-foreground/70 hover:bg-black/[0.02] border border-transparent'
     )}
   >
     {label}
@@ -270,7 +270,7 @@ const SortDropdown: React.FC<{ value: SortKey; onChange: (key: SortKey) => void 
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 py-1 px-2.5 rounded-md bg-white/[0.03] border border-white/[0.06] text-[10px] text-white/40 hover:text-white/60 transition-colors"
+        className="flex items-center gap-1.5 py-1 px-2.5 rounded-md bg-black/[0.02] border border-black/[0.06] text-[10px] text-muted-foreground/70 hover:text-muted-foreground transition-colors"
       >
         <ArrowUpDown className="w-3 h-3" />
         {currentLabel}
@@ -283,7 +283,7 @@ const SortDropdown: React.FC<{ value: SortKey; onChange: (key: SortKey) => void 
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-1 z-20 py-1 rounded-lg bg-[#1C1B21] border border-white/[0.08] shadow-xl min-w-[130px] backdrop-blur-xl"
+            className="absolute top-full right-0 mt-1 z-20 py-1 rounded-lg bg-card border border-black/[0.08] shadow-xl min-w-[130px] backdrop-blur-xl"
           >
             {SORT_OPTIONS.map(s => (
               <button
@@ -291,7 +291,7 @@ const SortDropdown: React.FC<{ value: SortKey; onChange: (key: SortKey) => void 
                 onClick={() => { onChange(s.key); setOpen(false); }}
                 className={cn(
                   'w-full text-left px-3 py-1.5 text-[10px] font-medium transition-colors',
-                  value === s.key ? 'text-[#D4A27F] bg-white/[0.04]' : 'text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
+                  value === s.key ? 'text-[#D4A27F] bg-black/[0.03]' : 'text-muted-foreground/70 hover:text-muted-foreground hover:bg-black/[0.02]'
                 )}
               >
                 {s.label}
@@ -326,8 +326,8 @@ const PaginationBar: React.FC<{
   };
 
   return (
-    <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/[0.04]">
-      <span className="text-[10px] text-white/25 font-mono">
+    <div className="flex items-center justify-between mt-6 pt-4 border-t border-black/[0.04]">
+      <span className="text-[10px] text-muted-foreground/50 font-mono">
         {startItem}–{endItem} of {totalItems}
       </span>
       <div className="flex items-center gap-1">
@@ -337,15 +337,15 @@ const PaginationBar: React.FC<{
           className={cn(
             'p-1.5 rounded-md transition-colors',
             currentPage === 1
-              ? 'text-white/10 cursor-not-allowed'
-              : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
+              ? 'text-muted-foreground/30 cursor-not-allowed'
+              : 'text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/[0.03]'
           )}
         >
           <ChevronLeft className="w-3.5 h-3.5" />
         </button>
         {getPageNumbers().map((page, i) =>
           page === '...' ? (
-            <span key={`ellipsis-${i}`} className="px-1 text-[10px] text-white/15">...</span>
+            <span key={`ellipsis-${i}`} className="px-1 text-[10px] text-muted-foreground/40">...</span>
           ) : (
             <button
               key={page}
@@ -354,7 +354,7 @@ const PaginationBar: React.FC<{
                 'w-7 h-7 rounded-md text-[10px] font-medium transition-all',
                 page === currentPage
                   ? 'bg-[#C08B5C]/15 text-[#D4A27F] border border-[#C08B5C]/20'
-                  : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/[0.03]'
               )}
             >
               {page}
@@ -367,8 +367,8 @@ const PaginationBar: React.FC<{
           className={cn(
             'p-1.5 rounded-md transition-colors',
             currentPage === totalPages
-              ? 'text-white/10 cursor-not-allowed'
-              : 'text-white/30 hover:text-white/50 hover:bg-white/[0.04]'
+              ? 'text-muted-foreground/30 cursor-not-allowed'
+              : 'text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/[0.03]'
           )}
         >
           <ChevronRight className="w-3.5 h-3.5" />
@@ -390,22 +390,22 @@ const ComparisonDock: React.FC<{
     initial={{ y: 20, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
     exit={{ y: 20, opacity: 0 }}
-    className="flex items-center gap-2.5 p-3 rounded-lg bg-white/[0.04] border border-white/[0.08] mt-4"
+    className="flex items-center gap-2.5 p-3 rounded-lg bg-black/[0.03] border border-black/[0.08] mt-4"
   >
-    <span className="text-[10px] text-white/25 uppercase tracking-wider font-semibold flex-shrink-0">
+    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold flex-shrink-0">
       Compare ({selectedProperties.length})
     </span>
     <div className="flex-1 flex items-center gap-1.5 overflow-x-auto">
       {selectedProperties.map(p => (
-        <div key={getId(p)} className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.05] flex-shrink-0">
-          <span className="text-[10px] text-white/45 truncate max-w-[100px]">{getAddress(p)}</span>
-          <button onClick={() => onRemove(getId(p))} className="text-white/15 hover:text-white/40">
+        <div key={getId(p)} className="flex items-center gap-1 px-2 py-0.5 rounded bg-black/[0.03] border border-black/[0.05] flex-shrink-0">
+          <span className="text-[10px] text-muted-foreground/70 truncate max-w-[100px]">{getAddress(p)}</span>
+          <button onClick={() => onRemove(getId(p))} className="text-muted-foreground/40 hover:text-muted-foreground/70">
             <X className="w-2.5 h-2.5" />
           </button>
         </div>
       ))}
     </div>
-    <button onClick={onClear} className="px-2 py-1 rounded text-[9px] text-white/20 hover:text-white/40 hover:bg-white/[0.03] font-semibold transition-all">
+    <button onClick={onClear} className="px-2 py-1 rounded text-[9px] text-muted-foreground/40 hover:text-muted-foreground/70 hover:bg-black/[0.02] font-semibold transition-all">
       Clear
     </button>
     <button
@@ -710,7 +710,7 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
               <Sparkles className="w-4 h-4 text-[#D4A27F]" />
               <span className="text-[13px] font-semibold text-[#D4A27F]">Top Picks</span>
             </div>
-            <span className="text-[11px] text-white/25">AI's best investment matches</span>
+            <span className="text-[11px] text-muted-foreground/50">AI's best investment matches</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -740,16 +740,16 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
         <div ref={moreMatchesRef}>
           {/* Section divider */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-white/[0.04]" />
-            <span className="text-[11px] text-white/25 font-medium">
-              More Matches <span className="text-white/12">({moreMatches.length})</span>
+            <div className="h-px flex-1 bg-black/[0.03]" />
+            <span className="text-[11px] text-muted-foreground/50 font-medium">
+              More Matches <span className="text-foreground/70">({moreMatches.length})</span>
             </span>
-            <div className="h-px flex-1 bg-white/[0.04]" />
+            <div className="h-px flex-1 bg-black/[0.03]" />
           </div>
 
           {/* ── Quick Presets ── */}
           <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-            <span className="text-[9px] text-white/15 uppercase tracking-wider font-semibold mr-1">Quick</span>
+            <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mr-1">Quick</span>
             {presets.map(preset => (
               <button
                 key={preset.id}
@@ -758,7 +758,7 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
                   'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all border',
                   preset.active
                     ? 'bg-[#C08B5C]/12 text-[#D4A27F] border-[#C08B5C]/20'
-                    : 'text-white/25 hover:text-white/40 border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02]'
+                    : 'text-muted-foreground/50 hover:text-muted-foreground/70 border-black/[0.04] hover:border-black/[0.08] hover:bg-black/[0.02]'
                 )}
               >
                 {preset.icon}
@@ -772,24 +772,24 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
             {/* Search */}
             <div className="flex items-center">
               {searchOpen ? (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/[0.08] bg-white/[0.03]">
-                  <Search className="w-3 h-3 text-white/20 flex-shrink-0" />
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-black/[0.08] bg-black/[0.02]">
+                  <Search className="w-3 h-3 text-muted-foreground/40 flex-shrink-0" />
                   <input
                     autoFocus
                     type="text"
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     placeholder="Address, city, zip..."
-                    className="bg-transparent border-none outline-none text-[10px] text-white/60 placeholder:text-white/15 w-[130px]"
+                    className="bg-transparent border-none outline-none text-[10px] text-muted-foreground placeholder:text-muted-foreground/40 w-[130px]"
                   />
-                  <button onClick={() => { setSearchText(''); setSearchOpen(false); }} className="text-white/15 hover:text-white/30">
+                  <button onClick={() => { setSearchText(''); setSearchOpen(false); }} className="text-muted-foreground/40 hover:text-muted-foreground/50">
                     <X className="w-3 h-3" />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setSearchOpen(true)}
-                  className="p-1.5 rounded-md text-white/20 hover:text-white/40 hover:bg-white/[0.03] transition-colors border border-transparent"
+                  className="p-1.5 rounded-md text-muted-foreground/40 hover:text-muted-foreground/70 hover:bg-black/[0.02] transition-colors border border-transparent"
                   title="Search properties"
                 >
                   <Search className="w-3.5 h-3.5" />
@@ -797,31 +797,31 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
               )}
             </div>
 
-            <div className="w-px h-4 bg-white/[0.06]" />
+            <div className="w-px h-4 bg-black/[0.05]" />
 
             {/* Beds pills */}
             <div className="flex items-center gap-0.5">
-              <span className="text-[9px] text-white/15 uppercase tracking-wider font-semibold mr-1">Beds</span>
+              <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mr-1">Beds</span>
               {BED_OPTIONS.map(opt => (
                 <Pill key={opt} label={opt} active={bedFilter === opt} onClick={() => setBedFilter(opt)} />
               ))}
             </div>
 
-            <div className="w-px h-4 bg-white/[0.06]" />
+            <div className="w-px h-4 bg-black/[0.05]" />
 
             {/* Baths pills */}
             <div className="flex items-center gap-0.5">
-              <span className="text-[9px] text-white/15 uppercase tracking-wider font-semibold mr-1">Baths</span>
+              <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mr-1">Baths</span>
               {BATH_OPTIONS.map(opt => (
                 <Pill key={opt} label={opt} active={bathFilter === opt} onClick={() => setBathFilter(opt)} />
               ))}
             </div>
 
-            <div className="w-px h-4 bg-white/[0.06]" />
+            <div className="w-px h-4 bg-black/[0.05]" />
 
             {/* Type pills */}
             <div className="flex items-center gap-0.5">
-              <span className="text-[9px] text-white/15 uppercase tracking-wider font-semibold mr-1">Type</span>
+              <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold mr-1">Type</span>
               {TYPE_OPTIONS.map(opt => (
                 <Pill key={opt} label={opt} active={typeFilter === opt} onClick={() => setTypeFilter(opt)} />
               ))}
@@ -835,8 +835,8 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
               className={cn(
                 'flex items-center gap-1 px-2 py-1 rounded-md text-[10px] transition-colors border',
                 filtersExpanded
-                  ? 'bg-white/[0.06] text-white/50 border-white/[0.08]'
-                  : 'text-white/25 hover:text-white/40 border-transparent hover:bg-white/[0.03]'
+                  ? 'bg-black/[0.05] text-muted-foreground border-black/[0.08]'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground/70 border-transparent hover:bg-black/[0.02]'
               )}
             >
               <SlidersHorizontal className="w-3 h-3" /> Advanced
@@ -856,7 +856,7 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden mb-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 p-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 p-4 rounded-lg bg-black/[0.02] border border-black/[0.04]">
                   {/* Price range */}
                   <RangeSlider
                     label="Price"
@@ -881,7 +881,7 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
 
                   {/* Cash Flow */}
                   <div className="flex flex-col gap-1.5">
-                    <span className="text-[9px] text-white/20 uppercase tracking-wider font-semibold">Cash Flow</span>
+                    <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider font-semibold">Cash Flow</span>
                     <div className="flex items-center gap-1">
                       {CASH_FLOW_OPTIONS.map(opt => (
                         <Pill key={opt} label={opt} active={cashFlowFilter === opt} onClick={() => setCashFlowFilter(opt)} />
@@ -917,8 +917,8 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
 
           {/* ── Filter indicator ── */}
           {isFiltered && (
-            <div className="flex items-center gap-2 mb-3 text-[10px] text-white/30">
-              <span>Showing <span className="text-white/50 font-medium">{filteredMore.length}</span> of {moreMatches.length}</span>
+            <div className="flex items-center gap-2 mb-3 text-[10px] text-muted-foreground/50">
+              <span>Showing <span className="text-muted-foreground font-medium">{filteredMore.length}</span> of {moreMatches.length}</span>
               <button onClick={clearAllFilters} className="text-[#D4A27F] hover:text-[#C08B5C] font-medium">
                 Clear filters
               </button>
@@ -928,7 +928,7 @@ export const PropertyResultsGrid: React.FC<PropertyResultsGridProps> = ({
           {/* ── Empty state ── */}
           {filteredMore.length === 0 && (
             <div className="py-10 text-center">
-              <p className="text-[12px] text-white/25 mb-2">No properties match your filters</p>
+              <p className="text-[12px] text-muted-foreground/50 mb-2">No properties match your filters</p>
               <button onClick={clearAllFilters} className="text-[11px] text-[#D4A27F] hover:text-[#C08B5C] font-medium">
                 Reset filters
               </button>

@@ -15,7 +15,7 @@ export const SearchFloatingButton: React.FC<SearchFloatingButtonProps> = ({ onCl
             <Search className="w-5 h-5 text-white" />
 
             {/* Tooltip */}
-            <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-card text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                 Search Chats
             </span>
 

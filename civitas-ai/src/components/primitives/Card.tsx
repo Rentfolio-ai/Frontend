@@ -12,7 +12,7 @@ const cardVariants = {
   default: 'bg-card border border-border/50',
   elevated: 'bg-surface-elevated border border-border/30 shadow-medium hover:shadow-hard transition-shadow duration-300',
   outlined: 'bg-transparent border-2 border-border hover:border-primary/50 transition-colors duration-300',
-  glass: 'bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-soft',
+  glass: 'bg-black/8 dark:bg-black/5 backdrop-blur-xl border border-black/12 dark:border-black/8 shadow-soft',
   gradient: 'bg-gradient-to-br from-primary/10 to-accent-from/10 border border-primary/20 shadow-soft hover:shadow-glow transition-all duration-300',
   glow: 'bg-card border border-primary/30 shadow-glow hover:shadow-glow-lg transition-all duration-300',
 };

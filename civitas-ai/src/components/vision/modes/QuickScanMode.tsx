@@ -210,7 +210,7 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
   // ── Render ────────────────────────────────────────────
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       <AnimatePresence mode="wait">
         {/* ── Camera View ─────────────────────────────── */}
         {view === 'camera' && (
@@ -248,7 +248,7 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-sm rounded-[20px] overflow-hidden mb-8 border border-white/[0.03]"
+                className="w-full max-w-sm rounded-[20px] overflow-hidden mb-8 border border-black/[0.05]"
               >
                 <img src={capturedImage} alt="Captured" className="w-full h-48 object-cover" />
               </motion.div>
@@ -271,7 +271,7 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                       isActive
                         ? 'bg-violet-500/8 border border-violet-500/15'
                         : isDone
-                        ? 'bg-white/[0.02] border border-white/[0.03]'
+                        ? 'bg-black/[0.02] border border-black/[0.05]'
                         : 'opacity-25 border border-transparent'
                     }`}
                   >
@@ -280,10 +280,10 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                     ) : isActive ? (
                       <Loader2 className="w-4.5 h-4.5 text-violet-400 animate-spin flex-shrink-0" />
                     ) : (
-                      <Icon className="w-4.5 h-4.5 text-white/20 flex-shrink-0" />
+                      <Icon className="w-4.5 h-4.5 text-muted-foreground/40 flex-shrink-0" />
                     )}
                     <span className={`text-sm font-medium ${
-                      isActive ? 'text-white/90' : isDone ? 'text-white/50' : 'text-white/20'
+                      isActive ? 'text-foreground' : isDone ? 'text-muted-foreground' : 'text-muted-foreground/40'
                     }`}>
                       {stage.label}
                     </span>
@@ -305,15 +305,15 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
             className="h-full overflow-y-auto"
           >
             {/* Back bar */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04]">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04]">
               <button
                 onClick={newScan}
-                className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>New scan</span>
               </button>
-              <div className="text-[10px] text-white/20 font-medium">
+              <div className="text-[10px] text-muted-foreground/40 font-medium">
                 {analysisResult.inference_time_ms.toFixed(0)}ms · {analysisResult.model_version}
               </div>
             </div>
@@ -322,22 +322,22 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
               {/* Image + Condition header */}
               <div className="flex gap-4">
                 {capturedImage && (
-                  <div className="relative w-28 h-28 rounded-2xl overflow-hidden flex-shrink-0 border border-white/[0.03]">
+                  <div className="relative w-28 h-28 rounded-2xl overflow-hidden flex-shrink-0 border border-black/[0.05]">
                     <img src={capturedImage} alt="Analyzed" className="w-full h-full object-cover" />
                     <DetectionOverlay detections={analysisResult.detections} animate={false} />
                   </div>
                 )}
                 <div className="flex-1 flex flex-col justify-center space-y-2">
-                  <div className="text-[10px] text-white/30 uppercase tracking-wider font-medium">
+                  <div className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-medium">
                     {formatDamageClass(analysisResult.room_type)}
                   </div>
-                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium border ${conditionColors[analysisResult.condition] || 'bg-white/5 text-white/60'}`}>
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium border ${conditionColors[analysisResult.condition] || 'bg-black/5 text-muted-foreground'}`}>
                     {analysisResult.condition === 'critical' ? <XCircle className="w-3.5 h-3.5" /> :
                      analysisResult.condition === 'poor' ? <AlertTriangle className="w-3.5 h-3.5" /> :
                      <CheckCircle2 className="w-3.5 h-3.5" />}
                     {analysisResult.condition.charAt(0).toUpperCase() + analysisResult.condition.slice(1)}
                   </div>
-                  <div className="text-[11px] text-white/25">
+                  <div className="text-[11px] text-muted-foreground/50">
                     {analysisResult.detections.length} issue{analysisResult.detections.length !== 1 ? 's' : ''} detected
                   </div>
                 </div>
@@ -348,13 +348,13 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-[#121216] rounded-2xl p-5 border border-white/[0.03]"
+                className="bg-card rounded-2xl p-5 border border-black/[0.05]"
               >
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
                     <BarChart3 className="w-4 h-4 text-violet-400" />
                   </div>
-                  <span className="text-sm font-medium text-white/70">Deal Score</span>
+                  <span className="text-sm font-medium text-foreground/70">Deal Score</span>
                 </div>
 
                 <div className="flex items-center gap-6">
@@ -365,16 +365,16 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                   />
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/30">Risk</span>
-                      <span className="text-white/60 capitalize">{analysisResult.investment_metrics.risk_level}</span>
+                      <span className="text-muted-foreground/50">Risk</span>
+                      <span className="text-muted-foreground capitalize">{analysisResult.investment_metrics.risk_level}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/30">Value-add</span>
-                      <span className="text-white/60">{(analysisResult.investment_metrics.value_add_potential * 100).toFixed(0)}%</span>
+                      <span className="text-muted-foreground/50">Value-add</span>
+                      <span className="text-muted-foreground">{(analysisResult.investment_metrics.value_add_potential * 100).toFixed(0)}%</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-white/30">BRRRR</span>
-                      <span className={`font-medium ${analysisResult.investment_metrics.brrrr_viable ? 'text-emerald-400' : 'text-white/40'}`}>
+                      <span className="text-muted-foreground/50">BRRRR</span>
+                      <span className={`font-medium ${analysisResult.investment_metrics.brrrr_viable ? 'text-emerald-400' : 'text-muted-foreground/70'}`}>
                         {analysisResult.investment_metrics.brrrr_viable ? 'Viable' : 'No'}
                       </span>
                     </div>
@@ -388,13 +388,13 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+                  className="bg-card rounded-2xl p-4 border border-black/[0.05]"
                 >
                   <div className="flex items-center gap-2.5 mb-3">
                     <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center">
                       <AlertTriangle className="w-4 h-4 text-orange-400" />
                     </div>
-                    <span className="text-sm font-medium text-white/70">Detected Issues</span>
+                    <span className="text-sm font-medium text-foreground/70">Detected Issues</span>
                   </div>
                   <div className="space-y-2">
                     {analysisResult.detections.map((det, i) => (
@@ -403,9 +403,9 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 + i * 0.05 }}
-                        className="flex items-center justify-between py-2 border-b border-white/[0.03] last:border-0"
+                        className="flex items-center justify-between py-2 border-b border-black/[0.05] last:border-0"
                       >
-                        <span className="text-sm text-white/60">{formatDamageClass(det.damage_class)}</span>
+                        <span className="text-sm text-muted-foreground">{formatDamageClass(det.damage_class)}</span>
                         <SeverityBadge severity={det.severity} size="sm" confidence={det.confidence} />
                       </motion.div>
                     ))}
@@ -433,19 +433,19 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+                className="bg-card rounded-2xl p-4 border border-black/[0.05]"
               >
                 <div className="flex items-center gap-2.5 mb-3">
                   <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center">
                     <Shield className="w-4 h-4 text-blue-400" />
                   </div>
-                  <span className="text-sm font-medium text-white/70">Recommended Strategy</span>
+                  <span className="text-sm font-medium text-foreground/70">Recommended Strategy</span>
                 </div>
-                <p className="text-sm text-white/50 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {analysisResult.investment_metrics.recommended_strategy}
                 </p>
                 {analysisResult.investment_metrics.estimated_arv && (
-                  <div className="mt-2 text-xs text-white/25">
+                  <div className="mt-2 text-xs text-muted-foreground/50">
                     Estimated ARV: {formatCurrency(analysisResult.investment_metrics.estimated_arv)}
                   </div>
                 )}
@@ -487,7 +487,7 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={newScan}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.04] text-white/50 hover:bg-white/[0.07] transition-all text-sm font-medium border border-white/[0.03]"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-black/[0.03] text-muted-foreground hover:bg-black/[0.05] transition-all text-sm font-medium border border-black/[0.05]"
                   >
                     <RefreshCw className="w-4 h-4" />
                     New Scan
@@ -495,7 +495,7 @@ export const QuickScanMode: React.FC<QuickScanModeProps> = ({
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handleExportPDF}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.04] text-white/50 hover:bg-white/[0.07] transition-all text-sm font-medium border border-white/[0.03]"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-black/[0.03] text-muted-foreground hover:bg-black/[0.05] transition-all text-sm font-medium border border-black/[0.05]"
                   >
                     <Download className="w-4 h-4" />
                     Export PDF

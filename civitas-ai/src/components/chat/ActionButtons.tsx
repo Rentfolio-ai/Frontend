@@ -14,10 +14,10 @@ export function ActionButtons({ action, onAction }: ActionButtonsProps) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.15 }}
-      className="mt-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm"
+      className="mt-3 p-3 rounded-xl border border-black/[0.08] bg-black/[0.02] backdrop-blur-sm"
     >
       {/* Message */}
-      <p className="text-[13px] font-medium text-white/60 mb-2.5">
+      <p className="text-[13px] font-medium text-muted-foreground mb-2.5">
         {action.message}
       </p>
 
@@ -40,7 +40,7 @@ export function ActionButtons({ action, onAction }: ActionButtonsProps) {
                 transition-all duration-200
                 ${isPrimary
                   ? 'bg-gradient-to-r from-[#C08B5C] to-[#A8734A] text-white shadow-lg shadow-[#C08B5C]/20 hover:from-[#D4A27F] hover:to-[#C08B5C]'
-                  : 'bg-white/[0.06] text-white/60 border border-white/[0.1] hover:bg-white/[0.1] hover:text-white/80'
+                  : 'bg-black/[0.05] text-muted-foreground border border-black/[0.08] hover:bg-black/[0.07] hover:text-foreground/80'
                 }
               `}
             >

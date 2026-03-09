@@ -88,37 +88,37 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
           <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[#C08B5C]/20 to-purple-500/20 border border-[#C08B5C]/30 flex items-center justify-center">
             <Building2 className="w-10 h-10 text-[#D4A27F]" />
           </div>
-          <h3 className="text-xl font-bold text-white mb-3">
+          <h3 className="text-xl font-bold text-foreground mb-3">
             Property Intelligence
           </h3>
-          <p className="text-white/60 text-sm mb-6">
+          <p className="text-muted-foreground text-sm mb-6">
             Select a property from the results to view detailed analysis, AI insights, and 3D visualizations
           </p>
           
           {/* Quick Tips */}
           <div className="space-y-2 text-left">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-black/5 border border-black/8">
               <div className="w-6 h-6 rounded-full bg-[#C08B5C]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-[#D4A27F] text-xs font-bold">1</span>
               </div>
-              <p className="text-white/70 text-sm">
-                <span className="font-semibold text-white">Click</span> a property card to view details
+              <p className="text-foreground/70 text-sm">
+                <span className="font-semibold text-foreground">Click</span> a property card to view details
               </p>
             </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-black/5 border border-black/8">
               <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-purple-400 text-xs font-bold">2</span>
               </div>
-              <p className="text-white/70 text-sm">
-                <span className="font-semibold text-white">Drag</span> properties to the comparison dock
+              <p className="text-foreground/70 text-sm">
+                <span className="font-semibold text-foreground">Drag</span> properties to the comparison dock
               </p>
             </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-black/5 border border-black/8">
               <div className="w-6 h-6 rounded-full bg-[#C08B5C]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-[#D4A27F] text-xs font-bold">3</span>
               </div>
-              <p className="text-white/70 text-sm">
-                <span className="font-semibold text-white">Right-click</span> for quick actions
+              <p className="text-foreground/70 text-sm">
+                <span className="font-semibold text-foreground">Right-click</span> for quick actions
               </p>
             </div>
           </div>
@@ -148,12 +148,12 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
   return (
     <div className="h-full flex flex-col">
       {/* Sticky Header */}
-      <div className="flex-shrink-0 sticky top-0 z-10 bg-slate-900/95 backdrop-blur-xl border-b border-white/10">
+      <div className="flex-shrink-0 sticky top-0 z-10 bg-popover/95 backdrop-blur-xl border-b border-black/8">
         {/* Property Preview */}
         <div className="p-4">
           <div className="flex items-start gap-4">
             {/* Property Image */}
-            <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800">
+            <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
               <img
                 src={selectedProperty.photos?.[0] || 'https://images.rentcast.io/s3/photo-placeholder.jpg'}
                 alt={selectedProperty.address}
@@ -164,7 +164,7 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
             {/* Property Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="text-lg font-bold text-white truncate">
+                <h3 className="text-lg font-bold text-foreground truncate">
                   ${selectedProperty.price?.toLocaleString()}
                 </h3>
                 <div className="flex items-center gap-1">
@@ -174,7 +174,7 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
                       'p-2 rounded-lg transition-all',
                       isPinned
                         ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
-                        : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10'
+                        : 'bg-black/5 text-muted-foreground hover:bg-black/8 hover:text-foreground border border-black/8'
                     )}
                     title={isPinned ? 'Unpin property' : 'Pin property'}
                   >
@@ -182,7 +182,7 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
                   </button>
                   <button
                     onClick={() => onAddToComparison(selectedProperty)}
-                    className="p-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-all"
+                    className="p-2 rounded-lg bg-black/5 text-muted-foreground hover:bg-black/8 hover:text-foreground border border-black/8 transition-all"
                     title="Add to comparison dock"
                   >
                     <GitCompare className="w-4 h-4" />
@@ -190,11 +190,11 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
                 </div>
               </div>
 
-              <p className="text-sm text-white/70 mb-2 line-clamp-2">
+              <p className="text-sm text-foreground/70 mb-2 line-clamp-2">
                 {selectedProperty.address}
               </p>
 
-              <div className="flex items-center gap-4 text-xs text-white/60">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Building2 className="w-3 h-3" />
                   {selectedProperty.bedrooms} bd
@@ -221,8 +221,8 @@ export const IntelligencePane: React.FC<IntelligencePaneProps> = ({
               className={cn(
                 'relative px-4 py-3 text-sm font-medium transition-all flex items-center gap-2',
                 activeTab === tab.id
-                  ? 'text-white'
-                  : 'text-white/60 hover:text-white/80'
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground/80'
               )}
             >
               {tab.icon}
@@ -265,7 +265,7 @@ const OverviewTab: React.FC<{ property: ScoutedProperty; onOpenDealAnalyzer?: an
     {onOpenDealAnalyzer && (
       <button
         onClick={() => onOpenDealAnalyzer(property.listing_id, 'STR', property.price, property.address)}
-        className="w-full py-3 px-4 bg-gradient-to-r from-[#C08B5C] to-purple-600 hover:from-[#A8734A] hover:to-purple-700 text-white font-semibold rounded-lg transition-all shadow-lg shadow-[#C08B5C]/20"
+        className="w-full py-3 px-4 bg-gradient-to-r from-[#C08B5C] to-purple-600 hover:from-[#A8734A] hover:to-purple-700 text-foreground font-semibold rounded-lg transition-all shadow-lg shadow-[#C08B5C]/20"
       >
         Open Deal Analyzer
       </button>
@@ -318,7 +318,7 @@ const AIInsightsTab: React.FC<{ property: ScoutedProperty }> = ({ property }) =>
           </div>
         )}
         
-        <p className="text-white/70 text-sm">
+        <p className="text-foreground/70 text-sm">
           AI-powered insights for this property are being generated. For detailed analysis including cash flow projections, ROI calculations, and risk assessment, use the Deal Analyzer.
         </p>
       </div>
@@ -349,7 +349,7 @@ const ThreeDViewTab: React.FC<{ property: ScoutedProperty }> = ({ property }) =>
 // Helper Components
 const InfoSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => (
   <div className="space-y-4">
-    <div className="flex items-center gap-2 text-white font-semibold">
+    <div className="flex items-center gap-2 text-foreground font-semibold">
       <div className="text-[#D4A27F]">{icon}</div>
       {title}
     </div>
@@ -360,14 +360,14 @@ const InfoSection: React.FC<{ title: string; icon: React.ReactNode; children: Re
 );
 
 const InfoRow: React.FC<{ label: string; value: string; icon?: React.ReactNode; highlight?: boolean }> = ({ label, value, icon, highlight }) => (
-  <div className="flex items-center justify-between py-2 border-b border-white/5">
-    <span className="text-sm text-white/60 flex items-center gap-2">
-      {icon && <span className="text-white/40">{icon}</span>}
+  <div className="flex items-center justify-between py-2 border-b border-black/5">
+    <span className="text-sm text-muted-foreground flex items-center gap-2">
+      {icon && <span className="text-muted-foreground/70">{icon}</span>}
       {label}
     </span>
     <span className={cn(
       'text-sm font-medium',
-      highlight ? 'text-[#D4A27F]' : 'text-white/90'
+      highlight ? 'text-[#D4A27F]' : 'text-foreground'
     )}>
       {value}
     </span>
@@ -377,7 +377,7 @@ const InfoRow: React.FC<{ label: string; value: string; icon?: React.ReactNode; 
 // Comparison Matrix Component
 const ComparisonMatrix: React.FC<{ properties: ScoutedProperty[] }> = ({ properties }) => (
   <div className="p-6">
-    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+    <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
       <GitCompare className="w-6 h-6 text-[#D4A27F]" />
       Property Comparison
     </h2>
@@ -385,14 +385,14 @@ const ComparisonMatrix: React.FC<{ properties: ScoutedProperty[] }> = ({ propert
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-white/10">
-            <th className="text-left py-3 px-4 text-sm font-semibold text-white/60">Metric</th>
+          <tr className="border-b border-black/8">
+            <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Metric</th>
             {properties.map((prop, idx) => (
               <th key={idx} className="text-left py-3 px-4">
-                <div className="text-sm font-semibold text-white truncate max-w-[200px]">
+                <div className="text-sm font-semibold text-foreground truncate max-w-[200px]">
                   ${prop.price?.toLocaleString()}
                 </div>
-                <div className="text-xs text-white/60 truncate max-w-[200px]">
+                <div className="text-xs text-muted-foreground truncate max-w-[200px]">
                   {prop.address}
                 </div>
               </th>
@@ -412,10 +412,10 @@ const ComparisonMatrix: React.FC<{ properties: ScoutedProperty[] }> = ({ propert
 );
 
 const ComparisonRow: React.FC<{ label: string; values: string[] }> = ({ label, values }) => (
-  <tr className="border-b border-white/5 hover:bg-white/5 transition-colors">
-    <td className="py-3 px-4 text-sm text-white/60">{label}</td>
+  <tr className="border-b border-black/5 hover:bg-black/5 transition-colors">
+    <td className="py-3 px-4 text-sm text-muted-foreground">{label}</td>
     {values.map((value, idx) => (
-      <td key={idx} className="py-3 px-4 text-sm text-white font-medium">{value}</td>
+      <td key={idx} className="py-3 px-4 text-sm text-foreground font-medium">{value}</td>
     ))}
   </tr>
 );

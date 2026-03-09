@@ -204,26 +204,26 @@ async function downloadReportAsPdf(report: ReportData): Promise<void> {
 
 /** Report Header with metadata fields */
 const ReportHeader: React.FC<{ report: ReportData }> = ({ report }) => (
-  <div className="flex-shrink-0 px-6 py-4 border-b border-white/[0.06] bg-gradient-to-r from-violet-500/[0.04] to-transparent">
+  <div className="flex-shrink-0 px-6 py-4 border-b border-black/[0.06] bg-gradient-to-r from-violet-500/[0.04] to-transparent">
     <div className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <h2 className="text-base font-semibold text-white/90 flex items-center gap-2">
+        <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
           {REPORT_TYPE_ICONS[report.report_type]}
           {REPORT_TYPE_LABELS[report.report_type]} Report
         </h2>
         {report.property_address && (
-          <p className="text-[12px] text-white/50 flex items-center gap-1.5 mt-1">
+          <p className="text-[12px] text-muted-foreground flex items-center gap-1.5 mt-1">
             <MapPin className="w-3 h-3" />
             {report.property_address}
           </p>
         )}
       </div>
-      <div className="flex flex-col items-end text-[11px] text-white/35 shrink-0">
+      <div className="flex flex-col items-end text-[11px] text-muted-foreground/60 shrink-0">
         <span className="flex items-center gap-1">
           <Calendar className="w-3 h-3" />
           {formatDate(report.generated_at)}
         </span>
-        <span className="mt-1 px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.06] text-white/50 uppercase text-[10px] font-semibold">
+        <span className="mt-1 px-2 py-0.5 rounded-md bg-black/[0.04] border border-black/[0.06] text-muted-foreground uppercase text-[10px] font-semibold">
           {report.report_type.toUpperCase()}
         </span>
       </div>
@@ -247,7 +247,7 @@ const ReportContent: React.FC<{ content: string; viewUrl?: string }> = ({ conten
   }
   return (
     <div className="flex-1 overflow-auto px-6 py-4">
-      <pre className="whitespace-pre-wrap font-sans text-[13px] text-white/80 leading-relaxed">
+      <pre className="whitespace-pre-wrap font-sans text-[13px] text-foreground/80 leading-relaxed">
         {content}
       </pre>
     </div>
@@ -272,11 +272,11 @@ const ReportGenerator: React.FC<{
     <div className="flex-1 flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl w-full space-y-6">
         <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-black/[0.06] flex items-center justify-center mx-auto mb-4">
             <FileText className="w-6 h-6 text-violet-400/60" />
           </div>
-          <h3 className="text-lg font-semibold text-white/85">Generate Investment Report</h3>
-          <p className="text-[12px] text-white/35 mt-1.5">
+          <h3 className="text-lg font-semibold text-foreground/85">Generate Investment Report</h3>
+          <p className="text-[12px] text-muted-foreground/60 mt-1.5">
             Select a report type to generate an investor-ready document.
           </p>
         </div>
@@ -423,71 +423,71 @@ export const ReportDrawer: React.FC<ReportDrawerProps> = ({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className={cn(
-              'fixed top-0 right-0 h-full shadow-2xl z-50 flex flex-col border-l border-white/[0.08]',
+              'fixed top-0 right-0 h-full shadow-2xl z-50 flex flex-col border-l border-black/[0.08]',
               isMaximized ? 'w-full' : 'w-full max-w-3xl'
             )}
-            style={{ backgroundColor: '#111114' }}
+            style={{ backgroundColor: 'hsl(var(--background))' }}
           >
             {/* Header */}
-            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+            <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-black/[0.06] bg-black/[0.02]">
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setIsMaximized(!isMaximized)}
-                  className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors"
                   title={isMaximized ? 'Restore' : 'Maximize'}
                 >
                   {isMaximized ? (
-                    <Minimize2 className="w-3.5 h-3.5 text-white/40" />
+                    <Minimize2 className="w-3.5 h-3.5 text-muted-foreground/70" />
                   ) : (
-                    <Maximize2 className="w-3.5 h-3.5 text-white/40" />
+                    <Maximize2 className="w-3.5 h-3.5 text-muted-foreground/70" />
                   )}
                 </button>
                 {report && (
                   <>
                     <button
                       onClick={handleCopy}
-                      className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors"
                       title="Copy to clipboard"
                     >
                       {copied ? (
                         <Check className="w-3.5 h-3.5 text-emerald-400" />
                       ) : (
-                        <Copy className="w-3.5 h-3.5 text-white/40" />
+                        <Copy className="w-3.5 h-3.5 text-muted-foreground/70" />
                       )}
                     </button>
                     <button
                       onClick={handleDownloadPdf}
                       disabled={downloadingPdf}
-                      className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center gap-1"
+                      className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors flex items-center gap-1"
                       title="Download PDF"
                     >
                       {downloadingPdf ? (
-                        <Loader2 className="w-3.5 h-3.5 text-white/40 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 text-muted-foreground/70 animate-spin" />
                       ) : (
-                        <Download className="w-3.5 h-3.5 text-white/40" />
+                        <Download className="w-3.5 h-3.5 text-muted-foreground/70" />
                       )}
-                      <span className="text-[10px] text-white/30">PDF</span>
+                      <span className="text-[10px] text-muted-foreground/50">PDF</span>
                     </button>
                     <button
                       onClick={() => {
                         window.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: { tab: 'reports' } }));
                         onClose();
                       }}
-                      className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center gap-1"
+                      className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors flex items-center gap-1"
                       title="View in Reports"
                     >
-                      <ExternalLink className="w-3.5 h-3.5 text-white/40" />
-                      <span className="text-[10px] text-white/30">Reports</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground/70" />
+                      <span className="text-[10px] text-muted-foreground/50">Reports</span>
                     </button>
                   </>
                 )}
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-black/[0.05] transition-colors"
                 title="Close"
               >
-                <X className="w-4 h-4 text-white/40" />
+                <X className="w-4 h-4 text-muted-foreground/70" />
               </button>
             </div>
 

@@ -90,10 +90,10 @@ export const InConversationSearch: React.FC<InConversationSearchProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="absolute top-0 left-0 right-0 z-30 bg-[#1a1a1a] border-b border-white/10 shadow-lg animate-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-0 left-0 right-0 z-30 bg-popover border-b border-black/8 shadow-lg animate-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-2 px-4 py-3">
                 {/* Search Icon */}
-                <Search className="w-4 h-4 text-white/40 flex-shrink-0" />
+                <Search className="w-4 h-4 text-muted-foreground/70 flex-shrink-0" />
 
                 {/* Search Input */}
                 <input
@@ -103,17 +103,17 @@ export const InConversationSearch: React.FC<InConversationSearchProps> = ({
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Search in conversation..."
-                    className="flex-1 bg-transparent text-white text-sm placeholder-white/40 focus:outline-none"
+                    className="flex-1 bg-transparent text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none"
                 />
 
                 {/* Match Counter */}
-                <div className="flex items-center gap-2 text-xs text-white/60">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {matches.length > 0 ? (
                         <span className="font-medium">
                             {currentMatchIndex + 1} of {matches.length}
                         </span>
                     ) : query.trim() ? (
-                        <span className="text-white/40">No matches</span>
+                        <span className="text-muted-foreground/70">No matches</span>
                     ) : null}
 
                     {/* Navigation Buttons */}
@@ -122,7 +122,7 @@ export const InConversationSearch: React.FC<InConversationSearchProps> = ({
                             onClick={handlePrevious}
                             disabled={matches.length === 0}
                             className={cn(
-                                "p-1 rounded hover:bg-white/10 transition-colors",
+                                "p-1 rounded hover:bg-black/8 transition-colors",
                                 matches.length === 0 ? "opacity-30 cursor-not-allowed" : "opacity-70 hover:opacity-100"
                             )}
                             title="Previous match (Shift+Enter)"
@@ -133,7 +133,7 @@ export const InConversationSearch: React.FC<InConversationSearchProps> = ({
                             onClick={handleNext}
                             disabled={matches.length === 0}
                             className={cn(
-                                "p-1 rounded hover:bg-white/10 transition-colors",
+                                "p-1 rounded hover:bg-black/8 transition-colors",
                                 matches.length === 0 ? "opacity-30 cursor-not-allowed" : "opacity-70 hover:opacity-100"
                             )}
                             title="Next match (Enter)"
@@ -146,7 +146,7 @@ export const InConversationSearch: React.FC<InConversationSearchProps> = ({
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="p-1 rounded hover:bg-white/10 transition-colors text-white/60 hover:text-white"
+                    className="p-1 rounded hover:bg-black/8 transition-colors text-muted-foreground hover:text-foreground"
                     title="Close (Esc)"
                 >
                     <X className="w-4 h-4" />
@@ -154,7 +154,7 @@ export const InConversationSearch: React.FC<InConversationSearchProps> = ({
             </div>
 
             {/* Keyboard Shortcuts Hint */}
-            <div className="px-4 pb-2 text-[10px] text-white/30">
+            <div className="px-4 pb-2 text-[10px] text-muted-foreground/50">
                 <span className="mr-3">⏎ Next</span>
                 <span className="mr-3">⇧⏎ Previous</span>
                 <span>Esc Close</span>

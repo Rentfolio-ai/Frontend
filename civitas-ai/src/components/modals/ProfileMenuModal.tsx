@@ -119,7 +119,7 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.15 }}
-                        className="fixed bottom-16 left-4 z-50 w-64 bg-[#1f1f1f] border border-white/10 
+                        className="fixed bottom-16 left-4 z-50 w-64 bg-popover border border-black/8 
                        rounded-xl shadow-2xl overflow-hidden"
                     >
                         <AnimatePresence mode="wait">
@@ -135,8 +135,8 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                     transition={{ duration: 0.12 }}
                                 >
                                     {/* Email Header */}
-                                    <div className="px-3 py-1.5 border-b border-white/10">
-                                        <div className="text-xs text-white/70 truncate">
+                                    <div className="px-3 py-1.5 border-b border-black/8">
+                                        <div className="text-xs text-foreground/70 truncate">
                                             {currentUser?.email || 'user@example.com'}
                                         </div>
                                     </div>
@@ -161,7 +161,7 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                             }}
                                         />
 
-                                        <div className="h-px bg-white/10 my-1 mx-2" />
+                                        <div className="h-px bg-black/8 my-1 mx-2" />
 
                                         <MenuItem
                                             icon={BillingIcon}
@@ -173,19 +173,19 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                             }}
                                         />
 
-                                        <div className="h-px bg-white/10 my-1 mx-2" />
+                                        <div className="h-px bg-black/8 my-1 mx-2" />
 
                                         {/* Language selector — shows current language, opens sub-menu */}
                                         <button
                                             onClick={() => setShowLangMenu(true)}
-                                            className="w-full flex items-center gap-2.5 px-3 py-1.5 transition-all group text-white/80 hover:text-white hover:bg-white/5"
+                                            className="w-full flex items-center gap-2.5 px-3 py-1.5 transition-all group text-foreground/80 hover:text-foreground hover:bg-black/5"
                                         >
                                             <Globe className="w-4 h-4 flex-shrink-0" />
                                             <span className="flex-1 text-left text-sm">{currentLang.flag} {currentLang.label}</span>
-                                            <ChevronRight className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors flex-shrink-0" />
+                                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
                                         </button>
 
-                                        <div className="h-px bg-white/10 my-1 mx-2" />
+                                        <div className="h-px bg-black/8 my-1 mx-2" />
 
                                         <MenuItem
                                             icon={Info}
@@ -197,7 +197,7 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                             }}
                                         />
 
-                                        <div className="h-px bg-white/10 my-1 mx-2" />
+                                        <div className="h-px bg-black/8 my-1 mx-2" />
 
                                         <MenuItem
                                             icon={LogOut}
@@ -221,7 +221,7 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                     {/* Back header */}
                                     <button
                                         onClick={() => setShowLangMenu(false)}
-                                        className="w-full flex items-center gap-2 px-3 py-2 border-b border-white/10 text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                                        className="w-full flex items-center gap-2 px-3 py-2 border-b border-black/8 text-foreground/70 hover:text-foreground hover:bg-black/5 transition-colors"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                         <span className="text-xs font-medium">Language</span>
@@ -240,8 +240,8 @@ export const ProfileMenuModal: React.FC<ProfileMenuModalProps> = ({
                                                     }}
                                                     className={`w-full flex items-center gap-2.5 px-3 py-1.5 transition-all ${
                                                         selected
-                                                            ? 'bg-white/[0.08] text-white'
-                                                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                                                            ? 'bg-black/[0.06] text-foreground'
+                                                            : 'text-muted-foreground hover:text-foreground hover:bg-black/5'
                                                     }`}
                                                 >
                                                     <span className="text-sm flex-shrink-0">{lang.flag}</span>
@@ -278,7 +278,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
     shortcut,
     badge,
     hasArrow,
-    className = "text-white/80 hover:text-white hover:bg-white/5"
+    className = "text-foreground/80 hover:text-foreground hover:bg-black/5"
 }) => {
     return (
         <button
@@ -288,7 +288,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
             <Icon className="w-4 h-4 flex-shrink-0" />
             <span className="flex-1 text-left text-sm">{label}</span>
             {shortcut && (
-                <span className="text-[10px] text-white/40 flex-shrink-0">{shortcut}</span>
+                <span className="text-[10px] text-muted-foreground/70 flex-shrink-0">{shortcut}</span>
             )}
             {badge && (
                 <span className="px-1.5 py-0.5 text-[9px] font-bold rounded flex-shrink-0
@@ -297,7 +297,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
                 </span>
             )}
             {hasArrow && (
-                <ChevronRight className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors flex-shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
             )}
         </button>
     );

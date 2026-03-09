@@ -235,22 +235,22 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({
   // Fallback for other variants
   const gradientStyles = {
     default: {
-      background: 'linear-gradient(135deg, hsl(220, 50%, 16%) 0%, hsl(230, 40%, 22%) 100%)',
+      background: 'linear-gradient(135deg, hsl(20, 42%, 93%) 0%, hsl(20, 35%, 90%) 100%)',
     },
     subtle: {
-      background: 'linear-gradient(135deg, hsl(220, 20%, 13%) 0%, hsl(230, 25%, 16%) 50%, hsl(240, 20%, 14%) 100%)',
+      background: 'linear-gradient(135deg, hsl(20, 42%, 93%) 0%, hsl(20, 35%, 95%) 50%, hsl(20, 30%, 94%) 100%)',
     },
     mesh: {
-      background: 'hsl(220, 15%, 13%)',
+      background: 'hsl(20, 42%, 93%)',
     },
     aurora: {
-      background: 'linear-gradient(135deg, #1a2540 0%, #222230 50%, #1a2540 100%)',
+      background: 'linear-gradient(135deg, #EBDDD0 0%, #F3E4D6 50%, #EBDDD0 100%)',
     },
     'real-estate': {
-      background: 'linear-gradient(135deg, #152035 0%, #243050 25%, #1a3055 50%, #243050 75%, #152035 100%)',
+      background: 'linear-gradient(135deg, #EBDDD0 0%, #F3E4D6 25%, #F7ECE2 50%, #F3E4D6 75%, #EBDDD0 100%)',
     },
     modern: {
-      background: 'linear-gradient(135deg, #151830 0%, #252845 100%)',
+      background: 'linear-gradient(135deg, #EBDDD0 0%, #FCF8F4 100%)',
     }
   };
 

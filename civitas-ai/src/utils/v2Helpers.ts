@@ -107,6 +107,7 @@ export function parseChatQuery(
   },
   modelId?: string,
   isTemporary?: boolean,
+  pageContext?: any,
 ): any {
   const query: any = {
     query: msg,
@@ -126,6 +127,10 @@ export function parseChatQuery(
 
   if (propertyContext) {
     query.property_context = propertyContext;
+  }
+
+  if (pageContext) {
+    query.page_context = pageContext;
   }
 
   if (userIdentity?.id) query.user_id = userIdentity.id;

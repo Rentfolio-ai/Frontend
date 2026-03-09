@@ -116,7 +116,7 @@ export const OfferStrategyCard: React.FC<OfferStrategyCardProps> = ({ data, onAc
                                     className="absolute inset-y-0 left-0 bg-blue-500 flex items-center justify-end pr-2"
                                     style={{ width: `${Math.min(100, (offer_strategy.opening_offer / data.list_price) * 100)}%` }}
                                 >
-                                    <span className="text-xs font-semibold text-white">
+                                    <span className="text-xs font-semibold text-foreground">
                                         ${(offer_strategy.opening_offer / 1000).toFixed(0)}k
                                     </span>
                                 </div>
@@ -133,7 +133,7 @@ export const OfferStrategyCard: React.FC<OfferStrategyCardProps> = ({ data, onAc
                                     className="absolute inset-y-0 left-0 bg-green-500 flex items-center justify-end pr-2"
                                     style={{ width: `${Math.min(100, (offer_strategy.target_price / data.list_price) * 100)}%` }}
                                 >
-                                    <span className="text-xs font-semibold text-white">
+                                    <span className="text-xs font-semibold text-foreground">
                                         ${(offer_strategy.target_price / 1000).toFixed(0)}k
                                     </span>
                                 </div>
@@ -150,7 +150,7 @@ export const OfferStrategyCard: React.FC<OfferStrategyCardProps> = ({ data, onAc
                                     className="absolute inset-y-0 left-0 bg-red-500 flex items-center justify-end pr-2"
                                     style={{ width: `${Math.min(100, (offer_strategy.walk_away_price / data.list_price) * 100)}%` }}
                                 >
-                                    <span className="text-xs font-semibold text-white">
+                                    <span className="text-xs font-semibold text-foreground">
                                         ${(offer_strategy.walk_away_price / 1000).toFixed(0)}k
                                     </span>
                                 </div>

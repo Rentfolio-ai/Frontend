@@ -34,7 +34,7 @@ const getFileIcon = (fileName: string, fileType: string) => {
         return <FileText className="w-5 h-5 text-blue-400" />;
     }
     
-    return <File className="w-5 h-5 text-white/40" />;
+    return <File className="w-5 h-5 text-muted-foreground/70" />;
 };
 
 // Helper to format file size
@@ -187,28 +187,28 @@ export const FilesPage: React.FC = () => {
                 {/* Header */}
                 <div className="mb-6">
                     <div className="mb-2">
-                        <h1 className="text-2xl font-semibold text-white/95">Your Documents</h1>
-                        <p className="text-sm text-white/50 mt-1">Files from your conversations</p>
+                        <h1 className="text-2xl font-semibold text-foreground">Your Documents</h1>
+                        <p className="text-sm text-muted-foreground mt-1">Files from your conversations</p>
                     </div>
                 </div>
 
                 {/* Search & Filter */}
                 <div className="flex items-center gap-3 mb-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
                         <input
                             type="text"
                             placeholder="Search files..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-10 pl-10 pr-10 bg-white/[0.05] border border-white/[0.10] rounded-lg text-sm text-white/90 placeholder-white/40 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                            className="w-full h-10 pl-10 pr-10 bg-black/[0.04] border border-black/[0.08] rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/[0.05] rounded transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-black/[0.04] rounded transition-colors"
                             >
-                                <X className="w-3 h-3 text-white/40" />
+                                <X className="w-3 h-3 text-muted-foreground/70" />
                             </button>
                         )}
                     </div>
@@ -216,7 +216,7 @@ export const FilesPage: React.FC = () => {
                     <select
                         value={filter}
                         onChange={(e) => setFilter(e.target.value as FilterType)}
-                        className="h-10 px-3 bg-white/[0.05] border border-white/[0.10] rounded-lg text-sm text-white/90 focus:outline-none focus:border-white/[0.20] transition-all cursor-pointer"
+                        className="h-10 px-3 bg-black/[0.04] border border-black/[0.08] rounded-lg text-sm text-foreground focus:outline-none focus:border-black/[0.15] transition-all cursor-pointer"
                     >
                         <option value="all">All Files</option>
                         <option value="pdf">PDFs</option>
@@ -231,24 +231,24 @@ export const FilesPage: React.FC = () => {
                 {/* Table */}
                 {isLoading ? (
                     <div className="flex-1 flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-muted-foreground/70 animate-spin" />
                     </div>
                 ) : sortedFiles.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center">
                         {searchQuery || filter !== 'all' ? (
                             <>
-                                <Search className="w-12 h-12 text-white/20 mb-4" />
-                                <p className="text-white/60 mb-2">No files found</p>
-                                <p className="text-white/40 text-sm">Try different search terms or filters</p>
+                                <Search className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                                <p className="text-muted-foreground mb-2">No files found</p>
+                                <p className="text-muted-foreground/70 text-sm">Try different search terms or filters</p>
                             </>
                         ) : (
                             <>
-                                <FileText className="w-16 h-16 text-white/20 mb-4" />
-                                <h3 className="text-lg font-medium text-white/70 mb-2">No files yet</h3>
-                                <p className="text-sm text-white/50 mb-4">
+                                <FileText className="w-16 h-16 text-muted-foreground/40 mb-4" />
+                                <h3 className="text-lg font-medium text-foreground/70 mb-2">No files yet</h3>
+                                <p className="text-sm text-muted-foreground mb-4">
                                     Files you attach in chat will automatically appear here
                                 </p>
-                                <div className="flex flex-col gap-2 text-xs text-white/40">
+                                <div className="flex flex-col gap-2 text-xs text-muted-foreground/70">
                                     <p>💬 Chat with Civitas</p>
                                     <p>📎 Attach a file to your message</p>
                                     <p>✨ It will appear here automatically</p>
@@ -259,10 +259,10 @@ export const FilesPage: React.FC = () => {
                 ) : (
                     <div className="flex-1 overflow-hidden flex flex-col">
                         {/* Table Header */}
-                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 border-b border-white/[0.05]">
+                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 border-b border-black/[0.05]">
                             <button
                                 onClick={() => handleSort('name')}
-                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-white/50 hover:text-white/70 transition-colors text-left"
+                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground/70 transition-colors text-left"
                             >
                                 Name
                                 {sortField === 'name' && (
@@ -271,7 +271,7 @@ export const FilesPage: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => handleSort('size')}
-                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-white/50 hover:text-white/70 transition-colors text-left"
+                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground/70 transition-colors text-left"
                             >
                                 Size
                                 {sortField === 'size' && (
@@ -280,7 +280,7 @@ export const FilesPage: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => handleSort('date')}
-                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-white/50 hover:text-white/70 transition-colors text-left"
+                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground/70 transition-colors text-left"
                             >
                                 Uploaded
                                 {sortField === 'date' && (
@@ -289,14 +289,14 @@ export const FilesPage: React.FC = () => {
                             </button>
                             <button
                                 onClick={() => handleSort('source')}
-                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-white/50 hover:text-white/70 transition-colors text-left"
+                                className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground/70 transition-colors text-left"
                             >
                                 Source
                                 {sortField === 'source' && (
                                     sortOrder === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
                                 )}
                             </button>
-                            <span className="text-xs font-medium uppercase tracking-wider text-white/50 text-right">Actions</span>
+                            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground text-right">Actions</span>
                         </div>
 
                         {/* Table Body */}
@@ -305,8 +305,8 @@ export const FilesPage: React.FC = () => {
                                 <div
                                     key={file.id}
                                     className={cn(
-                                        'grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 border-b border-white/[0.05] transition-colors',
-                                        'hover:bg-white/[0.03]'
+                                        'grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 border-b border-black/[0.05] transition-colors',
+                                        'hover:bg-black/[0.02]'
                                     )}
                                 >
                                     {/* Name */}
@@ -315,23 +315,23 @@ export const FilesPage: React.FC = () => {
                                         className="flex items-center gap-3 text-left min-w-0"
                                     >
                                         {getFileIcon(file.fileName, file.fileType)}
-                                        <span className="text-sm text-white/90 truncate hover:text-white transition-colors">
+                                        <span className="text-sm text-foreground truncate hover:text-foreground transition-colors">
                                             {file.fileName}
                                         </span>
                                     </button>
 
                                     {/* Size */}
-                                    <div className="text-sm text-white/60 flex items-center">
+                                    <div className="text-sm text-muted-foreground flex items-center">
                                         {formatFileSize(file.fileSize)}
                                     </div>
 
                                     {/* Date */}
-                                    <div className="text-sm text-white/60 flex items-center">
+                                    <div className="text-sm text-muted-foreground flex items-center">
                                         {formatDate(file.uploadedAt)}
                                     </div>
 
                                     {/* Source */}
-                                    <div className="text-sm text-white/60 flex items-center truncate">
+                                    <div className="text-sm text-muted-foreground flex items-center truncate">
                                         {file.chatTitle || 'Manual'}
                                     </div>
 
@@ -340,9 +340,9 @@ export const FilesPage: React.FC = () => {
                                         <div className="relative">
                                             <button
                                                 onClick={() => setSelectedFile(selectedFile === file.id ? null : file.id)}
-                                                className="p-1.5 hover:bg-white/[0.05] rounded transition-colors"
+                                                className="p-1.5 hover:bg-black/[0.04] rounded transition-colors"
                                             >
-                                                <MoreVertical className="w-4 h-4 text-white/60" />
+                                                <MoreVertical className="w-4 h-4 text-muted-foreground" />
                                             </button>
 
                                             {/* Context Menu */}
@@ -352,13 +352,13 @@ export const FilesPage: React.FC = () => {
                                                         className="fixed inset-0 z-10"
                                                         onClick={() => setSelectedFile(null)}
                                                     />
-                                                    <div className="absolute right-0 top-full mt-1 w-48 bg-[#1a1a1a] border border-white/[0.10] rounded-lg shadow-2xl z-20 overflow-hidden">
+                                                    <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-black/[0.08] rounded-lg shadow-2xl z-20 overflow-hidden">
                                                         <button
                                                             onClick={() => {
                                                                 handleDownload(file);
                                                                 setSelectedFile(null);
                                                             }}
-                                                            className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-white/[0.05] transition-colors flex items-center gap-3"
+                                                            className="w-full px-4 py-2.5 text-left text-sm text-foreground/80 hover:bg-black/[0.04] transition-colors flex items-center gap-3"
                                                         >
                                                             <Download className="w-4 h-4" />
                                                             Download
@@ -368,7 +368,7 @@ export const FilesPage: React.FC = () => {
                                                                 handleRename(file);
                                                                 setSelectedFile(null);
                                                             }}
-                                                            className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-white/[0.05] transition-colors flex items-center gap-3"
+                                                            className="w-full px-4 py-2.5 text-left text-sm text-foreground/80 hover:bg-black/[0.04] transition-colors flex items-center gap-3"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
                                                             Rename
@@ -380,13 +380,13 @@ export const FilesPage: React.FC = () => {
                                                                     console.log('View in chat:', file.chatId);
                                                                     setSelectedFile(null);
                                                                 }}
-                                                                className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-white/[0.05] transition-colors flex items-center gap-3"
+                                                                className="w-full px-4 py-2.5 text-left text-sm text-foreground/80 hover:bg-black/[0.04] transition-colors flex items-center gap-3"
                                                             >
                                                                 <MessageCircle className="w-4 h-4" />
                                                                 View in Chat
                                                             </button>
                                                         )}
-                                                        <div className="border-t border-white/[0.05]" />
+                                                        <div className="border-t border-black/[0.05]" />
                                                         <button
                                                             onClick={() => {
                                                                 setShowDeleteConfirm(file.id);
@@ -410,8 +410,8 @@ export const FilesPage: React.FC = () => {
 
                 {/* Footer Stats */}
                 {!isLoading && sortedFiles.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-white/[0.05]">
-                        <p className="text-sm text-white/50">
+                    <div className="mt-4 pt-4 border-t border-black/[0.05]">
+                        <p className="text-sm text-muted-foreground">
                             {sortedFiles.length} {sortedFiles.length === 1 ? 'file' : 'files'} • {formatFileSize(totalSize)} total
                         </p>
                     </div>
@@ -420,15 +420,15 @@ export const FilesPage: React.FC = () => {
                 {/* Delete Confirmation */}
                 {showDeleteConfirm && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-[#1a1a1a] border border-white/[0.10] rounded-xl p-6 max-w-sm w-full">
-                            <h3 className="text-lg font-semibold text-white mb-2">Delete File?</h3>
-                            <p className="text-sm text-white/60 mb-6">
+                        <div className="bg-popover border border-black/[0.08] rounded-xl p-6 max-w-sm w-full">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Delete File?</h3>
+                            <p className="text-sm text-muted-foreground mb-6">
                                 This action cannot be undone. The file will be permanently deleted.
                             </p>
                             <div className="flex items-center gap-3 justify-end">
                                 <button
                                     onClick={() => setShowDeleteConfirm(null)}
-                                    className="px-4 py-2 text-sm text-white/70 hover:text-white transition-colors"
+                                    className="px-4 py-2 text-sm text-foreground/70 hover:text-foreground transition-colors"
                                 >
                                     Cancel
                                 </button>

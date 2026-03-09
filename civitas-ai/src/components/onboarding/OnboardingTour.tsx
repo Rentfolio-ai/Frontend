@@ -123,12 +123,12 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
       {/* Card */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[640px] mx-4 z-50">
-        <div className="relative rounded-2xl bg-[#1C1C20] border border-[#2A2A30] shadow-2xl shadow-black/40 overflow-hidden">
+        <div className="relative rounded-2xl bg-popover border border-border shadow-2xl shadow-black/10 overflow-hidden">
 
           {/* Skip */}
           <button
             onClick={handleSkip}
-            className="absolute top-5 right-5 px-3 py-1.5 text-white/30 hover:text-white/60 text-[12px] font-medium transition-colors rounded-lg hover:bg-white/[0.04] z-10"
+            className="absolute top-5 right-5 px-3 py-1.5 text-muted-foreground/50 hover:text-muted-foreground text-[12px] font-medium transition-colors rounded-lg hover:bg-black/[0.03] z-10"
           >
             Skip
           </button>
@@ -153,7 +153,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                   <h1 className="text-[24px] font-bold text-white/95 tracking-[-0.02em] mb-2">
                     Welcome to Vasthu
                   </h1>
-                  <p className="text-[14px] text-white/40 leading-relaxed max-w-md mx-auto">
+                  <p className="text-[14px] text-muted-foreground/70 leading-relaxed max-w-md mx-auto">
                     Your AI-powered real estate intelligence platform. Here's what you can do.
                   </p>
                 </div>
@@ -163,14 +163,14 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                   {FEATURES.map(({ icon: Icon, title, description }) => (
                     <div
                       key={title}
-                      className="flex items-start gap-3.5 p-3.5 rounded-xl bg-[#18181C] border border-[#2A2A30]/50"
+                      className="flex items-start gap-3.5 p-3.5 rounded-xl bg-surface border border-border/50"
                     >
                       <div className="w-9 h-9 rounded-lg bg-[#C08B5C]/[0.06] flex items-center justify-center flex-shrink-0 mt-0.5">
                         <Icon className="w-[16px] h-[16px] text-[#D4A27F]" />
                       </div>
                       <div>
-                        <h3 className="text-[13px] font-semibold text-white/85">{title}</h3>
-                        <p className="text-[12px] text-white/35 leading-relaxed mt-0.5">{description}</p>
+                        <h3 className="text-[13px] font-semibold text-foreground/85">{title}</h3>
+                        <p className="text-[12px] text-muted-foreground/60 leading-relaxed mt-0.5">{description}</p>
                       </div>
                     </div>
                   ))}
@@ -185,7 +185,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                     Get Started
                     <ArrowRight className="w-4 h-4" />
                   </button>
-                  <p className="text-[11px] text-white/20">Takes less than 30 seconds</p>
+                  <p className="text-[11px] text-muted-foreground/40">Takes less than 30 seconds</p>
                 </div>
               </>
             ) : (
@@ -195,7 +195,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                   <h2 className="text-[22px] font-bold text-white/95 tracking-[-0.02em] mb-2">
                     Where would you like to start?
                   </h2>
-                  <p className="text-[14px] text-white/35">
+                  <p className="text-[14px] text-muted-foreground/60">
                     You can always switch between these from the sidebar.
                   </p>
                 </div>
@@ -205,14 +205,14 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                     <button
                       key={key}
                       onClick={() => handleStartPageChoice(key)}
-                      className="group w-full flex items-start gap-4 p-4 rounded-xl bg-[#18181C] border border-[#2A2A30]/50 hover:border-[#C08B5C]/25 transition-all text-left"
+                      className="group w-full flex items-start gap-4 p-4 rounded-xl bg-surface border border-border/50 hover:border-[#C08B5C]/25 transition-all text-left"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.08] transition-colors">
-                        <Icon className="w-[18px] h-[18px] text-white/40 group-hover:text-[#D4A27F] transition-colors" />
+                      <div className="w-10 h-10 rounded-xl bg-black/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.08] transition-colors">
+                        <Icon className="w-[18px] h-[18px] text-muted-foreground/70 group-hover:text-[#D4A27F] transition-colors" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-[14px] font-semibold text-white/85 group-hover:text-white/95 transition-colors">
+                          <h3 className="text-[14px] font-semibold text-foreground/85 group-hover:text-foreground/95 transition-colors">
                             {title}
                           </h3>
                           {recommended && (
@@ -221,9 +221,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
                             </span>
                           )}
                         </div>
-                        <p className="text-[12px] text-white/30 leading-relaxed mt-0.5">{description}</p>
+                        <p className="text-[12px] text-muted-foreground/50 leading-relaxed mt-0.5">{description}</p>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-white/10 group-hover:text-white/30 flex-shrink-0 mt-1 transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground/50 flex-shrink-0 mt-1 transition-colors" />
                     </button>
                   ))}
                 </div>

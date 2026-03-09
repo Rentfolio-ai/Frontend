@@ -10,6 +10,7 @@ import React from 'react';
 import type { Message } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
+import type { WandState } from '../../hooks/useAutopilotWand';
 import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 import type { BookmarkedProperty } from '../../types/bookmarks';
 import type { ScoutedProperty } from '../../types/backendTools';
@@ -44,6 +45,7 @@ interface CommandCenterChatViewProps {
   nativeThinkingText?: string | null;
   reasoningText?: string | null;
   activeModelLabel?: string;
+  reasoningEffort?: 'low' | 'medium' | 'high';
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   onCancel?: () => void;
@@ -82,6 +84,9 @@ interface CommandCenterChatViewProps {
   onOpenIntegrations?: () => void;
   onSendComplete?: (summary: string) => void;
   onBuyTokenPack?: () => void;
+  wandState?: WandState;
+  onActivateWand?: (goal: string) => void;
+  onDeactivateWand?: () => void;
 }
 
 export const CommandCenterChatView: React.FC<CommandCenterChatViewProps> = (props) => {

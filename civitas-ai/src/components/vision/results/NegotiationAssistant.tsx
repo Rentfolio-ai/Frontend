@@ -119,7 +119,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 // ── Leverage Bar ───────────────────────────────────────────
 
 const LeverageBar: React.FC<{ score: number; delay: number }> = ({ score, delay }) => (
-  <div className="w-full h-1 rounded-full bg-white/[0.04] overflow-hidden">
+  <div className="w-full h-1 rounded-full bg-black/[0.03] overflow-hidden">
     <motion.div
       initial={{ width: 0 }}
       animate={{ width: `${score * 100}%` }}
@@ -258,16 +258,16 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
   // ── Render ────────────────────────────────────────────
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04] flex-shrink-0 z-10">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors">
+      <div className="flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04] flex-shrink-0 z-10">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
         <div className="flex items-center gap-2">
           <Scale className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-white/60">Negotiation Strategy</span>
+          <span className="text-sm font-medium text-muted-foreground">Negotiation Strategy</span>
         </div>
         <div className="w-16" />
       </div>
@@ -279,7 +279,7 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
           <div className="flex items-center justify-center py-16">
             <div className="text-center space-y-3">
               <Loader2 className="w-6 h-6 text-blue-400/50 animate-spin mx-auto" />
-              <p className="text-xs text-white/25">Analyzing negotiation leverage...</p>
+              <p className="text-xs text-muted-foreground/50">Analyzing negotiation leverage...</p>
             </div>
           </div>
         )}
@@ -290,13 +290,13 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-[#121216] rounded-2xl p-5 border border-white/[0.03]"
+              className="bg-card rounded-2xl p-5 border border-black/[0.05]"
             >
-              <p className="text-sm text-white/60 leading-relaxed mb-4">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 {strategy.strategy_summary}
               </p>
               <div className="flex items-end gap-2">
-                <div className="text-[10px] text-white/20 uppercase tracking-wider">Recommended reduction</div>
+                <div className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Recommended reduction</div>
               </div>
               <div className="flex items-end gap-2 mt-1">
                 <span className="text-3xl font-display font-bold text-violet-400">
@@ -311,14 +311,14 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+                className="bg-card rounded-2xl p-4 border border-black/[0.05]"
               >
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-7 h-7 rounded-lg bg-violet-500/10 flex items-center justify-center">
                     <ChevronRight className="w-3.5 h-3.5 text-violet-400" />
                   </div>
-                  <span className="text-sm font-medium text-white/60">Talking Points</span>
-                  <span className="text-[9px] text-white/15 ml-auto">sorted by leverage</span>
+                  <span className="text-sm font-medium text-muted-foreground">Talking Points</span>
+                  <span className="text-[9px] text-muted-foreground/40 ml-auto">sorted by leverage</span>
                 </div>
 
                 <div className="space-y-4">
@@ -335,11 +335,11 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
                         <div className="flex items-start gap-2">
                           <span className="text-sm mt-0.5">{cat.icon}</span>
                           <div className="flex-1">
-                            <p className="text-xs text-white/55 leading-relaxed">{tp.text}</p>
+                            <p className="text-xs text-muted-foreground/70 leading-relaxed">{tp.text}</p>
                             <div className="flex items-center gap-3 mt-1.5">
-                              <span className="text-[9px] text-white/20 uppercase tracking-wider">{tp.category}</span>
-                              <span className="text-[9px] text-white/20">·</span>
-                              <span className="text-[9px] text-white/30 font-medium">{formatCurrency(tp.estimated_cost)}</span>
+                              <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wider">{tp.category}</span>
+                              <span className="text-[9px] text-muted-foreground/40">·</span>
+                              <span className="text-[9px] text-muted-foreground/50 font-medium">{formatCurrency(tp.estimated_cost)}</span>
                             </div>
                           </div>
                         </div>
@@ -357,13 +357,13 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+                className="bg-card rounded-2xl p-4 border border-black/[0.05]"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center">
                     <TrendingDown className="w-3.5 h-3.5 text-orange-400" />
                   </div>
-                  <span className="text-sm font-medium text-white/60">Value Impact</span>
+                  <span className="text-sm font-medium text-muted-foreground">Value Impact</span>
                 </div>
 
                 <div className="space-y-2">
@@ -373,13 +373,13 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.15 + i * 0.04 }}
-                      className="flex items-center justify-between py-1.5 border-b border-white/[0.03] last:border-0"
+                      className="flex items-center justify-between py-1.5 border-b border-black/[0.05] last:border-0"
                     >
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-medium capitalize ${SEVERITY_COLORS[si.severity] || 'text-white/40'}`}>
+                        <span className={`text-[10px] font-medium capitalize ${SEVERITY_COLORS[si.severity] || 'text-muted-foreground/70'}`}>
                           {si.severity}
                         </span>
-                        <span className="text-xs text-white/50">{formatDamageClass(si.damage_class)}</span>
+                        <span className="text-xs text-muted-foreground">{formatDamageClass(si.damage_class)}</span>
                       </div>
                       <span className="text-xs text-red-400/70 font-medium">
                         -{si.value_impact_pct.toFixed(1)}%
@@ -395,24 +395,24 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+              className="bg-card rounded-2xl p-4 border border-black/[0.05]"
             >
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                   <Calculator className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
-                <span className="text-sm font-medium text-white/60">Counter-Offer Calculator</span>
+                <span className="text-sm font-medium text-muted-foreground">Counter-Offer Calculator</span>
               </div>
 
               <div className="flex items-center gap-2 mb-3">
                 <div className="flex-1 relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
                   <input
                     type="text"
                     value={askingPrice}
                     onChange={e => setAskingPrice(e.target.value)}
                     placeholder="Asking price"
-                    className="w-full pl-8 pr-3 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-white/70 placeholder:text-white/15 focus:outline-none focus:border-violet-500/30 transition-colors"
+                    className="w-full pl-8 pr-3 py-2.5 bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm text-foreground/70 placeholder:text-muted-foreground/40 focus:outline-none focus:border-violet-500/30 transition-colors"
                   />
                 </div>
                 <motion.button
@@ -432,26 +432,26 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="pt-3 border-t border-white/[0.04] space-y-3"
+                    className="pt-3 border-t border-black/[0.04] space-y-3"
                   >
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <div className="text-[9px] text-white/20 uppercase tracking-wider mb-1">Recommended offer</div>
+                        <div className="text-[9px] text-muted-foreground/40 uppercase tracking-wider mb-1">Recommended offer</div>
                         <div className="text-lg font-display font-bold text-emerald-400">
                           {formatCurrency(counterOffer.recommended_offer)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-[9px] text-white/20 uppercase tracking-wider mb-1">Savings</div>
+                        <div className="text-[9px] text-muted-foreground/40 uppercase tracking-wider mb-1">Savings</div>
                         <div className="text-lg font-display font-bold text-violet-400">
                           {formatCurrency(counterOffer.reduction_amount)}
                         </div>
-                        <div className="text-[10px] text-white/25">
+                        <div className="text-[10px] text-muted-foreground/50">
                           {counterOffer.reduction_pct.toFixed(1)}% off
                         </div>
                       </div>
                     </div>
-                    <p className="text-[11px] text-white/35 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
                       {counterOffer.justification}
                     </p>
                   </motion.div>
@@ -470,7 +470,7 @@ export const NegotiationAssistant: React.FC<NegotiationAssistantProps> = ({
                   m.generateVisionPDF(result as any, null);
                 }).catch(() => alert('Export coming soon'));
               }}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.04] text-white/40 text-sm font-medium border border-white/[0.03] hover:bg-white/[0.06] transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-black/[0.03] text-muted-foreground/70 text-sm font-medium border border-black/[0.05] hover:bg-black/[0.05] transition-colors"
             >
               <Download className="w-4 h-4" />
               Export Strategy

@@ -65,7 +65,7 @@ export const PortfolioDashboard: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading portfolios...</p>
+          <p className="text-muted-foreground">Loading portfolios...</p>
         </div>
       </div>
     );
@@ -91,9 +91,9 @@ export const PortfolioDashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-lg px-6">
-          <Home className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Start Tracking Your Properties</h2>
-          <p className="text-gray-400 mb-6">
+          <Home className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Start Tracking Your Properties</h2>
+          <p className="text-muted-foreground mb-6">
             Tell me about your properties in chat. I'll help you track, analyze, and optimize your investments.
           </p>
           
@@ -115,13 +115,13 @@ export const PortfolioDashboard: React.FC = () => {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-gray-900">
+    <div className="h-full overflow-y-auto bg-card">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-6 py-4">
+      <div className="sticky top-0 z-10 bg-card border-b border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Portfolio</h1>
-            <p className="text-gray-400 text-sm mt-1">Track and manage your investments</p>
+            <h1 className="text-2xl font-bold text-foreground">Portfolio</h1>
+            <p className="text-muted-foreground text-sm mt-1">Track and manage your investments</p>
           </div>
           <button
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
@@ -141,7 +141,7 @@ export const PortfolioDashboard: React.FC = () => {
                 className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
                   selectedPortfolio === portfolio.id
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    : 'bg-muted text-muted-foreground hover:bg-gray-700'
                 }`}
               >
                 {portfolio.name}
@@ -184,9 +184,9 @@ export const PortfolioDashboard: React.FC = () => {
             </div>
 
             {/* Properties List */}
-            <div className="bg-gray-800 rounded-lg border border-gray-700">
-              <div className="px-6 py-4 border-b border-gray-700">
-                <h2 className="text-lg font-semibold text-white">Properties</h2>
+            <div className="bg-muted rounded-lg border border-border">
+              <div className="px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">Properties</h2>
               </div>
               <div className="divide-y divide-gray-700">
                 {summary.properties && summary.properties.length > 0 ? (
@@ -194,7 +194,7 @@ export const PortfolioDashboard: React.FC = () => {
                     <PropertyRow key={property.id} property={property} />
                   ))
                 ) : (
-                  <div className="px-6 py-8 text-center text-gray-400">
+                  <div className="px-6 py-8 text-center text-muted-foreground">
                     No properties yet. Add your first property to get started.
                   </div>
                 )}
@@ -228,12 +228,12 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, color }) =>
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+    <div className="bg-muted rounded-lg border border-border p-4">
       <div className={`inline-flex p-2 rounded-lg ${colorClasses[color]} mb-3`}>
         {icon}
       </div>
-      <div className="text-2xl font-bold text-white mb-1">{value}</div>
-      <div className="text-sm text-gray-400">{label}</div>
+      <div className="text-2xl font-bold text-foreground mb-1">{value}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
     </div>
   );
 };
@@ -250,24 +250,24 @@ const PropertyRow: React.FC<PropertyRowProps> = ({ property }) => {
     <div className="px-6 py-4 hover:bg-gray-750 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h3 className="text-white font-medium">{property.address}</h3>
-          <p className="text-sm text-gray-400 mt-1">
+          <h3 className="text-foreground font-medium">{property.address}</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             {property.city && property.state ? `${property.city}, ${property.state}` : 'Location not specified'}
           </p>
         </div>
         <div className="flex items-center gap-6 text-sm">
           <div className="text-right">
-            <div className="text-gray-400">Purchase Price</div>
-            <div className="text-white font-medium">{formatCurrency(property.purchasePrice)}</div>
+            <div className="text-muted-foreground">Purchase Price</div>
+            <div className="text-foreground font-medium">{formatCurrency(property.purchasePrice)}</div>
           </div>
           <div className="text-right">
-            <div className="text-gray-400">Current Value</div>
-            <div className="text-white font-medium">
+            <div className="text-muted-foreground">Current Value</div>
+            <div className="text-foreground font-medium">
               {formatCurrency(property.currentValue || property.purchasePrice)}
             </div>
           </div>
           <div className="text-right">
-            <div className="text-gray-400">Monthly Cash Flow</div>
+            <div className="text-muted-foreground">Monthly Cash Flow</div>
             <div className={`font-medium ${cashFlow >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {formatCurrency(cashFlow)}
             </div>

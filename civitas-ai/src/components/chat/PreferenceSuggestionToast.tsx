@@ -107,21 +107,21 @@ export const PreferenceSuggestionToast: React.FC<PreferenceSuggestionToastProps>
                     className
                 )}
             >
-                <div className="bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-4">
+                <div className="bg-popover/95 backdrop-blur-md border border-black/8 rounded-xl shadow-2xl p-4">
                     {/* Header */}
                     <div className="flex items-start gap-3">
                         <div className="p-2 rounded-lg bg-primary/20 text-primary-300">
                             {getIcon()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white/90">{getTitle()}</p>
-                            <p className="text-xs text-white/50 mt-0.5 truncate">
+                            <p className="text-sm font-medium text-foreground">{getTitle()}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 truncate">
                                 {suggestion.label}
                             </p>
                         </div>
                         <button
                             onClick={onDismiss}
-                            className="p-1 rounded-md hover:bg-white/10 text-white/40 hover:text-white/70 transition-colors"
+                            className="p-1 rounded-md hover:bg-black/8 text-muted-foreground/70 hover:text-foreground/70 transition-colors"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -131,7 +131,7 @@ export const PreferenceSuggestionToast: React.FC<PreferenceSuggestionToastProps>
                     <div className="flex gap-2 mt-3">
                         <button
                             onClick={onDismiss}
-                            className="flex-1 px-3 py-2 rounded-lg text-xs font-medium bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                            className="flex-1 px-3 py-2 rounded-lg text-xs font-medium bg-black/5 text-muted-foreground hover:bg-black/8 hover:text-foreground transition-colors"
                         >
                             Not now
                         </button>

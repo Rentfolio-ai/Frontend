@@ -99,7 +99,7 @@ export const TabbedAssumptionsPanel: React.FC<TabbedAssumptionsPanelProps> = ({
       {/* Advanced Purchase Options */}
       <button
         onClick={() => toggleAdvanced('purchase')}
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300 transition-colors mt-6"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground/70 transition-colors mt-6"
       >
         <motion.div
           animate={{ rotate: expandedAdvanced.purchase ? 180 : 0 }}
@@ -199,7 +199,7 @@ export const TabbedAssumptionsPanel: React.FC<TabbedAssumptionsPanelProps> = ({
       {/* Advanced Income Options */}
       <button
         onClick={() => toggleAdvanced('income')}
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300 transition-colors mt-6"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground/70 transition-colors mt-6"
       >
         <motion.div
           animate={{ rotate: expandedAdvanced.income ? 180 : 0 }}
@@ -295,7 +295,7 @@ export const TabbedAssumptionsPanel: React.FC<TabbedAssumptionsPanelProps> = ({
       {/* Advanced Expense Options */}
       <button
         onClick={() => toggleAdvanced('expenses')}
-        className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-300 transition-colors mt-6"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground/70 transition-colors mt-6"
       >
         <motion.div
           animate={{ rotate: expandedAdvanced.expenses ? 180 : 0 }}
@@ -394,7 +394,7 @@ export const TabbedAssumptionsPanel: React.FC<TabbedAssumptionsPanelProps> = ({
   return (
     <div className={cn('space-y-6', className)}>
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 p-1 rounded-xl bg-white/5 border border-white/10">
+      <div className="flex items-center gap-2 p-1 rounded-xl bg-black/5 border border-black/8">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -407,7 +407,7 @@ export const TabbedAssumptionsPanel: React.FC<TabbedAssumptionsPanelProps> = ({
                 'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all',
                 isActive
                   ? 'bg-[#C08B5C] text-white shadow-lg shadow-[#C08B5C]/30'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  : 'text-muted-foreground hover:text-foreground/80 hover:bg-black/5'
               )}
             >
               <Icon className="w-4 h-4" />

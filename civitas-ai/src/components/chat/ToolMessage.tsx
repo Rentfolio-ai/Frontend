@@ -12,6 +12,7 @@ import {
   ValuationCard,
   SendEmailCard,
   SendTextCard,
+  InboundMessageCard,
 } from './tool-cards';
 import { Search } from 'lucide-react';
 import type { DealAnalyzerData } from './tool-cards';
@@ -159,6 +160,22 @@ type SendTextToolResult = {
   status: 'success' | 'warning' | 'error';
 };
 
+type InboundMessageToolResult = {
+  kind: 'inbound_message';
+  title: string;
+  data: {
+    conversation_id?: string;
+    message_id?: string;
+    channel?: 'sms' | 'email' | 'whatsapp';
+    from_name?: string;
+    subject?: string;
+    content?: string;
+    body?: string;
+    timestamp?: string;
+  };
+  status: 'success' | 'warning' | 'error';
+};
+
 type GenericToolResult = {
   kind: 'generic' | 'property_comparison_table' | 'generated_report' | 'portfolio_analysis' | 'cashflow_timeseries' | 'report';
   title: string;
@@ -180,6 +197,7 @@ type ToolResult =
   | SearchRentalsToolResult
   | SendEmailToolResult
   | SendTextToolResult
+  | InboundMessageToolResult
   | GenericToolResult;
 
 interface ToolMessageProps {
@@ -272,16 +290,16 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         if (count === 0) return null;
 
         return (
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-black/[0.03] border border-black/[0.08]">
             <div className="w-7 h-7 rounded-md bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
               <Search className="w-3.5 h-3.5 text-emerald-400" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[13px] font-medium text-white/80">
+              <span className="text-[13px] font-medium text-foreground/80">
                 {count} {count === 1 ? 'property' : 'properties'} found{location ? ` in ${location}` : ''}
               </span>
               {topPicks.length > 0 && (
-                <span className="text-[11px] text-white/40">
+                <span className="text-[11px] text-muted-foreground/70">
                   {topPicks.length} AI top {topPicks.length === 1 ? 'pick' : 'picks'}
                 </span>
               )}
@@ -297,11 +315,11 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         if (rentalCount === 0) return null;
 
         return (
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.08]">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-black/[0.03] border border-black/[0.08]">
             <div className="w-7 h-7 rounded-md bg-blue-500/10 flex items-center justify-center flex-shrink-0">
               <Search className="w-3.5 h-3.5 text-blue-400" />
             </div>
-            <span className="text-[13px] font-medium text-white/80">
+            <span className="text-[13px] font-medium text-foreground/80">
               {rentalCount} {rentalCount === 1 ? 'rental' : 'rentals'} found{rentalLocation ? ` in ${rentalLocation}` : ''}
             </span>
           </div>
@@ -335,6 +353,23 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
             onSendComplete={onSendComplete}
           />
         );
+      case 'inbound_message':
+        return (
+          <InboundMessageCard
+            message={{
+              conversationId: tool.data.conversation_id || '',
+              messageId: tool.data.message_id,
+              channel: tool.data.channel || 'sms',
+              fromName: tool.data.from_name || 'Unknown',
+              subject: tool.data.subject,
+              content: tool.data.content || tool.data.body || '',
+              timestamp: tool.data.timestamp,
+            }}
+            onReply={onRefine ? (_convId, name, ch, content) => {
+              onRefine(`Reply to ${name}'s ${ch} message: "${content}"`);
+            } : undefined}
+          />
+        );
       case 'generic':
       case 'property_comparison_table':
       case 'generated_report':
@@ -353,20 +388,27 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
   };
 
   // Communication and property/rental tools render their own styled cards directly
-  if (tool.kind === 'send_email' || tool.kind === 'send_text' ||
-      tool.kind === 'scout_properties' || tool.kind === 'Property Scout' || tool.kind === 'search_rentals') {
+  if (tool.kind === 'send_email' || tool.kind === 'send_text' || tool.kind === 'inbound_message') {
+    return (
+      <div className="relative w-[calc(100%+100px)] -ml-[50px] max-w-[680px] mx-auto animate-slide-in mb-2">
+        {renderToolContent()}
+      </div>
+    );
+  }
+
+  if (tool.kind === 'scout_properties' || tool.kind === 'Property Scout' || tool.kind === 'search_rentals') {
     return (
       <div className="max-w-chat mx-auto animate-slide-in mb-2">
         {renderToolContent()}
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-chat mx-auto animate-slide-in">
       <Card
         variant="default"
-        className="mb-4 bg-white/95 dark:bg-white/10 border border-white/40 dark:border-white/15 shadow-soft backdrop-blur"
+        className="mb-4 bg-white/95 dark:bg-black/8 border border-white/40 dark:border-black/10 shadow-soft backdrop-blur"
       >
         <CardHeader>
           <div className="flex items-center justify-between">

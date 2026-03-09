@@ -61,7 +61,7 @@ const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled,
         className={`relative w-10 h-[22px] rounded-full transition-all duration-200 flex-shrink-0 ${
             enabled
                 ? 'bg-gradient-to-r from-[#C08B5C] to-[#D4A27F] shadow-[0_0_10px_rgba(192,139,92,0.3)]'
-                : 'bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.2]'
+                : 'bg-black/[0.05] border border-black/[0.08] hover:border-black/[0.12]'
         }`}
     >
         <div
@@ -83,13 +83,13 @@ interface ToggleRowProps {
 }
 
 const ToggleRow: React.FC<ToggleRowProps> = ({ icon: Icon, title, subtitle, enabled, onToggle }) => (
-    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-white/[0.02] transition-colors">
+    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-black/[0.02] transition-colors">
         <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.12] transition-colors">
             <Icon className="w-[18px] h-[18px] text-[#D4A27F] group-hover:text-[#C08B5C] transition-colors" />
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className="text-[13px] font-medium text-white/85 group-hover:text-white transition-colors">{title}</h3>
-            <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
+            <h3 className="text-[13px] font-medium text-foreground/85 group-hover:text-foreground transition-colors">{title}</h3>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">{subtitle}</p>
         </div>
         <Toggle enabled={enabled} onToggle={onToggle} />
     </div>
@@ -107,7 +107,7 @@ interface ActionRowProps {
 const ActionRow: React.FC<ActionRowProps> = ({ icon: Icon, title, subtitle, onClick, danger, external }) => (
     <button
         onClick={onClick}
-        className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-white/[0.02] group text-left"
+        className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-black/[0.02] group text-left"
     >
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
             danger
@@ -119,13 +119,13 @@ const ActionRow: React.FC<ActionRowProps> = ({ icon: Icon, title, subtitle, onCl
             }`} />
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className={`text-[13px] font-medium ${danger ? 'text-red-400' : 'text-white/85 group-hover:text-white'} transition-colors`}>{title}</h3>
-            <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
+            <h3 className={`text-[13px] font-medium ${danger ? 'text-red-400' : 'text-foreground/85 group-hover:text-foreground'} transition-colors`}>{title}</h3>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">{subtitle}</p>
         </div>
         {external ? (
-            <ExternalLink className="w-3.5 h-3.5 text-white/15 group-hover:text-white/35 transition-colors flex-shrink-0" />
+            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors flex-shrink-0" />
         ) : (
-            <ChevronRight className="w-3.5 h-3.5 text-white/15 group-hover:text-white/35 transition-colors flex-shrink-0" />
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors flex-shrink-0" />
         )}
     </button>
 );
@@ -142,7 +142,7 @@ interface SessionRowProps {
 }
 
 const SessionRow: React.FC<SessionRowProps> = ({ device, location, lastActive, isCurrent, deviceType, onRevoke }) => (
-    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-white/[0.02] transition-colors">
+    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-black/[0.02] transition-colors">
         <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
             {deviceType === 'desktop' ? (
                 <Monitor className="w-[18px] h-[18px] text-[#D4A27F]" />
@@ -152,14 +152,14 @@ const SessionRow: React.FC<SessionRowProps> = ({ device, location, lastActive, i
         </div>
         <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-                <h3 className="text-[13px] font-medium text-white/85">{device}</h3>
+                <h3 className="text-[13px] font-medium text-foreground/85">{device}</h3>
                 {isCurrent && (
                     <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Current
                     </span>
                 )}
             </div>
-            <p className="text-[11px] text-white/35 mt-0.5">{location} · {lastActive}</p>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">{location} · {lastActive}</p>
         </div>
         {!isCurrent && onRevoke && (
             <button
@@ -186,14 +186,14 @@ const ExpandableSection: React.FC<{
         <div>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-white/[0.02] transition-colors group"
+                className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-black/[0.02] transition-colors group"
             >
                 <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.12] transition-colors">
                     <Icon className="w-[18px] h-[18px] text-[#D4A27F] group-hover:text-[#C08B5C] transition-colors" />
                 </div>
-                <span className="flex-1 text-left text-[13px] font-medium text-white/85 group-hover:text-white transition-colors">{title}</span>
+                <span className="flex-1 text-left text-[13px] font-medium text-foreground/85 group-hover:text-foreground transition-colors">{title}</span>
                 <ChevronDown
-                    className={`w-3.5 h-3.5 text-white/20 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    className={`w-3.5 h-3.5 text-muted-foreground/40 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 />
             </button>
             <AnimatePresence>
@@ -205,7 +205,7 @@ const ExpandableSection: React.FC<{
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                     >
-                        <div className="px-4 pb-4 pt-1 border-t border-white/[0.04]">{children}</div>
+                        <div className="px-4 pb-4 pt-1 border-t border-black/[0.04]">{children}</div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -237,7 +237,7 @@ const ConfirmDialog: React.FC<{
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
-                className="relative w-full max-w-sm rounded-2xl border border-white/[0.08] p-6 shadow-2xl bg-[#161619]"
+                className="relative w-full max-w-sm rounded-2xl border border-black/[0.08] p-6 shadow-2xl bg-background"
             >
                 <div
                     className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl"
@@ -254,14 +254,14 @@ const ConfirmDialog: React.FC<{
                         <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-[#C08B5C]'}`} />
                     </div>
                     <div>
-                        <h3 className="text-base font-semibold text-white mb-1">{title}</h3>
-                        <p className="text-[13px] text-white/45 leading-relaxed">{message}</p>
+                        <h3 className="text-base font-semibold text-foreground mb-1">{title}</h3>
+                        <p className="text-[13px] text-muted-foreground/70 leading-relaxed">{message}</p>
                     </div>
                 </div>
                 <div className="flex gap-3 justify-end">
                     <button
                         onClick={onCancel}
-                        className="px-4 py-2 rounded-lg text-[12px] font-medium text-white/50 hover:bg-white/[0.06] hover:text-white transition-colors"
+                        className="px-4 py-2 rounded-lg text-[12px] font-medium text-muted-foreground hover:bg-black/[0.05] hover:text-foreground transition-colors"
                     >
                         Cancel
                     </button>
@@ -452,7 +452,7 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
     }, [showToast]);
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Toast */}
             <AnimatePresence>
                 {toast && (
@@ -462,8 +462,8 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                         exit={{ opacity: 0, y: -20, scale: 0.95 }}
                         className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border backdrop-blur-xl ${
                             toast.type === 'success'
-                                ? 'bg-[#161619]/90 border-emerald-500/20 text-emerald-400'
-                                : 'bg-[#161619]/90 border-red-500/20 text-red-400'
+                                ? 'bg-background/90 border-emerald-500/20 text-emerald-400'
+                                : 'bg-background/90 border-red-500/20 text-red-400'
                         }`}
                     >
                         {toast.type === 'success' ? (
@@ -477,16 +477,16 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
             </AnimatePresence>
 
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Privacy & Security</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Control your data, sessions, and account safety</p>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Privacy & Security</h1>
+                    <p className="text-[11px] text-muted-foreground/50 mt-0.5">Control your data, sessions, and account safety</p>
                 </div>
                 {loading && <Loader2 className="w-4 h-4 text-[#C08B5C]/40 animate-spin" />}
             </header>
@@ -508,8 +508,8 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                             <ShieldCheck className="w-5 h-5 text-[#D4A27F]" />
                         </div>
                         <div>
-                            <h3 className="text-[13px] font-semibold text-white/90 mb-1">Your data is protected</h3>
-                            <p className="text-[12px] text-white/40 leading-relaxed">
+                            <h3 className="text-[13px] font-semibold text-foreground mb-1">Your data is protected</h3>
+                            <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
                                 Encrypted in transit and at rest. We never sell your personal data to third parties. You maintain full control over your data retention.
                             </p>
                         </div>
@@ -517,8 +517,8 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* Data Privacy Controls */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Data Privacy</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Data Privacy</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <ToggleRow
                                 icon={History}
                                 title="Chat History"
@@ -552,8 +552,8 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* Account Security */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Account Security</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Account Security</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={Lock}
                                 title={actionLoading === 'password' ? 'Sending reset email…' : 'Change Password'}
@@ -572,12 +572,12 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* Active Sessions */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Active Sessions</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Active Sessions</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             {sessions.length === 0 && !loading && (
                                 <div className="px-4 py-8 text-center">
-                                    <Monitor className="w-5 h-5 text-white/15 mx-auto mb-2" />
-                                    <p className="text-[12px] text-white/25">No active sessions found</p>
+                                    <Monitor className="w-5 h-5 text-muted-foreground/40 mx-auto mb-2" />
+                                    <p className="text-[12px] text-muted-foreground/50">No active sessions found</p>
                                 </div>
                             )}
                             {sessions.map((session) => (
@@ -594,7 +594,7 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                             {sessions.length > 1 && (
                                 <button
                                     onClick={handleRevokeAllOther}
-                                    className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-white/[0.02] transition-colors group"
+                                    className="w-full flex items-center gap-3.5 px-4 py-3.5 hover:bg-black/[0.02] transition-colors group"
                                 >
                                     <div className="w-9 h-9 rounded-xl bg-red-500/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/[0.14] transition-colors">
                                         <LogOut className="w-[18px] h-[18px] text-red-400" />
@@ -607,8 +607,8 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
 
                     {/* Data & Legal */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Data & Legal</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Data & Legal</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <ActionRow
                                 icon={Download}
                                 title={actionLoading === 'export' ? 'Preparing export…' : 'Export My Data'}
@@ -621,16 +621,16 @@ export const PrivacySecurityPage: React.FC<PrivacySecurityPageProps> = ({ onBack
                                         <div className="w-7 h-7 rounded-lg bg-[#C08B5C]/[0.06] flex items-center justify-center flex-shrink-0">
                                             <Shield className="w-3.5 h-3.5 text-[#D4A27F]/60" />
                                         </div>
-                                        <p className="text-[12px] text-white/40 leading-relaxed">
-                                            <strong className="text-white/70 font-medium">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.
+                                        <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
+                                            <strong className="text-foreground/70 font-medium">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.
                                         </p>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <div className="w-7 h-7 rounded-lg bg-[#C08B5C]/[0.06] flex items-center justify-center flex-shrink-0">
                                             <Lock className="w-3.5 h-3.5 text-[#D4A27F]/60" />
                                         </div>
-                                        <p className="text-[12px] text-white/40 leading-relaxed">
-                                            <strong className="text-white/70 font-medium">Access:</strong> Only you have access to your private data keys. Support cannot view decrypted content.
+                                        <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
+                                            <strong className="text-foreground/70 font-medium">Access:</strong> Only you have access to your private data keys. Support cannot view decrypted content.
                                         </p>
                                     </div>
                                 </div>

@@ -31,17 +31,17 @@ export const BiometricGate: React.FC<BiometricGateProps> = ({
 
     return (
         <div className="h-full w-full flex flex-col items-center justify-center p-6 bg-black/50 backdrop-blur-sm animate-in fade-in duration-500">
-            <div className="max-w-md w-full bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center shadow-2xl shadow-black/50">
+            <div className="max-w-md w-full bg-background border border-black/8 rounded-2xl p-8 flex flex-col items-center text-center shadow-2xl shadow-black/10">
 
                 {/* Icon Circle */}
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C08B5C]/20 to-purple-500/20 flex items-center justify-center mb-6 ring-1 ring-white/10 relative">
                     {isSetupMode ? (
-                        <ShieldCheck className="w-8 h-8 text-white/80" />
+                        <ShieldCheck className="w-8 h-8 text-foreground/80" />
                     ) : (
-                        <Lock className="w-8 h-8 text-white/80" />
+                        <Lock className="w-8 h-8 text-foreground/80" />
                     )}
                     {/* Small status indicator */}
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-black rounded-full flex items-center justify-center border border-white/10">
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-black rounded-full flex items-center justify-center border border-black/8">
                         {isSetupMode ? (
                             <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                         ) : (
@@ -50,8 +50,8 @@ export const BiometricGate: React.FC<BiometricGateProps> = ({
                     </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-white mb-2">{headerTitle}</h2>
-                <p className="text-white/50 mb-8 leading-relaxed">
+                <h2 className="text-2xl font-bold text-foreground mb-2">{headerTitle}</h2>
+                <p className="text-muted-foreground mb-8 leading-relaxed">
                     {headerDesc}
                 </p>
 
@@ -83,12 +83,12 @@ export const BiometricGate: React.FC<BiometricGateProps> = ({
                 </button>
 
                 {!isAvailable && !isLoading && (
-                    <p className="mt-4 text-xs text-white/30">
+                    <p className="mt-4 text-xs text-muted-foreground/50">
                         Biometric hardware not detected. Security may fall back to device passcode.
                     </p>
                 )}
 
-                <div className="mt-6 flex items-center gap-2 text-xs text-white/20">
+                <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground/40">
                     <ShieldCheck className="w-3 h-3" />
                     <span>End-to-end encrypted security</span>
                 </div>

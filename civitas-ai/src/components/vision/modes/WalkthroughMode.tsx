@@ -122,7 +122,7 @@ const ProgressArc: React.FC<{
         {/* Track */}
         <circle
           cx={size / 2} cy={size / 2} r={radius}
-          fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={strokeWidth}
+          fill="none" stroke="rgba(0,0,0,0.03)" strokeWidth={strokeWidth}
         />
         {/* Progress */}
         <motion.circle
@@ -145,7 +145,7 @@ const ProgressArc: React.FC<{
           const fill = room.status === 'done' ? '#8B5CF6' :
                        room.status === 'scanning' ? '#A78BFA' :
                        room.status === 'skipped' ? 'rgba(255,255,255,0.1)' :
-                       'rgba(255,255,255,0.06)';
+                       'rgba(0,0,0,0.06)';
           return (
             <motion.circle
               key={room.id}
@@ -161,10 +161,10 @@ const ProgressArc: React.FC<{
 
       {/* Center text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-display font-bold text-white">
+        <span className="text-3xl font-display font-bold text-foreground">
           {completed}
         </span>
-        <span className="text-[10px] text-white/25 uppercase tracking-wider">
+        <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">
           of {total} rooms
         </span>
       </div>
@@ -186,22 +186,22 @@ const RoomCard: React.FC<{
     transition={{ type: 'spring', stiffness: 300, damping: 22 }}
     className={`flex-shrink-0 w-[140px] snap-center rounded-2xl border transition-all duration-200 ${
       isActive
-        ? 'bg-[#16161C] border-violet-500/15 shadow-[0_8px_40px_rgba(139,92,246,0.06)]'
+        ? 'bg-background border-violet-500/15 shadow-[0_8px_40px_rgba(139,92,246,0.06)]'
         : room.status === 'done'
-        ? 'bg-[#121216] border-white/[0.04]'
-        : 'bg-[#0f0f13] border-white/[0.03]'
+        ? 'bg-card border-black/[0.04]'
+        : 'bg-background border-black/[0.05]'
     }`}
   >
     <div className="p-4 text-center">
       <div className="text-2xl mb-2">{room.icon}</div>
-      <div className="text-xs font-medium text-white/70 mb-1">{room.name}</div>
+      <div className="text-xs font-medium text-foreground/70 mb-1">{room.name}</div>
 
       {room.status === 'done' && room.result ? (
         <div className="mt-2">
-          <span className={`text-[10px] font-medium capitalize ${conditionColors[room.result.condition] || 'text-white/40'}`}>
+          <span className={`text-[10px] font-medium capitalize ${conditionColors[room.result.condition] || 'text-muted-foreground/70'}`}>
             {room.result.condition}
           </span>
-          <div className="text-[9px] text-white/20 mt-0.5">
+          <div className="text-[9px] text-muted-foreground/40 mt-0.5">
             {room.result.detections.length} issue{room.result.detections.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -211,7 +211,7 @@ const RoomCard: React.FC<{
           <span className="text-[10px] text-violet-400">Scanning</span>
         </div>
       ) : room.status === 'skipped' ? (
-        <div className="mt-2 text-[10px] text-white/20">Skipped</div>
+        <div className="mt-2 text-[10px] text-muted-foreground/40">Skipped</div>
       ) : isActive ? (
         <div className="mt-2 flex items-center gap-1.5">
           <motion.button
@@ -224,13 +224,13 @@ const RoomCard: React.FC<{
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={onSkip}
-            className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.04]"
+            className="p-1.5 rounded-lg bg-black/[0.03] border border-black/[0.04]"
           >
-            <SkipForward className="w-3 h-3 text-white/25" />
+            <SkipForward className="w-3 h-3 text-muted-foreground/50" />
           </motion.button>
         </div>
       ) : (
-        <div className="mt-2 text-[10px] text-white/15">Pending</div>
+        <div className="mt-2 text-[10px] text-muted-foreground/40">Pending</div>
       )}
     </div>
   </motion.div>
@@ -387,7 +387,7 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
   // ── Render ────────────────────────────────────────────
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       <AnimatePresence mode="wait">
         {/* ── Start Screen ────────────────────────── */}
         {phase === 'start' && (
@@ -407,10 +407,10 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
               <Camera className="w-10 h-10 text-violet-400" />
             </motion.div>
 
-            <h2 className="text-xl font-display font-semibold text-white/90 mb-2 text-center">
+            <h2 className="text-xl font-display font-semibold text-foreground mb-2 text-center">
               Property Walkthrough
             </h2>
-            <p className="text-sm text-white/35 text-center leading-relaxed max-w-xs mb-8">
+            <p className="text-sm text-muted-foreground/60 text-center leading-relaxed max-w-xs mb-8">
               Scan each room for a complete property assessment. Scores aggregate into a comprehensive property report.
             </p>
 
@@ -428,14 +428,14 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 </motion.div>
               ))}
               {rooms.length > 5 && (
-                <span className="text-xs text-white/20">+{rooms.length - 5}</span>
+                <span className="text-xs text-muted-foreground/40">+{rooms.length - 5}</span>
               )}
             </div>
 
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={startWalkthrough}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-violet-500 hover:bg-violet-600 text-white text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)]"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-violet-500 hover:bg-violet-600 text-foreground text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)]"
             >
               <Play className="w-4 h-4" />
               Begin Walkthrough
@@ -485,10 +485,10 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={addRoom}
-                  className="flex-shrink-0 w-[140px] snap-center rounded-2xl border border-dashed border-white/[0.06] flex flex-col items-center justify-center p-4 hover:bg-white/[0.02] transition-colors"
+                  className="flex-shrink-0 w-[140px] snap-center rounded-2xl border border-dashed border-black/[0.06] flex flex-col items-center justify-center p-4 hover:bg-black/[0.02] transition-colors"
                 >
-                  <Plus className="w-5 h-5 text-white/15 mb-1" />
-                  <span className="text-[10px] text-white/15">Add room</span>
+                  <Plus className="w-5 h-5 text-muted-foreground/40 mb-1" />
+                  <span className="text-[10px] text-muted-foreground/40">Add room</span>
                 </motion.button>
               </div>
             </div>
@@ -500,8 +500,8 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center"
               >
-                <p className="text-sm text-white/50 mb-4">
-                  Scan <span className="text-white/80 font-medium">{activeRoom.name}</span>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Scan <span className="text-foreground/80 font-medium">{activeRoom.name}</span>
                 </p>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
@@ -521,7 +521,7 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 animate={{ opacity: 1, y: 0 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setPhase('complete')}
-                className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-violet-500 hover:bg-violet-600 text-white text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)] mt-4"
+                className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-violet-500 hover:bg-violet-600 text-foreground text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)] mt-4"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Complete Walkthrough
@@ -544,10 +544,10 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
             className="h-full relative"
           >
             {/* Room label overlay */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 backdrop-blur-xl border border-white/[0.08]">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 backdrop-blur-xl border border-black/[0.08]">
               <span className="text-lg">{activeRoom?.icon}</span>
-              <span className="text-xs font-medium text-white/70">{activeRoom?.name}</span>
-              <span className="text-[10px] text-white/25">
+              <span className="text-xs font-medium text-foreground/70">{activeRoom?.name}</span>
+              <span className="text-[10px] text-muted-foreground/50">
                 {activeRoomIndex + 1}/{rooms.length}
               </span>
             </div>
@@ -556,9 +556,9 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => setPhase('scanning')}
-              className="absolute top-4 left-4 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.08] flex items-center justify-center"
+              className="absolute top-4 left-4 z-20 w-8 h-8 rounded-full bg-black/40 backdrop-blur-xl border border-black/[0.08] flex items-center justify-center"
             >
-              <X className="w-4 h-4 text-white/50" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </motion.button>
 
             <CameraFeed
@@ -598,10 +598,10 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 <Trophy className="w-10 h-10 text-violet-400" />
               </div>
 
-              <h2 className="text-xl font-display font-semibold text-white/90 mb-2">
+              <h2 className="text-xl font-display font-semibold text-foreground mb-2">
                 Walkthrough Complete
               </h2>
-              <p className="text-sm text-white/35 mb-2">
+              <p className="text-sm text-muted-foreground/60 mb-2">
                 {completedCount} of {rooms.length} rooms scanned
               </p>
 
@@ -610,7 +610,7 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 {rooms.filter(r => r.status === 'done' && r.result).slice(0, 4).map(room => (
                   <div key={room.id} className="text-center">
                     <div className="text-lg mb-1">{room.icon}</div>
-                    <div className={`text-[10px] font-medium capitalize ${conditionColors[room.result!.condition] || 'text-white/40'}`}>
+                    <div className={`text-[10px] font-medium capitalize ${conditionColors[room.result!.condition] || 'text-muted-foreground/70'}`}>
                       {room.result!.condition}
                     </div>
                   </div>
@@ -621,7 +621,7 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => onViewDashboard(sessionId)}
-                  className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-violet-500 hover:bg-violet-600 text-white text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)]"
+                  className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-violet-500 hover:bg-violet-600 text-foreground text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)]"
                 >
                   View Property Dashboard
                   <ChevronRight className="w-4 h-4" />
@@ -629,7 +629,7 @@ export const WalkthroughMode: React.FC<WalkthroughModeProps> = ({ onViewDashboar
               )}
 
               {!onViewDashboard && (
-                <div className="text-[10px] text-white/15 uppercase tracking-widest mt-4">
+                <div className="text-[10px] text-muted-foreground/40 uppercase tracking-widest mt-4">
                   Dashboard coming soon
                 </div>
               )}

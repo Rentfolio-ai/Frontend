@@ -72,7 +72,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
         'p-5 rounded-xl border transition-all duration-300 relative overflow-hidden group',
         highlight
           ? 'bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/20 shadow-lg shadow-indigo-500/5'
-          : 'bg-white dark:bg-slate-900/50 border-border/40 hover:border-border/80 hover:shadow-md'
+          : 'bg-white dark:bg-card/50 border-border/40 hover:border-border/80 hover:shadow-md'
       )}
     >
       {highlight && (

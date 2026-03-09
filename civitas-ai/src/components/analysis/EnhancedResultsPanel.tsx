@@ -61,7 +61,7 @@ const HeroMetric: React.FC<HeroMetricProps> = ({
     positive: 'text-emerald-400',
     negative: 'text-red-400',
     warning: 'text-yellow-400',
-    neutral: 'text-slate-300',
+    neutral: 'text-foreground/70',
   };
 
   const sizeClasses = {
@@ -74,19 +74,19 @@ const HeroMetric: React.FC<HeroMetricProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 backdrop-blur-xl"
+      className="p-8 rounded-2xl bg-gradient-to-br from-white/5 to-black/[0.02] border border-black/8 backdrop-blur-xl"
     >
-      <div className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
         {label}
       </div>
       <div className={cn('font-bold tracking-tight mb-2', sizeClasses[size], sentimentColors[sentiment])}>
         {value < 0 && format === 'currency' && '-'}
         {formatValue()}
-        {format === 'currency' && <span className="text-2xl text-slate-500 ml-2">/mo</span>}
+        {format === 'currency' && <span className="text-2xl text-muted-foreground/70 ml-2">/mo</span>}
       </div>
       
       {trend && (
-        <div className="flex items-center gap-2 text-sm text-slate-400 mb-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           {trend.value > 0 ? (
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           ) : (
@@ -97,7 +97,7 @@ const HeroMetric: React.FC<HeroMetricProps> = ({
       )}
       
       {interpretation && (
-        <div className="text-sm text-slate-300 bg-white/5 px-4 py-3 rounded-lg">
+        <div className="text-sm text-foreground/70 bg-black/5 px-4 py-3 rounded-lg">
           {interpretation}
         </div>
       )}
@@ -137,7 +137,7 @@ const MetricTile: React.FC<MetricTileProps> = ({
     positive: 'border-emerald-500/30 bg-emerald-500/5',
     warning: 'border-yellow-500/30 bg-yellow-500/5',
     negative: 'border-red-500/30 bg-red-500/5',
-    neutral: 'border-white/10 bg-white/5',
+    neutral: 'border-black/8 bg-black/5',
   };
 
   const statusIcons = {
@@ -152,15 +152,15 @@ const MetricTile: React.FC<MetricTileProps> = ({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           {icon}
-          <div className="text-sm font-medium text-slate-400">{label}</div>
+          <div className="text-sm font-medium text-muted-foreground">{label}</div>
         </div>
         {statusIcons[status]}
       </div>
       
-      <div className="text-3xl font-bold text-white mb-2">{value}</div>
+      <div className="text-3xl font-bold text-foreground mb-2">{value}</div>
       
       {benchmark && (
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-muted-foreground/70">
           Target: {benchmark.target}% • Min: {benchmark.min}%
         </div>
       )}
@@ -178,14 +178,14 @@ const MetricTile: React.FC<MetricTileProps> = ({
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <Info className="w-4 h-4 text-slate-500 cursor-help" />
+          <Info className="w-4 h-4 text-muted-foreground/70 cursor-help" />
           <AnimatePresence>
             {showTooltip && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="absolute right-0 top-full mt-2 w-64 p-3 rounded-lg bg-slate-800 border border-white/10 shadow-xl text-xs text-slate-300 z-50"
+                className="absolute right-0 top-full mt-2 w-64 p-3 rounded-lg bg-muted border border-black/8 shadow-xl text-xs text-foreground/70 z-50"
               >
                 {explanation}
               </motion.div>
@@ -213,13 +213,13 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-white/10 rounded-xl overflow-hidden backdrop-blur-xl bg-white/5">
+    <div className="border border-black/8 rounded-xl overflow-hidden backdrop-blur-xl bg-black/5">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+        className="w-full px-6 py-4 flex items-center justify-between hover:bg-black/5 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-white">{title}</span>
+          <span className="text-sm font-semibold text-foreground">{title}</span>
           {badge && (
             <span className="px-2 py-0.5 rounded-md bg-[#C08B5C]/20 text-[#D4A27F] text-xs font-medium">
               {badge}
@@ -230,7 +230,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown className="w-5 h-5 text-slate-400" />
+          <ChevronDown className="w-5 h-5 text-muted-foreground" />
         </motion.div>
       </button>
       
@@ -243,7 +243,7 @@ const AccordionSection: React.FC<AccordionSectionProps> = ({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-6 py-4 border-t border-white/10">
+            <div className="px-6 py-4 border-t border-black/8">
               {children}
             </div>
           </motion.div>
@@ -274,15 +274,15 @@ const DataTable: React.FC<DataTableProps> = ({ data, showTotal = false }) => {
       {data.map((row, index) => (
         <div
           key={index}
-          className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
+          className="flex items-center justify-between py-2 border-b border-black/5 last:border-0"
         >
           <div>
-            <div className="text-sm text-slate-300">{row.label}</div>
+            <div className="text-sm text-foreground/70">{row.label}</div>
             {row.sublabel && (
-              <div className="text-xs text-slate-500 mt-0.5">{row.sublabel}</div>
+              <div className="text-xs text-muted-foreground/70 mt-0.5">{row.sublabel}</div>
             )}
           </div>
-          <div className="text-sm font-medium text-white">
+          <div className="text-sm font-medium text-foreground">
             {typeof row.value === 'number' 
               ? `$${row.value.toLocaleString()}`
               : row.value
@@ -292,9 +292,9 @@ const DataTable: React.FC<DataTableProps> = ({ data, showTotal = false }) => {
       ))}
       
       {showTotal && (
-        <div className="flex items-center justify-between pt-3 border-t-2 border-white/20 font-bold">
-          <div className="text-sm text-white">Total</div>
-          <div className="text-lg text-white">${total.toLocaleString()}</div>
+        <div className="flex items-center justify-between pt-3 border-t-2 border-black/12 font-bold">
+          <div className="text-sm text-foreground">Total</div>
+          <div className="text-lg text-foreground">${total.toLocaleString()}</div>
         </div>
       )}
     </div>
@@ -313,7 +313,7 @@ export const EnhancedResultsPanel: React.FC<EnhancedResultsPanelProps> = ({
   if (!pnlOutput) {
     return (
       <div className={cn('flex items-center justify-center h-64', className)}>
-        <div className="text-slate-500 text-center">
+        <div className="text-muted-foreground/70 text-center">
           <div className="text-2xl mb-2">🏠</div>
           <div>Adjust assumptions to see results</div>
         </div>
@@ -349,14 +349,14 @@ export const EnhancedResultsPanel: React.FC<EnhancedResultsPanelProps> = ({
           value={`${((year1.capRate || 0) * 100).toFixed(2)}%`}
           benchmark={{ target: 8, min: 5 }}
           explanation="Net Operating Income ÷ Purchase Price"
-          icon={<Percent className="w-4 h-4 text-slate-400" />}
+          icon={<Percent className="w-4 h-4 text-muted-foreground" />}
         />
         <MetricTile
           label="Cash-on-Cash"
           value={`${((year1.cashOnCash || 0) * 100).toFixed(2)}%`}
           benchmark={{ target: 10, min: 8 }}
           explanation="Annual Cashflow ÷ Total Cash Invested"
-          icon={<DollarSign className="w-4 h-4 text-slate-400" />}
+          icon={<DollarSign className="w-4 h-4 text-muted-foreground" />}
         />
         <MetricTile
           label="DSCR"
@@ -364,7 +364,7 @@ export const EnhancedResultsPanel: React.FC<EnhancedResultsPanelProps> = ({
           benchmark={{ target: 1.25, min: 1.0 }}
           alert={(year1.noi && year1.annualDebtService && (year1.noi / year1.annualDebtService) < 1.25) ? 'Below lender minimum' : undefined}
           explanation="Debt Service Coverage Ratio"
-          icon={<TrendingUp className="w-4 h-4 text-slate-400" />}
+          icon={<TrendingUp className="w-4 h-4 text-muted-foreground" />}
         />
       </div>
       
@@ -406,34 +406,34 @@ export const EnhancedResultsPanel: React.FC<EnhancedResultsPanelProps> = ({
         <div className="text-sm font-medium text-[#D4A27F] mb-4">Net Operating Income</div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-300">Total Income</span>
-            <span className="text-white font-medium">${year1.income?.totalIncome?.toLocaleString() || 0}</span>
+            <span className="text-foreground/70">Total Income</span>
+            <span className="text-foreground font-medium">${year1.income?.totalIncome?.toLocaleString() || 0}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-300">Total Expenses</span>
+            <span className="text-foreground/70">Total Expenses</span>
             <span className="text-red-400">-${year1.expenses?.totalExpenses?.toLocaleString() || 0}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-300">Debt Service</span>
+            <span className="text-foreground/70">Debt Service</span>
             <span className="text-red-400">-${year1.annualDebtService?.toLocaleString() || 0}</span>
           </div>
-          <div className="h-px bg-white/20 my-3" />
+          <div className="h-px bg-black/12 my-3" />
           <div className="flex justify-between font-bold text-lg">
-            <span className="text-white">Net Operating Income</span>
+            <span className="text-foreground">Net Operating Income</span>
             <span className="text-[#D4A27F]">${year1.noi?.toLocaleString() || 0}</span>
           </div>
         </div>
       </div>
       
       {/* 5-Year Projection Button */}
-      <button className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#C08B5C]/50 hover:bg-white/10 transition-all group">
+      <button className="w-full px-6 py-4 rounded-xl bg-black/5 border border-black/8 hover:border-[#C08B5C]/50 hover:bg-black/8 transition-all group">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-[#D4A27F]" />
-            <span className="text-sm font-semibold text-white">View 5-Year Projection</span>
+            <span className="text-sm font-semibold text-foreground">View 5-Year Projection</span>
           </div>
           <motion.div
-            className="text-slate-400 group-hover:text-[#D4A27F] transition-colors"
+            className="text-muted-foreground group-hover:text-[#D4A27F] transition-colors"
             whileHover={{ x: 5 }}
           >
             →

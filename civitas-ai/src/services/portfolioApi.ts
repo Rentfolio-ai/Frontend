@@ -16,12 +16,24 @@ const jsonHeaders: HeadersInit = {
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
+export interface GrowthPoint {
+    month: string;
+    value: number;
+}
+
+export interface ActivityItem {
+    type: 'bookmark' | 'report' | 'deal';
+    description: string;
+    timestamp: string;
+}
+
 export interface DashboardProperty {
     address: string;
     strategy: string;
     monthly_income: number;
     price: number;
     deal_status: string;
+    image_url?: string | null;
 }
 
 export interface DealPipeline {
@@ -39,9 +51,12 @@ export interface DashboardData {
     active_deals: number;
     deal_pipeline: DealPipeline;
     properties: DashboardProperty[];
+    property_count: number;
     reports_count: number;
     income_total: number;
     expenses_total: number;
+    growth_history: GrowthPoint[];
+    recent_activity: ActivityItem[];
 }
 
 // ── API ────────────────────────────────────────────────────────────────────────

@@ -51,7 +51,7 @@ export const EstimatedTimeChip: React.FC<EstimatedTimeChipProps> = ({
                     stroke="currentColor"
                     strokeWidth="2"
                     fill="none"
-                    className="text-gray-200 dark:text-gray-700"
+                    className="text-foreground/80 dark:text-gray-700"
                 />
                 {/* Progress circle */}
                 <circle
@@ -75,7 +75,7 @@ export const EstimatedTimeChip: React.FC<EstimatedTimeChipProps> = ({
                 <span
                     className={cn(
                         'text-[9px] font-semibold',
-                        isOvertime ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-400'
+                        isOvertime ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-muted-foreground'
                     )}
                     aria-hidden="true"
                 >

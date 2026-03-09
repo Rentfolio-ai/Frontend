@@ -22,3 +22,5 @@ export type { VisionAnalysisData } from './VisionAnalysisCard';
 export { SendEmailCard } from './SendEmailCard';
 export { SendTextCard } from './SendTextCard';
 export { LiveCallCard } from './LiveCallCard';
+export { InboundMessageCard } from './InboundMessageCard';
+export type { InboundMessage } from './InboundMessageCard';

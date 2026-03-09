@@ -298,29 +298,29 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
             />
 
             {/* Search Panel */}
-            <div className="relative w-full max-w-2xl max-h-[80vh] bg-[#1a1a1a] rounded-2xl shadow-2xl border border-white/[0.10] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-2xl max-h-[80vh] bg-popover rounded-2xl shadow-2xl border border-black/[0.08] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 
                 {/* Search Input */}
-                <div className="p-6 border-b border-white/[0.05]">
+                <div className="p-6 border-b border-black/[0.05]">
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70" />
                         <input
                             ref={inputRef}
                             type="text"
                             placeholder="Search chats..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full h-14 pl-12 pr-20 bg-white/[0.05] border border-white/[0.10] rounded-lg text-lg text-white/90 placeholder-white/40 focus:outline-none focus:border-white/[0.20] focus:ring-2 focus:ring-white/[0.10] transition-all"
+                            className="w-full h-14 pl-12 pr-20 bg-black/[0.04] border border-black/[0.08] rounded-lg text-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-black/[0.15] focus:ring-2 focus:ring-black/[0.10] transition-all"
                         />
                         {query && (
                             <button
                                 onClick={() => setQuery('')}
-                                className="absolute right-14 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white/[0.05] rounded transition-colors"
+                                className="absolute right-14 top-1/2 -translate-y-1/2 p-1.5 hover:bg-black/[0.04] rounded transition-colors"
                             >
-                                <X className="w-4 h-4 text-white/40" />
+                                <X className="w-4 h-4 text-muted-foreground/70" />
                             </button>
                         )}
-                        <kbd className="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-white/40 bg-white/[0.03] border border-white/[0.08] rounded">
+                        <kbd className="absolute right-4 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-muted-foreground/70 bg-black/[0.02] border border-black/[0.08] rounded">
                             ⌘K
                         </kbd>
                     </div>
@@ -331,10 +331,10 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                     {!query && recentSearches.length > 0 && (
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50">Recent Searches</h3>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent Searches</h3>
                                 <button
                                     onClick={clearRecentSearches}
-                                    className="text-xs text-white/40 hover:text-white/60 transition-colors"
+                                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
                                 >
                                     Clear all
                                 </button>
@@ -344,9 +344,9 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                     <button
                                         key={idx}
                                         onClick={() => handleRecentSearchClick(search)}
-                                        className="w-full px-3 py-2 text-left text-sm text-white/70 hover:text-white/90 bg-white/[0.02] hover:bg-white/[0.05] rounded-lg transition-all"
+                                        className="w-full px-3 py-2 text-left text-sm text-foreground/70 hover:text-foreground bg-black/[0.02] hover:bg-black/[0.04] rounded-lg transition-all"
                                     >
-                                        <Search className="w-3.5 h-3.5 inline mr-2 text-white/40" />
+                                        <Search className="w-3.5 h-3.5 inline mr-2 text-muted-foreground/70" />
                                         {search}
                                     </button>
                                 ))}
@@ -356,9 +356,9 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
 
                     {!query && recentSearches.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-64 text-center">
-                            <Search className="w-12 h-12 text-white/20 mb-4" />
-                            <p className="text-white/60 text-sm mb-2">Search your conversations</p>
-                            <p className="text-white/40 text-xs">
+                            <Search className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                            <p className="text-muted-foreground text-sm mb-2">Search your conversations</p>
+                            <p className="text-muted-foreground/70 text-xs">
                                 Try searching for property locations, strategies, or topics
                             </p>
                         </div>
@@ -366,9 +366,9 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
 
                     {query && flatResults.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-64 text-center">
-                            <Search className="w-12 h-12 text-white/20 mb-4" />
-                            <p className="text-white/60 text-sm mb-2">No chats found for "{query}"</p>
-                            <p className="text-white/40 text-xs">
+                            <Search className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                            <p className="text-muted-foreground text-sm mb-2">No chats found for "{query}"</p>
+                            <p className="text-muted-foreground/70 text-xs">
                                 Try different keywords or check your spelling
                             </p>
                         </div>
@@ -381,9 +381,9 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
 
                         return (
                             <div key={group.label} className="space-y-2">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                                     {group.label}
-                                    <span className="text-white/30">({group.chats.length})</span>
+                                    <span className="text-muted-foreground/50">({group.chats.length})</span>
                                 </h3>
                                 <div className="space-y-1">
                                     {group.chats.map((chat, chatIdx) => {
@@ -407,15 +407,15 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                                 className={cn(
                                                     'w-full p-3 rounded-lg text-left transition-all border',
                                                     isActive && 'bg-[#C08B5C]/[0.10] border-[#C08B5C]/[0.30]',
-                                                    !isActive && isSelected && 'bg-white/[0.08] border-white/[0.15]',
-                                                    !isActive && !isSelected && 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.05]'
+                                                    !isActive && isSelected && 'bg-black/[0.06] border-black/[0.12]',
+                                                    !isActive && !isSelected && 'bg-black/[0.02] border-black/[0.05] hover:bg-black/[0.04]'
                                                 )}
                                             >
                                                 <div className="flex items-start gap-3">
                                                     {/* Icon */}
                                                     <div className={cn(
                                                         'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-lg',
-                                                        hasAnalysis ? 'bg-[#C08B5C]/20' : 'bg-white/[0.08]'
+                                                        hasAnalysis ? 'bg-[#C08B5C]/20' : 'bg-black/[0.06]'
                                                     )}>
                                                         {hasAnalysis ? <MapPin className="w-4 h-4 text-[#D4A27F]" /> : '💬'}
                                                     </div>
@@ -423,18 +423,18 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                                     {/* Content */}
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            <h4 className="font-medium text-sm text-white/90 truncate flex-1">
+                                                            <h4 className="font-medium text-sm text-foreground truncate flex-1">
                                                                 {chat.title || 'Untitled Chat'}
                                                             </h4>
-                                                            <span className="text-xs text-white/40 flex-shrink-0">
+                                                            <span className="text-xs text-muted-foreground/70 flex-shrink-0">
                                                                 {formatChatTime(chat.timestamp || chat.createdAt)}
                                                             </span>
                                                         </div>
 
                                                         {/* Snippet */}
                                                         {snippet && (
-                                                            <p className="text-xs text-white/50 mb-2 line-clamp-2 flex items-start gap-1">
-                                                                <span className="text-white/30">↳</span>
+                                                            <p className="text-xs text-muted-foreground mb-2 line-clamp-2 flex items-start gap-1">
+                                                                <span className="text-muted-foreground/50">↳</span>
                                                                 {snippet}
                                                             </p>
                                                         )}
@@ -442,7 +442,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                                                         {/* Tags */}
                                                         <div className="flex items-center gap-1.5 flex-wrap">
                                                             {strategy && (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/[0.05] border border-white/[0.10] rounded-full text-[10px] font-medium text-white/60">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-black/[0.04] border border-black/[0.08] rounded-full text-[10px] font-medium text-muted-foreground">
                                                                     <DollarSign className="w-2.5 h-2.5" />
                                                                     {strategy}
                                                                 </span>
@@ -472,8 +472,8 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-3 border-t border-white/[0.05] bg-white/[0.02]">
-                    <div className="flex items-center justify-center gap-4 text-xs text-white/40">
+                <div className="px-6 py-3 border-t border-black/[0.05] bg-black/[0.02]">
+                    <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground/70">
                         <span>↑↓ Navigate</span>
                         <span>•</span>
                         <span>↵ Open</span>

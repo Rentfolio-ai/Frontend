@@ -12,6 +12,7 @@ import type { Message, AgentMode } from '../../types/chat';
 import type { InvestmentStrategy } from '../../types/pnl';
 import { AVAILABLE_MODELS, modelSupportsThinking } from '../../constants/models';
 import type { ThinkingState, CompletedTool } from '../../types/stream';
+import type { WandState } from '../../hooks/useAutopilotWand';
 import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 import { PreferenceSuggestionToast, detectPreferenceSuggestion, type PreferenceSuggestion } from '../chat/PreferenceSuggestionToast';
 import { uploadFile, ingestFileToBackend } from '../../services/fileStorage';
@@ -33,7 +34,7 @@ import { VoiceWaveform } from '../voice/VoiceWaveform';
 import { PersonaPickerModal } from '../voice/PersonaPickerModal';
 import { useVoiceSession } from '../../hooks/useVoiceSession';
 import { getPersonaById, type VoicePersona } from '../../config/voicePersonas';
-import { Timer, Users } from 'lucide-react';
+import { Timer, Users, Mic } from 'lucide-react';
 
 
 interface ChatTabViewProps {
@@ -68,6 +69,7 @@ interface ChatTabViewProps {
   reasoningText?: string | null;
   /** Active model display name for ThinkingIndicator badge */
   activeModelLabel?: string;
+  reasoningEffort?: 'low' | 'medium' | 'high';
   onRefresh?: (messageId: string) => void;
   onViewDetails?: (property: any) => void;
   // Cancel and error handling
@@ -92,31 +94,10 @@ interface ChatTabViewProps {
   onToggleTemporary?: () => void;
   onNavigateToTeams?: () => void;
   onBuyTokenPack?: () => void;
+  wandState?: WandState;
+  onActivateWand?: (goal: string) => void;
+  onDeactivateWand?: () => void;
 }
-
-const VasthuChatGlyph: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
-    <path
-      d="M6.5 8L12 18L17.5 8"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M9.5 14.5H14.5"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      opacity="0.55"
-    />
-    <path
-      d="M12 3.7L13 6L15.3 7L13 8L12 10.3L11 8L8.7 7L11 6L12 3.7Z"
-      fill="currentColor"
-      opacity="0.65"
-    />
-  </svg>
-);
 
 // Extract entities from recent conversation messages
 function extractConversationContext(messages: Message[]): {
@@ -355,6 +336,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   nativeThinkingText,
   reasoningText,
   activeModelLabel,
+  reasoningEffort,
   onRefresh,
   onViewDetails,
   onCancel,
@@ -376,6 +358,9 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
   onToggleTemporary,
   onNavigateToTeams,
   onBuyTokenPack,
+  wandState,
+  onActivateWand,
+  onDeactivateWand,
 }) => {
   const [backendStatus, setBackendStatus] = useState<'unknown' | 'up' | 'down'>('unknown');
   const [showFAQ, setShowFAQ] = useState(false);
@@ -770,11 +755,10 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
             type="button"
             onClick={onToggleTemporary}
             title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Temporary chat (not saved)'}
-            className={`p-2 rounded-lg transition-colors ${
-              isTemporary
-                ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
-                : 'text-white/60 hover:bg-white/10 hover:text-white/80'
-            }`}
+            className={`p-2 rounded-lg transition-colors ${isTemporary
+              ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+              : 'text-muted-foreground hover:bg-black/8 hover:text-foreground/80'
+              }`}
             aria-pressed={isTemporary}
           >
             <Timer className="w-5 h-5" />
@@ -785,7 +769,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
             type="button"
             onClick={onNavigateToTeams}
             title="Teams"
-            className="p-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white/80 transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:bg-black/8 hover:text-foreground/80 transition-colors"
           >
             <Users className="w-5 h-5" />
           </button>
@@ -802,12 +786,8 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
         {showEmptyState ? (
           <div className="h-full flex flex-col items-center justify-center px-4 py-6">
             <div className="w-full max-w-[680px] mx-auto space-y-4">
-              {/* Avatar + Greeting */}
-              <div className="flex flex-col items-center gap-3 px-4">
-                <div className="w-12 h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] flex items-center justify-center text-white/60">
-                  <VasthuChatGlyph className="w-5 h-5" />
-                </div>
-                <h1 className="text-[20px] font-medium text-white/80 tracking-tight">
+              <div className="flex flex-col items-center gap-3 px-4 mb-4">
+                <h1 className="text-[24px] sm:text-[28px] font-semibold text-foreground tracking-tight text-center leading-tight">
                   {greeting.tagline}
                 </h1>
               </div>
@@ -839,30 +819,30 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   isTokenExhausted={isTokenExhausted}
                   onTokenUpgrade={onNavigateToUpgrade}
                   onBuyTokenPack={onBuyTokenPack}
+                  wandState={wandState}
+                  onActivateWand={onActivateWand}
+                  onDeactivateWand={onDeactivateWand}
                 />
                 <div className="flex items-center justify-center gap-2.5 mt-1.5">
                   {onToggleTemporary && (
                     <button
                       type="button"
                       onClick={onToggleTemporary}
-                      className={`flex items-center gap-1.5 text-[10px] transition-colors ${
-                        isTemporary
-                          ? 'text-amber-400/70 hover:text-amber-400'
-                          : 'text-white/15 hover:text-white/30'
-                      }`}
+                      className={`flex items-center gap-1.5 text-[10px] transition-colors ${isTemporary
+                        ? 'text-amber-400/70 hover:text-amber-400'
+                        : 'text-muted-foreground/40 hover:text-muted-foreground/50'
+                        }`}
                       title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Enable temporary chat (not saved to history)'}
                     >
-                      <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${
-                        isTemporary ? 'bg-amber-400/30' : 'bg-white/[0.06]'
-                      }`}>
-                        <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${
-                          isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/20'
-                        }`} />
+                      <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${isTemporary ? 'bg-amber-400/30' : 'bg-black/[0.05]'
+                        }`}>
+                        <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-black/12'
+                          }`} />
                       </span>
                       <span>Temporary</span>
                     </button>
                   )}
-                  <p className="text-[10px] text-white/20">
+                  <p className="text-[10px] text-muted-foreground/40">
                     Vasthu can make mistakes. Verify important information.
                   </p>
                 </div>
@@ -887,9 +867,9 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                             handleSendMessage(query);
                           }
                         }}
-                        className="group px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.06] hover:border-white/[0.10] transition-colors"
+                        className="group px-2.5 py-1 rounded-full bg-black/[0.03] hover:bg-black/[0.05] border border-black/[0.06] hover:border-black/[0.08] transition-colors"
                       >
-                        <span className="text-[11px] text-white/40 group-hover:text-white/70 font-medium leading-none">{label}</span>
+                        <span className="text-[11px] text-muted-foreground/70 group-hover:text-foreground/70 font-medium leading-none">{label}</span>
                       </button>
                     );
                   })}
@@ -907,7 +887,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   active={voiceSession.isAISpeaking || !voiceSession.muted}
                   size="md"
                 />
-                <p className="text-white/40 text-lg font-medium">
+                <p className="text-muted-foreground/70 text-lg font-medium">
                   {voiceSession.status === 'connecting' || voiceSession.status === 'idle'
                     ? 'Connecting...'
                     : 'Start talking'}
@@ -943,6 +923,7 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                 reasoningText={reasoningText}
                 hasThinkingModel={modelSupportsThinking(selectedModel || '')}
                 activeModel={activeModelLabel}
+                reasoningEffort={reasoningEffort}
                 userName={userName}
                 userAvatar={userAvatar}
                 onRefresh={onRefresh}
@@ -970,29 +951,29 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                   className={`${prefsStore.isWideMode ? 'max-w-3xl' : 'max-w-[680px]'} mx-auto flex flex-col`}
                   style={{ gap: 'var(--chat-density, 24px)' }}
                 >
-                  {/* Listening indicator — shows immediately while waiting for transcription */}
+                  {/* Listening indicator — frosted glass pill with copper waveform */}
                   <div
-                    className="flex w-full mb-3 justify-end items-center"
+                    className="flex w-full mb-3 justify-center items-center"
                     style={{
                       opacity: !voiceUserPartial && !voiceAIPartial && voiceSession.status === 'listening' && !voiceSession.muted ? 1 : 0,
-                      maxHeight: !voiceUserPartial && !voiceAIPartial && voiceSession.status === 'listening' && !voiceSession.muted ? 40 : 0,
+                      maxHeight: !voiceUserPartial && !voiceAIPartial && voiceSession.status === 'listening' && !voiceSession.muted ? 48 : 0,
                       overflow: 'hidden',
                       transition: 'opacity 0.3s ease, max-height 0.3s ease',
                     }}
                   >
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.06]">
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" style={{ animation: 'pulse 1.4s ease-in-out infinite' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" style={{ animation: 'pulse 1.4s ease-in-out 0.2s infinite' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#C08B5C]" style={{ animation: 'pulse 1.4s ease-in-out 0.4s infinite' }} />
+                    <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#C08B5C]/12 shadow-[0_4px_20px_rgba(192,139,92,0.08)]">
+                      <div className="flex items-end gap-[2px] h-4">
+                        <span className="w-[3px] rounded-full bg-[#C08B5C]/70" style={{ animation: 'voiceBar 0.6s ease-in-out infinite alternate', height: '6px' }} />
+                        <span className="w-[3px] rounded-full bg-[#C08B5C]/70" style={{ animation: 'voiceBar 0.6s ease-in-out 0.15s infinite alternate', height: '10px' }} />
+                        <span className="w-[3px] rounded-full bg-[#C08B5C]/70" style={{ animation: 'voiceBar 0.6s ease-in-out 0.3s infinite alternate', height: '6px' }} />
                       </div>
-                      <span className="text-[11px] text-white/35 font-medium">Listening...</span>
+                      <span className="text-[11px] text-[#C08B5C]/70 font-medium tracking-wide">Listening...</span>
                     </div>
                   </div>
 
-                  {/* Streaming user message — smooth opacity transition, no re-triggering animation */}
+                  {/* User speech partial — frosted card with copper accent stripe */}
                   <div
-                    className="flex w-full mb-4 justify-end"
+                    className="flex w-full mb-4 justify-end items-start"
                     style={{
                       opacity: voiceUserPartial ? 1 : 0,
                       maxHeight: voiceUserPartial ? 500 : 0,
@@ -1001,30 +982,30 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                     }}
                   >
                     <div className="flex flex-col max-w-[90%] md:max-w-[85%] items-end">
-                      <div
-                        className="relative whitespace-pre-wrap break-words overflow-hidden rounded-2xl rounded-br-md accent-user-bubble border border-white/[0.1] px-4 py-3 text-[14px] leading-relaxed backdrop-blur-xl"
-                        style={{ color: '#F0FDFA' }}
-                      >
-                        <div className="text-white/90">
-                          {voiceUserPartial || '\u00A0'}
-                          <span
-                            className="inline-block w-[2px] h-[1em] bg-white/50 ml-0.5 align-text-bottom"
-                            style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
-                          />
+                      <div className="relative whitespace-pre-wrap break-words overflow-hidden rounded-2xl rounded-br-md bg-white/50 backdrop-blur-xl border border-[#C08B5C]/10 shadow-[0_4px_16px_rgba(192,139,92,0.06)] px-4 py-3 text-[14px] leading-relaxed">
+                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#C08B5C] to-[#C08B5C]/30 rounded-l-2xl" />
+                        <div className="flex items-start gap-2 text-foreground">
+                          <Mic className="w-3.5 h-3.5 text-[#C08B5C]/50 mt-0.5 flex-shrink-0" />
+                          <span>
+                            {voiceUserPartial || '\u00A0'}
+                            <span
+                              className="inline-block w-[2px] h-[1em] bg-[#C08B5C]/60 ml-0.5 align-text-bottom"
+                              style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
+                            />
+                          </span>
                         </div>
                       </div>
                     </div>
-                    {/* User avatar */}
                     {userAvatar ? (
                       <img src={userAvatar} alt="" className="w-7 h-7 rounded-full ml-3 mt-1 flex-shrink-0" />
                     ) : (
-                      <div className="w-7 h-7 rounded-full ml-3 mt-1 flex-shrink-0 bg-[#C08B5C]/30 flex items-center justify-center text-[11px] font-semibold text-[#C08B5C]">
+                      <div className="w-7 h-7 rounded-full ml-3 mt-1 flex-shrink-0 bg-[#C08B5C]/20 flex items-center justify-center text-[11px] font-semibold text-[#C08B5C]">
                         {userName?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                     )}
                   </div>
 
-                  {/* Streaming AI message — smooth opacity transition */}
+                  {/* AI response partial — clean left-aligned text with copper cursor */}
                   <div
                     className="flex w-full mb-4 justify-start"
                     style={{
@@ -1035,16 +1016,26 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                     }}
                   >
                     <div className="flex flex-col max-w-[90%] md:max-w-[85%] items-start">
-                      <div className="text-[15px] leading-relaxed text-slate-200">
+                      <div className="text-[15px] leading-relaxed text-foreground/85">
                         {voiceAIPartial || '\u00A0'}
                         <span
-                          className="inline-block w-[2px] h-[1em] bg-white/50 ml-0.5 align-text-bottom"
+                          className="inline-block w-[2px] h-[1em] bg-[#C08B5C]/50 ml-0.5 align-text-bottom"
                           style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
                         />
                       </div>
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Voice waveform keyframes */}
+              {voiceActive && (
+                <style>{`
+                  @keyframes voiceBar {
+                    from { height: 4px; }
+                    to { height: 14px; }
+                  }
+                `}</style>
               )}
 
               {/* Scroll to Bottom Button */}
@@ -1102,6 +1093,9 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                     isTokenExhausted={isTokenExhausted}
                     onTokenUpgrade={onNavigateToUpgrade}
                     onBuyTokenPack={onBuyTokenPack}
+                    wandState={wandState}
+                    onActivateWand={onActivateWand}
+                    onDeactivateWand={onDeactivateWand}
                   />
 
                   {/* Temporary chat toggle + disclaimer */}
@@ -1110,33 +1104,30 @@ export const ChatTabView: React.FC<ChatTabViewProps> = ({
                       <button
                         type="button"
                         onClick={onToggleTemporary}
-                        className={`flex items-center gap-1.5 text-[10.5px] transition-colors ${
-                          isTemporary
-                            ? 'text-amber-400/70 hover:text-amber-400'
-                            : 'text-white/20 hover:text-white/40'
-                        }`}
+                        className={`flex items-center gap-1.5 text-[10.5px] transition-colors ${isTemporary
+                          ? 'text-amber-400/70 hover:text-amber-400'
+                          : 'text-muted-foreground/40 hover:text-muted-foreground/70'
+                          }`}
                         title={isTemporary ? 'Chat won\'t be saved. Click to disable.' : 'Enable temporary chat (not saved to history)'}
                       >
-                        <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${
-                          isTemporary ? 'bg-amber-400/30' : 'bg-white/[0.08]'
-                        }`}>
-                          <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${
-                            isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/30'
-                          }`} />
+                        <span className={`inline-block w-5 h-2.5 rounded-full relative transition-colors ${isTemporary ? 'bg-amber-400/30' : 'bg-black/[0.06]'
+                          }`}>
+                          <span className={`absolute top-0.5 w-1.5 h-1.5 rounded-full transition-all ${isTemporary ? 'right-0.5 bg-amber-400' : 'left-0.5 bg-white/30'
+                            }`} />
                         </span>
                         <span>Temporary</span>
                       </button>
                     )}
-                    <p className="text-[10.5px] text-white/25">
+                    <p className="text-[10.5px] text-muted-foreground/50">
                       Vasthu can make mistakes. Verify important information.
                     </p>
                   </div>
 
                   {/* Free plan usage indicator — hidden for Pro and in dev */}
                   {isFree && !import.meta.env.DEV && (
-                    <div className="mt-1.5 flex items-center justify-center gap-3 text-[10px] text-white/30">
+                    <div className="mt-1.5 flex items-center justify-center gap-3 text-[10px] text-muted-foreground/50">
                       <span>Free plan</span>
-                      <span className="w-px h-2.5 bg-white/10" />
+                      <span className="w-px h-2.5 bg-black/8" />
                       <button
                         onClick={onNavigateToUpgrade}
                         className="text-amber-400/60 hover:text-amber-400 transition-colors"

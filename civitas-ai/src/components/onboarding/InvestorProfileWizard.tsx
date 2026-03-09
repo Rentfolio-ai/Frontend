@@ -70,15 +70,15 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-background flex items-center justify-center p-6">
             <Card className="w-full max-w-3xl p-8">
                 {/* Progress Bar */}
                 <div className="mb-8">
                     <div className="flex justify-between mb-2">
-                        <span className="text-sm text-gray-400">Step {step} of {totalSteps}</span>
+                        <span className="text-sm text-muted-foreground">Step {step} of {totalSteps}</span>
                         <span className="text-sm text-indigo-400">{Math.round((step / totalSteps) * 100)}% Complete</span>
                     </div>
-                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
                             className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
                             style={{ width: `${(step / totalSteps) * 100}%` }}
@@ -91,8 +91,8 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                     <div className="space-y-6">
                         <div className="text-center mb-8">
                             <Target className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-                            <h2 className="text-2xl font-bold text-white mb-2">What are your investment goals?</h2>
-                            <p className="text-gray-400">Select all that apply</p>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">What are your investment goals?</h2>
+                            <p className="text-muted-foreground">Select all that apply</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,13 +107,13 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                                     onClick={() => toggleArrayItem('investment_goals', goal.value)}
                                     className={`p-4 rounded-lg border-2 text-left transition-all ${profile.investment_goals.includes(goal.value)
                                             ? 'border-indigo-500 bg-indigo-500/10'
-                                            : 'border-gray-700 hover:border-gray-600'
+                                            : 'border-border hover:border-border'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <div className="font-medium text-white">{goal.label}</div>
-                                            <div className="text-sm text-gray-400 mt-1">{goal.desc}</div>
+                                            <div className="font-medium text-foreground">{goal.label}</div>
+                                            <div className="text-sm text-muted-foreground mt-1">{goal.desc}</div>
                                         </div>
                                         {profile.investment_goals.includes(goal.value) && (
                                             <CheckCircle className="w-5 h-5 text-indigo-400 flex-shrink-0" />
@@ -125,22 +125,22 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
 
                         <div className="space-y-4">
                             <label className="block">
-                                <span className="text-sm text-gray-400">Target Annual Return (%)</span>
+                                <span className="text-sm text-muted-foreground">Target Annual Return (%)</span>
                                 <input
                                     type="number"
                                     value={profile.target_annual_return || ''}
                                     onChange={(e) => updateProfile({ target_annual_return: parseFloat(e.target.value) })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                     placeholder="e.g., 12"
                                 />
                             </label>
 
                             <label className="block">
-                                <span className="text-sm text-gray-400">Investment Horizon</span>
+                                <span className="text-sm text-muted-foreground">Investment Horizon</span>
                                 <select
                                     value={profile.investment_horizon || ''}
                                     onChange={(e) => updateProfile({ investment_horizon: e.target.value })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                 >
                                     <option value="">Select...</option>
                                     <option value="short_term">Short-term (1-3 years)</option>
@@ -157,8 +157,8 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                     <div className="space-y-6">
                         <div className="text-center mb-8">
                             <TrendingUp className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-                            <h2 className="text-2xl font-bold text-white mb-2">What's your risk tolerance?</h2>
-                            <p className="text-gray-400">This helps us recommend suitable properties</p>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">What's your risk tolerance?</h2>
+                            <p className="text-muted-foreground">This helps us recommend suitable properties</p>
                         </div>
 
                         <div className="space-y-4">
@@ -172,13 +172,13 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                                     onClick={() => updateProfile({ risk_tolerance: risk.value })}
                                     className={`w-full p-4 rounded-lg border-2 text-left transition-all ${profile.risk_tolerance === risk.value
                                             ? 'border-indigo-500 bg-indigo-500/10'
-                                            : 'border-gray-700 hover:border-gray-600'
+                                            : 'border-border hover:border-border'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <div className="font-medium text-white">{risk.label}</div>
-                                            <div className="text-sm text-gray-400 mt-1">{risk.desc}</div>
+                                            <div className="font-medium text-foreground">{risk.label}</div>
+                                            <div className="text-sm text-muted-foreground mt-1">{risk.desc}</div>
                                         </div>
                                         {profile.risk_tolerance === risk.value && (
                                             <CheckCircle className="w-5 h-5 text-indigo-400 flex-shrink-0" />
@@ -190,23 +190,23 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                             <label className="block">
-                                <span className="text-sm text-gray-400">Max Property Price</span>
+                                <span className="text-sm text-muted-foreground">Max Property Price</span>
                                 <input
                                     type="number"
                                     value={profile.max_property_price || ''}
                                     onChange={(e) => updateProfile({ max_property_price: parseInt(e.target.value) })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                     placeholder="$500,000"
                                 />
                             </label>
 
                             <label className="block">
-                                <span className="text-sm text-gray-400">Min Monthly Cash Flow</span>
+                                <span className="text-sm text-muted-foreground">Min Monthly Cash Flow</span>
                                 <input
                                     type="number"
                                     value={profile.min_cash_flow_monthly || ''}
                                     onChange={(e) => updateProfile({ min_cash_flow_monthly: parseInt(e.target.value) })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                     placeholder="$500"
                                 />
                             </label>
@@ -219,8 +219,8 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                     <div className="space-y-6">
                         <div className="text-center mb-8">
                             <MapPin className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-                            <h2 className="text-2xl font-bold text-white mb-2">Where do you want to invest?</h2>
-                            <p className="text-gray-400">Select your target markets</p>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">Where do you want to invest?</h2>
+                            <p className="text-muted-foreground">Select your target markets</p>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -233,8 +233,8 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                                     key={market}
                                     onClick={() => toggleArrayItem('preferred_markets', market)}
                                     className={`p-3 rounded-lg border text-sm transition-all ${profile.preferred_markets.includes(market)
-                                            ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                                            : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                                            ? 'border-indigo-500 bg-indigo-500/10 text-foreground'
+                                            : 'border-border text-muted-foreground hover:border-border'
                                         }`}
                                 >
                                     {market}
@@ -244,15 +244,15 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
 
                         <div className="mt-6">
                             <label className="block">
-                                <span className="text-sm text-gray-400">Preferred Strategies</span>
+                                <span className="text-sm text-muted-foreground">Preferred Strategies</span>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
                                     {['STR', 'LTR', 'MTR', 'BRRRR', 'Flip', 'House Hack'].map(strategy => (
                                         <button
                                             key={strategy}
                                             onClick={() => toggleArrayItem('preferred_strategies', strategy)}
                                             className={`p-2 rounded-lg border text-sm transition-all ${profile.preferred_strategies.includes(strategy)
-                                                    ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                                                    : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                                                    ? 'border-indigo-500 bg-indigo-500/10 text-foreground'
+                                                    : 'border-border text-muted-foreground hover:border-border'
                                                 }`}
                                         >
                                             {strategy}
@@ -269,39 +269,39 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                     <div className="space-y-6">
                         <div className="text-center mb-8">
                             <DollarSign className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-                            <h2 className="text-2xl font-bold text-white mb-2">What's your budget?</h2>
-                            <p className="text-gray-400">Help us find properties within your means</p>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">What's your budget?</h2>
+                            <p className="text-muted-foreground">Help us find properties within your means</p>
                         </div>
 
                         <div className="space-y-4">
                             <label className="block">
-                                <span className="text-sm text-gray-400">Available Capital</span>
+                                <span className="text-sm text-muted-foreground">Available Capital</span>
                                 <input
                                     type="number"
                                     value={profile.available_capital || ''}
                                     onChange={(e) => updateProfile({ available_capital: parseInt(e.target.value) })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                     placeholder="$100,000"
                                 />
                             </label>
 
                             <label className="block">
-                                <span className="text-sm text-gray-400">Max Down Payment</span>
+                                <span className="text-sm text-muted-foreground">Max Down Payment</span>
                                 <input
                                     type="number"
                                     value={profile.max_down_payment || ''}
                                     onChange={(e) => updateProfile({ max_down_payment: parseInt(e.target.value) })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                     placeholder="$80,000"
                                 />
                             </label>
 
                             <label className="block">
-                                <span className="text-sm text-gray-400">Financing Preference</span>
+                                <span className="text-sm text-muted-foreground">Financing Preference</span>
                                 <select
                                     value={profile.financing_preference || ''}
                                     onChange={(e) => updateProfile({ financing_preference: e.target.value })}
-                                    className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                    className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                 >
                                     <option value="">Select...</option>
                                     <option value="conventional">Conventional Loan</option>
@@ -319,8 +319,8 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                 {step === 5 && (
                     <div className="space-y-6">
                         <div className="text-center mb-8">
-                            <h2 className="text-2xl font-bold text-white mb-2">Tell us about your experience</h2>
-                            <p className="text-gray-400">This helps us tailor recommendations</p>
+                            <h2 className="text-2xl font-bold text-foreground mb-2">Tell us about your experience</h2>
+                            <p className="text-muted-foreground">This helps us tailor recommendations</p>
                         </div>
 
                         <div className="space-y-4">
@@ -334,13 +334,13 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                                     onClick={() => updateProfile({ experience_level: level.value })}
                                     className={`w-full p-4 rounded-lg border-2 text-left transition-all ${profile.experience_level === level.value
                                             ? 'border-indigo-500 bg-indigo-500/10'
-                                            : 'border-gray-700 hover:border-gray-600'
+                                            : 'border-border hover:border-border'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <div className="font-medium text-white">{level.label}</div>
-                                            <div className="text-sm text-gray-400 mt-1">{level.desc}</div>
+                                            <div className="font-medium text-foreground">{level.label}</div>
+                                            <div className="text-sm text-muted-foreground mt-1">{level.desc}</div>
                                         </div>
                                         {profile.experience_level === level.value && (
                                             <CheckCircle className="w-5 h-5 text-indigo-400 flex-shrink-0" />
@@ -351,12 +351,12 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                         </div>
 
                         <label className="block mt-6">
-                            <span className="text-sm text-gray-400">Properties Currently Owned</span>
+                            <span className="text-sm text-muted-foreground">Properties Currently Owned</span>
                             <input
                                 type="number"
                                 value={profile.properties_owned}
                                 onChange={(e) => updateProfile({ properties_owned: parseInt(e.target.value) || 0 })}
-                                className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                className="mt-1 w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground"
                                 placeholder="0"
                                 min="0"
                             />
@@ -373,7 +373,7 @@ export const InvestorProfileWizard: React.FC<InvestorProfileWizardProps> = ({ on
                             </Button>
                         )}
                         {onSkip && step === 1 && (
-                            <Button onClick={onSkip} variant="ghost" className="text-gray-400">
+                            <Button onClick={onSkip} variant="ghost" className="text-muted-foreground">
                                 Skip for now
                             </Button>
                         )}

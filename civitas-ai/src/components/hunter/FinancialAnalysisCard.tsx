@@ -64,8 +64,8 @@ const StatRow: React.FC<{
     bold?: boolean;
 }> = ({ label, value, accent, bold }) => (
     <div className="flex items-center justify-between py-1.5">
-        <span className="text-[12px] text-white/30">{label}</span>
-        <span className={`text-[12px] font-${bold ? 'bold' : 'semibold'} ${accent || 'text-white/60'}`}>
+        <span className="text-[12px] text-muted-foreground/50">{label}</span>
+        <span className={`text-[12px] font-${bold ? 'bold' : 'semibold'} ${accent || 'text-muted-foreground'}`}>
             {value}
         </span>
     </div>
@@ -143,15 +143,15 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
                     {data.strategy}
                 </span>
                 {data.summary && (
-                    <span className="text-[10px] text-white/15 font-medium">{data.summary}</span>
+                    <span className="text-[10px] text-muted-foreground/40 font-medium">{data.summary}</span>
                 )}
             </div>
 
             {/* ── Hero KPIs: 2×2 grid ── */}
-            <div className="grid grid-cols-2 gap-px rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <div className="grid grid-cols-2 gap-px rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.03)' }}>
                 {/* Monthly Cashflow */}
-                <div className="p-4" style={{ background: '#17161B' }}>
-                    <div className="text-[9px] uppercase tracking-[0.1em] text-white/20 font-semibold mb-2">Monthly Cashflow</div>
+                <div className="p-4" style={{ background: 'hsl(var(--card))' }}>
+                    <div className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground/40 font-semibold mb-2">Monthly Cashflow</div>
                     <div className={`text-xl font-bold tracking-tight flex items-center gap-1.5 ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {isPositive
                             ? <TrendingUp className="w-4 h-4 opacity-60" />
@@ -162,24 +162,24 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
                 </div>
 
                 {/* Cap Rate */}
-                <div className="p-4" style={{ background: '#17161B' }}>
-                    <div className="text-[9px] uppercase tracking-[0.1em] text-white/20 font-semibold mb-2">Cap Rate</div>
-                    <div className="text-xl font-bold text-white/70 tracking-tight">
+                <div className="p-4" style={{ background: 'hsl(var(--card))' }}>
+                    <div className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground/40 font-semibold mb-2">Cap Rate</div>
+                    <div className="text-xl font-bold text-foreground/70 tracking-tight">
                         {pct(year1.cap_rate)}
                     </div>
                 </div>
 
                 {/* Cash-on-Cash */}
-                <div className="p-4" style={{ background: '#17161B' }}>
-                    <div className="text-[9px] uppercase tracking-[0.1em] text-white/20 font-semibold mb-2">Cash-on-Cash</div>
-                    <div className="text-xl font-bold text-white/70 tracking-tight">
+                <div className="p-4" style={{ background: 'hsl(var(--card))' }}>
+                    <div className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground/40 font-semibold mb-2">Cash-on-Cash</div>
+                    <div className="text-xl font-bold text-foreground/70 tracking-tight">
                         {pct(year1.cash_on_cash_return)}
                     </div>
                 </div>
 
                 {/* Total Investment */}
-                <div className="p-4" style={{ background: '#17161B' }}>
-                    <div className="text-[9px] uppercase tracking-[0.1em] text-white/20 font-semibold mb-2">Investment</div>
+                <div className="p-4" style={{ background: 'hsl(var(--card))' }}>
+                    <div className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground/40 font-semibold mb-2">Investment</div>
                     <div className="text-xl font-bold text-[#D4A27F]/80 tracking-tight">
                         {fmt(financing_summary.total_cash_invested)}
                     </div>
@@ -189,7 +189,7 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
             {/* ── Detailed Breakdown ── */}
             <button
                 onClick={() => setShowBreakdown(!showBreakdown)}
-                className="w-full flex items-center justify-between py-2 text-[11px] font-medium text-white/25 hover:text-white/40 transition-colors"
+                className="w-full flex items-center justify-between py-2 text-[11px] font-medium text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
             >
                 <span>Detailed Breakdown</span>
                 {showBreakdown
@@ -209,11 +209,11 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
                         {/* Income & Expenses */}
                         <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.015)' }}>
                             <StatRow label="Gross Income" value={fmt(year1.gross_income)} accent="text-emerald-400/70" />
-                            <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.03)' }} />
+                            <div className="h-px my-1" style={{ background: 'rgba(0,0,0,0.03)' }} />
                             <StatRow label="Operating Expenses" value={`-${fmt(year1.total_expenses)}`} accent="text-rose-400/60" />
                             {year1.debt_service > 0 && (
                                 <>
-                                    <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.03)' }} />
+                                    <div className="h-px my-1" style={{ background: 'rgba(0,0,0,0.03)' }} />
                                     <StatRow label="Debt Service" value={`-${fmt(year1.debt_service)}`} accent="text-rose-400/60" />
                                 </>
                             )}
@@ -224,7 +224,7 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
                         {/* Financing */}
                         {financing_summary.loan_amount != null && financing_summary.loan_amount > 0 && (
                             <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.015)' }}>
-                                <div className="text-[9px] uppercase tracking-[0.1em] text-white/15 font-semibold mb-2">Financing</div>
+                                <div className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground/40 font-semibold mb-2">Financing</div>
                                 <StatRow label="Down Payment" value={fmt(financing_summary.down_payment)} />
                                 <StatRow label="Loan Amount" value={fmt(financing_summary.loan_amount)} />
                                 <StatRow label="Interest Rate" value={`${((financing_summary.interest_rate || 0) * 100).toFixed(2)}%`} />
@@ -241,8 +241,8 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
                     onClick={handleRecalculate}
                     disabled={isRecalculating}
                     className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[11px] font-semibold
-                               text-white/35 hover:text-white/55 transition-all disabled:opacity-30"
-                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                               text-muted-foreground/60 hover:text-foreground/55 transition-all disabled:opacity-30"
+                    style={{ background: 'rgba(0,0,0,0.03)' }}
                 >
                     <Settings className={`w-3 h-3 ${isRecalculating ? 'animate-spin' : ''}`} />
                     {isRecalculating ? 'Updating...' : `Try ${data.strategy === 'LTR' ? 'STR' : 'LTR'}`}
@@ -250,8 +250,8 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
                 <button
                     onClick={exportToCSV}
                     className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-[11px] font-semibold
-                               text-white/35 hover:text-white/55 transition-all"
-                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                               text-muted-foreground/60 hover:text-foreground/55 transition-all"
+                    style={{ background: 'rgba(0,0,0,0.03)' }}
                 >
                     <Download className="w-3 h-3" />
                     Export CSV
@@ -260,7 +260,7 @@ export const FinancialAnalysisCard: React.FC<FinancialAnalysisCardProps> = ({ da
 
             {/* Filters applied */}
             {data.filters_applied && data.filters_applied.length > 0 && (
-                <div className="text-[10px] text-white/10 text-center">
+                <div className="text-[10px] text-muted-foreground/30 text-center">
                     {data.filters_applied.join(' · ')}
                 </div>
             )}

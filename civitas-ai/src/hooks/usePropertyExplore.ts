@@ -177,7 +177,7 @@ export function usePropertyExplore() {
         property_type: f.propertyTypes.length === 1 ? f.propertyTypes[0] : undefined,
         limit: 100,
         include_ai: false,
-      });
+      }, abortRef.current?.signal);
 
       const raw = response.properties || [];
       setRawProperties(raw);

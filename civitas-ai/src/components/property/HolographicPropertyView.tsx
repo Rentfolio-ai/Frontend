@@ -71,7 +71,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                         <div className="text-4xl font-bold text-[#D4A27F] mb-2">
                             {property.bedrooms}BD / {property.bathrooms}BA
                         </div>
-                        <div className="text-xl text-white/70">
+                        <div className="text-xl text-foreground/70">
                             {property.sqft.toLocaleString()} sqft
                         </div>
                     </div>
@@ -115,7 +115,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                             </span>
                         </div>
                         {property.address && (
-                            <h3 className="text-xl font-bold text-white">{property.address}</h3>
+                            <h3 className="text-xl font-bold text-foreground">{property.address}</h3>
                         )}
                     </div>
                     <div className="px-3 py-1 rounded-lg bg-[#C08B5C]/20 border border-[#C08B5C]/30">
@@ -149,7 +149,7 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                                                 transformStyle: 'preserve-3d'
                                             }}
                                         >
-                                            <room.icon className="w-4 h-4 text-white/60" />
+                                            <room.icon className="w-4 h-4 text-muted-foreground" />
                                         </div>
                                     ))}
                                 </div>
@@ -211,8 +211,8 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
 
                         {/* Amenities */}
                         {property.amenities && property.amenities.length > 0 && (
-                            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-                                <h4 className="text-sm font-semibold text-white/80 mb-3">Key Features</h4>
+                            <div className="p-4 rounded-lg bg-black/5 border border-black/8">
+                                <h4 className="text-sm font-semibold text-foreground/80 mb-3">Key Features</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {property.amenities.slice(0, 6).map((amenity, idx) => (
                                         <span
@@ -229,15 +229,15 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                         {/* Additional Data */}
                         <div className="grid grid-cols-2 gap-3 text-sm">
                             {property.yearBuilt && (
-                                <div className="flex justify-between p-2 rounded bg-white/5">
-                                    <span className="text-white/50">Built</span>
-                                    <span className="text-white font-medium">{property.yearBuilt}</span>
+                                <div className="flex justify-between p-2 rounded bg-black/5">
+                                    <span className="text-muted-foreground">Built</span>
+                                    <span className="text-foreground font-medium">{property.yearBuilt}</span>
                                 </div>
                             )}
                             {property.lotSize && (
-                                <div className="flex justify-between p-2 rounded bg-white/5">
-                                    <span className="text-white/50">Lot</span>
-                                    <span className="text-white font-medium">{property.lotSize.toLocaleString()} sqft</span>
+                                <div className="flex justify-between p-2 rounded bg-black/5">
+                                    <span className="text-muted-foreground">Lot</span>
+                                    <span className="text-foreground font-medium">{property.lotSize.toLocaleString()} sqft</span>
                                 </div>
                             )}
                         </div>
@@ -245,12 +245,12 @@ export const HolographicPropertyView: React.FC<HolographicPropertyViewProps> = (
                 </div>
 
                 {/* Bottom Status Bar */}
-                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-white/40">
+                <div className="mt-6 pt-4 border-t border-black/8 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-muted-foreground/70">
                         <div className="w-2 h-2 bg-[#C08B5C] rounded-full animate-pulse" />
                         <span>Live property data visualization</span>
                     </div>
-                    <div className="flex gap-4 text-white/40">
+                    <div className="flex gap-4 text-muted-foreground/70">
                         <span>Confidence: <span className="text-[#D4A27F] font-semibold">94%</span></span>
                         <span>Updated: Just now</span>
                     </div>

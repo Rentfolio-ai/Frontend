@@ -109,41 +109,41 @@ const DetectionPopover: React.FC<{
       exit={{ opacity: 0, y: 24, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 400, damping: 28 }}
       className="absolute bottom-4 left-4 right-4 z-30
-        bg-black/60 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-4
+        bg-black/60 backdrop-blur-2xl border border-black/[0.06] rounded-2xl p-4
         shadow-[0_8px_60px_rgba(0,0,0,0.5)]"
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h4 className="text-sm font-semibold text-white/90">
+          <h4 className="text-sm font-semibold text-foreground">
             {formatDamageClass(detection.damage_class)}
           </h4>
-          <p className="text-[11px] text-white/30 mt-0.5">
+          <p className="text-[11px] text-muted-foreground/50 mt-0.5">
             {(detection.confidence * 100).toFixed(0)}% confidence
           </p>
         </div>
         <div className="flex items-center gap-2">
           <SeverityBadge severity={detection.severity} size="sm" />
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/[0.06] transition-colors">
-            <X className="w-3.5 h-3.5 text-white/30" />
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-black/[0.05] transition-colors">
+            <X className="w-3.5 h-3.5 text-muted-foreground/50" />
           </button>
         </div>
       </div>
 
       {/* Cost range if available */}
       {matchedRepair && (
-        <div className="pt-3 border-t border-white/[0.04] space-y-2">
-          <div className="text-[10px] text-white/25 uppercase tracking-wider">Repair estimate</div>
+        <div className="pt-3 border-t border-black/[0.04] space-y-2">
+          <div className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Repair estimate</div>
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center">
-              <div className="text-[9px] text-white/20">Basic</div>
+              <div className="text-[9px] text-muted-foreground/40">Basic</div>
               <div className="text-xs text-blue-400 font-medium">{formatCurrency(matchedRepair.basic_cost)}</div>
             </div>
             <div className="text-center">
-              <div className="text-[9px] text-white/20">Standard</div>
+              <div className="text-[9px] text-muted-foreground/40">Standard</div>
               <div className="text-xs text-violet-400 font-medium">{formatCurrency(matchedRepair.standard_cost)}</div>
             </div>
             <div className="text-center">
-              <div className="text-[9px] text-white/20">Premium</div>
+              <div className="text-[9px] text-muted-foreground/40">Premium</div>
               <div className="text-xs text-amber-400 font-medium">{formatCurrency(matchedRepair.premium_cost)}</div>
             </div>
           </div>
@@ -151,12 +151,12 @@ const DetectionPopover: React.FC<{
       )}
 
       {/* AI tip */}
-      <div className="mt-3 pt-3 border-t border-white/[0.04]">
+      <div className="mt-3 pt-3 border-t border-black/[0.04]">
         <div className="flex items-start gap-2">
           <div className="w-4 h-4 rounded bg-violet-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
             <span className="text-[8px]">💡</span>
           </div>
-          <p className="text-[11px] text-white/40 leading-relaxed">
+          <p className="text-[11px] text-muted-foreground/70 leading-relaxed">
             {detection.severity === 'critical'
               ? `Negotiate ${matchedRepair ? formatCurrency(matchedRepair.standard_cost) : '$1,000+'} off asking price — this is a safety concern inspectors will flag.`
               : detection.severity === 'high'
@@ -226,10 +226,10 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
   }, [result, image]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04] flex-shrink-0 z-10">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors">
+      <div className="flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04] flex-shrink-0 z-10">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
@@ -237,14 +237,14 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
         {/* Detection nav */}
         {result.detections.length > 0 && (
           <div className="flex items-center gap-2">
-            <button onClick={goToPrev} className="p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
-              <ChevronLeft className="w-4 h-4 text-white/30" />
+            <button onClick={goToPrev} className="p-1.5 rounded-lg hover:bg-black/[0.03] transition-colors">
+              <ChevronLeft className="w-4 h-4 text-muted-foreground/50" />
             </button>
-            <span className="text-xs text-white/30 min-w-[40px] text-center">
+            <span className="text-xs text-muted-foreground/50 min-w-[40px] text-center">
               {activeIndex !== null ? `${activeIndex + 1}/${result.detections.length}` : `${result.detections.length}`}
             </span>
-            <button onClick={goToNext} className="p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors">
-              <ChevronRight className="w-4 h-4 text-white/30" />
+            <button onClick={goToNext} className="p-1.5 rounded-lg hover:bg-black/[0.03] transition-colors">
+              <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
             </button>
           </div>
         )}
@@ -253,15 +253,15 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
         <div className="flex items-center gap-1">
           <button
             onClick={() => setZoom(z => Math.max(1, z - 0.5))}
-            className="p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors"
+            className="p-1.5 rounded-lg hover:bg-black/[0.03] transition-colors"
           >
-            <ZoomOut className="w-4 h-4 text-white/30" />
+            <ZoomOut className="w-4 h-4 text-muted-foreground/50" />
           </button>
           <button
             onClick={() => setZoom(z => Math.min(3, z + 0.5))}
-            className="p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors"
+            className="p-1.5 rounded-lg hover:bg-black/[0.03] transition-colors"
           >
-            <ZoomIn className="w-4 h-4 text-white/30" />
+            <ZoomIn className="w-4 h-4 text-muted-foreground/50" />
           </button>
         </div>
       </div>
@@ -297,7 +297,7 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
       </div>
 
       {/* Bottom action bar */}
-      <div className="flex-shrink-0 bg-[#0a0a0c]/95 backdrop-blur-2xl border-t border-white/[0.04] px-4 py-3">
+      <div className="flex-shrink-0 bg-background/95 backdrop-blur-2xl border-t border-black/[0.04] px-4 py-3">
         <div className="flex gap-2">
           {onGetRenovationPlan && (
             <motion.button
@@ -322,7 +322,7 @@ export const InteractiveResults: React.FC<InteractiveResultsProps> = ({
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleExportPDF}
-            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/[0.04] text-white/40 text-xs font-medium border border-white/[0.03]"
+            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-black/[0.03] text-muted-foreground/70 text-xs font-medium border border-black/[0.05]"
           >
             <Download className="w-3.5 h-3.5" />
             PDF

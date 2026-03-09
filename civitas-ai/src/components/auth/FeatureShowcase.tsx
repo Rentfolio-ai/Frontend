@@ -55,10 +55,10 @@ export const FeatureShowcase: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
       >
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-3" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-3" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
           Welcome to Vasthu
         </h2>
-        <p className="text-xl text-white/90 mb-12" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400 }}>
+        <p className="text-xl text-foreground mb-12" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 400 }}>
           All-Knowing Real Estate Intelligence
         </p>
       </motion.div>
@@ -73,18 +73,18 @@ export const FeatureShowcase: React.FC = () => {
             transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
           >
             <motion.div
-              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white border-2 border-white/30"
-              whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-foreground border-2 border-black/[0.08]"
+              whileHover={{ scale: 1.1, backgroundColor: 'rgba(0, 0, 0, 0.07)' }}
               role="img"
               aria-label={`${feature.title} icon`}
             >
               {feature.icon}
             </motion.div>
             <div className="flex-1">
-              <h3 className="font-bold text-lg mb-1 text-white" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              <h3 className="font-bold text-lg mb-1 text-foreground" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
                 {feature.title}
               </h3>
-              <p className="text-white/80 text-sm leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.6' }}>
+              <p className="text-foreground/80 text-sm leading-relaxed" style={{ fontFamily: 'Inter, system-ui, sans-serif', lineHeight: '1.6' }}>
                 {feature.description}
               </p>
             </div>

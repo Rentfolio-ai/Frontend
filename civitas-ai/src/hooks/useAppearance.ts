@@ -51,26 +51,8 @@ export function useAppearance() {
 
   useEffect(() => {
     const root = document.documentElement;
-
-    const applyTheme = (isDark: boolean) => {
-      root.classList.toggle('dark', isDark);
-      // Keep legacy key in sync for components that read it directly
-      localStorage.setItem('civitas-theme', isDark ? 'dark' : 'light');
-    };
-
-    if (theme === 'dark') {
-      applyTheme(true);
-    } else if (theme === 'light') {
-      applyTheme(false);
-    } else {
-      // system — use media query
-      const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      applyTheme(mq.matches);
-
-      const handler = (e: MediaQueryListEvent) => applyTheme(e.matches);
-      mq.addEventListener('change', handler);
-      return () => mq.removeEventListener('change', handler);
-    }
+    root.classList.remove('dark');
+    localStorage.setItem('civitas-theme', 'light');
   }, [theme]);
 
   // ── Accent color (CSS custom properties) ─────────────────────────────────

@@ -145,7 +145,7 @@ const ConfidenceBar: React.FC<{ score: number; max?: number; isTop?: boolean }> 
   const pct = Math.min((score / max) * 100, 100);
   const color = isTop ? '#D4A27F' : pct >= 80 ? '#D4A27F' : pct >= 55 ? '#8B7355' : '#4A4458';
   return (
-    <div className="w-full h-[2px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+    <div className="w-full h-[2px] rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.03)' }}>
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
@@ -225,11 +225,11 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
       onMouseLeave={() => onHover?.(null)}
       className={cn(
         'group rounded-2xl overflow-hidden border transition-all duration-200 cursor-pointer',
-        'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]',
+        'shadow-[inset_0_1px_0_0_rgba(0,0,0,0.03)]',
         isTop
-          ? 'bg-[#1C1A20]/80 backdrop-blur-md border-[#C08B5C]/20 hover:border-[#C08B5C]/35 hover:shadow-[0_0_24px_rgba(192,139,92,0.06)]'
-          : 'bg-[#1A1920]/75 backdrop-blur-md border-white/[0.07] hover:border-white/[0.12] hover:bg-[#1A1920]/85',
-        isHovered && 'ring-1 ring-[#C08B5C]/30 bg-[#1A1920]/85',
+          ? 'bg-card/80 backdrop-blur-md border-[#C08B5C]/20 hover:border-[#C08B5C]/35 hover:shadow-[0_0_24px_rgba(192,139,92,0.06)]'
+          : 'bg-background/75 backdrop-blur-md border-black/[0.06] hover:border-black/[0.10] hover:bg-background/85',
+        isHovered && 'ring-1 ring-[#C08B5C]/30 bg-background/85',
         variant === 'list' && 'flex flex-row',
       )}
     >
@@ -262,8 +262,8 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
           </>
         ) : (
           <>
-            <div className="w-full h-full bg-[#16151B] flex items-center justify-center">
-              <Home className="w-10 h-10 text-white/[0.04]" />
+            <div className="w-full h-full bg-card flex items-center justify-center">
+              <Home className="w-10 h-10 text-muted-foreground/30" />
             </div>
             {_renderBadges()}
           </>
@@ -281,9 +281,9 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
         {/* Price */}
         <div className="flex items-baseline justify-between gap-3 mb-1.5">
-          <span className="text-[22px] font-extrabold text-white/95 tracking-tight">
+          <span className="text-[22px] font-extrabold text-foreground tracking-tight">
             ${price.toLocaleString()}
-            {isRental && <span className="text-[12px] text-white/35 font-normal ml-0.5">/mo</span>}
+            {isRental && <span className="text-[12px] text-muted-foreground/60 font-normal ml-0.5">/mo</span>}
           </span>
           {valueGrade && !isRental && (
             <span className={cn('text-[11px] font-bold flex-shrink-0', GRADE_COLORS[valueGrade])}>
@@ -294,7 +294,7 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
         {/* Address */}
         <p
-          className="text-[13px] text-white/45 mb-1 truncate"
+          className="text-[13px] text-muted-foreground/70 mb-1 truncate"
           title={fullAddress}
         >
           {fullAddress}
@@ -302,13 +302,13 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
         {/* Specs */}
         {specsText && (
-          <p className="text-[11px] text-white/30 tracking-wide mb-4">
+          <p className="text-[11px] text-muted-foreground/50 tracking-wide mb-4">
             {specsText}
           </p>
         )}
 
         {/* ── Metrics strip ── */}
-        <div className="flex items-center py-3 border-t border-white/[0.06] gap-0">
+        <div className="flex items-center py-3 border-t border-black/[0.06] gap-0">
           {isRental ? (
             <>
               <MetricBlock label="TYPE" value={data.property_type || 'Rental'} />
@@ -339,7 +339,7 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
         {/* ── Enrichment badges ── */}
         {(data as any).enrichment && (
-          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/[0.04]">
+          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-black/[0.04]">
             {(data as any).enrichment?.school_rating != null && (
               <EnrichmentBadge
                 label={`Schools: ${_schoolGrade((data as any).enrichment.school_rating)}`}
@@ -362,7 +362,7 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
               />
             )}
             {(data as any).enrichment?.data_freshness && (
-              <span className="text-[9px] text-white/25 self-center ml-auto">
+              <span className="text-[9px] text-muted-foreground/50 self-center ml-auto">
                 {(data as any).enrichment.data_freshness}
               </span>
             )}
@@ -379,7 +379,7 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
             'w-full mt-3 py-2.5 rounded-xl text-[12px] font-semibold transition-colors',
             isTop
               ? 'bg-[#C08B5C]/12 hover:bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/15'
-              : 'bg-white/[0.04] hover:bg-white/[0.07] text-white/50 hover:text-white/65 border border-white/[0.06]',
+              : 'bg-black/[0.03] hover:bg-black/[0.05] text-muted-foreground hover:text-foreground/65 border border-black/[0.06]',
           )}
         >
           {isTop ? 'Analyze Deal' : 'View Details'}
@@ -406,7 +406,7 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
             style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)', color: isTop ? '#D4A27F' : 'rgba(255,255,255,0.7)' }}
           >
             <Sparkles className="w-2.5 h-2.5" />
-            {Math.round(aiScore)}<span className="text-white/25 font-normal">/{scoreMax}</span>
+            {Math.round(aiScore)}<span className="text-muted-foreground/50 font-normal">/{scoreMax}</span>
           </div>
         )}
 
@@ -415,7 +415,7 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
           onClick={handleBookmarkClick}
           className={cn(
             'absolute bottom-3 right-3 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all z-10',
-            isBookmarked ? 'bg-rose-500/80 text-white' : 'bg-black/30 text-white/50 hover:bg-black/50 hover:text-white'
+            isBookmarked ? 'bg-rose-500/80 text-white' : 'bg-black/30 text-muted-foreground hover:bg-black/50 hover:text-foreground'
           )}
         >
           <Heart className={cn('w-4 h-4', isBookmarked && 'fill-current')} />
@@ -429,14 +429,14 @@ export const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
 const MetricBlock: React.FC<{ label: string; value: string; color?: string }> = ({ label, value, color }) => (
   <div className="flex-1 min-w-0">
-    <p className="text-[10px] text-white/30 uppercase tracking-wider mb-0.5">{label}</p>
-    <p className={cn('text-[14px] font-semibold font-mono leading-tight whitespace-nowrap', color || 'text-white/75')}>
+    <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-0.5">{label}</p>
+    <p className={cn('text-[14px] font-semibold font-mono leading-tight whitespace-nowrap', color || 'text-foreground/75')}>
       {value}
     </p>
   </div>
 );
 
-const MetricDivider = () => <div className="w-px h-8 bg-white/[0.06] mx-2 flex-shrink-0" />;
+const MetricDivider = () => <div className="w-px h-8 bg-black/[0.05] mx-2 flex-shrink-0" />;
 
 const EnrichmentBadge: React.FC<{ label: string; color: string }> = ({ label, color }) => (
   <span className={cn('inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium', color)}>

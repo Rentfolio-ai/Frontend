@@ -44,14 +44,14 @@ const TRUST_CONFIG: Record<
   community: {
     icon: <Users className="w-2.5 h-2.5" />,
     label: 'Community',
-    colors: 'text-white/40 bg-white/[0.05]',
-    border: 'border-white/[0.08]',
+    colors: 'text-muted-foreground/70 bg-black/[0.04]',
+    border: 'border-black/[0.08]',
   },
   web: {
     icon: <Globe className="w-2.5 h-2.5" />,
     label: 'Web',
-    colors: 'text-white/30 bg-transparent',
-    border: 'border-white/[0.08]',
+    colors: 'text-muted-foreground/50 bg-transparent',
+    border: 'border-black/[0.08]',
   },
 };
 
@@ -88,24 +88,24 @@ export const DataTrustBadge: React.FC<DataTrustBadgeProps> = ({
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-3 py-2 rounded-lg bg-black/95 border border-white/15 shadow-xl z-50 min-w-[160px]"
+            className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-3 py-2 rounded-lg bg-black/95 border border-black/10 shadow-xl z-50 min-w-[160px]"
           >
             <div className="text-[10px] space-y-1">
               {sourceName && (
-                <div className="text-white/60">
-                  <span className="text-white/30">Source: </span>
+                <div className="text-muted-foreground">
+                  <span className="text-muted-foreground/50">Source: </span>
                   {sourceName}
                 </div>
               )}
               {lastUpdated && (
-                <div className="text-white/60">
-                  <span className="text-white/30">Updated: </span>
+                <div className="text-muted-foreground">
+                  <span className="text-muted-foreground/50">Updated: </span>
                   {lastUpdated}
                 </div>
               )}
               {confidence != null && (
-                <div className="text-white/60">
-                  <span className="text-white/30">Confidence: </span>
+                <div className="text-muted-foreground">
+                  <span className="text-muted-foreground/50">Confidence: </span>
                   {Math.round(confidence * 100)}%
                 </div>
               )}

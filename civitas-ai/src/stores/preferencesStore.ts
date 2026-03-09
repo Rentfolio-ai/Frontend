@@ -180,7 +180,7 @@ const defaultPreferences: UserPreferences = {
     lastSearchCity: null,
     showKeyboardHints: true,
     isWideMode: false,
-    theme: 'dark',
+    theme: 'light',
     accentColor: 'copper',
     fontSize: 'medium',
     chatDensity: 'comfortable',

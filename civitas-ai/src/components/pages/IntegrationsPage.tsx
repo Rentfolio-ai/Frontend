@@ -130,7 +130,7 @@ const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
       connected
         ? 'bg-emerald-500/15 text-emerald-400'
-        : 'bg-white/[0.04] text-white/30'
+        : 'bg-black/[0.03] text-muted-foreground/50'
     }`}
   >
     {connected ? (
@@ -144,7 +144,7 @@ const StatusBadge: React.FC<{ connected: boolean }> = ({ connected }) => (
 
 const VoiceStatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const config: Record<string, { label: string; cls: string }> = {
-    none: { label: 'Not connected', cls: 'bg-white/[0.04] text-white/30' },
+    none: { label: 'Not connected', cls: 'bg-black/[0.03] text-muted-foreground/50' },
     pending: { label: 'Pending', cls: 'bg-amber-500/15 text-amber-400' },
     processing: { label: 'Processing', cls: 'bg-blue-500/15 text-blue-400' },
     ready: { label: 'Connected', cls: 'bg-emerald-500/15 text-emerald-400' },
@@ -174,19 +174,19 @@ const VoiceProgressIndicator: React.FC<{ status: string }> = ({ status }) => {
         <React.Fragment key={step}>
           <div
             className={`w-2 h-2 rounded-full transition-colors ${
-              i <= currentIdx ? 'bg-emerald-400' : 'bg-white/10'
+              i <= currentIdx ? 'bg-emerald-400' : 'bg-black/8'
             }`}
           />
           {i < steps.length - 1 && (
             <div
               className={`flex-1 h-0.5 rounded-full transition-colors ${
-                i < currentIdx ? 'bg-emerald-400/60' : 'bg-white/[0.06]'
+                i < currentIdx ? 'bg-emerald-400/60' : 'bg-black/[0.05]'
               }`}
             />
           )}
         </React.Fragment>
       ))}
-      <span className="text-[9px] text-white/30 ml-1 capitalize">{status === 'none' ? '' : status}</span>
+      <span className="text-[9px] text-muted-foreground/50 ml-1 capitalize">{status === 'none' ? '' : status}</span>
     </div>
   );
 };
@@ -361,8 +361,8 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-lg max-h-[80vh] rounded-2xl border border-white/[0.08] overflow-hidden flex flex-col"
-            style={{ backgroundColor: '#161619' }}
+            className="relative w-full max-w-lg max-h-[80vh] rounded-2xl border border-black/[0.08] overflow-hidden flex flex-col"
+            style={{ backgroundColor: 'hsl(var(--background))' }}
           >
             {/* Copper accent bar */}
             <div
@@ -373,17 +373,17 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
             />
 
             {/* Header */}
-            <div className="px-5 pt-4 pb-3 border-b border-white/[0.06] flex-shrink-0">
+            <div className="px-5 pt-4 pb-3 border-b border-black/[0.06] flex-shrink-0">
               <div className="flex items-start justify-between">
                 <div>
-                  <h1 className="text-[17px] font-semibold text-white/90">Integrations</h1>
-                  <p className="text-[11px] text-white/35 mt-0.5">
+                  <h1 className="text-[17px] font-semibold text-foreground">Integrations</h1>
+                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">
                     Manage how Vasthu communicates on your behalf
                   </p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:bg-white/[0.06] hover:text-white/60 transition-colors -mt-0.5"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/50 hover:bg-black/[0.05] hover:text-muted-foreground transition-colors -mt-0.5"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -391,7 +391,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
 
               {/* Connection progress */}
               <div className="mt-3 flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-black/[0.05] overflow-hidden">
                   <motion.div
                     className="h-full rounded-full"
                     style={{
@@ -402,7 +402,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                     transition={{ duration: 0.6, delay: 0.2 }}
                   />
                 </div>
-                <span className="text-[11px] text-white/40 font-medium whitespace-nowrap">
+                <span className="text-[11px] text-muted-foreground/70 font-medium whitespace-nowrap">
                   {connectedCount}/{INTEGRATIONS.length}
                 </span>
               </div>
@@ -415,8 +415,8 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                     onClick={() => setActiveCategory(cat)}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border ${
                       activeCategory === cat
-                        ? 'bg-white/[0.1] border-white/[0.15] text-white'
-                        : 'bg-transparent border-transparent text-white/35 hover:text-white/60 hover:bg-white/[0.04]'
+                        ? 'bg-black/[0.07] border-black/[0.12] text-foreground'
+                        : 'bg-transparent border-transparent text-muted-foreground/60 hover:text-muted-foreground hover:bg-black/[0.03]'
                     }`}
                   >
                     {CATEGORY_LABELS[cat]}
@@ -430,7 +430,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
             <div className="flex-1 overflow-y-auto px-5 py-4">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-5 h-5 text-white/20 animate-spin" />
+                  <Loader2 className="w-5 h-5 text-muted-foreground/40 animate-spin" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -449,7 +449,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                         variants={cardVariants}
                         initial="hidden"
                         animate="visible"
-                        className="relative rounded-2xl bg-white/[0.025] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.12] hover:shadow-[0_0_20px_rgba(192,139,92,0.04)] transition-all p-4 flex flex-col gap-3"
+                        className="relative rounded-2xl bg-black/[0.02] border border-black/[0.06] hover:bg-black/[0.04] hover:border-black/[0.10] hover:shadow-[0_0_20px_rgba(192,139,92,0.04)] transition-all p-4 flex flex-col gap-3"
                       >
                         {/* Icon + Status */}
                         <div className="flex items-start justify-between">
@@ -468,12 +468,12 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                         {/* Title + Capability */}
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-[13px] font-semibold text-white/90">{integration.title}</h3>
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-white/[0.05] text-white/35 border border-white/[0.06]">
+                            <h3 className="text-[13px] font-semibold text-foreground">{integration.title}</h3>
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-black/[0.04] text-muted-foreground/60 border border-black/[0.06]">
                               {integration.capabilityTag}
                             </span>
                           </div>
-                          <p className="text-[11px] text-white/40 mt-1 leading-relaxed">
+                          <p className="text-[11px] text-muted-foreground/70 mt-1 leading-relaxed">
                             {connected && detail ? detail : integration.description}
                           </p>
                         </div>
@@ -485,7 +485,7 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
 
                         {/* Voice Recorder */}
                         {isVoice && showVoiceRecorder && (
-                          <div className="mt-1 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+                          <div className="mt-1 p-3 rounded-lg bg-black/[0.02] border border-black/[0.06]">
                             <VoiceSampleRecorder
                               onComplete={() => {
                                 setShowVoiceRecorder(false);
@@ -502,15 +502,15 @@ export const IntegrationsPage: React.FC<IntegrationsPageProps> = ({ isOpen, onCl
                             disabled={actionLabel === 'Processing…'}
                             className={`px-3.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
                               isMeeting
-                                ? 'text-white/80 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/20'
+                                ? 'text-foreground/80 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/20'
                                 : connected
-                                  ? 'text-white/40 hover:text-red-400/80 bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.06] hover:border-red-500/20'
-                                  : 'text-white/80 bg-[#C08B5C]/20 hover:bg-[#C08B5C]/30 border border-[#C08B5C]/20'
+                                  ? 'text-muted-foreground/70 hover:text-red-400/80 bg-black/[0.03] hover:bg-red-500/10 border border-black/[0.06] hover:border-red-500/20'
+                                  : 'text-foreground/80 bg-[#C08B5C]/20 hover:bg-[#C08B5C]/30 border border-[#C08B5C]/20'
                             } disabled:opacity-40 disabled:cursor-not-allowed`}
                           >
                             {actionLabel}
                           </button>
-                          <button className="flex items-center gap-1 text-[10px] text-white/25 hover:text-white/45 transition-colors">
+                          <button className="flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors">
                             <ExternalLink className="w-3 h-3" />
                             Learn more
                           </button>

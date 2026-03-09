@@ -49,7 +49,7 @@ const ScoreRing: React.FC<{ score: number; max?: number; size?: number }> = ({
         <div className="relative" style={{ width: size, height: size }}>
             <svg width={size} height={size} className="rotate-[-90deg]">
                 <circle cx={size / 2} cy={size / 2} r={r}
-                    fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3} />
+                    fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={3} />
                 <circle cx={size / 2} cy={size / 2} r={r}
                     fill="none" stroke={color} strokeWidth={3}
                     strokeDasharray={circ} strokeDashoffset={offset}
@@ -70,14 +70,14 @@ const MetricPill: React.FC<{
     icon: React.ReactNode;
     accent?: string;       // tailwind text color for value
     bgTint?: string;       // rgba background
-}> = ({ label, value, icon, accent = 'text-white/80', bgTint }) => (
+}> = ({ label, value, icon, accent = 'text-foreground/80', bgTint }) => (
     <div
-        className="flex-1 min-w-0 rounded-xl px-3 py-2.5 border border-white/[0.06]"
-        style={{ background: bgTint || 'rgba(255,255,255,0.02)' }}
+        className="flex-1 min-w-0 rounded-xl px-3 py-2.5 border border-black/[0.06]"
+        style={{ background: bgTint || 'rgba(0,0,0,0.02)' }}
     >
         <div className="flex items-center gap-1.5 mb-1">
-            <span className="text-white/25">{icon}</span>
-            <span className="text-[8px] uppercase tracking-[0.08em] font-semibold text-white/30">{label}</span>
+            <span className="text-muted-foreground/50">{icon}</span>
+            <span className="text-[8px] uppercase tracking-[0.08em] font-semibold text-muted-foreground/50">{label}</span>
         </div>
         <div className={cn('text-[15px] font-bold leading-tight', accent)}>{value}</div>
     </div>
@@ -137,12 +137,12 @@ const PropertyCard: React.FC<{
             <div
                 className={cn(
                     'min-w-[330px] w-[330px] snap-center rounded-[20px] overflow-hidden transition-all duration-300 group cursor-pointer',
-                    'hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-black/40',
+                    'hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-black/10',
                     selected && 'ring-2 ring-[#C08B5C]/50'
                 )}
                 style={{
                     background: 'linear-gradient(165deg, rgba(30,28,36,0.95) 0%, rgba(18,17,22,0.98) 100%)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(0,0,0,0.06)',
                 }}
                 onClick={() => onViewDetails?.(property)}
             >
@@ -150,7 +150,7 @@ const PropertyCard: React.FC<{
                 <div className="relative h-[195px] overflow-hidden group/img">
                     {/* Shimmer placeholder */}
                     {!imgLoaded && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] via-white/[0.06] to-white/[0.02] animate-pulse" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/[0.02] via-white/[0.06] to-black/[0.02] animate-pulse" />
                     )}
                     <img
                         src={photos[photoIdx]}
@@ -170,11 +170,11 @@ const PropertyCard: React.FC<{
                     {hasMulti && (
                         <>
                             <button onClick={prevPhoto}
-                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white/80 opacity-0 group-hover/img:opacity-100 hover:bg-black/60 transition-all flex items-center justify-center">
+                                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-foreground/80 opacity-0 group-hover/img:opacity-100 hover:bg-black/60 transition-all flex items-center justify-center">
                                 <ChevronLeft className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={nextPhoto}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-white/80 opacity-0 group-hover/img:opacity-100 hover:bg-black/60 transition-all flex items-center justify-center">
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-md text-foreground/80 opacity-0 group-hover/img:opacity-100 hover:bg-black/60 transition-all flex items-center justify-center">
                                 <ChevronRight className="w-3.5 h-3.5" />
                             </button>
                             {/* Dot indicators */}
@@ -198,17 +198,17 @@ const PropertyCard: React.FC<{
 
                     {/* ─── Top-right: Spec pills ─── */}
                     <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white/80 text-[10px] font-medium">
-                            <Bed className="w-3 h-3 text-white/50" />
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-foreground/80 text-[10px] font-medium">
+                            <Bed className="w-3 h-3 text-muted-foreground" />
                             {property.bedrooms}
                         </div>
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white/80 text-[10px] font-medium">
-                            <Bath className="w-3 h-3 text-white/50" />
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-foreground/80 text-[10px] font-medium">
+                            <Bath className="w-3 h-3 text-muted-foreground" />
                             {property.bathrooms}
                         </div>
                         {property.sqft && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-white/80 text-[10px] font-medium">
-                                <Maximize2 className="w-3 h-3 text-white/50" />
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md text-foreground/80 text-[10px] font-medium">
+                                <Maximize2 className="w-3 h-3 text-muted-foreground" />
                                 {property.sqft >= 1000
                                     ? `${(property.sqft / 1000).toFixed(1)}K`
                                     : property.sqft}
@@ -220,11 +220,11 @@ const PropertyCard: React.FC<{
                     <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">
                         {/* Price badge with gradient */}
                         <div className="inline-flex items-center mb-1.5">
-                            <span className="text-[22px] font-extrabold text-white tracking-tight drop-shadow-lg">
+                            <span className="text-[22px] font-extrabold text-foreground tracking-tight drop-shadow-lg">
                                 ${property.price?.toLocaleString()}
                             </span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-white/45">
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/70">
                             <MapPin className="w-3 h-3 flex-shrink-0" />
                             <span className="truncate">{property.address}</span>
                         </div>
@@ -237,7 +237,7 @@ const PropertyCard: React.FC<{
                             'absolute bottom-3 right-3 w-7 h-7 rounded-lg border transition-all flex items-center justify-center text-[11px] font-bold',
                             selected
                                 ? 'bg-[#C08B5C] border-[#C08B5C] text-white shadow-lg shadow-[#C08B5C]/20'
-                                : 'bg-black/30 backdrop-blur-md border-white/15 text-transparent opacity-0 group-hover:opacity-100 hover:border-[#C08B5C]/40'
+                                : 'bg-black/30 backdrop-blur-md border-black/10 text-transparent opacity-0 group-hover:opacity-100 hover:border-[#C08B5C]/40'
                         )}
                         title="Add to compare"
                     >
@@ -252,7 +252,7 @@ const PropertyCard: React.FC<{
                                     className={cn(
                                         'px-2 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1',
                                         badge.bgColor, badge.color,
-                                        'border border-white/10'
+                                        'border border-black/8'
                                     )}>
                                     <badge.icon className="w-2.5 h-2.5" />
                                     {badge.label}
@@ -266,12 +266,12 @@ const PropertyCard: React.FC<{
                 <div className="px-4 pt-3.5 pb-4 space-y-3">
                     {/* Location & Year */}
                     <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-white/35 flex items-center gap-1">
+                        <span className="text-muted-foreground/60 flex items-center gap-1">
                             {property.city}, {property.state}
                             {property.year_built && (
                                 <>
-                                    <span className="text-white/15 mx-1">·</span>
-                                    <Calendar className="w-3 h-3 text-white/20" />
+                                    <span className="text-muted-foreground/40 mx-1">·</span>
+                                    <Calendar className="w-3 h-3 text-muted-foreground/40" />
                                     Built {property.year_built}
                                 </>
                             )}
@@ -283,7 +283,7 @@ const PropertyCard: React.FC<{
                                     ? 'text-emerald-400/80 bg-emerald-500/10'
                                     : property.days_on_market <= 30
                                         ? 'text-amber-400/80 bg-amber-500/10'
-                                        : 'text-white/30 bg-white/[0.03]'
+                                        : 'text-muted-foreground/50 bg-black/[0.02]'
                             )}>
                                 {property.days_on_market}d on market
                             </span>
@@ -296,14 +296,14 @@ const PropertyCard: React.FC<{
                             label="Rent"
                             value={rent ? `${fmtCurrency(rent)}/mo` : '—'}
                             icon={<DollarSign className="w-3 h-3" />}
-                            accent="text-white/80"
+                            accent="text-foreground/80"
                             bgTint="rgba(255,255,255,0.025)"
                         />
                         <MetricPill
                             label="Cap Rate"
                             value={capRate ? `${capRate.toFixed(1)}%` : '—'}
                             icon={<Percent className="w-3 h-3" />}
-                            accent={capRate && capRate >= 6 ? 'text-emerald-400' : 'text-white/60'}
+                            accent={capRate && capRate >= 6 ? 'text-emerald-400' : 'text-muted-foreground'}
                             bgTint={capRate && capRate >= 6 ? 'rgba(16,185,129,0.05)' : 'rgba(255,255,255,0.025)'}
                         />
                         <MetricPill
@@ -320,14 +320,14 @@ const PropertyCard: React.FC<{
                         {enableHolographicView && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); setShowHolographic(true); }}
-                                className="w-9 h-9 rounded-xl flex items-center justify-center text-[#D4A27F]/60 hover:text-[#D4A27F] hover:bg-[#C08B5C]/10 transition-all border border-white/[0.04]"
+                                className="w-9 h-9 rounded-xl flex items-center justify-center text-[#D4A27F]/60 hover:text-[#D4A27F] hover:bg-[#C08B5C]/10 transition-all border border-black/[0.04]"
                             >
                                 <Sparkles className="w-4 h-4" />
                             </button>
                         )}
                         <button
                             onClick={(e) => { e.stopPropagation(); onViewDetails?.(property); }}
-                            className="flex-1 h-9 text-[11px] font-medium text-white/50 rounded-xl transition-all border border-white/[0.05] hover:bg-white/[0.05] hover:text-white/70 hover:border-white/[0.08]"
+                            className="flex-1 h-9 text-[11px] font-medium text-muted-foreground rounded-xl transition-all border border-black/[0.05] hover:bg-black/[0.04] hover:text-foreground/70 hover:border-black/[0.08]"
                         >
                             View Details
                         </button>
@@ -392,7 +392,7 @@ export const PropertyListCard: React.FC<PropertyListCardProps> = ({
                 {/* Toolbar */}
                 <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-2">
-                        <span className="text-[12px] text-white/30 font-medium">
+                        <span className="text-[12px] text-muted-foreground/50 font-medium">
                             {properties.length} {properties.length === 1 ? 'property' : 'properties'} found
                         </span>
                     </div>

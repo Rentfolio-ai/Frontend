@@ -68,12 +68,12 @@ export const AIConfidenceMeter: React.FC<AIConfidenceMeterProps> = ({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {/* Label */}
-      <span className={`${textSizeMap[size]} text-white/50 whitespace-nowrap`}>
+      <span className={`${textSizeMap[size]} text-muted-foreground whitespace-nowrap`}>
         {label}:
       </span>
       
       {/* Progress bar */}
-      <div className={`flex-1 ${heightMap[size]} bg-white/10 rounded-full overflow-hidden`}>
+      <div className={`flex-1 ${heightMap[size]} bg-black/8 rounded-full overflow-hidden`}>
         <motion.div
           className={`h-full bg-gradient-to-r ${colors.gradient}`}
           initial={{ width: 0 }}
@@ -104,7 +104,7 @@ export const AIConfidenceMeter: React.FC<AIConfidenceMeterProps> = ({
           {confidence}%
         </motion.span>
         
-        <span className={`${textSizeMap[size]} text-white/50 ml-1`}>
+        <span className={`${textSizeMap[size]} text-muted-foreground ml-1`}>
           {getLabel(confidence)}
         </span>
       </div>

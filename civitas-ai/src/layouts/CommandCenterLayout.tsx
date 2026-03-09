@@ -109,7 +109,7 @@ export const CommandCenterLayout: React.FC<CommandCenterLayoutProps> = ({
           onMouseDown={handleMouseDown}
           className={cn(
             'relative w-1 cursor-col-resize group flex-shrink-0 transition-colors',
-            isDragging ? 'bg-[#C08B5C]/50' : 'bg-white/10 hover:bg-[#C08B5C]/30'
+            isDragging ? 'bg-[#C08B5C]/50' : 'bg-black/8 hover:bg-[#C08B5C]/30'
           )}
         >
           {/* Holographic Glow Effect */}
@@ -130,7 +130,7 @@ export const CommandCenterLayout: React.FC<CommandCenterLayoutProps> = ({
               'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-20 rounded-full transition-all duration-300',
               isDragging
                 ? 'bg-gradient-to-b from-[#D4A27F] to-purple-500 shadow-lg shadow-[#C08B5C]/50'
-                : 'bg-white/20 group-hover:bg-gradient-to-b group-hover:from-[#D4A27F] group-hover:to-purple-500'
+                : 'bg-black/12 group-hover:bg-gradient-to-b group-hover:from-[#D4A27F] group-hover:to-purple-500'
             )}
           />
         </div>
@@ -138,7 +138,7 @@ export const CommandCenterLayout: React.FC<CommandCenterLayoutProps> = ({
         {/* Right Panel - Intelligence Pane */}
         <div
           style={{ width: `${rightWidthPercent}%` }}
-          className="h-full overflow-y-auto overflow-x-hidden bg-slate-900/50 backdrop-blur-sm transition-all duration-400 ease-out border-l border-white/5"
+          className="h-full overflow-y-auto overflow-x-hidden bg-card/50 backdrop-blur-sm transition-all duration-400 ease-out border-l border-black/5"
         >
           {rightContent}
         </div>

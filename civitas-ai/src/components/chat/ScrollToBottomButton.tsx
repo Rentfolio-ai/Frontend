@@ -62,7 +62,7 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
                 "fixed bottom-24 right-8 z-30",
                 "w-12 h-12 rounded-full",
                 "bg-gradient-to-br from-blue-600 to-blue-500",
-                "border border-white/20",
+                "border border-black/12",
                 "shadow-lg shadow-blue-500/30",
                 "flex items-center justify-center",
                 "hover:scale-110 active:scale-95",

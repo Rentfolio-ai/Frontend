@@ -48,43 +48,43 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
             <div onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
             {/* Modal */}
-            <div className="relative w-full max-w-3xl bg-[#1a1a1a] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="relative w-full max-w-3xl bg-popover rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-black/8">
                     <div>
-                        <h2 className="text-xl font-semibold text-white">Help & support</h2>
-                        <p className="text-sm text-white/60 mt-0.5">Find answers to common questions</p>
+                        <h2 className="text-xl font-semibold text-foreground">Help & support</h2>
+                        <p className="text-sm text-muted-foreground mt-0.5">Find answers to common questions</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        className="p-2 hover:bg-black/8 rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-white/60" />
+                        <X className="w-5 h-5 text-muted-foreground" />
                     </button>
                 </div>
 
                 {/* Search */}
-                <div className="px-6 py-4 border-b border-white/10">
+                <div className="px-6 py-4 border-b border-black/8">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search help articles..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#C08B5C]/50 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-2.5 bg-black/5 border border-black/8 rounded-lg text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#C08B5C]/50 focus:border-transparent"
                         />
                     </div>
                 </div>
 
                 {/* Categories */}
-                <div className="px-6 py-3 border-b border-white/10">
+                <div className="px-6 py-3 border-b border-black/8">
                     <div className="flex gap-2 overflow-x-auto">
                         <button
                             onClick={() => setSelectedCategory(null)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === null
                                 ? 'bg-[#C08B5C] text-white'
-                                : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+                                : 'bg-black/5 text-foreground/70 hover:bg-black/8 hover:text-foreground'
                                 }`}
                         >
                             All
@@ -95,7 +95,7 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                                 onClick={() => setSelectedCategory(id)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === id
                                     ? 'bg-[#C08B5C] text-white'
-                                    : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
+                                    : 'bg-black/5 text-foreground/70 hover:bg-black/8 hover:text-foreground'
                                     }`}
                             >
                                 {category.name}
@@ -109,21 +109,21 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                     <div className="space-y-2">
                         {Object.entries(faqs).flatMap(([_, categoryFAQs]) =>
                             categoryFAQs.map((faq) => (
-                                <div key={faq.id} className="border border-white/10 rounded-lg overflow-hidden bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                                <div key={faq.id} className="border border-black/8 rounded-lg overflow-hidden bg-black/[0.02] hover:bg-black/[0.03] transition-colors">
                                     <button
                                         onClick={() => toggleFAQ(faq.id)}
                                         className="w-full flex items-center justify-between px-4 py-3.5 text-left"
                                     >
-                                        <span className="font-medium text-white pr-4">{faq.question}</span>
+                                        <span className="font-medium text-foreground pr-4">{faq.question}</span>
                                         {expandedFAQs.has(faq.id) ? (
-                                            <ChevronUp className="w-5 h-5 text-white/40 flex-shrink-0" />
+                                            <ChevronUp className="w-5 h-5 text-muted-foreground/70 flex-shrink-0" />
                                         ) : (
-                                            <ChevronDown className="w-5 h-5 text-white/40 flex-shrink-0" />
+                                            <ChevronDown className="w-5 h-5 text-muted-foreground/70 flex-shrink-0" />
                                         )}
                                     </button>
                                     {expandedFAQs.has(faq.id) && (
-                                        <div className="px-4 py-3 border-t border-white/10">
-                                            <p className="text-sm text-white/70 leading-relaxed">
+                                        <div className="px-4 py-3 border-t border-black/8">
+                                            <p className="text-sm text-foreground/70 leading-relaxed">
                                                 {faq.answer}
                                             </p>
                                         </div>
@@ -135,14 +135,14 @@ export const FAQModal: React.FC<FAQModalProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02]">
+                <div className="px-6 py-4 border-t border-black/8 bg-black/[0.02]">
                     <div className="flex items-center justify-between">
-                        <p className="text-sm text-white/60">
+                        <p className="text-sm text-muted-foreground">
                             Can't find what you're looking for?
                         </p>
                         <a
                             href="mailto:support@civitasai.com"
-                            className="px-4 py-2 bg-[#C08B5C] hover:bg-[#A8734A] text-white text-sm font-medium rounded-lg transition-colors"
+                            className="px-4 py-2 bg-[#C08B5C] hover:bg-[#A8734A] text-foreground text-sm font-medium rounded-lg transition-colors"
                         >
                             Contact support
                         </a>

@@ -234,7 +234,7 @@ export const CameraFeed = forwardRef<CameraFeedRef, CameraFeedProps>(({
       </div>
 
       {/* Frosted glass HUD — capture controls */}
-      <div className="relative flex-shrink-0 bg-black/40 backdrop-blur-2xl border-t border-white/[0.06]">
+      <div className="relative flex-shrink-0 bg-black/40 backdrop-blur-2xl border-t border-black/[0.06]">
         {/* HUD status chips */}
         {hudContent && (
           <div className="flex items-center justify-center gap-2 px-4 pt-3 pb-1">
@@ -250,9 +250,9 @@ export const CameraFeed = forwardRef<CameraFeedRef, CameraFeedProps>(({
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => fileInputRef.current?.click()}
-                className="w-12 h-12 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] flex items-center justify-center transition-colors hover:bg-white/[0.1]"
+                className="w-12 h-12 rounded-full bg-black/[0.05] backdrop-blur-xl border border-black/[0.08] flex items-center justify-center transition-colors hover:bg-black/[0.07]"
               >
-                <Upload className="w-5 h-5 text-white/50" />
+                <Upload className="w-5 h-5 text-muted-foreground" />
               </motion.button>
             )}
 
@@ -264,9 +264,9 @@ export const CameraFeed = forwardRef<CameraFeedRef, CameraFeedProps>(({
               className="relative w-[72px] h-[72px] rounded-full flex items-center justify-center group"
             >
               {/* Outer ring */}
-              <div className="absolute inset-0 rounded-full border-[3px] border-white/30 group-hover:border-white/50 transition-colors" />
+              <div className="absolute inset-0 rounded-full border-[3px] border-white/30 group-hover:border-black/50 transition-colors" />
               {/* Inner fill */}
-              <div className="w-[58px] h-[58px] rounded-full bg-white group-hover:bg-white/90 transition-colors shadow-[0_0_30px_rgba(255,255,255,0.15)]" />
+              <div className="w-[58px] h-[58px] rounded-full bg-white group-hover:bg-white/90 transition-colors shadow-[0_0_30px_rgba(0,0,0,0.10)]" />
             </motion.button>
 
             {/* Spacer for symmetry when upload is shown */}

@@ -152,7 +152,7 @@ export const PropertyExplorePage: React.FC<PropertyExplorePageProps> = ({
   }, [search]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: '#111114' }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: 'hsl(var(--background))' }}>
       <ExploreFilterBar
         filters={filters}
         onUpdateFilter={updateFilter}
@@ -170,7 +170,7 @@ export const PropertyExplorePage: React.FC<PropertyExplorePageProps> = ({
 
       {/* Always show 60/40 split */}
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-[60%] min-w-0 flex flex-col overflow-hidden bg-[#111114]">
+        <div className="w-[60%] min-w-0 flex flex-col overflow-hidden bg-background">
           <ExplorePropertyList
             properties={properties}
             totalFound={totalFound}

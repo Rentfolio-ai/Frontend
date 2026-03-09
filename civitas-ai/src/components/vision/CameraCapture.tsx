@@ -127,11 +127,11 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) { stopAllTracks(); onClose(); } }}
     >
-      <div className="relative w-full max-w-lg mx-4 rounded-2xl overflow-hidden bg-[#0f0f0f] border border-white/10 shadow-2xl">
+      <div className="relative w-full max-w-lg mx-4 rounded-2xl overflow-hidden bg-popover border border-black/8 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-          <h3 className="text-sm font-medium text-white">Property Photo</h3>
-          <button onClick={() => { stopAllTracks(); onClose(); }} className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-black/8">
+          <h3 className="text-sm font-medium text-foreground">Property Photo</h3>
+          <button onClick={() => { stopAllTracks(); onClose(); }} className="p-1.5 rounded-lg hover:bg-black/8 text-muted-foreground hover:text-foreground transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -156,8 +156,8 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center h-full px-8 text-center"
               >
-                <Camera className="w-12 h-12 text-white/20 mb-4" />
-                <p className="text-sm text-white/60 mb-4">{error}</p>
+                <Camera className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                <p className="text-sm text-muted-foreground mb-4">{error}</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="px-4 py-2 bg-[#C08B5C] text-white rounded-lg text-sm font-medium hover:bg-[#C08B5C]/80 transition-colors flex items-center gap-2"
@@ -170,7 +170,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
               <motion.div key="camera" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative w-full h-full">
                 {isInitializing && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
-                    <div className="w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-2 border-black/12 border-t-white/80 rounded-full animate-spin" />
                   </div>
                 )}
                 <video
@@ -183,10 +183,10 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
                 />
                 {/* Viewfinder grid overlay */}
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/10" />
-                  <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white/10" />
-                  <div className="absolute top-1/3 left-0 right-0 h-px bg-white/10" />
-                  <div className="absolute top-2/3 left-0 right-0 h-px bg-white/10" />
+                  <div className="absolute left-1/3 top-0 bottom-0 w-px bg-black/8" />
+                  <div className="absolute left-2/3 top-0 bottom-0 w-px bg-black/8" />
+                  <div className="absolute top-1/3 left-0 right-0 h-px bg-black/8" />
+                  <div className="absolute top-2/3 left-0 right-0 h-px bg-black/8" />
                 </div>
               </motion.div>
             )}
@@ -195,12 +195,12 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-center gap-4 px-4 py-4 bg-[#0f0f0f]">
+        <div className="flex items-center justify-center gap-4 px-4 py-4 bg-popover">
           {captured ? (
             <>
               <button
                 onClick={handleRetake}
-                className="px-4 py-2 rounded-xl bg-white/10 text-white/80 hover:bg-white/15 transition-colors text-sm font-medium flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-black/8 text-foreground/80 hover:bg-black/10 transition-colors text-sm font-medium flex items-center gap-2"
               >
                 <RotateCcw className="w-4 h-4" />
                 Retake
@@ -216,7 +216,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
             <>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-3 rounded-full bg-white/10 text-white/60 hover:bg-white/15 hover:text-white transition-colors"
+                className="p-3 rounded-full bg-black/8 text-muted-foreground hover:bg-black/10 hover:text-foreground transition-colors"
                 title="Upload photo"
               >
                 <Upload className="w-5 h-5" />
@@ -224,7 +224,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
               <button
                 onClick={handleCapture}
                 disabled={!!error || isInitializing}
-                className="w-16 h-16 rounded-full border-4 border-white/80 bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                className="w-16 h-16 rounded-full border-4 border-white/80 bg-black/8 hover:bg-black/12 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
                 title="Take photo"
               >
                 <div className="w-full h-full rounded-full bg-white/90 scale-[0.85]" />
@@ -232,7 +232,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onClose
               <button
                 onClick={toggleFacing}
                 disabled={!!error}
-                className="p-3 rounded-full bg-white/10 text-white/60 hover:bg-white/15 hover:text-white transition-colors disabled:opacity-30"
+                className="p-3 rounded-full bg-black/8 text-muted-foreground hover:bg-black/10 hover:text-foreground transition-colors disabled:opacity-30"
                 title="Switch camera"
               >
                 <SwitchCamera className="w-5 h-5" />

@@ -46,39 +46,39 @@ export const KnowledgePanel: React.FC<KnowledgePanelProps> = ({ data, className 
   return (
     <div
       className={cn(
-        'rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden',
+        'rounded-xl border border-black/[0.08] bg-black/[0.02] overflow-hidden',
         className,
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-        <h3 className="text-[13px] font-semibold text-white/70">{data.title}</h3>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06]">
+        <h3 className="text-[13px] font-semibold text-foreground/70">{data.title}</h3>
         <div className="flex items-center gap-2">
           {data.trustLevel && <DataTrustBadge level={data.trustLevel} />}
           {data.lastVerified && (
-            <span className="text-[10px] text-white/25">Verified {data.lastVerified}</span>
+            <span className="text-[10px] text-muted-foreground/50">Verified {data.lastVerified}</span>
           )}
         </div>
       </div>
 
       {/* Sections */}
-      <div className="divide-y divide-white/[0.04]">
+      <div className="divide-y divide-black/[0.04]">
         {data.sections.map((section, idx) => {
           const isOpen = expandedSections.has(idx);
           return (
             <div key={idx}>
               <button
                 onClick={() => toggleSection(idx)}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-white/[0.02] transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-black/[0.02] transition-colors"
               >
                 <motion.span
                   animate={{ rotate: isOpen ? 90 : 0 }}
                   transition={{ duration: 0.15 }}
-                  className="text-white/30 flex-shrink-0"
+                  className="text-muted-foreground/50 flex-shrink-0"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
                 </motion.span>
-                <span className="text-[12px] font-medium text-white/55">{section.heading}</span>
+                <span className="text-[12px] font-medium text-muted-foreground/70">{section.heading}</span>
               </button>
 
               <AnimatePresence initial={false}>
@@ -92,22 +92,22 @@ export const KnowledgePanel: React.FC<KnowledgePanelProps> = ({ data, className 
                   >
                     <div className="px-4 pb-3 pl-9">
                       {section.content && (
-                        <p className="text-[12px] leading-relaxed text-white/45 mb-2">
+                        <p className="text-[12px] leading-relaxed text-muted-foreground/70 mb-2">
                           {section.content}
                         </p>
                       )}
                       {section.keyValues && section.keyValues.length > 0 && (
-                        <div className="rounded-lg border border-white/[0.04] overflow-hidden">
+                        <div className="rounded-lg border border-black/[0.04] overflow-hidden">
                           {section.keyValues.map((kv, ki) => (
                             <div
                               key={ki}
                               className={cn(
                                 'flex items-center justify-between px-3 py-1.5 text-[11px]',
-                                ki % 2 === 0 ? 'bg-white/[0.01]' : '',
+                                ki % 2 === 0 ? 'bg-black/[0.01]' : '',
                               )}
                             >
-                              <span className="text-white/40">{kv.key}</span>
-                              <span className="text-white/65 font-medium">{kv.value}</span>
+                              <span className="text-muted-foreground/70">{kv.key}</span>
+                              <span className="text-muted-foreground/80 font-medium">{kv.value}</span>
                             </div>
                           ))}
                         </div>
@@ -123,8 +123,8 @@ export const KnowledgePanel: React.FC<KnowledgePanelProps> = ({ data, className 
 
       {/* Source footer */}
       {data.sourceUrl && (
-        <div className="px-4 py-2.5 border-t border-white/[0.06] flex items-center justify-between">
-          <span className="text-[10px] text-white/25">
+        <div className="px-4 py-2.5 border-t border-black/[0.06] flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground/50">
             Source: {data.sourceName || 'External'}
           </span>
           <a

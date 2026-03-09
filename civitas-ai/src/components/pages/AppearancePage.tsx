@@ -13,8 +13,6 @@ import React from 'react';
 import {
     ArrowLeft,
     Sun,
-    Moon,
-    Monitor,
     Layout,
     Eye,
     Keyboard,
@@ -37,7 +35,7 @@ interface AppearancePageProps {
 const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled, onToggle }) => (
     <button
         onClick={onToggle}
-        className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${enabled ? 'bg-[#C08B5C]' : 'bg-white/[0.12]'}`}
+        className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${enabled ? 'bg-[#C08B5C]' : 'bg-black/[0.08]'}`}
     >
         <div className={`absolute top-[2px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-[22px]' : 'translate-x-[2px]'}`} />
     </button>
@@ -74,33 +72,13 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
     const themes = [
         {
             id: 'light' as const,
-            label: 'Light',
+            label: 'Peach Cream',
             icon: Sun,
-            sidebar: 'bg-slate-100',
-            bg: 'bg-white',
-            text: 'bg-slate-300',
-            accent: 'bg-[#D4A27F]',
-            bubble: 'bg-slate-200',
-        },
-        {
-            id: 'dark' as const,
-            label: 'Dark',
-            icon: Moon,
-            sidebar: 'bg-slate-800',
-            bg: 'bg-slate-700',
-            text: 'bg-slate-600',
+            sidebar: 'bg-[#F7ECE2]',
+            bg: 'bg-[#F3E4D6]',
+            text: 'bg-[#DDD1C6]',
             accent: 'bg-[#C08B5C]',
-            bubble: 'bg-slate-600',
-        },
-        {
-            id: 'system' as const,
-            label: 'Auto',
-            icon: Monitor,
-            sidebar: 'bg-gradient-to-b from-slate-100 to-slate-800',
-            bg: 'bg-gradient-to-b from-white to-slate-700',
-            text: 'bg-slate-400',
-            accent: 'bg-[#C08B5C]',
-            bubble: 'bg-gradient-to-b from-slate-200 to-slate-600',
+            bubble: 'bg-[#EBDDD0]',
         },
     ];
 
@@ -119,18 +97,18 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
     // ── Render ────────────────────────────────────────────────────────────────
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div>
-                    <h1 className="text-lg font-medium text-white tracking-tight">Appearance</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Customize how Vasthu looks and feels</p>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Appearance</h1>
+                    <p className="text-[11px] text-muted-foreground/50 mt-0.5">Customize how Vasthu looks and feels</p>
                 </div>
             </header>
 
@@ -139,7 +117,7 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
 
                     {/* ── Theme ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
                             Theme
                         </h2>
                         <div className="grid grid-cols-3 gap-2.5">
@@ -153,7 +131,7 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                                         className={`relative rounded-xl border-2 transition-all overflow-hidden ${
                                             selected
                                                 ? 'border-[#C08B5C] shadow-lg shadow-[#C08B5C]/10'
-                                                : 'border-white/[0.06] hover:border-white/[0.12]'
+                                                : 'border-black/[0.06] hover:border-black/[0.10]'
                                         }`}
                                     >
                                         {/* Mini app preview */}
@@ -161,9 +139,9 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                                             <div className="rounded-t-lg overflow-hidden flex h-[52px]">
                                                 {/* Mini sidebar */}
                                                 <div className={`w-[18px] ${t.sidebar} flex flex-col items-center pt-1.5 gap-1`}>
-                                                    <div className="w-2 h-2 rounded-sm bg-white/20" />
-                                                    <div className="w-2 h-2 rounded-sm bg-white/10" />
-                                                    <div className="w-2 h-2 rounded-sm bg-white/10" />
+                                                    <div className="w-2 h-2 rounded-sm bg-black/12" />
+                                                    <div className="w-2 h-2 rounded-sm bg-black/8" />
+                                                    <div className="w-2 h-2 rounded-sm bg-black/8" />
                                                 </div>
                                                 {/* Mini main area */}
                                                 <div className={`flex-1 ${t.bg} p-1.5 flex flex-col gap-1`}>
@@ -176,10 +154,10 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
 
                                         {/* Label */}
                                         <div className={`px-2 py-2 flex items-center justify-center gap-1.5 ${
-                                            selected ? 'bg-[#C08B5C]/10' : 'bg-white/[0.02]'
+                                            selected ? 'bg-[#C08B5C]/10' : 'bg-black/[0.02]'
                                         }`}>
-                                            <Icon className={`w-3 h-3 ${selected ? 'text-[#D4A27F]' : 'text-white/35'}`} />
-                                            <span className={`text-[11px] font-medium ${selected ? 'text-[#D4A27F]' : 'text-white/50'}`}>
+                                            <Icon className={`w-3 h-3 ${selected ? 'text-[#D4A27F]' : 'text-muted-foreground/60'}`} />
+                                            <span className={`text-[11px] font-medium ${selected ? 'text-[#D4A27F]' : 'text-muted-foreground'}`}>
                                                 {t.label}
                                             </span>
                                         </div>
@@ -198,10 +176,10 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
 
                     {/* ── Accent Color ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
                             Accent Color
                         </h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-4">
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm p-4">
                             <div className="flex items-center gap-3">
                                 {ACCENT_COLORS.map((c) => {
                                     const selected = accentColor === c.id;
@@ -213,11 +191,11 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                                             title={c.label}
                                         >
                                             <div className={`w-7 h-7 rounded-full ${c.swatch} transition-all flex items-center justify-center ${
-                                                selected ? `ring-2 ${c.ring} ring-offset-2 ring-offset-[#161619] scale-110` : 'opacity-60 group-hover:opacity-90'
+                                                selected ? `ring-2 ${c.ring} ring-offset-2 ring-offset-background scale-110` : 'opacity-60 group-hover:opacity-90'
                                             }`}>
                                                 {selected && <Check className="w-3 h-3 text-white" />}
                                             </div>
-                                            <span className={`text-[9px] font-medium ${selected ? 'text-white/70' : 'text-white/25'}`}>
+                                            <span className={`text-[9px] font-medium ${selected ? 'text-foreground/70' : 'text-muted-foreground/50'}`}>
                                                 {c.label}
                                             </span>
                                         </button>
@@ -229,12 +207,12 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
 
                     {/* ── Font Size ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
                             Font Size
                         </h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-4 space-y-3">
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm p-4 space-y-3">
                             {/* Segmented control */}
-                            <div className="flex gap-1.5 p-1 rounded-lg bg-white/[0.04]">
+                            <div className="flex gap-1.5 p-1 rounded-lg bg-black/[0.03]">
                                 {fontSizes.map((f) => {
                                     const selected = fontSize === f.id;
                                     return (
@@ -244,11 +222,11 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                                             className={`flex-1 py-2 rounded-md text-center transition-all ${
                                                 selected
                                                     ? 'bg-[#C08B5C] text-white shadow-sm'
-                                                    : 'text-white/40 hover:text-white/60 hover:bg-white/[0.04]'
+                                                    : 'text-muted-foreground/70 hover:text-muted-foreground hover:bg-black/[0.03]'
                                             }`}
                                         >
                                             <span className="text-[13px] font-bold">{f.label}</span>
-                                            <span className={`block text-[9px] mt-0.5 ${selected ? 'text-white/70' : 'text-white/25'}`}>
+                                            <span className={`block text-[9px] mt-0.5 ${selected ? 'text-foreground/70' : 'text-muted-foreground/50'}`}>
                                                 {f.desc}
                                             </span>
                                         </button>
@@ -257,12 +235,12 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                             </div>
 
                             {/* Live preview */}
-                            <div className="rounded-lg bg-white/[0.04] border border-white/[0.04] p-3">
+                            <div className="rounded-lg bg-black/[0.03] border border-black/[0.04] p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                    <Type className="w-3 h-3 text-white/25" />
-                                    <span className="text-[9px] uppercase tracking-wider text-white/25 font-semibold">Preview</span>
+                                    <Type className="w-3 h-3 text-muted-foreground/50" />
+                                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/50 font-semibold">Preview</span>
                                 </div>
-                                <p style={{ fontSize: fontSizes.find((f) => f.id === fontSize)?.px }} className="text-white/70 leading-relaxed">
+                                <p style={{ fontSize: fontSizes.find((f) => f.id === fontSize)?.px }} className="text-foreground/70 leading-relaxed">
                                     This property at 123 Main St has a projected cash flow of $450/mo with a 7.2% cap rate.
                                 </p>
                             </div>
@@ -272,18 +250,18 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                     {/* ── Chat Display ── */}
                     <div>
                         <div className="flex items-center gap-2 mb-2.5 px-1">
-                            <MessageSquare className="w-3 h-3 text-white/25" />
-                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                            <MessageSquare className="w-3 h-3 text-muted-foreground/50" />
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                                 Chat Display
                             </h2>
                         </div>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-4 space-y-3">
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm p-4 space-y-3">
                             {/* Message density */}
                             <div>
-                                <p className="text-[11px] text-white/45 mb-2">Message spacing</p>
+                                <p className="text-[11px] text-muted-foreground/70 mb-2">Message spacing</p>
                                 <div className="flex gap-1.5">
                                     {densities.map((d) => {
-                                        const Icon = d.icon;
+                                        const _Icon = d.icon;
                                         const selected = chatDensity === d.id;
                                         return (
                                             <button
@@ -292,16 +270,16 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                                                 className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-lg border transition-all ${
                                                     selected
                                                         ? 'border-[#C08B5C]/30 bg-[#C08B5C]/[0.06]'
-                                                        : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                                                        : 'border-black/[0.06] bg-black/[0.02] hover:bg-black/[0.03]'
                                                 }`}
                                             >
                                                 {/* Mini density preview */}
                                                 <div className={`flex flex-col ${d.gap} w-8`}>
-                                                    <div className="h-1 w-full rounded-full bg-white/15" />
+                                                    <div className="h-1 w-full rounded-full bg-black/10" />
                                                     <div className="h-1 w-5 rounded-full bg-[#C08B5C]/40 self-end" />
-                                                    <div className="h-1 w-full rounded-full bg-white/15" />
+                                                    <div className="h-1 w-full rounded-full bg-black/10" />
                                                 </div>
-                                                <span className={`text-[10px] font-medium ${selected ? 'text-[#D4A27F]' : 'text-white/40'}`}>
+                                                <span className={`text-[10px] font-medium ${selected ? 'text-[#D4A27F]' : 'text-muted-foreground/70'}`}>
                                                     {d.label}
                                                 </span>
                                             </button>
@@ -311,13 +289,13 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                             </div>
 
                             {/* Wide mode toggle */}
-                            <div className="flex items-center gap-3 pt-2 border-t border-white/[0.04]">
-                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${isWideMode ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
-                                    <Layout className={`w-3.5 h-3.5 ${isWideMode ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                            <div className="flex items-center gap-3 pt-2 border-t border-black/[0.04]">
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${isWideMode ? 'bg-[#C08B5C]/10' : 'bg-black/[0.03]'}`}>
+                                    <Layout className={`w-3.5 h-3.5 ${isWideMode ? 'text-[#D4A27F]' : 'text-muted-foreground/50'}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-[12px] font-medium text-white/75">Wide Mode</h4>
-                                    <p className="text-[10px] text-white/30">Expand chat to full width</p>
+                                    <h4 className="text-[12px] font-medium text-foreground/75">Wide Mode</h4>
+                                    <p className="text-[10px] text-muted-foreground/50">Expand chat to full width</p>
                                 </div>
                                 <Toggle enabled={isWideMode} onToggle={() => setWideMode(!isWideMode)} />
                             </div>
@@ -327,44 +305,44 @@ export const AppearancePage: React.FC<AppearancePageProps> = ({ onBack }) => {
                     {/* ── Accessibility ── */}
                     <div>
                         <div className="flex items-center gap-2 mb-2.5 px-1">
-                            <Sparkles className="w-3 h-3 text-white/25" />
-                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                            <Sparkles className="w-3 h-3 text-muted-foreground/50" />
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                                 Accessibility
                             </h2>
                         </div>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             {/* Reduced Motion */}
                             <div className="flex items-center gap-3 px-3.5 py-2.5">
-                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${reducedMotion ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
-                                    <Eye className={`w-3.5 h-3.5 ${reducedMotion ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${reducedMotion ? 'bg-[#C08B5C]/10' : 'bg-black/[0.03]'}`}>
+                                    <Eye className={`w-3.5 h-3.5 ${reducedMotion ? 'text-[#D4A27F]' : 'text-muted-foreground/50'}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-[12px] font-medium text-white/75">Reduced Motion</h4>
-                                    <p className="text-[10px] text-white/30">Minimize animations and transitions</p>
+                                    <h4 className="text-[12px] font-medium text-foreground/75">Reduced Motion</h4>
+                                    <p className="text-[10px] text-muted-foreground/50">Minimize animations and transitions</p>
                                 </div>
                                 <Toggle enabled={reducedMotion} onToggle={() => setReducedMotion(!reducedMotion)} />
                             </div>
 
                             {/* High Contrast */}
                             <div className="flex items-center gap-3 px-3.5 py-2.5">
-                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${highContrast ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
-                                    <Sun className={`w-3.5 h-3.5 ${highContrast ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${highContrast ? 'bg-[#C08B5C]/10' : 'bg-black/[0.03]'}`}>
+                                    <Sun className={`w-3.5 h-3.5 ${highContrast ? 'text-[#D4A27F]' : 'text-muted-foreground/50'}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-[12px] font-medium text-white/75">High Contrast</h4>
-                                    <p className="text-[10px] text-white/30">Increase text and border contrast</p>
+                                    <h4 className="text-[12px] font-medium text-foreground/75">High Contrast</h4>
+                                    <p className="text-[10px] text-muted-foreground/50">Increase text and border contrast</p>
                                 </div>
                                 <Toggle enabled={highContrast} onToggle={() => setHighContrast(!highContrast)} />
                             </div>
 
                             {/* Keyboard Hints */}
                             <div className="flex items-center gap-3 px-3.5 py-2.5">
-                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${showKeyboardHints ? 'bg-[#C08B5C]/10' : 'bg-white/[0.04]'}`}>
-                                    <Keyboard className={`w-3.5 h-3.5 ${showKeyboardHints ? 'text-[#D4A27F]' : 'text-white/30'}`} />
+                                <div className={`w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 ${showKeyboardHints ? 'bg-[#C08B5C]/10' : 'bg-black/[0.03]'}`}>
+                                    <Keyboard className={`w-3.5 h-3.5 ${showKeyboardHints ? 'text-[#D4A27F]' : 'text-muted-foreground/50'}`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-[12px] font-medium text-white/75">Keyboard Shortcuts</h4>
-                                    <p className="text-[10px] text-white/30">Show shortcut hints in the UI</p>
+                                    <h4 className="text-[12px] font-medium text-foreground/75">Keyboard Shortcuts</h4>
+                                    <p className="text-[10px] text-muted-foreground/50">Show shortcut hints in the UI</p>
                                 </div>
                                 <Toggle enabled={showKeyboardHints} onToggle={() => setShowKeyboardHints(!showKeyboardHints)} />
                             </div>

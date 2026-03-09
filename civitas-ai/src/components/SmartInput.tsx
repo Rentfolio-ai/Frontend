@@ -79,7 +79,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                 {query && (
                     <button
                         onClick={handleClear}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute right-3 top-3 text-muted-foreground hover:text-gray-600 transition-colors"
                         title="Clear (Esc)"
                     >
                         <X className="w-5 h-5" />

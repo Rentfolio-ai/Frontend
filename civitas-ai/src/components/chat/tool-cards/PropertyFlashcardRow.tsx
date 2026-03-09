@@ -54,10 +54,10 @@ export const PropertyFlashcardRow: React.FC<PropertyFlashcardRowProps> = ({
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="w-3.5 h-3.5 text-[#C08B5C]/60" />
-        <span className="text-[13px] font-medium text-white/60">
+        <span className="text-[13px] font-medium text-muted-foreground">
           {total} {total === 1 ? 'property' : 'properties'} found{location ? ` in ${location}` : ''}
         </span>
-        <span className="text-[10px] text-white/25 bg-white/[0.04] px-1.5 py-0.5 rounded">AI-ranked</span>
+        <span className="text-[10px] text-muted-foreground/50 bg-black/[0.03] px-1.5 py-0.5 rounded">AI-ranked</span>
       </div>
 
       {/* Carousel */}
@@ -65,7 +65,7 @@ export const PropertyFlashcardRow: React.FC<PropertyFlashcardRowProps> = ({
         {/* Left arrow */}
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/50 hover:text-white/80 hover:bg-black/80 transition-all opacity-0 group-hover/carousel:opacity-100"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border border-black/8 flex items-center justify-center text-muted-foreground hover:text-foreground/80 hover:bg-black/80 transition-all opacity-0 group-hover/carousel:opacity-100"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -90,7 +90,7 @@ export const PropertyFlashcardRow: React.FC<PropertyFlashcardRowProps> = ({
         {/* Right arrow */}
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/50 hover:text-white/80 hover:bg-black/80 transition-all opacity-0 group-hover/carousel:opacity-100"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur-sm border border-black/8 flex items-center justify-center text-muted-foreground hover:text-foreground/80 hover:bg-black/80 transition-all opacity-0 group-hover/carousel:opacity-100"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -101,7 +101,7 @@ export const PropertyFlashcardRow: React.FC<PropertyFlashcardRowProps> = ({
         <div className="mt-3">
           <button
             onClick={() => setMoreOpen(!moreOpen)}
-            className="flex items-center gap-1.5 text-[12px] text-white/35 hover:text-white/55 transition-colors"
+            className="flex items-center gap-1.5 text-[12px] text-muted-foreground/60 hover:text-foreground/55 transition-colors"
           >
             <motion.div animate={{ rotate: moreOpen ? 180 : 0 }} transition={{ duration: 0.15 }}>
               <ChevronDown className="w-3.5 h-3.5" />
@@ -118,7 +118,7 @@ export const PropertyFlashcardRow: React.FC<PropertyFlashcardRowProps> = ({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="mt-2 space-y-0.5 max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <div className="mt-2 space-y-0.5 max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-black/10 scrollbar-track-transparent">
                   {rest.map((p, i) => {
                     const addr = (p.formattedAddress || p.address || 'Unknown');
                     const short = addr.length > 35 ? addr.slice(0, 33) + '...' : addr;
@@ -130,18 +130,18 @@ export const PropertyFlashcardRow: React.FC<PropertyFlashcardRowProps> = ({
                     return (
                       <div
                         key={p.listing_id || p.id || `more-${i}`}
-                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-white/[0.03] transition-colors"
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-black/[0.02] transition-colors"
                       >
-                        <span className="text-[10px] text-white/20 w-4 text-right flex-shrink-0">{i + top5.length + 1}</span>
-                        <span className="text-[12px] text-white/55 flex-1 min-w-0 truncate">{short}</span>
-                        <span className="text-[10px] text-white/30 flex-shrink-0">{beds}bd · {baths}ba</span>
+                        <span className="text-[10px] text-muted-foreground/40 w-4 text-right flex-shrink-0">{i + top5.length + 1}</span>
+                        <span className="text-[12px] text-muted-foreground/70 flex-1 min-w-0 truncate">{short}</span>
+                        <span className="text-[10px] text-muted-foreground/50 flex-shrink-0">{beds}bd · {baths}ba</span>
                         <span className="text-[12px] font-semibold text-[#F5E6D0]/70 flex-shrink-0">${price.toLocaleString()}</span>
                         {onToggleBookmark && (
                           <button
                             onClick={() => onToggleBookmark(p as unknown as ScoutedProperty)}
                             className="p-0.5 flex-shrink-0"
                           >
-                            <Bookmark className={cn('w-3 h-3', bookmarked ? 'fill-[#C08B5C] text-[#C08B5C]' : 'text-white/20 hover:text-white/40')} />
+                            <Bookmark className={cn('w-3 h-3', bookmarked ? 'fill-[#C08B5C] text-[#C08B5C]' : 'text-muted-foreground/40 hover:text-muted-foreground/70')} />
                           </button>
                         )}
                       </div>

@@ -28,7 +28,7 @@ export const DemoVideoEmbed: React.FC<DemoVideoEmbedProps> = ({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
               onClick={hasVideo ? () => setPlaying(true) : undefined}
-              className={`absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-5 bg-[#1A1A1A] ${hasVideo ? 'cursor-pointer group' : ''}`}
+              className={`absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-5 bg-background ${hasVideo ? 'cursor-pointer group' : ''}`}
               role={hasVideo ? 'button' : undefined}
               tabIndex={hasVideo ? 0 : undefined}
             >
@@ -36,7 +36,7 @@ export const DemoVideoEmbed: React.FC<DemoVideoEmbedProps> = ({
                 className="absolute inset-0 opacity-[0.04]"
                 style={{
                   backgroundImage:
-                    'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
+                    'linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)',
                   backgroundSize: '48px 48px',
                 }}
               />
@@ -47,7 +47,7 @@ export const DemoVideoEmbed: React.FC<DemoVideoEmbedProps> = ({
                 <Play className="w-7 h-7 text-white ml-1" fill="white" />
               </div>
 
-              <span className="relative z-10 text-[14px] font-medium text-white/50 group-hover:text-white/70 transition-colors duration-300 tracking-wide">
+              <span className="relative z-10 text-[14px] font-medium text-muted-foreground group-hover:text-foreground/70 transition-colors duration-300 tracking-wide">
                 {hasVideo ? 'Watch the full demo' : 'Demo video coming soon'}
               </span>
             </motion.div>

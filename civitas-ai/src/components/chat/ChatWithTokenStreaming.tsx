@@ -143,7 +143,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-black relative">
+    <div className="flex flex-col h-full bg-background relative">
       {/* Mode Selector Header */}
       <AgentModeSelector
         currentMode={currentMode}
@@ -171,7 +171,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
               >
                 {message.isStreaming ? (
                   <div className="flex items-baseline gap-2">
-                    <div className="text-white/90 whitespace-pre-wrap">
+                    <div className="text-foreground whitespace-pre-wrap">
                       {message.content}
                     </div>
                     <motion.span
@@ -185,7 +185,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="text-white/90 prose prose-invert prose-sm max-w-none">
+                  <div className="text-foreground prose prose-sm max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {message.content}
                     </ReactMarkdown>
@@ -320,7 +320,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="glass border-t border-white/10 p-4">
+      <div className="glass border-t border-black/8 p-4">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="flex-1 relative">
             <textarea
@@ -331,7 +331,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
               placeholder="Ask me anything about real estate..."
               disabled={!streamState.isComplete}
               rows={1}
-              className="w-full px-4 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50 transition-colors resize-none max-h-32"
+              className="w-full px-4 py-3 pr-12 rounded-xl bg-black/5 border border-black/8 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-500/50 transition-colors resize-none max-h-32"
               style={{
                 minHeight: '48px',
                 height: 'auto'
@@ -362,7 +362,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
               disabled={!inputValue.trim()}
               whileHover={{ scale: inputValue.trim() ? 1.05 : 1 }}
               whileTap={{ scale: inputValue.trim() ? 0.95 : 1 }}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-foreground font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Send className="w-4 h-4" />
               Send
@@ -375,7 +375,7 @@ export const ChatWithTokenStreaming: React.FC<ChatWithTokenStreamingProps> = ({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-3 flex items-center gap-2 text-xs text-white/50"
+            className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
           >
             <Sparkles className="w-3 h-3" />
             <span>Using context from: {streamState.contextSources.join(', ')}</span>

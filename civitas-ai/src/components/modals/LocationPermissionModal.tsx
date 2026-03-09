@@ -142,13 +142,13 @@ export const LocationPermissionModal: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5 }}
-              className="bg-[#18181c] border border-white/10 rounded-3xl shadow-2xl max-w-md w-full pointer-events-auto overflow-hidden"
+              className="bg-popover border border-black/8 rounded-3xl shadow-2xl max-w-md w-full pointer-events-auto overflow-hidden"
             >
               {/* Header */}
               <div className="relative p-6 pb-4">
                 <button
                   onClick={handleDeny}
-                  className="absolute top-4 right-4 p-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
+                  className="absolute top-4 right-4 p-2 rounded-lg text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/5 transition-all"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -158,15 +158,15 @@ export const LocationPermissionModal: React.FC = () => {
                     <MapPin className="w-7 h-7 text-[#D4A27F]" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white">Enable Location</h3>
-                    <p className="text-sm text-white/50 mt-0.5">For better property recommendations</p>
+                    <h3 className="text-xl font-semibold text-foreground">Enable Location</h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">For better property recommendations</p>
                   </div>
                 </div>
               </div>
 
               {/* Body */}
               <div className="px-6 pb-6">
-                <p className="text-[15px] text-white/70 leading-relaxed">
+                <p className="text-[15px] text-foreground/70 leading-relaxed">
                   Vasthu uses your location to show properties near you and provide more accurate market insights. You can change this anytime in settings.
                 </p>
 
@@ -175,14 +175,14 @@ export const LocationPermissionModal: React.FC = () => {
                   <button
                     onClick={handleDeny}
                     disabled={isRequesting}
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 rounded-xl bg-black/5 hover:bg-black/8 text-foreground/70 hover:text-foreground transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Not Now
                   </button>
                   <button
                     onClick={handleAllow}
                     disabled={isRequesting}
-                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-br from-[#D4A27F] to-[#C08B5C] hover:from-[#D4A27F] hover:to-[#D4A27F] text-white font-medium shadow-lg shadow-[#C08B5C]/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-br from-[#D4A27F] to-[#C08B5C] hover:from-[#D4A27F] hover:to-[#D4A27F] text-foreground font-medium shadow-lg shadow-[#C08B5C]/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isRequesting ? (
                       <span className="flex items-center justify-center gap-2">

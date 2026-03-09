@@ -114,10 +114,10 @@ export const PropertyActionButtons: React.FC<PropertyActionButtonsProps> = ({
                     className={cn(
                         buttonSizeClasses,
                         'rounded-lg transition-all duration-200',
-                        'hover:bg-white/10 hover:scale-110',
+                        'hover:bg-black/8 hover:scale-110',
                         isBookmarked
                             ? 'text-red-400 hover:text-red-300'
-                            : 'text-white/40 hover:text-white/70'
+                            : 'text-muted-foreground/70 hover:text-foreground/70'
                     )}
                     title={isBookmarked ? 'Remove from bookmarks' : 'Add to bookmarks'}
                 >
@@ -133,10 +133,10 @@ export const PropertyActionButtons: React.FC<PropertyActionButtonsProps> = ({
                 className={cn(
                     buttonSizeClasses,
                     'rounded-lg transition-all duration-200',
-                    'hover:bg-white/10 hover:scale-110',
+                    'hover:bg-black/8 hover:scale-110',
                     inComparison
                         ? 'text-blue-400 hover:text-blue-300'
-                        : 'text-white/40 hover:text-white/70'
+                        : 'text-muted-foreground/70 hover:text-foreground/70'
                 )}
                 title={inComparison ? 'Remove from comparison' : 'Add to comparison'}
             >
@@ -149,8 +149,8 @@ export const PropertyActionButtons: React.FC<PropertyActionButtonsProps> = ({
                 className={cn(
                     buttonSizeClasses,
                     'rounded-lg transition-all duration-200',
-                    'text-white/40 hover:text-white/70',
-                    'hover:bg-white/10 hover:scale-110'
+                    'text-muted-foreground/70 hover:text-foreground/70',
+                    'hover:bg-black/8 hover:scale-110'
                 )}
                 title="Copy link to clipboard"
             >
@@ -164,8 +164,8 @@ export const PropertyActionButtons: React.FC<PropertyActionButtonsProps> = ({
                     className={cn(
                         buttonSizeClasses,
                         'rounded-lg transition-all duration-200',
-                        'text-white/40 hover:text-white/70',
-                        'hover:bg-white/10 hover:scale-110'
+                        'text-muted-foreground/70 hover:text-foreground/70',
+                        'hover:bg-black/8 hover:scale-110'
                     )}
                     title="View details"
                 >
@@ -175,7 +175,7 @@ export const PropertyActionButtons: React.FC<PropertyActionButtonsProps> = ({
 
             {/* Copied Toast */}
             {showCopiedToast && (
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-green-500 text-white text-xs rounded shadow-lg whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-green-500 text-foreground text-xs rounded shadow-lg whitespace-nowrap animate-in fade-in slide-in-from-bottom-2">
                     Link copied!
                 </div>
             )}

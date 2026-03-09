@@ -163,22 +163,22 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* ── Header ── */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1 flex items-center justify-between">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Billing & Plans</h1>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Billing & Plans</h1>
                     {!subLoading && (
                         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                             isPro
                                 ? 'bg-[#C08B5C]/10 border border-[#C08B5C]/20 text-[#D4A27F] shadow-[0_0_12px_rgba(192,139,92,0.15)]'
-                                : 'bg-white/[0.04] border border-white/[0.08] text-white/50'
+                                : 'bg-black/[0.03] border border-black/[0.08] text-muted-foreground'
                         }`}>
                             {isPro ? <Crown className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
                             <span>{currentTier === 'pro' ? 'Pro' : 'Free'}</span>
@@ -192,20 +192,20 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
 
                     {/* ── Plan Summary with Usage Meters ── */}
                     <motion.section initial="hidden" animate="visible" variants={reveal}>
-                        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-6 md:p-8">
+                        <div className="rounded-2xl border border-black/[0.06] bg-black/[0.02] backdrop-blur-sm p-6 md:p-8">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                                     isPro
                                         ? 'bg-gradient-to-br from-[#C08B5C]/20 to-[#D4A27F]/10 border border-[#C08B5C]/20'
-                                        : 'bg-white/[0.04] border border-white/[0.08]'
+                                        : 'bg-black/[0.03] border border-black/[0.08]'
                                 }`}>
-                                    {isPro ? <Crown className="w-5 h-5 text-[#D4A27F]" /> : <Shield className="w-5 h-5 text-white/40" />}
+                                    {isPro ? <Crown className="w-5 h-5 text-[#D4A27F]" /> : <Shield className="w-5 h-5 text-muted-foreground/70" />}
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-medium text-white">
+                                    <h2 className="text-base font-medium text-foreground">
                                         {isPro ? 'Pro Plan' : 'Free Plan'}
                                     </h2>
-                                    <p className="text-xs text-white/35">
+                                    <p className="text-xs text-muted-foreground/60">
                                         {isPro ? 'Full access to all features' : 'Basic access with limited usage'}
                                     </p>
                                 </div>
@@ -239,8 +239,8 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                         <AlertCircle className="w-5 h-5 text-[#C08B5C]" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-[15px] font-semibold text-white mb-1">We've updated our pricing</h3>
-                                        <p className="text-[13px] text-white/50 leading-relaxed mb-4">
+                                        <h3 className="text-[15px] font-semibold text-foreground mb-1">We've updated our pricing</h3>
+                                        <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
                                             Your current $100/month plan will transition to $29/month + pay-per-action.
                                             You'll save on your base subscription and only pay for reports ($5 each) and deal closings ($15 each) as you use them.
                                         </p>
@@ -260,24 +260,24 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                     {/* ── Add-on Pricing ── */}
                     {isPro && (
                         <motion.section initial="hidden" animate="visible" variants={reveal}>
-                            <h2 className="text-base font-medium text-white mb-4">Add-on Pricing</h2>
+                            <h2 className="text-base font-medium text-foreground mb-4">Add-on Pricing</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5 flex items-center gap-4">
-                                    <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                                        <FileText className="w-4 h-4 text-white/40" />
+                                <div className="rounded-xl bg-black/[0.02] border border-black/[0.06] p-5 flex items-center gap-4">
+                                    <div className="w-9 h-9 rounded-lg bg-black/[0.03] border border-black/[0.06] flex items-center justify-center">
+                                        <FileText className="w-4 h-4 text-muted-foreground/70" />
                                     </div>
                                     <div>
-                                        <div className="text-[13px] font-medium text-white/70">PDF Report</div>
-                                        <div className="text-[12px] text-white/30">$5.00 per report generated</div>
+                                        <div className="text-[13px] font-medium text-foreground/70">PDF Report</div>
+                                        <div className="text-[12px] text-muted-foreground/50">$5.00 per report generated</div>
                                     </div>
                                 </div>
-                                <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-5 flex items-center gap-4">
-                                    <div className="w-9 h-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
-                                        <DollarSign className="w-4 h-4 text-white/40" />
+                                <div className="rounded-xl bg-black/[0.02] border border-black/[0.06] p-5 flex items-center gap-4">
+                                    <div className="w-9 h-9 rounded-lg bg-black/[0.03] border border-black/[0.06] flex items-center justify-center">
+                                        <DollarSign className="w-4 h-4 text-muted-foreground/70" />
                                     </div>
                                     <div>
-                                        <div className="text-[13px] font-medium text-white/70">Deal Close</div>
-                                        <div className="text-[12px] text-white/30">$15.00 per closed deal</div>
+                                        <div className="text-[13px] font-medium text-foreground/70">Deal Close</div>
+                                        <div className="text-[12px] text-muted-foreground/50">$15.00 per closed deal</div>
                                     </div>
                                 </div>
                             </div>
@@ -288,14 +288,14 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                     {isPro && currentUsage && (
                         <motion.section initial="hidden" animate="visible" variants={reveal}>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-base font-medium text-white">Current Billing Period</h2>
-                                <span className="text-[11px] text-white/25 font-mono">
+                                <h2 className="text-base font-medium text-foreground">Current Billing Period</h2>
+                                <span className="text-[11px] text-muted-foreground/50 font-mono">
                                     {new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                     {' — '}
                                     {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                             </div>
-                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+                            <div className="rounded-2xl border border-black/[0.06] bg-black/[0.02] p-6">
                                 <div className="space-y-3">
                                     <BillingLine label="Base subscription" amount={2900} />
                                     <BillingLine
@@ -306,9 +306,9 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                         label={`Deals closed (${currentUsage.deal_close?.count ?? 0})`}
                                         amount={currentUsage.deal_close?.total_cents ?? 0}
                                     />
-                                    <div className="border-t border-white/[0.06] pt-3 flex items-center justify-between">
-                                        <span className="text-[13px] font-medium text-white/70">Estimated next invoice</span>
-                                        <span className="text-[15px] font-semibold text-white">
+                                    <div className="border-t border-black/[0.06] pt-3 flex items-center justify-between">
+                                        <span className="text-[13px] font-medium text-foreground/70">Estimated next invoice</span>
+                                        <span className="text-[15px] font-semibold text-foreground">
                                             ${((2900 + (currentUsage.period_total_cents ?? 0)) / 100).toFixed(2)}
                                         </span>
                                     </div>
@@ -319,13 +319,13 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
 
                     {/* ── Annual / Monthly Toggle ── */}
                     <motion.section initial="hidden" animate="visible" variants={reveal} className="flex flex-col items-center gap-3">
-                        <h2 className="text-xl font-semibold text-white tracking-tight">Choose your plan</h2>
-                        <p className="text-sm text-white/30 mb-2">Start free. Upgrade when you need to.</p>
+                        <h2 className="text-xl font-semibold text-foreground tracking-tight">Choose your plan</h2>
+                        <p className="text-sm text-muted-foreground/50 mb-2">Start free. Upgrade when you need to.</p>
                         <div className="flex items-center gap-3">
-                            <span className={`text-[13px] transition-colors duration-300 ${!isAnnual ? 'text-white/70' : 'text-white/30'}`}>Monthly</span>
+                            <span className={`text-[13px] transition-colors duration-300 ${!isAnnual ? 'text-foreground/70' : 'text-muted-foreground/50'}`}>Monthly</span>
                             <button
                                 onClick={() => setIsAnnual(!isAnnual)}
-                                className="w-12 h-[26px] rounded-full bg-white/[0.08] border border-white/[0.1] relative cursor-pointer transition-colors duration-300 hover:bg-white/[0.12]"
+                                className="w-12 h-[26px] rounded-full bg-black/[0.06] border border-black/[0.08] relative cursor-pointer transition-colors duration-300 hover:bg-black/[0.08]"
                             >
                                 <motion.div
                                     className="absolute top-[3px] w-5 h-5 rounded-full bg-gradient-to-br from-[#C08B5C] to-[#D4A27F]"
@@ -333,7 +333,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                     transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                                 />
                             </button>
-                            <span className={`text-[13px] transition-colors duration-300 ${isAnnual ? 'text-white/70' : 'text-white/30'}`}>Annual</span>
+                            <span className={`text-[13px] transition-colors duration-300 ${isAnnual ? 'text-foreground/70' : 'text-muted-foreground/50'}`}>Annual</span>
                             <AnimatePresence>
                                 {isAnnual && (
                                     <motion.span
@@ -363,7 +363,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                         className={`relative rounded-2xl p-8 md:p-10 flex flex-col transition-all duration-300 hover:translate-y-[-2px] overflow-hidden ${
                                             plan.premium
                                                 ? 'border border-[#C08B5C]/25 bg-gradient-to-b from-[#C08B5C]/[0.04] to-transparent'
-                                                : 'border border-white/[0.06] bg-[#0E0E10]'
+                                                : 'border border-black/[0.06] bg-card'
                                         }`}
                                     >
                                         {/* Copper glow orb for Pro */}
@@ -384,7 +384,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                                                     plan.premium
                                                         ? 'bg-[#C08B5C]/15 text-[#D4A27F] border border-[#C08B5C]/20'
-                                                        : 'bg-white/[0.06] text-white/50 border border-white/[0.08]'
+                                                        : 'bg-black/[0.05] text-muted-foreground border border-black/[0.08]'
                                                 }`}>
                                                     Current plan
                                                 </span>
@@ -393,7 +393,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
 
                                         {/* Plan name + Price */}
                                         <div className="mb-8 relative z-10">
-                                            <h3 className={`text-[13px] mb-2 font-medium ${plan.premium ? 'text-[#C08B5C]/60' : 'text-white/30'}`}>
+                                            <h3 className={`text-[13px] mb-2 font-medium ${plan.premium ? 'text-[#C08B5C]/60' : 'text-muted-foreground/50'}`}>
                                                 {plan.name}
                                             </h3>
                                             <div className="flex items-baseline gap-2">
@@ -404,17 +404,17 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                                         animate={{ opacity: 1, y: 0 }}
                                                         exit={{ opacity: 0, y: 10 }}
                                                         transition={{ duration: 0.2 }}
-                                                        className="text-[32px] font-bold text-white leading-none tracking-tight"
+                                                        className="text-[32px] font-bold text-foreground leading-none tracking-tight"
                                                     >
                                                         {price === 0 ? 'Free' : `$${price}`}
-                                                        {price > 0 && <span className="text-[14px] font-normal text-white/15 ml-1">/ mo</span>}
+                                                        {price > 0 && <span className="text-[14px] font-normal text-muted-foreground/40 ml-1">/ mo</span>}
                                                     </motion.div>
                                                 </AnimatePresence>
                                                 {plan.premium && isAnnual && (
-                                                    <span className="text-[13px] text-white/20 line-through">${plan.monthlyPrice}</span>
+                                                    <span className="text-[13px] text-muted-foreground/40 line-through">${plan.monthlyPrice}</span>
                                                 )}
                                             </div>
-                                            <p className="text-white/25 text-[13px] mt-3">{plan.desc}</p>
+                                            <p className="text-muted-foreground/50 text-[13px] mt-3">{plan.desc}</p>
                                         </div>
 
                                         {/* Features */}
@@ -422,11 +422,11 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                             {plan.features.map((f) => (
                                                 <div key={f.label} className="flex items-center gap-2.5">
                                                     <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                                        plan.premium ? 'bg-[#C08B5C]/15' : 'bg-white/[0.06]'
+                                                        plan.premium ? 'bg-[#C08B5C]/15' : 'bg-black/[0.05]'
                                                     }`}>
-                                                        <Check className={`w-3 h-3 ${plan.premium ? 'text-[#C08B5C]' : 'text-white/25'}`} />
+                                                        <Check className={`w-3 h-3 ${plan.premium ? 'text-[#C08B5C]' : 'text-muted-foreground/50'}`} />
                                                     </div>
-                                                    <span className={`text-[13px] ${plan.premium ? 'text-white/55' : 'text-white/35'}`}>
+                                                    <span className={`text-[13px] ${plan.premium ? 'text-muted-foreground/70' : 'text-muted-foreground/60'}`}>
                                                         {f.label}
                                                     </span>
                                                     {f.badge && (
@@ -441,20 +441,20 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                         {/* Action Button */}
                                         <div className="mt-auto relative z-10">
                                             {subLoading ? (
-                                                <div className="w-full h-12 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                                                    <Loader2 className="w-5 h-5 text-white/20 animate-spin" />
+                                                <div className="w-full h-12 rounded-xl bg-black/[0.03] flex items-center justify-center">
+                                                    <Loader2 className="w-5 h-5 text-muted-foreground/40 animate-spin" />
                                                 </div>
                                             ) : isCurrent ? (
                                                 plan.premium ? (
                                                     <button
                                                         onClick={handleCancelSubscription}
                                                         disabled={cancelling}
-                                                        className="w-full py-3 rounded-xl text-[13px] font-medium transition-all border border-white/[0.08] text-white/35 hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/[0.04]"
+                                                        className="w-full py-3 rounded-xl text-[13px] font-medium transition-all border border-black/[0.08] text-muted-foreground/60 hover:text-red-400 hover:border-red-500/25 hover:bg-red-500/[0.04]"
                                                     >
                                                         {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
                                                     </button>
                                                 ) : (
-                                                    <div className="w-full py-3 rounded-xl bg-white/[0.04] border border-white/[0.04] flex items-center justify-center text-[13px] font-medium text-white/25 cursor-default">
+                                                    <div className="w-full py-3 rounded-xl bg-black/[0.03] border border-black/[0.04] flex items-center justify-center text-[13px] font-medium text-muted-foreground/50 cursor-default">
                                                         Current Plan
                                                     </div>
                                                 )
@@ -469,7 +469,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                                 <button
                                                     onClick={handleSelectFree}
                                                     disabled={selectingFree}
-                                                    className="w-full py-3 rounded-xl border border-white/[0.08] text-white/50 text-[13px] font-medium hover:bg-white/[0.03] hover:border-white/[0.12] transition-all duration-300"
+                                                    className="w-full py-3 rounded-xl border border-black/[0.08] text-muted-foreground text-[13px] font-medium hover:bg-black/[0.02] hover:border-black/[0.10] transition-all duration-300"
                                                 >
                                                     {selectingFree ? 'Downgrading...' : 'Downgrade to Free'}
                                                 </button>
@@ -484,7 +484,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                     {/* ── FAQ Accordion ── */}
                     <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={reveal}>
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-base font-medium text-white">Frequently Asked Questions</h2>
+                            <h2 className="text-base font-medium text-foreground">Frequently Asked Questions</h2>
                             <a href="#" className="text-[13px] text-[#C08B5C] hover:text-[#D4A27F] flex items-center gap-1 transition-colors">
                                 Help Center <ExternalLink className="w-3.5 h-3.5" />
                             </a>
@@ -496,14 +496,14 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                     <div
                                         key={i}
                                         className={`rounded-xl border transition-colors duration-200 ${
-                                            isOpen ? 'border-[#C08B5C]/15 bg-white/[0.02]' : 'border-transparent hover:bg-white/[0.015]'
+                                            isOpen ? 'border-[#C08B5C]/15 bg-black/[0.02]' : 'border-transparent hover:bg-black/[0.01]'
                                         }`}
                                     >
                                         <button
                                             onClick={() => setFaqOpen(isOpen ? null : i)}
                                             className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
                                         >
-                                            <span className={`text-[13px] font-medium transition-colors ${isOpen ? 'text-white' : 'text-white/60'}`}>
+                                            <span className={`text-[13px] font-medium transition-colors ${isOpen ? 'text-foreground' : 'text-muted-foreground'}`}>
                                                 {faq.q}
                                             </span>
                                             <motion.div
@@ -511,7 +511,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                                 transition={{ duration: 0.2 }}
                                                 className="flex-shrink-0"
                                             >
-                                                <ChevronDown className={`w-4 h-4 transition-colors ${isOpen ? 'text-[#C08B5C]' : 'text-white/25'}`} />
+                                                <ChevronDown className={`w-4 h-4 transition-colors ${isOpen ? 'text-[#C08B5C]' : 'text-muted-foreground/50'}`} />
                                             </motion.div>
                                         </button>
                                         <AnimatePresence initial={false}>
@@ -523,7 +523,7 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                                                     transition={{ duration: 0.25, ease: 'easeInOut' }}
                                                     className="overflow-hidden"
                                                 >
-                                                    <p className="px-5 pb-4 text-[13px] text-white/40 leading-relaxed">
+                                                    <p className="px-5 pb-4 text-[13px] text-muted-foreground/70 leading-relaxed">
                                                         {faq.a}
                                                     </p>
                                                 </motion.div>
@@ -541,11 +541,11 @@ export const UpgradePage: React.FC<UpgradePageProps> = ({ onBack }) => {
                         whileInView="visible"
                         viewport={{ once: true }}
                         variants={reveal}
-                        className="flex items-center justify-center gap-8 py-6 border-t border-white/[0.04]"
+                        className="flex items-center justify-center gap-8 py-6 border-t border-black/[0.04]"
                     >
                         <TrustBadge icon={<StripeMark />} label="Secured by Stripe" />
-                        <TrustBadge icon={<Lock className="w-3.5 h-3.5 text-white/20" />} label="256-bit encryption" />
-                        <TrustBadge icon={<Check className="w-3.5 h-3.5 text-white/20" />} label="Cancel anytime" />
+                        <TrustBadge icon={<Lock className="w-3.5 h-3.5 text-muted-foreground/40" />} label="256-bit encryption" />
+                        <TrustBadge icon={<Check className="w-3.5 h-3.5 text-muted-foreground/40" />} label="Cancel anytime" />
                     </motion.section>
 
                 </div>
@@ -574,9 +574,9 @@ function UsageMeter({ icon, label, used, limit, unlimited }: {
     const nearLimit = !unlimited && limit > 0 && pct >= 80;
 
     return (
-        <div className="rounded-xl bg-white/[0.02] border border-white/[0.06] p-4">
+        <div className="rounded-xl bg-black/[0.02] border border-black/[0.06] p-4">
             <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 text-white/50">
+                <div className="flex items-center gap-2 text-muted-foreground">
                     {icon}
                     <span className="text-[13px] font-medium">{label}</span>
                 </div>
@@ -586,13 +586,13 @@ function UsageMeter({ icon, label, used, limit, unlimited }: {
                         <span className="text-[12px] font-medium">Unlimited</span>
                     </div>
                 ) : (
-                    <span className={`text-[12px] font-medium ${nearLimit ? 'text-amber-400' : 'text-white/40'}`}>
+                    <span className={`text-[12px] font-medium ${nearLimit ? 'text-amber-400' : 'text-muted-foreground/70'}`}>
                         {used} / {limit}
                     </span>
                 )}
             </div>
             {!unlimited && (
-                <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                <div className="h-1.5 rounded-full bg-black/[0.05] overflow-hidden">
                     <motion.div
                         className={`h-full rounded-full ${nearLimit ? 'bg-amber-500' : 'bg-[#C08B5C]'}`}
                         initial={{ width: 0 }}
@@ -609,7 +609,7 @@ function UsageMeter({ icon, label, used, limit, unlimited }: {
 
 function TrustBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
     return (
-        <div className="flex items-center gap-2 text-white/25">
+        <div className="flex items-center gap-2 text-muted-foreground/50">
             {icon}
             <span className="text-[11px] font-medium">{label}</span>
         </div>
@@ -621,8 +621,8 @@ function TrustBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
 function BillingLine({ label, amount }: { label: string; amount: number }) {
     return (
         <div className="flex items-center justify-between">
-            <span className="text-[13px] text-white/40">{label}</span>
-            <span className="text-[13px] font-mono text-white/60">${(amount / 100).toFixed(2)}</span>
+            <span className="text-[13px] text-muted-foreground/70">{label}</span>
+            <span className="text-[13px] font-mono text-muted-foreground">${(amount / 100).toFixed(2)}</span>
         </div>
     );
 }

@@ -60,7 +60,7 @@ export const CitationsPanel: React.FC<CitationsPanelProps> = ({
       {collapsible ? (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm text-white/70 font-medium"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-black/5 hover:bg-black/8 transition-colors text-sm text-foreground/70 font-medium"
         >
           <span className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
@@ -73,7 +73,7 @@ export const CitationsPanel: React.FC<CitationsPanelProps> = ({
           )}
         </button>
       ) : (
-        <div className="px-3 py-2 text-xs text-white/50 font-medium flex items-center gap-2">
+        <div className="px-3 py-2 text-xs text-muted-foreground font-medium flex items-center gap-2">
           <FileText className="w-4 h-4" />
           Sources ({citations.length})
         </div>
@@ -91,7 +91,7 @@ export const CitationsPanel: React.FC<CitationsPanelProps> = ({
             <motion.button
               key={citation.id}
               onClick={() => handleCitationClick(citation)}
-              className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all text-left group"
+              className="flex items-start gap-3 p-3 rounded-lg bg-black/5 hover:bg-black/8 border border-black/8 hover:border-black/12 transition-all text-left group"
               whileHover={{ scale: 1.02, x: 4 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -101,13 +101,13 @@ export const CitationsPanel: React.FC<CitationsPanelProps> = ({
               </div>
               
               {/* Icon */}
-              <div className="flex-shrink-0 text-white/50 mt-0.5">
+              <div className="flex-shrink-0 text-muted-foreground mt-0.5">
                 {getSourceIcon(citation.source)}
               </div>
               
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-white/90 font-medium line-clamp-2 group-hover:text-white transition-colors">
+                <div className="text-sm text-foreground font-medium line-clamp-2 group-hover:text-foreground transition-colors">
                   {citation.title}
                 </div>
                 
@@ -126,7 +126,7 @@ export const CitationsPanel: React.FC<CitationsPanelProps> = ({
                 )}
                 
                 {citation.snippet && (
-                  <div className="text-xs text-white/60 line-clamp-2 mt-1.5 leading-relaxed">
+                  <div className="text-xs text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
                     {citation.snippet}
                   </div>
                 )}

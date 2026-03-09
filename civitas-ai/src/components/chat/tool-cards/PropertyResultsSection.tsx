@@ -77,9 +77,9 @@ export const PropertyResultsSection: React.FC<PropertyResultsSectionProps> = ({
         <button
           onClick={() => setShowMore(true)}
           className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-xl
-                     bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04]
-                     hover:border-white/[0.06] transition-all text-[13px] text-white/40
-                     hover:text-white/60 group"
+                     bg-black/[0.02] border border-black/[0.04] hover:bg-black/[0.03]
+                     hover:border-black/[0.06] transition-all text-[13px] text-muted-foreground/70
+                     hover:text-muted-foreground group"
         >
           <span>Show {rest.length} more properties</span>
           <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
@@ -96,7 +96,7 @@ export const PropertyResultsSection: React.FC<PropertyResultsSectionProps> = ({
             <button
               onClick={() => setShowMore(false)}
               className="w-full flex items-center justify-center gap-2 py-2 mt-4 mb-2
-                         text-[12px] text-white/30 hover:text-white/50 transition-colors"
+                         text-[12px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
             >
               <span>Hide additional properties</span>
               <ChevronDown className="w-3.5 h-3.5 rotate-180" />
@@ -109,9 +109,9 @@ export const PropertyResultsSection: React.FC<PropertyResultsSectionProps> = ({
         <button
           onClick={() => onAction('Search again with different criteria')}
           className="flex items-center gap-2 mt-4 px-4 py-2.5 rounded-xl
-                     bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05]
-                     hover:border-white/[0.08] transition-all text-[13px] text-white/40
-                     hover:text-white/60"
+                     bg-black/[0.02] border border-black/[0.06] hover:bg-black/[0.04]
+                     hover:border-black/[0.08] transition-all text-[13px] text-muted-foreground/70
+                     hover:text-muted-foreground"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Re-scan with different criteria</span>

@@ -72,10 +72,10 @@ const conditionColors: Record<string, string> = {
 // ── Status Chip ────────────────────────────────────────────
 
 const StatusChip: React.FC<{ label: string; value: string; valueClass?: string }> = ({
-  label, value, valueClass = 'text-white/70',
+  label, value, valueClass = 'text-foreground/70',
 }) => (
-  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/[0.06]">
-    <span className="text-[10px] text-white/30 uppercase tracking-wider">{label}</span>
+  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-xl border border-black/[0.06]">
+    <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">{label}</span>
     <span className={`text-xs font-medium ${valueClass}`}>{value}</span>
   </div>
 );
@@ -95,15 +95,15 @@ const DetailPopover: React.FC<{
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className="absolute bottom-20 left-4 right-4 z-30
-        bg-black/60 backdrop-blur-2xl border border-white/[0.06] rounded-2xl p-4
+        bg-black/60 backdrop-blur-2xl border border-black/[0.06] rounded-2xl p-4
         shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
     >
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h4 className="text-sm font-semibold text-white/90">
+          <h4 className="text-sm font-semibold text-foreground">
             {formatDamageClass(detection.damage_class)}
           </h4>
-          <p className="text-[11px] text-white/30 mt-0.5">
+          <p className="text-[11px] text-muted-foreground/50 mt-0.5">
             Confidence: {(detection.confidence * 100).toFixed(0)}%
           </p>
         </div>
@@ -111,24 +111,24 @@ const DetailPopover: React.FC<{
           <SeverityBadge severity={detection.severity} size="sm" />
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-white/[0.06] transition-colors"
+            className="p-1 rounded-lg hover:bg-black/[0.05] transition-colors"
           >
-            <X className="w-3.5 h-3.5 text-white/30" />
+            <X className="w-3.5 h-3.5 text-muted-foreground/50" />
           </button>
         </div>
       </div>
 
       {/* Bounding box coordinates */}
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.04]">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/[0.04]">
         <div>
-          <div className="text-[9px] text-white/20 uppercase tracking-wider mb-0.5">Class conf.</div>
-          <div className="text-xs text-white/60 font-medium">
+          <div className="text-[9px] text-muted-foreground/40 uppercase tracking-wider mb-0.5">Class conf.</div>
+          <div className="text-xs text-muted-foreground font-medium">
             {detection.class_confidence ? `${(detection.class_confidence * 100).toFixed(0)}%` : '—'}
           </div>
         </div>
         <div>
-          <div className="text-[9px] text-white/20 uppercase tracking-wider mb-0.5">Severity conf.</div>
-          <div className="text-xs text-white/60 font-medium">
+          <div className="text-[9px] text-muted-foreground/40 uppercase tracking-wider mb-0.5">Severity conf.</div>
+          <div className="text-xs text-muted-foreground font-medium">
             {detection.severity_confidence ? `${(detection.severity_confidence * 100).toFixed(0)}%` : '—'}
           </div>
         </div>
@@ -253,12 +253,12 @@ export const LiveScanMode: React.FC<LiveScanModeProps> = ({
       <StatusChip
         label="Condition"
         value={frameResult.condition.charAt(0).toUpperCase() + frameResult.condition.slice(1)}
-        valueClass={conditionColors[frameResult.condition] || 'text-white/70'}
+        valueClass={conditionColors[frameResult.condition] || 'text-foreground/70'}
       />
       <StatusChip
         label="Issues"
         value={String(detections.length)}
-        valueClass={detections.length > 0 ? 'text-orange-400' : 'text-white/50'}
+        valueClass={detections.length > 0 ? 'text-orange-400' : 'text-muted-foreground'}
       />
     </>
   ) : (
@@ -281,7 +281,7 @@ export const LiveScanMode: React.FC<LiveScanModeProps> = ({
   );
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] relative">
+    <div className="h-full w-full flex flex-col bg-background relative">
       {/* Camera with overlays */}
       <CameraFeed
         ref={cameraRef}
@@ -297,18 +297,18 @@ export const LiveScanMode: React.FC<LiveScanModeProps> = ({
       <div className="absolute bottom-0 left-0 right-0 z-20"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="bg-black/50 backdrop-blur-2xl border-t border-white/[0.04]">
+        <div className="bg-black/50 backdrop-blur-2xl border-t border-black/[0.04]">
           <div className="flex items-center justify-center gap-5 py-4 px-4">
             {/* Pause / Resume */}
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={togglePause}
-              className="w-12 h-12 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/[0.08] flex items-center justify-center"
+              className="w-12 h-12 rounded-full bg-black/[0.05] backdrop-blur-xl border border-black/[0.08] flex items-center justify-center"
             >
               {paused ? (
-                <Play className="w-5 h-5 text-white/60 ml-0.5" />
+                <Play className="w-5 h-5 text-muted-foreground ml-0.5" />
               ) : (
-                <Pause className="w-5 h-5 text-white/60" />
+                <Pause className="w-5 h-5 text-muted-foreground" />
               )}
             </motion.button>
 
@@ -324,9 +324,9 @@ export const LiveScanMode: React.FC<LiveScanModeProps> = ({
             </motion.button>
 
             {/* Scan counter */}
-            <div className="w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.06] flex flex-col items-center justify-center">
-              <span className="text-xs font-semibold text-white/50">{scanCount}</span>
-              <span className="text-[7px] text-white/20 uppercase">frames</span>
+            <div className="w-12 h-12 rounded-full bg-black/[0.03] border border-black/[0.06] flex flex-col items-center justify-center">
+              <span className="text-xs font-semibold text-muted-foreground">{scanCount}</span>
+              <span className="text-[7px] text-muted-foreground/40 uppercase">frames</span>
             </div>
           </div>
         </div>
@@ -351,10 +351,10 @@ export const LiveScanMode: React.FC<LiveScanModeProps> = ({
             exit={{ opacity: 0 }}
             className="absolute top-4 left-1/2 -translate-x-1/2 z-20
               flex items-center gap-2 px-4 py-2 rounded-full
-              bg-black/50 backdrop-blur-xl border border-white/[0.08]"
+              bg-black/50 backdrop-blur-xl border border-black/[0.08]"
           >
-            <Pause className="w-3.5 h-3.5 text-white/50" />
-            <span className="text-xs font-medium text-white/50">Paused</span>
+            <Pause className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">Paused</span>
           </motion.div>
         )}
       </AnimatePresence>

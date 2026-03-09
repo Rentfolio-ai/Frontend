@@ -16,15 +16,14 @@ export const designTokens = {
   // COLORS (WARM LIGHT THEME)
   // ==================
   colors: {
-    // Backgrounds (Dark gray - EVEN DARKER!)
     bg: {
-      app: '#94A3B8',           // Slate-400 (DARK GRAY!)
-      base: '#64748B',          // Slate-500 (very dark surfaces)
-      elevated: '#E2E8F0',      // Slate-200 for cards (light contrast)
-      hover: '#475569',         // Slate-600 (darker hover)
+      app: '#F3E4D6',           // Peach cream background
+      base: '#F7ECE2',          // Light peach surface
+      elevated: '#FCF8F4',      // Elevated cards
+      hover: '#EBDDD0',         // Hover state
       popup: '#FFFFFF',         // White modals
-      overlay: 'rgba(15,23,42,0.70)',  // Darker backdrop
-      border: '#111114',        // Slate-700 borders (very dark!)
+      overlay: 'rgba(15,23,42,0.50)',  // Backdrop
+      border: '#DDD1C6',        // Warm taupe borders
     },
 
     // Brand (Copper for warm backgrounds)
@@ -47,12 +46,11 @@ export const designTokens = {
       inverse: '#FFFFFF',        // White (for dark backgrounds/buttons)
     },
 
-    // Borders (Dark gray - very visible)
     border: {
-      subtle: '#64748B',                      // Slate-500
-      default: '#111114',                     // Slate-700 (VERY DARK!)
-      emphasis: '#18181c',                    // Slate-800 (even darker!)
-      focus: '#C08B5C',                       // Brighter copper for visibility
+      subtle: '#E9DFD6',                      // Light taupe
+      default: '#DDD1C6',                     // Warm taupe
+      emphasis: '#C9BCB0',                    // Deeper taupe
+      focus: '#C08B5C',                       // Copper for visibility
     },
 
     // Semantic colors (Slate theme)
@@ -76,24 +74,24 @@ export const designTokens = {
     },
 
     sidebar: {
-      bg: '#1e1e22',                          // Warm charcoal
-      surface: '#28282f',                     // Elevated surface
-      hover: '#2a2a32',                       // Hover state
-      border: '#333340',                      // Visible border
+      bg: '#F7ECE2',                          // Peach cream surface
+      surface: '#FCF8F4',                     // Elevated surface
+      hover: '#EBDDD0',                       // Hover state
+      border: '#DDD1C6',                      // Warm taupe border
     },
     chat: {
-      bg: '#1e1e22',                          // Warm charcoal
-      surface: '#24242a',                     // Slightly elevated
-      elevated: '#2c2c34',                    // Cards
-      border: '#333340',                      // Visible border
+      bg: '#F3E4D6',                          // Peach cream canvas
+      surface: '#F7ECE2',                     // Slightly elevated
+      elevated: '#FCF8F4',                    // Cards
+      border: '#DDD1C6',                      // Warm taupe border
     },
     help: {
-      bg: '#1a1a1e',                          // Rich deep charcoal
-      bgDeep: '#141416',                      // Deepest base (widget shell)
-      surface: '#222228',                     // Elevated panels
-      surfaceHover: '#2a2a32',                // Hover state
-      border: 'rgba(255,255,255,0.07)',       // Subtle border
-      borderHover: 'rgba(255,255,255,0.12)', // Hover border
+      bg: '#F3E4D6',                          // Peach cream canvas
+      bgDeep: '#EBDDD0',                      // Deeper peach (widget shell)
+      surface: '#F7ECE2',                     // Elevated panels
+      surfaceHover: '#FCF8F4',                // Hover state
+      border: 'rgba(0,0,0,0.08)',             // Subtle border
+      borderHover: 'rgba(0,0,0,0.12)',       // Hover border
       accent: '#C08B5C',                      // Copper primary
       accentLight: '#D4A27F',                 // Copper highlight
       accentDark: '#A8734A',                  // Copper depth

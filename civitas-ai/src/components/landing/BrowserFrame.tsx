@@ -28,7 +28,7 @@ export const BrowserFrame: React.FC<BrowserFrameProps> = ({
             <circle cx="6" cy="6" r="4" />
             <path d="M6 2C7.5 2 9 3.8 9 6s-1.5 4-3 4S3 8.2 3 6s1.5-4 3-4M2 6h8" />
           </svg>
-          <span className="text-[10px] text-[#999] truncate">{url}</span>
+          <span className="text-[10px] text-muted-foreground truncate">{url}</span>
         </div>
       </div>
 

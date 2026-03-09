@@ -62,12 +62,12 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
             <div onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
             {/* Modal */}
-            <div className="relative w-full max-w-6xl max-h-[90vh] bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+            <div className="relative w-full max-w-6xl max-h-[90vh] bg-popover border border-black/8 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-black/8 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-white">Property Comparison</h2>
-                        <p className="text-sm text-white/50 mt-1">
+                        <h2 className="text-xl font-bold text-foreground">Property Comparison</h2>
+                        <p className="text-sm text-muted-foreground mt-1">
                             Comparing {selectedProperties.length} {selectedProperties.length === 1 ? 'property' : 'properties'}
                         </p>
                     </div>
@@ -81,15 +81,15 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                         </button>
                         <button
                             onClick={clearComparison}
-                            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 rounded-lg text-sm font-medium transition-colors"
+                            className="px-4 py-2 bg-black/5 hover:bg-black/8 text-foreground/70 rounded-lg text-sm font-medium transition-colors"
                         >
                             Clear All
                         </button>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 hover:bg-black/8 rounded-lg transition-colors"
                         >
-                            <X className="w-5 h-5 text-white/60" />
+                            <X className="w-5 h-5 text-muted-foreground" />
                         </button>
                     </div>
                 </div>
@@ -97,9 +97,9 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto">
                     <table className="w-full">
-                        <thead className="sticky top-0 bg-[#1a1a1a] z-10">
-                            <tr className="border-b border-white/10">
-                                <th className="text-left p-4 text-sm font-semibold text-white/80 w-48">
+                        <thead className="sticky top-0 bg-popover z-10">
+                            <tr className="border-b border-black/8">
+                                <th className="text-left p-4 text-sm font-semibold text-foreground/80 w-48">
                                     Metric
                                 </th>
                                 {selectedProperties.map((property) => (
@@ -110,11 +110,11 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                                         >
                                             <X className="w-3 h-3 text-red-400" />
                                         </button>
-                                        <div className="text-sm font-semibold text-white truncate">
+                                        <div className="text-sm font-semibold text-foreground truncate">
                                             {property.address}
                                         </div>
                                         {property.city && property.state && (
-                                            <div className="text-xs text-white/50 mt-1">
+                                            <div className="text-xs text-muted-foreground mt-1">
                                                 {property.city}, {property.state}
                                             </div>
                                         )}
@@ -132,10 +132,10 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
 
                                 return (
                                     <tr key={metric.key} className={cn(
-                                        "border-b border-white/5",
-                                        idx % 2 === 0 ? 'bg-white/[0.02]' : ''
+                                        "border-b border-black/5",
+                                        idx % 2 === 0 ? 'bg-black/[0.02]' : ''
                                     )}>
-                                        <td className="p-4 text-sm text-white/70 font-medium">
+                                        <td className="p-4 text-sm text-foreground/70 font-medium">
                                             {metric.label}
                                         </td>
                                         {selectedProperties.map((property) => {
@@ -150,7 +150,7 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                                                             "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm",
                                                             isBest
                                                                 ? "bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30"
-                                                                : "bg-white/5 text-white"
+                                                                : "bg-black/5 text-foreground"
                                                         )}>
                                                             {isBest && (
                                                                 metric.higher ?
@@ -160,7 +160,7 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                                                             {metric.format(value)}
                                                         </div>
                                                     ) : (
-                                                        <div className="text-white/30 text-sm flex items-center justify-center gap-1">
+                                                        <div className="text-muted-foreground/50 text-sm flex items-center justify-center gap-1">
                                                             <Minus className="w-3 h-3" />
                                                             <span>N/A</span>
                                                         </div>
@@ -176,14 +176,14 @@ export const PropertyComparisonModal: React.FC<PropertyComparisonModalProps> = (
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-3 border-t border-white/10 bg-white/[0.02] flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-white/50">
+                <div className="px-6 py-3 border-t border-black/8 bg-black/[0.02] flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                             <TrendingUp className="w-3.5 h-3.5 text-[#D4A27F]" />
                             <span>= Best value</span>
                         </div>
                     </div>
-                    <div className="text-xs text-white/40">
+                    <div className="text-xs text-muted-foreground/70">
                         Tip: Click the X on any property to remove it from comparison
                     </div>
                 </div>

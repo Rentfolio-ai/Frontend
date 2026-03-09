@@ -35,11 +35,11 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ data }) => {
       {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-3">
         {/* Median Price */}
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="bg-slate-100 dark:bg-muted rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-slate-900 dark:text-foreground">
             {formatPrice(data.medianPrice)}
           </div>
-          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1">
+          <div className="text-xs font-medium text-muted-foreground/70 dark:text-muted-foreground uppercase tracking-wide mt-1">
             Median Price
           </div>
         </div>
@@ -49,27 +49,27 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ data }) => {
           'rounded-xl p-4 text-center',
           isPositiveGrowth && 'bg-emerald-50 dark:bg-emerald-900/30',
           isNegativeGrowth && 'bg-red-50 dark:bg-red-900/30',
-          !isPositiveGrowth && !isNegativeGrowth && 'bg-slate-100 dark:bg-slate-800'
+          !isPositiveGrowth && !isNegativeGrowth && 'bg-slate-100 dark:bg-muted'
         )}>
           <div className={cn(
             'text-2xl font-bold',
             isPositiveGrowth && 'text-emerald-600 dark:text-emerald-400',
             isNegativeGrowth && 'text-red-600 dark:text-red-400',
-            !isPositiveGrowth && !isNegativeGrowth && 'text-slate-900 dark:text-slate-100'
+            !isPositiveGrowth && !isNegativeGrowth && 'text-slate-900 dark:text-foreground'
           )}>
             {isPositiveGrowth ? '+' : ''}{data.priceGrowth}%
           </div>
-          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1">
+          <div className="text-xs font-medium text-muted-foreground/70 dark:text-muted-foreground uppercase tracking-wide mt-1">
             YoY Growth
           </div>
         </div>
         
         {/* Days on Market */}
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="bg-slate-100 dark:bg-muted rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-slate-900 dark:text-foreground">
             {data.inventory}
           </div>
-          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1">
+          <div className="text-xs font-medium text-muted-foreground/70 dark:text-muted-foreground uppercase tracking-wide mt-1">
             Days on Market
           </div>
         </div>
@@ -77,10 +77,10 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ data }) => {
       
       {/* Location & Date */}
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-slate-700 dark:text-slate-300">
+        <span className="font-medium text-slate-700 dark:text-foreground/70">
           📍 {data.location}
         </span>
-        <span className="text-slate-500 dark:text-slate-400">
+        <span className="text-muted-foreground/70 dark:text-muted-foreground">
           as of {data.date}
         </span>
       </div>

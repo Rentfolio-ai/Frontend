@@ -213,10 +213,66 @@ export interface ReportResponse {
 // API Functions
 // ============================================================================
 
+// ── Smart Location Parsing ─────────────────────────────────────────────────
+
+export interface ParsedLocation {
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  neighborhood: string | null;
+  raw_query: string;
+  confidence: number;
+  suggestions: string[];
+}
+
+/**
+ * Parse a free-text query into structured location components.
+ * E.g. "3 bed in Austin TX" → { city: "Austin", state: "TX", ... }
+ */
+export async function parseLocation(query: string): Promise<ParsedLocation> {
+  const endpoint = `${API_BASE}/v2/property/parse-location`;
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify({ query }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to parse location');
+  }
+
+  return response.json();
+}
+
+// ── Deal Analysis Redirect ─────────────────────────────────────────────────
+
+export interface DealAnalysisProperty {
+  address: string;
+  price: number;
+  bedrooms: number | string;
+  bathrooms: number | string;
+  sqft: number;
+  property_type: string;
+}
+
+/**
+ * Build a chat-redirect URL that triggers Deep Hunter mode analysis.
+ * Frontend navigates to this URL — the chat page auto-runs the analysis.
+ */
+export function buildAnalyzeDealMessage(property: DealAnalysisProperty): string {
+  return (
+    `Analyze this property: ${property.address}, ` +
+    `$${Number(property.price).toLocaleString()}, ` +
+    `${property.bedrooms}bd/${property.bathrooms}ba, ` +
+    `${Number(property.sqft).toLocaleString()}sqft. ` +
+    `Run a full P&L analysis.`
+  );
+}
+
 /**
  * Search for investment properties via the V2 property endpoint.
  */
-export async function searchProperties(params: PropertySearchParams): Promise<PropertySearchResponse> {
+export async function searchProperties(params: PropertySearchParams, signal?: AbortSignal): Promise<PropertySearchResponse> {
   const endpoint = `${API_BASE}/v2/property/search`;
 
   const body: Record<string, unknown> = {
@@ -238,6 +294,7 @@ export async function searchProperties(params: PropertySearchParams): Promise<Pr
       method: 'POST',
       headers: jsonHeaders,
       body: JSON.stringify(body),
+      signal,
     });
 
     if (!response.ok) {

@@ -23,10 +23,10 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     return (
         <div className={cn('w-full mt-3', className)} role="group" aria-label={label}>
             <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                <span className="text-[10px] text-gray-500 dark:text-muted-foreground">
                     {label}
                 </span>
-                <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300" aria-live="polite">
+                <span className="text-[10px] font-semibold text-gray-700 dark:text-muted-foreground" aria-live="polite">
                     {Math.round(clampedProgress)}%
                 </span>
             </div>

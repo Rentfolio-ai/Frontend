@@ -95,7 +95,7 @@ export const FAQPage: React.FC<FAQPageProps> = ({ onBackToHome }) => {
               onClick={() => setActiveCategory(cat.key)}
               className={`px-4 py-[6px] rounded-full text-[13px] font-medium transition-colors duration-150 ${
                 activeCategory === cat.key
-                  ? 'bg-[#1A1A1A] text-white'
+                  ? 'bg-background text-white'
                   : 'bg-[#FAFAF9] text-[#6F6F6F] hover:bg-[#F0F0EF] border border-[#EBEBEA]'
               }`}
             >

@@ -14,7 +14,7 @@ export const Logo: React.FC<LogoProps> = ({
     showText = true
 }) => {
     const textColor = variant === 'dark' ? 'text-slate-900' : 'text-white';
-    const taglineColor = variant === 'dark' ? 'text-slate-500' : 'text-slate-400';
+    const taglineColor = variant === 'dark' ? 'text-muted-foreground/70' : 'text-muted-foreground';
 
     return (
         <div className={`flex items-center gap-3 ${className}`}>

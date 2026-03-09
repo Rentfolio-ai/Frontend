@@ -59,14 +59,14 @@ const CostBar: React.FC<{
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] text-white/35 uppercase tracking-wider font-medium">
+        <span className="text-[11px] text-muted-foreground/60 uppercase tracking-wider font-medium">
           {label}
         </span>
         <span className={`text-sm font-semibold ${color}`}>
           {formatCurrency(value)}
         </span>
       </div>
-      <div className="w-full h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+      <div className="w-full h-1.5 rounded-full bg-black/[0.03] overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -108,9 +108,9 @@ export const CostBreakdown: React.FC<CostBreakdownProps> = ({
         ].map(tier => (
           <div
             key={tier.label}
-            className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/[0.03]"
+            className="bg-black/[0.02] rounded-xl p-3 text-center border border-black/[0.05]"
           >
-            <div className="text-[10px] text-white/25 uppercase tracking-wider mb-1 font-medium">
+            <div className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-1 font-medium">
               {tier.label}
             </div>
             <div className={`text-sm font-semibold ${tier.color}`}>
@@ -123,20 +123,20 @@ export const CostBreakdown: React.FC<CostBreakdownProps> = ({
   }
 
   return (
-    <div className={`bg-[#121216] rounded-2xl border border-white/[0.03] overflow-hidden ${className}`}>
+    <div className={`bg-card rounded-2xl border border-black/[0.05] overflow-hidden ${className}`}>
       {/* Header — collapsible */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/[0.015] transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-black/[0.01] transition-colors"
       >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-left">
-            <span className="text-sm font-medium text-white/80">Renovation Costs</span>
+            <span className="text-sm font-medium text-foreground/80">Renovation Costs</span>
             {region && (
-              <span className="text-[10px] text-white/25 ml-2 uppercase tracking-wider">
+              <span className="text-[10px] text-muted-foreground/50 ml-2 uppercase tracking-wider">
                 {region}
               </span>
             )}
@@ -150,7 +150,7 @@ export const CostBreakdown: React.FC<CostBreakdownProps> = ({
             animate={{ rotate: expanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-4 h-4 text-white/20" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground/40" />
           </motion.div>
         </div>
       </button>
@@ -175,14 +175,14 @@ export const CostBreakdown: React.FC<CostBreakdownProps> = ({
 
               {/* Individual repairs */}
               {repairs.length > 0 && (
-                <div className="space-y-1.5 pt-3 border-t border-white/[0.04]">
-                  <div className="text-[10px] text-white/25 uppercase tracking-wider font-medium mb-2">
+                <div className="space-y-1.5 pt-3 border-t border-black/[0.04]">
+                  <div className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-medium mb-2">
                     Repair breakdown
                   </div>
                   {repairs.map((repair, i) => (
                     <div key={i} className="flex justify-between items-center py-1">
-                      <span className="text-xs text-white/40 truncate mr-4">{repair.description}</span>
-                      <span className="text-xs text-white/60 font-medium whitespace-nowrap">
+                      <span className="text-xs text-muted-foreground/70 truncate mr-4">{repair.description}</span>
+                      <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
                         {formatCurrency(repair.standard_cost)}
                       </span>
                     </div>

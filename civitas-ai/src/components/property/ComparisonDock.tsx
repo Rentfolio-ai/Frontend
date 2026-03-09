@@ -77,7 +77,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
       <div className={cn('fixed bottom-4 left-1/2 -translate-x-1/2 z-40', className)}>
         <button
           onClick={() => setIsCollapsed(false)}
-          className="px-6 py-3 bg-black/80 backdrop-blur-xl rounded-full border border-[#C08B5C]/30 text-white font-medium text-sm shadow-2xl hover:border-[#C08B5C]/50 transition-all flex items-center gap-2"
+          className="px-6 py-3 bg-black/80 backdrop-blur-xl rounded-full border border-[#C08B5C]/30 text-foreground font-medium text-sm shadow-2xl hover:border-[#C08B5C]/50 transition-all flex items-center gap-2"
           style={{
             boxShadow: '0 0 40px rgba(192, 139, 92, 0.3)',
           }}
@@ -118,7 +118,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
         </div>
 
         {/* Content */}
-        <div className="relative bg-slate-900/95 rounded-2xl p-4">
+        <div className="relative bg-popover/95 rounded-2xl p-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -126,8 +126,8 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
                 <GitCompare className="w-5 h-5 text-[#D4A27F]" />
               </div>
               <div>
-                <h3 className="text-white font-semibold text-sm">Comparison Dock</h3>
-                <p className="text-white/60 text-xs">
+                <h3 className="text-foreground font-semibold text-sm">Comparison Dock</h3>
+                <p className="text-muted-foreground text-xs">
                   {properties.length === 0 && 'Drag properties here to compare'}
                   {properties.length === 1 && 'Add 1 more property to compare'}
                   {properties.length >= 2 && `Comparing ${properties.length} properties`}
@@ -144,7 +144,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
                   'px-4 py-2 rounded-lg font-medium text-sm transition-all',
                   canCompare
                     ? 'bg-gradient-to-r from-[#C08B5C] to-purple-600 hover:from-[#A8734A] hover:to-purple-700 text-white shadow-lg shadow-[#C08B5C]/20'
-                    : 'bg-white/5 text-white/30 cursor-not-allowed'
+                    : 'bg-black/5 text-muted-foreground/50 cursor-not-allowed'
                 )}
               >
                 Compare
@@ -164,7 +164,7 @@ export const ComparisonDock: React.FC<ComparisonDockProps> = ({
               {/* Collapse */}
               <button
                 onClick={() => setIsCollapsed(true)}
-                className="p-2 rounded-lg bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-all"
+                className="p-2 rounded-lg bg-black/5 text-muted-foreground hover:bg-black/8 hover:text-foreground border border-black/8 transition-all"
                 title="Collapse dock"
               >
                 <ChevronDown className="w-4 h-4" />
@@ -217,9 +217,9 @@ const PropertySlot: React.FC<{
 
   return (
     <div className="relative group">
-      <div className="bg-slate-800/50 rounded-lg overflow-hidden border border-white/10 hover:border-[#C08B5C]/30 transition-all">
+      <div className="bg-muted/50 rounded-lg overflow-hidden border border-black/8 hover:border-[#C08B5C]/30 transition-all">
         {/* Image */}
-        <div className="relative h-24 bg-slate-900">
+        <div className="relative h-24 bg-card">
           <img
             src={photo}
             alt={property.address}
@@ -229,7 +229,7 @@ const PropertySlot: React.FC<{
           {/* Remove Button */}
           <button
             onClick={onRemove}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/80 text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all"
+            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/80 text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-foreground transition-all"
           >
             <X className="w-3 h-3" />
           </button>
@@ -237,13 +237,13 @@ const PropertySlot: React.FC<{
 
         {/* Info */}
         <div className="p-2">
-          <div className="text-white font-semibold text-sm mb-1">
+          <div className="text-foreground font-semibold text-sm mb-1">
             ${property.price?.toLocaleString()}
           </div>
-          <div className="text-white/60 text-xs truncate mb-2">
+          <div className="text-muted-foreground text-xs truncate mb-2">
             {property.address}
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-white/50">
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-0.5">
               <Building2 className="w-2.5 h-2.5" />
               {property.bedrooms}
@@ -274,7 +274,7 @@ const EmptySlot: React.FC<{
         'rounded-lg border-2 border-dashed transition-all flex items-center justify-center',
         isDragOver
           ? 'border-[#C08B5C]/50 bg-[#C08B5C]/10'
-          : 'border-white/10 bg-white/5'
+          : 'border-black/8 bg-black/5'
       )}
     >
       <div className="text-center py-8">
@@ -282,13 +282,13 @@ const EmptySlot: React.FC<{
           'w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center text-sm font-bold',
           isDragOver
             ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
-            : 'bg-white/10 text-white/40 border border-white/10'
+            : 'bg-black/8 text-muted-foreground/70 border border-black/8'
         )}>
           {slotNumber}
         </div>
         <p className={cn(
           'text-xs',
-          isDragOver ? 'text-[#D4A27F]' : 'text-white/40'
+          isDragOver ? 'text-[#D4A27F]' : 'text-muted-foreground/70'
         )}>
           {isDragOver ? 'Drop here' : 'Empty'}
         </p>

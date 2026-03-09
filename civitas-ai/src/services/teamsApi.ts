@@ -208,4 +208,83 @@ export const teamsService = {
     });
     if (!res.ok) throw new Error('Failed to delete project');
   },
+
+  // ── Chat Messages ──────────────────────────────────────────────────────────
+
+  async sendMessage(
+    teamId: string, senderId: string, recipientId: string, text: string, userId: string,
+  ): Promise<{ id: string; team_id: string; sender_id: string; recipient_id: string; text: string; created_at: string }> {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/messages${qs(userId)}`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ sender_id: senderId, recipient_id: recipientId, text }),
+    });
+    if (!res.ok) throw new Error('Failed to send message');
+    return res.json();
+  },
+
+  async getMessages(
+    teamId: string, partnerId: string, userId: string, limit = 50,
+  ): Promise<{ messages: Array<{ id: string; sender_id: string; recipient_id: string; text: string; created_at: string }>; total: number }> {
+    const params = new URLSearchParams({ user_id: userId, partner_id: partnerId, limit: String(limit) });
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/messages?${params}`, {
+      headers: headers(),
+    });
+    if (!res.ok) throw new Error('Failed to get messages');
+    return res.json();
+  },
+
+  // ── Emails ─────────────────────────────────────────────────────────────────
+
+  async sendEmail(
+    teamId: string, senderId: string, recipientId: string, subject: string, body: string, userId: string,
+  ): Promise<{ id: string; subject: string; body: string; status: string; created_at: string }> {
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/emails${qs(userId)}`, {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ sender_id: senderId, recipient_id: recipientId, subject, body }),
+    });
+    if (!res.ok) throw new Error('Failed to send email');
+    return res.json();
+  },
+
+  async getEmails(
+    teamId: string, partnerId: string, userId: string, limit = 50,
+  ): Promise<{ emails: Array<{ id: string; sender_id: string; recipient_id: string; subject: string; body: string; status: string; created_at: string }>; total: number }> {
+    const params = new URLSearchParams({ user_id: userId, partner_id: partnerId, limit: String(limit) });
+    const res = await fetch(`${API_BASE}/api/teams/${teamId}/emails?${params}`, {
+      headers: headers(),
+    });
+    if (!res.ok) throw new Error('Failed to get emails');
+    return res.json();
+  },
+
+  // ── Invites ───────────────────────────────────────────────────────────────
+
+  async getInvite(token: string): Promise<InviteDetail> {
+    const res = await fetch(`${API_BASE}/api/teams/invites/${token}`, {
+      headers: headers(),
+    });
+    if (!res.ok) throw new Error('Invite not found or expired');
+    return res.json();
+  },
+
+  async acceptInvite(token: string, userId: string): Promise<{ status: string; member: TeamMember }> {
+    const res = await fetch(`${API_BASE}/api/teams/invites/${token}/accept${qs(userId)}`, {
+      method: 'POST', headers: headers(),
+    });
+    if (!res.ok) throw new Error('Failed to accept invite');
+    return res.json();
+  },
 };
+
+export interface InviteDetail {
+  id: string;
+  team_id: string;
+  member_id: string;
+  email: string;
+  status: string;
+  expires_at: string | null;
+  team_name: string;
+  team_description: string | null;
+  role: string;
+  name: string | null;
+}

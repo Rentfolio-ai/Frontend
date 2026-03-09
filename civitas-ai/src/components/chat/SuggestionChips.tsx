@@ -50,13 +50,13 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
               whileHover={{ y: -2, scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               className="flex items-center gap-3 p-4 rounded-xl text-left transition-all duration-200 group
-                         bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm
-                         hover:bg-white/[0.06] hover:border-[#C08B5C]/20 hover:shadow-lg hover:shadow-[#C08B5C]/[0.05]"
+                         bg-black/[0.02] border border-black/[0.08] backdrop-blur-sm
+                         hover:bg-black/[0.05] hover:border-[#C08B5C]/20 hover:shadow-lg hover:shadow-[#C08B5C]/[0.05]"
             >
               <span className="text-xl group-hover:scale-110 transition-transform">{icon}</span>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-[13px] text-white/80 group-hover:text-white transition-colors">{label}</div>
-                <div className="text-[11px] text-white/30 truncate max-w-[220px] mt-0.5">{query}</div>
+                <div className="font-semibold text-[13px] text-foreground/80 group-hover:text-foreground transition-colors">{label}</div>
+                <div className="text-[11px] text-muted-foreground/50 truncate max-w-[220px] mt-0.5">{query}</div>
               </div>
             </motion.button>
           );
@@ -72,9 +72,9 @@ export const SuggestionChips: React.FC<SuggestionChipsProps> = ({
             whileHover={{ y: -2, scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             className={`group flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[13px] transition-all duration-200 whitespace-nowrap
-                        bg-white/[0.04] border border-white/[0.08] backdrop-blur-sm
-                        hover:bg-white/[0.08] hover:border-[#C08B5C]/20
-                        text-white/50 hover:text-white/80
+                        bg-black/[0.03] border border-black/[0.08] backdrop-blur-sm
+                        hover:bg-black/[0.06] hover:border-[#C08B5C]/20
+                        text-muted-foreground hover:text-foreground/80
                         ${isCarousel ? 'flex-shrink-0 snap-start' : ''}`}
           >
             {icon ? (

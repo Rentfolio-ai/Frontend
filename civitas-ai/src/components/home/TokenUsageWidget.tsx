@@ -35,27 +35,27 @@ export const TokenUsageWidget: React.FC<{ onUpgrade: () => void }> = ({ onUpgrad
 
   if (loading) {
     return (
-      <div className="rounded-xl bg-[#17171B] border border-white/[0.05] p-4">
+      <div className="rounded-xl bg-card border border-black/[0.05] p-4">
         <div className="flex items-center gap-4">
-          <div className="h-3 w-20 rounded bg-white/[0.06]" />
-          <div className="flex-1 h-2 rounded-full bg-white/[0.06]" />
-          <div className="h-3 w-24 rounded bg-white/[0.06]" />
+          <div className="h-3 w-20 rounded bg-black/[0.05]" />
+          <div className="flex-1 h-2 rounded-full bg-black/[0.05]" />
+          <div className="h-3 w-24 rounded bg-black/[0.05]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl bg-[#17171B] border border-white/[0.05] p-4 flex items-center gap-4 flex-wrap">
+    <div className="rounded-xl bg-card border border-black/[0.05] p-4 flex items-center gap-4 flex-wrap">
       <div className="flex items-center gap-2">
-        <span className="text-[13px] font-medium text-white/50">Tokens</span>
-        <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/[0.06] text-white/40">
+        <span className="text-[13px] font-medium text-muted-foreground">Tokens</span>
+        <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/[0.05] text-muted-foreground/70">
           {tierLabel}
         </span>
       </div>
 
       <div className="flex-1 min-w-[120px]">
-        <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]">
+        <div className="h-2 rounded-full bg-black/[0.03] overflow-hidden shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)]">
           <div
             className={`h-full rounded-full ${isWarning ? 'bg-amber-500' : 'bg-[#C08B5C]'}`}
             style={{ width: `${pct}%` }}
@@ -63,8 +63,8 @@ export const TokenUsageWidget: React.FC<{ onUpgrade: () => void }> = ({ onUpgrad
         </div>
       </div>
 
-      <span className="text-[13px] font-mono text-white/40">
-        {usage.used.toLocaleString()} <span className="text-white/15">/</span> {(usage.limit / 1000).toFixed(0)}K
+      <span className="text-[13px] font-mono text-muted-foreground/70">
+        {usage.used.toLocaleString()} <span className="text-muted-foreground/40">/</span> {(usage.limit / 1000).toFixed(0)}K
       </span>
 
       {usage.tier === 'free' ? (

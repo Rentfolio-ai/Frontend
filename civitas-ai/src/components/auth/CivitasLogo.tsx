@@ -61,7 +61,7 @@ export const CivitasLogo: React.FC<CivitasLogoProps> = ({ size = 64, showText = 
       {/* App Name */}
       {showText && (
         <motion.h1
-          className="text-3xl font-bold text-white"
+          className="text-3xl font-bold text-foreground"
           style={{
             fontFamily: 'Inter, system-ui, sans-serif',
             textShadow: '0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(139, 92, 246, 0.2)',

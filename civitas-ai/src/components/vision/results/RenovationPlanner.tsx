@@ -143,7 +143,7 @@ const PhaseCard: React.FC<{
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[9px] font-medium uppercase tracking-wider text-white/20">
+              <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground/40">
                 Phase {index + 1}
               </span>
               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium capitalize border ${style.bg} ${style.border} ${style.text}`}>
@@ -151,11 +151,11 @@ const PhaseCard: React.FC<{
                 {phase.priority}
               </span>
             </div>
-            <h4 className="text-sm font-semibold text-white/85">{phase.title}</h4>
+            <h4 className="text-sm font-semibold text-foreground/85">{phase.title}</h4>
           </div>
         </div>
 
-        <p className="text-xs text-white/40 leading-relaxed mb-3">
+        <p className="text-xs text-muted-foreground/70 leading-relaxed mb-3">
           {phase.description}
         </p>
 
@@ -164,24 +164,24 @@ const PhaseCard: React.FC<{
           <div className="space-y-1 mb-3">
             {phase.tasks.map((task, i) => (
               <div key={i} className="flex items-start gap-2">
-                <ChevronRight className="w-3 h-3 text-white/15 mt-0.5 flex-shrink-0" />
-                <span className="text-[11px] text-white/35">{task}</span>
+                <ChevronRight className="w-3 h-3 text-muted-foreground/40 mt-0.5 flex-shrink-0" />
+                <span className="text-[11px] text-muted-foreground/60">{task}</span>
               </div>
             ))}
           </div>
         )}
 
         {/* Cost + Timeline */}
-        <div className="flex items-center gap-4 pt-2 border-t border-white/[0.04]">
+        <div className="flex items-center gap-4 pt-2 border-t border-black/[0.04]">
           <div className="flex items-center gap-1.5">
-            <DollarSign className="w-3 h-3 text-white/20" />
-            <span className="text-xs text-white/50 font-medium">
+            <DollarSign className="w-3 h-3 text-muted-foreground/40" />
+            <span className="text-xs text-muted-foreground font-medium">
               {formatCurrency(phase.estimated_cost_low)} – {formatCurrency(phase.estimated_cost_high)}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-white/20" />
-            <span className="text-xs text-white/50 font-medium">
+            <Clock className="w-3 h-3 text-muted-foreground/40" />
+            <span className="text-xs text-muted-foreground font-medium">
               {phase.timeline_weeks} week{phase.timeline_weeks !== 1 ? 's' : ''}
             </span>
           </div>
@@ -199,7 +199,7 @@ const GanttTimeline: React.FC<{ phases: RenovationPhase[] }> = ({ phases }) => {
 
   return (
     <div className="space-y-2">
-      <div className="text-[10px] text-white/20 uppercase tracking-wider mb-2">
+      <div className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mb-2">
         Timeline · {totalWeeks} weeks total
       </div>
       {phases.map((phase, i) => {
@@ -210,8 +210,8 @@ const GanttTimeline: React.FC<{ phases: RenovationPhase[] }> = ({ phases }) => {
 
         return (
           <div key={i} className="flex items-center gap-3">
-            <span className="text-[10px] text-white/30 w-16 truncate">{phase.title}</span>
-            <div className="flex-1 h-4 relative bg-white/[0.02] rounded-full overflow-hidden">
+            <span className="text-[10px] text-muted-foreground/50 w-16 truncate">{phase.title}</span>
+            <div className="flex-1 h-4 relative bg-black/[0.02] rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${widthPct}%` }}
@@ -220,7 +220,7 @@ const GanttTimeline: React.FC<{ phases: RenovationPhase[] }> = ({ phases }) => {
                 style={{ left: `${offsetPct}%` }}
               />
             </div>
-            <span className="text-[10px] text-white/20 w-8 text-right">{phase.timeline_weeks}w</span>
+            <span className="text-[10px] text-muted-foreground/40 w-8 text-right">{phase.timeline_weeks}w</span>
           </div>
         );
       })}
@@ -379,16 +379,16 @@ export const RenovationPlanner: React.FC<RenovationPlannerProps> = ({
   const totalWeeks = phases.reduce((s, p) => s + p.timeline_weeks, 0);
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04] flex-shrink-0 z-10">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors">
+      <div className="flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04] flex-shrink-0 z-10">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
         <div className="flex items-center gap-2">
           <Wrench className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-medium text-white/60">Renovation Plan</span>
+          <span className="text-sm font-medium text-muted-foreground">Renovation Plan</span>
         </div>
         <div className="w-16" /> {/* Spacer for centering */}
       </div>
@@ -404,7 +404,7 @@ export const RenovationPlanner: React.FC<RenovationPlannerProps> = ({
           >
             <div className="text-center space-y-3">
               <Loader2 className="w-6 h-6 text-violet-400/50 animate-spin mx-auto" />
-              <p className="text-xs text-white/25">Generating renovation plan...</p>
+              <p className="text-xs text-muted-foreground/50">Generating renovation plan...</p>
             </div>
           </motion.div>
         )}
@@ -441,7 +441,7 @@ export const RenovationPlanner: React.FC<RenovationPlannerProps> = ({
                 />
               ))}
             </div>
-            <span className="text-[10px] text-white/20">Generating next phase...</span>
+            <span className="text-[10px] text-muted-foreground/40">Generating next phase...</span>
           </motion.div>
         )}
 
@@ -453,7 +453,7 @@ export const RenovationPlanner: React.FC<RenovationPlannerProps> = ({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+              className="bg-card rounded-2xl p-4 border border-black/[0.05]"
             >
               <GanttTimeline phases={phases} />
             </motion.div>
@@ -463,21 +463,21 @@ export const RenovationPlanner: React.FC<RenovationPlannerProps> = ({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-[#121216] rounded-2xl p-5 border border-white/[0.03]"
+              className="bg-card rounded-2xl p-5 border border-black/[0.05]"
             >
-              <div className="text-[10px] text-white/20 uppercase tracking-wider mb-3">
+              <div className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mb-3">
                 Total Budget
               </div>
               <div className="flex items-end gap-2 mb-1">
                 <span className="text-2xl font-display font-bold text-violet-400">
                   {formatCurrency(totalCostLow)}
                 </span>
-                <span className="text-sm text-white/25 mb-0.5">–</span>
-                <span className="text-2xl font-display font-bold text-white/50">
+                <span className="text-sm text-muted-foreground/50 mb-0.5">–</span>
+                <span className="text-2xl font-display font-bold text-muted-foreground">
                   {formatCurrency(totalCostHigh)}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-[11px] text-white/25">
+              <div className="flex items-center gap-3 text-[11px] text-muted-foreground/50">
                 <span>{phases.length} phases</span>
                 <span>·</span>
                 <span>{totalWeeks} weeks</span>
@@ -498,7 +498,7 @@ export const RenovationPlanner: React.FC<RenovationPlannerProps> = ({
                   m.generateVisionPDF(result as any, null);
                 }).catch(() => alert('Export coming soon'));
               }}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/[0.04] text-white/40 text-sm font-medium border border-white/[0.03] hover:bg-white/[0.06] transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-black/[0.03] text-muted-foreground/70 text-sm font-medium border border-black/[0.05] hover:bg-black/[0.05] transition-colors"
             >
               <Download className="w-4 h-4" />
               Export Plan

@@ -88,7 +88,7 @@ export const SeverityBadge: React.FC<SeverityBadgeProps> = ({
         {severity}
       </span>
       {confidence !== undefined && (
-        <span className={`${sizeStyles.text} text-white/30 font-medium`}>
+        <span className={`${sizeStyles.text} text-muted-foreground/50 font-medium`}>
           {(confidence * 100).toFixed(0)}%
         </span>
       )}

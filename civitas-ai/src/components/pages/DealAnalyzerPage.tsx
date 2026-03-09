@@ -28,26 +28,26 @@ export const DealAnalyzerPage: React.FC<DealAnalyzerPageProps> = ({
   return (
     <div className="h-full w-full flex flex-col bg-background">
       {/* Header with back button */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-black/8 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-black/5 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Chat
           </button>
-          <div className="h-6 w-px bg-white/10" />
+          <div className="h-6 w-px bg-black/8" />
           <div>
-            <h1 className="text-lg font-semibold text-white">Deal Analyzer</h1>
+            <h1 className="text-lg font-semibold text-foreground">Deal Analyzer</h1>
             {propertyAddress && (
-              <p className="text-sm text-white/60 mt-0.5">{propertyAddress}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">{propertyAddress}</p>
             )}
           </div>
         </div>
         <button
           onClick={onClose}
-          className="p-2 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+          className="p-2 text-muted-foreground hover:text-foreground hover:bg-black/5 rounded-lg transition-colors"
           title="Close"
         >
           <X className="w-5 h-5" />
@@ -66,14 +66,14 @@ export const DealAnalyzerPage: React.FC<DealAnalyzerPageProps> = ({
       </div>
 
       {/* Footer with action buttons */}
-      <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 bg-background/95 backdrop-blur-sm">
-        <div className="text-sm text-white/60">
+      <div className="flex items-center justify-between px-6 py-4 border-t border-black/8 bg-background/95 backdrop-blur-sm">
+        <div className="text-sm text-muted-foreground">
           Changes are auto-saved
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-black/5 rounded-lg transition-colors"
           >
             Cancel
           </button>

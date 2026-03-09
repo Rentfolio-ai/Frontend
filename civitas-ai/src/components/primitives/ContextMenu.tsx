@@ -113,12 +113,12 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           top: `${position.y}px`,
         }}
       >
-        <div className="bg-slate-900/95 backdrop-blur-xl rounded-lg border border-white/10 overflow-hidden shadow-2xl">
+        <div className="bg-popover/95 backdrop-blur-xl rounded-lg border border-black/8 overflow-hidden shadow-2xl">
           <div className="py-1">
             {items.map((item, index) => (
               <React.Fragment key={item.id}>
                 {index > 0 && index % 3 === 0 && (
-                  <div className="h-px bg-white/10 my-1" />
+                  <div className="h-px bg-black/8 my-1" />
                 )}
                 <button
                   onClick={() => {
@@ -131,10 +131,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                   className={cn(
                     'w-full px-3 py-2 flex items-center gap-3 text-sm transition-all',
                     item.disabled
-                      ? 'text-white/30 cursor-not-allowed'
+                      ? 'text-muted-foreground/50 cursor-not-allowed'
                       : item.danger
                       ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                      : 'text-white/90 hover:bg-[#C08B5C]/10 hover:text-[#D4A27F]'
+                      : 'text-foreground hover:bg-[#C08B5C]/10 hover:text-[#D4A27F]'
                   )}
                 >
                   <span className={cn(
@@ -145,7 +145,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                   </span>
                   <span className="flex-1 text-left">{item.label}</span>
                   {item.shortcut && (
-                    <span className="text-[10px] text-white/40 font-mono px-1.5 py-0.5 rounded bg-white/5">
+                    <span className="text-[10px] text-muted-foreground/70 font-mono px-1.5 py-0.5 rounded bg-black/5">
                       {item.shortcut}
                     </span>
                   )}

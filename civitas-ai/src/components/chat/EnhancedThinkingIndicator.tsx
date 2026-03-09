@@ -82,7 +82,7 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
             
             {/* Status text */}
             <div className="flex-1">
-              <span className="text-sm text-white/80 font-medium">
+              <span className="text-sm text-foreground/80 font-medium">
                 {displayThinking.status || 'Thinking...'}
               </span>
             </div>
@@ -105,7 +105,7 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
             </div>
             
             {/* Elapsed time */}
-            <span className="text-xs text-white/40 font-mono">
+            <span className="text-xs text-muted-foreground/70 font-mono">
               {elapsedSeconds}s
             </span>
           </div>
@@ -115,14 +115,14 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
             {completedTools.length > 0 && showDetails && (
               <motion.button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="p-1 rounded hover:bg-white/10 transition-colors"
+                className="p-1 rounded hover:bg-black/8 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 {isExpanded ? (
-                  <ChevronUp className="w-4 h-4 text-white/60" />
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-white/60" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 )}
               </motion.button>
             )}
@@ -163,7 +163,7 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
               </motion.div>
             ))}
             {completedTools.length > 3 && (
-              <span className="text-xs text-white/40 px-2 py-1">
+              <span className="text-xs text-muted-foreground/70 px-2 py-1">
                 +{completedTools.length - 3} more
               </span>
             )}
@@ -179,7 +179,7 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
               exit={{ opacity: 0, height: 0 }}
               className="mt-3 space-y-2 overflow-hidden"
             >
-              <div className="text-xs text-white/50 font-medium uppercase tracking-wide mb-2">
+              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
                 Completed Steps ({completedTools.length})
               </div>
               {completedTools.map((tool, i) => (
@@ -188,7 +188,7 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: i * 0.05 }}
-                  className="flex gap-3 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                  className="flex gap-3 p-2 rounded-lg bg-black/5 hover:bg-black/8 transition-colors"
                 >
                   {/* Step number */}
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 text-green-400 text-xs flex items-center justify-center font-bold">
@@ -197,11 +197,11 @@ export const EnhancedThinkingIndicator: React.FC<EnhancedThinkingIndicatorProps>
                   
                   {/* Tool info */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white/80 font-medium truncate">
+                    <div className="text-sm text-foreground/80 font-medium truncate">
                       {getToolDisplayName(tool)}
                     </div>
                     {getToolDataPreview(tool) && (
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         {getToolDataPreview(tool)}
                       </div>
                     )}

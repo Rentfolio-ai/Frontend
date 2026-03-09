@@ -58,15 +58,15 @@ export const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md mx-4 rounded-2xl bg-[#1a1a1f] border border-white/[0.08] shadow-2xl">
+      <div className="w-full max-w-md mx-4 rounded-2xl bg-popover border border-black/[0.08] shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.06]">
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-[#D4A27F]" />
-            <h2 className="text-[14px] font-semibold text-white/90">Call {professionalName}</h2>
+            <h2 className="text-[14px] font-semibold text-foreground">Call {professionalName}</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/[0.05] transition-colors">
-            <X className="w-4 h-4 text-white/40" />
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-black/[0.04] transition-colors">
+            <X className="w-4 h-4 text-muted-foreground/70" />
           </button>
         </div>
 
@@ -76,9 +76,9 @@ export const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Mic className="w-4 h-4 text-amber-400/80" />
-                <span className="text-[13px] text-white/70">Voice profile required</span>
+                <span className="text-[13px] text-foreground/70">Voice profile required</span>
               </div>
-              <p className="text-[12px] text-white/40 leading-relaxed">
+              <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
                 Record a voice sample so Vasthu can make calls using your voice.
                 Go to Settings → Integrations → Voice Profile.
               </p>
@@ -95,20 +95,20 @@ export const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
             /* Ready to call */
             <>
               <div>
-                <span className="text-[10px] uppercase tracking-wider text-white/25">Calling</span>
-                <p className="text-[13px] text-white/70 mt-0.5">{professionalName} — {toPhone}</p>
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Calling</span>
+                <p className="text-[13px] text-foreground/70 mt-0.5">{professionalName} — {toPhone}</p>
               </div>
 
               <div>
-                <label className="text-[10px] uppercase tracking-wider text-white/25 block mb-1.5">
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground/50 block mb-1.5">
                   What should Vasthu discuss?
                 </label>
                 <textarea
                   value={talkingPoints}
                   onChange={e => setTalkingPoints(e.target.value)}
                   placeholder="e.g., Ask about available properties in Austin, discuss pricing, get info on their commission structure..."
-                  className="w-full h-24 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08]
-                             text-[12px] text-white/70 placeholder:text-white/20 resize-none
+                  className="w-full h-24 px-3 py-2 rounded-lg bg-black/[0.02] border border-black/[0.08]
+                             text-[12px] text-foreground/70 placeholder:text-muted-foreground/40 resize-none
                              focus:outline-none focus:border-[#C08B5C]/30 transition-colors"
                 />
               </div>
@@ -125,11 +125,11 @@ export const CallConfirmModal: React.FC<CallConfirmModalProps> = ({
 
         {/* Footer */}
         {hasVoiceProfile && (
-          <div className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-white/[0.06]">
+          <div className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-black/[0.06]">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 rounded-lg text-[11px] font-medium text-white/40
-                         hover:bg-white/[0.05] transition-colors"
+              className="px-3 py-1.5 rounded-lg text-[11px] font-medium text-muted-foreground/70
+                         hover:bg-black/[0.04] transition-colors"
             >
               Cancel
             </button>

@@ -7,7 +7,7 @@ import React from 'react';
 interface VoiceWaveformProps {
   /** Whether audio is actively flowing (animates bars) */
   active: boolean;
-  /** Bar color — defaults to white */
+  /** Bar color — defaults to copper (#C08B5C) */
   color?: string;
   /** sm = inside End button (~16px tall), md = centered display (~48px tall) */
   size?: 'sm' | 'md';
@@ -18,7 +18,7 @@ const DELAYS = [0, 0.12, 0.24, 0.12, 0];
 
 export const VoiceWaveform: React.FC<VoiceWaveformProps> = ({
   active,
-  color = 'white',
+  color = '#C08B5C',
   size = 'md',
 }) => {
   const sm = size === 'sm';

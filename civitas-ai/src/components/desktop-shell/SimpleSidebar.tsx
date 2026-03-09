@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Trash2, Pin, Edit3, Archive, Search, X, Ellipsis, ChevronDown, Home, Briefcase, Store, FileText } from 'lucide-react';
+import { Trash2, Pin, Edit3, Archive, Search, X, Ellipsis, ChevronDown, Home, Briefcase, Store, FileText, Inbox } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ChatSession } from '../../hooks/useDesktopShell';
 import { useAuth } from '../../contexts/AuthContext';
@@ -44,6 +44,7 @@ interface SimpleSidebarProps {
     onUpgradeClick?: () => void;
     onAboutClick?: () => void;
     onTeamsClick?: () => void;
+    onInboxClick?: () => void;
     onMarketplaceClick?: () => void;
     onSearchClick?: () => void;
     onFilesClick?: () => void;
@@ -64,6 +65,7 @@ interface NavItemProps {
     isActive: boolean;
     onClick: () => void;
     iconSize?: number;
+    wandId?: string;
 }
 
 const PencilNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
@@ -82,20 +84,27 @@ const MarketplaceNavIcon: React.FC<{ size?: number; className?: string }> = ({ s
     <Store size={size} className={className} strokeWidth={1.8} />
 );
 
+const InboxNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
+    <Inbox size={size} className={className} strokeWidth={1.8} />
+);
+
+
 const ReportsNavIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className }) => (
     <FileText size={size} className={className} strokeWidth={1.8} />
 );
 
-const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick, iconSize = 16 }) => (
+const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick, iconSize = 16, wandId }) => (
     <button
         onClick={onClick}
-        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors text-[13px] ${
-            isActive
-                ? 'bg-white/[0.06] text-white/90'
-                : 'text-white/45 hover:text-white/70 hover:bg-white/[0.04]'
-        }`}
+        data-wand-id={wandId || `sidebar-${label.toLowerCase().replace(/\s+/g, '-')}`}
+        data-wand-type="button"
+        data-wand-label={label}
+        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors text-[13px] ${isActive
+            ? 'bg-black/[0.05] text-foreground'
+            : 'text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.03]'
+            }`}
     >
-        <Icon size={iconSize} className={`flex-shrink-0 ${isActive ? 'text-white/90' : 'text-white/40'}`} />
+        <Icon size={iconSize} className={`flex-shrink-0 ${isActive ? 'text-foreground' : 'text-muted-foreground/70'}`} />
         <span>{label}</span>
     </button>
 );
@@ -103,10 +112,13 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, isActive, onClick,
 const CollapsedNavItem: React.FC<{ icon: React.FC<{ size?: number; className?: string }>; isActive: boolean; onClick: () => void; title: string; iconSize?: number }> = ({ icon: Icon, isActive, onClick, title, iconSize = 18 }) => (
     <button
         onClick={onClick}
-        className={`p-1.5 rounded-md transition-colors ${isActive ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
+        data-wand-id={`sidebar-${title.toLowerCase().replace(/\s+/g, '-')}`}
+        data-wand-type="button"
+        data-wand-label={title}
+        className={`p-1.5 rounded-md transition-colors ${isActive ? 'bg-black/[0.05]' : 'hover:bg-black/[0.03]'}`}
         title={title}
     >
-        <Icon size={iconSize} className={isActive ? 'text-white/90' : 'text-white/40'} />
+        <Icon size={iconSize} className={isActive ? 'text-foreground' : 'text-muted-foreground/70'} />
     </button>
 );
 
@@ -117,7 +129,8 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
     onDealsClick,
     onAnalyticsClick: _onAnalyticsClick,
     onReportsClick,
-    onTeamsClick,
+    onTeamsClick: _onTeamsClick,
+    onInboxClick,
     onMarketplaceClick,
     onSettingsClick,
     onHelpClick,
@@ -215,13 +228,13 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
             style={{
                 width: size, height: size,
                 background: !(currentUser?.avatar && currentUser.avatar.length > 200)
-                    ? 'linear-gradient(135deg, #555, #333)' : undefined
+                    ? 'linear-gradient(135deg, hsl(20 30% 80%), hsl(20 25% 70%))' : undefined
             }}
         >
             {currentUser?.avatar && currentUser.avatar.length > 200 ? (
                 <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
             ) : (
-                <div className="w-full h-full flex items-center justify-center text-white font-medium" style={{ fontSize: size * 0.4 }}>
+                <div className="w-full h-full flex items-center justify-center text-foreground font-medium" style={{ fontSize: size * 0.4 }}>
                     {currentUser?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
             )}
@@ -235,21 +248,21 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                 key={chat.id}
                 onClick={() => { onLoadChat(chat.id); }}
                 className="group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all duration-150"
-                style={{ backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent' }}
-                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; }}
+                style={{ backgroundColor: isActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent' }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.03)'; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
-                {chat.isPinned && <Pin className="w-3 h-3 flex-shrink-0 text-white/25" />}
+                {chat.isPinned && <Pin className="w-3 h-3 flex-shrink-0 text-muted-foreground/50" />}
                 <span
                     className="flex-1 truncate"
-                    style={{ color: isActive ? '#ECECF1' : '#8e8ea0', fontSize: '13px', fontWeight: isActive ? 500 : 400 }}
+                    style={{ color: isActive ? 'hsl(var(--foreground))' : 'hsl(var(--text-muted))', fontSize: '13px', fontWeight: isActive ? 500 : 400 }}
                 >
                     {chat.title || 'New conversation'}
                 </span>
                 <div className="hidden group-hover:flex items-center gap-0.5 relative flex-shrink-0">
                     <button
                         onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat.id ? null : chat.id); }}
-                        className="p-1 rounded-md transition-colors hover:bg-white/10 text-white/25"
+                        className="p-1 rounded-md transition-colors hover:bg-black/8 text-muted-foreground/50"
                         title="More options"
                     >
                         <Ellipsis className="w-4 h-4" />
@@ -263,19 +276,19 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                 exit={{ opacity: 0, scale: 0.95, y: -5 }}
                                 transition={{ duration: 0.1 }}
                                 className="absolute right-0 top-8 w-44 rounded-xl shadow-2xl z-[60] overflow-hidden"
-                                style={{ backgroundColor: '#2a2a30', border: '1px solid rgba(255, 255, 255, 0.10)' }}
+                                style={{ backgroundColor: 'hsl(var(--surface))', border: '1px solid rgba(0, 0, 0, 0.06)' }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <button onClick={(e) => { onPinChat(chat.id, e); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-white/70 hover:bg-white/5 transition-colors">
+                                <button onClick={(e) => { onPinChat(chat.id, e); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-foreground/70 hover:bg-black/5 transition-colors">
                                     <Pin size={14} />
                                     <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
                                 </button>
                                 {onArchiveChat && (
-                                    <button onClick={(e) => { onArchiveChat(chat.id, e); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-white/70 hover:bg-white/5 transition-colors">
+                                    <button onClick={(e) => { onArchiveChat(chat.id, e); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-foreground/70 hover:bg-black/5 transition-colors">
                                         <Archive size={14} /><span>Archive</span>
                                     </button>
                                 )}
-                                <div className="border-t border-white/[0.05]" />
+                                <div className="border-t border-black/[0.05]" />
                                 <button onClick={(e) => { onDeleteChat(chat.id, e); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-3.5 py-2.5 text-[13px] text-red-400/80 hover:bg-red-400/10 transition-colors">
                                     <Trash2 size={14} /><span>Delete</span>
                                 </button>
@@ -294,8 +307,8 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                 className={`fixed left-0 top-0 h-full z-50 flex flex-col overflow-hidden ${!isOpen ? 'items-center' : ''}`}
                 style={{
                     width: isOpen ? `${EXPANDED_WIDTH}px` : `${COLLAPSED_WIDTH}px`,
-                    backgroundColor: '#1e1e22',
-                    borderRight: '1px solid rgba(255, 255, 255, 0.05)',
+                    backgroundColor: 'hsl(var(--background))',
+                    borderRight: '1px solid rgba(0, 0, 0, 0.06)',
                     transition: 'width 200ms ease-out',
                 }}
             >
@@ -305,7 +318,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                         <div className="flex items-center px-2.5 pt-2.5 pb-1.5 flex-shrink-0">
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1 rounded-md transition-colors hover:bg-white/[0.04]"
+                                className="p-1 rounded-md transition-colors hover:bg-black/[0.03]"
                                 title="Collapse sidebar"
                             >
                                 <Logo showText={false} className="w-6 h-6" variant="light" />
@@ -319,26 +332,27 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                             <NavItem icon={PencilNavIcon} label="Vasthu AI" isActive={activeTab === 'chat'} onClick={onChatClick} />
                         </div>
 
-                        <div className="mx-3 my-1 h-px bg-white/[0.04]" />
+                        <div className="mx-3 my-1 h-px bg-black/[0.03]" />
 
                         {/* Secondary Navigation */}
                         <div className="px-1.5 pb-0.5 flex-shrink-0 space-y-px">
+                            <NavItem icon={InboxNavIcon} label="Inbox" isActive={activeTab === 'inbox'} onClick={() => onInboxClick?.()} />
                             <NavItem icon={MarketplaceNavIcon} label="Marketplace" isActive={activeTab === 'marketplace'} onClick={() => onMarketplaceClick?.()} />
                             <NavItem icon={ReportsNavIcon} label="Reports" isActive={activeTab === 'reports'} onClick={onReportsClick} />
                         </div>
 
-                        <div className="mx-3 my-1 h-px bg-white/[0.04]" />
+                        <div className="mx-3 my-1 h-px bg-black/[0.03]" />
 
                         {/* Chat History (collapsible) */}
                         <div className="flex-shrink-0 px-1.5">
                             <button
                                 onClick={() => setChatHistoryExpanded(!chatHistoryExpanded)}
-                                className="w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-white/25 hover:text-white/40 hover:bg-white/[0.03] transition-colors"
+                                className="w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-muted-foreground/50 hover:text-muted-foreground/70 hover:bg-black/[0.02] transition-colors"
                             >
                                 <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${chatHistoryExpanded ? '' : '-rotate-90'}`} />
                                 <span className="text-[10px] font-medium uppercase tracking-wider">Chats</span>
                                 {activeChats.length > 0 && (
-                                    <span className="ml-auto text-[10px] text-white/15">{activeChats.length}</span>
+                                    <span className="ml-auto text-[10px] text-muted-foreground/40">{activeChats.length}</span>
                                 )}
                             </button>
                         </div>
@@ -363,18 +377,18 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                                 className="px-3 pb-2 overflow-hidden flex-shrink-0"
                                             >
                                                 <div className="relative">
-                                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
+                                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
                                                     <input
                                                         ref={searchInputRef}
                                                         type="text"
                                                         value={searchQuery}
                                                         onChange={(e) => setSearchQuery(e.target.value)}
                                                         placeholder="Search chats..."
-                                                        className="w-full pl-8 pr-8 py-1.5 rounded-lg text-[13px] text-white/80 placeholder-white/25 bg-white/[0.04] border border-white/[0.06] focus:border-white/10 focus:outline-none transition-colors"
+                                                        className="w-full pl-8 pr-8 py-1.5 rounded-lg text-[13px] text-foreground/80 placeholder:text-muted-foreground/50 bg-black/[0.03] border border-black/[0.06] focus:border-black/8 focus:outline-none transition-colors"
                                                     />
                                                     {searchQuery && (
-                                                        <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-white/10">
-                                                            <X className="w-3 h-3 text-white/30" />
+                                                        <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/8">
+                                                            <X className="w-3 h-3 text-muted-foreground/50" />
                                                         </button>
                                                     )}
                                                 </div>
@@ -382,22 +396,22 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                         )}
                                     </AnimatePresence>
 
-                                    <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}>
+                                    <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(0,0,0,0.06) transparent' }}>
                                         {!isSearching && (
                                             <button
                                                 onClick={() => { setIsSearching(true); setSearchQuery(''); }}
-                                                className="w-full flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-white/25 hover:text-white/40 hover:bg-white/[0.03] transition-colors text-[12px]"
+                                                className="w-full flex items-center gap-2 px-3 py-1.5 mb-1 rounded-lg text-muted-foreground/50 hover:text-muted-foreground/70 hover:bg-black/[0.02] transition-colors text-[12px]"
                                             >
                                                 <Search className="w-3.5 h-3.5" />
                                                 <span>Search</span>
-                                                <span className="ml-auto text-[10px] text-white/15">⌘K</span>
+                                                <span className="ml-auto text-[10px] text-muted-foreground/40">⌘K</span>
                                             </button>
                                         )}
 
                                         {groupedChats.pinned.length > 0 && (
                                             <div className="mb-1">
                                                 <div className="px-3 py-1">
-                                                    <span className="text-[10px] font-medium text-white/20">Pinned</span>
+                                                    <span className="text-[10px] font-medium text-muted-foreground/40">Pinned</span>
                                                 </div>
                                                 {groupedChats.pinned.map(renderChatItem)}
                                             </div>
@@ -409,7 +423,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                                             return (
                                                 <div key={groupName} className="mb-1">
                                                     <div className="px-3 py-1">
-                                                        <span className="text-[10px] font-medium text-white/20">{groupName}</span>
+                                                        <span className="text-[10px] font-medium text-muted-foreground/40">{groupName}</span>
                                                     </div>
                                                     {chats.map(renderChatItem)}
                                                 </div>
@@ -418,7 +432,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
 
                                         {filteredChats.length === 0 && (
                                             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                                                <div className="text-white/20 text-[12px]">
+                                                <div className="text-muted-foreground/40 text-[12px]">
                                                     {searchQuery ? 'No matching chats' : 'No conversations yet'}
                                                 </div>
                                             </div>
@@ -432,10 +446,10 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                         {!chatHistoryExpanded && <div className="flex-1" />}
 
                         {/* User profile */}
-                        <div className="border-t px-1.5 pt-1.5 pb-2 flex-shrink-0" style={{ borderColor: 'rgba(255, 255, 255, 0.04)' }}>
-                            <button onClick={() => setShowProfileMenu(true)} className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors hover:bg-white/[0.04]">
+                        <div className="border-t px-1.5 pt-1.5 pb-2 flex-shrink-0" style={{ borderColor: 'rgba(0, 0, 0, 0.06)' }}>
+                            <button onClick={() => setShowProfileMenu(true)} className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors hover:bg-black/[0.03]">
                                 <UserAvatar size={24} />
-                                <span className="flex-1 truncate text-left text-[13px] text-white/50">{currentUser?.name || 'User'}</span>
+                                <span className="flex-1 truncate text-left text-[13px] text-muted-foreground">{currentUser?.name || 'User'}</span>
                             </button>
                         </div>
                     </>
@@ -445,20 +459,21 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                         <div className="flex flex-col items-center pt-2.5 gap-1 flex-shrink-0 w-full">
                             <button
                                 onClick={() => setIsOpen(true)}
-                                className="p-1 rounded-md transition-colors hover:bg-white/[0.04]"
+                                className="p-1 rounded-md transition-colors hover:bg-black/[0.03]"
                                 title="Expand sidebar"
                             >
                                 <Logo showText={false} className="w-6 h-6" variant="light" />
                             </button>
 
-                            <div className="w-5 h-px bg-white/[0.04] my-0.5" />
+                            <div className="w-5 h-px bg-black/[0.03] my-0.5" />
 
                             <CollapsedNavItem icon={HomeNavIcon} isActive={activeTab === 'home'} onClick={onHomeClick} title="Home" />
                             <CollapsedNavItem icon={DealsNavIcon} isActive={activeTab === 'deals'} onClick={onDealsClick} title="Deals" />
                             <CollapsedNavItem icon={PencilNavIcon} isActive={activeTab === 'chat'} onClick={onChatClick} title="Vasthu AI" />
 
-                            <div className="w-5 h-px bg-white/[0.04] my-0.5" />
+                            <div className="w-5 h-px bg-black/[0.03] my-0.5" />
 
+                            <CollapsedNavItem icon={InboxNavIcon} isActive={activeTab === 'inbox'} onClick={() => onInboxClick?.()} title="Inbox" />
                             <CollapsedNavItem icon={MarketplaceNavIcon} isActive={activeTab === 'marketplace'} onClick={() => onMarketplaceClick?.()} title="Marketplace" />
                             <CollapsedNavItem icon={ReportsNavIcon} isActive={activeTab === 'reports'} onClick={onReportsClick} title="Reports" />
                         </div>
@@ -466,7 +481,7 @@ export const SimpleSidebar: React.FC<SimpleSidebarProps> = ({
                         <div className="flex-1" />
 
                         <div className="flex flex-col items-center pb-3 flex-shrink-0 w-full">
-                            <button onClick={() => setShowProfileMenu(true)} className="p-1 rounded-md transition-colors hover:bg-white/[0.04]" title={currentUser?.name || 'Profile'}>
+                            <button onClick={() => setShowProfileMenu(true)} className="p-1 rounded-md transition-colors hover:bg-black/[0.03]" title={currentUser?.name || 'Profile'}>
                                 <UserAvatar size={24} />
                             </button>
                         </div>

@@ -344,31 +344,31 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             {/* Modal Container */}
-            <div className="relative w-full max-w-5xl bg-[#0a0a0a] rounded-2xl shadow-2xl border border-white/5 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative w-full max-w-5xl bg-background rounded-2xl shadow-2xl border border-black/5 overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Header */}
-                <div className="px-8 py-6 border-b border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent">
+                <div className="px-8 py-6 border-b border-black/5 bg-gradient-to-r from-black/[0.02] to-transparent">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                                <Settings className="w-6 h-6 text-white/90" />
+                            <div className="w-12 h-12 rounded-xl bg-black/5 border border-black/8 flex items-center justify-center">
+                                <Settings className="w-6 h-6 text-foreground" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-semibold text-white">Investment Preferences</h2>
-                                <p className="text-sm text-white/40 mt-0.5">Configure your buy box and financial parameters</p>
+                                <h2 className="text-2xl font-semibold text-foreground">Investment Preferences</h2>
+                                <p className="text-sm text-muted-foreground/70 mt-0.5">Configure your buy box and financial parameters</p>
                             </div>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-2.5 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/10"
+                            className="p-2.5 hover:bg-black/5 rounded-xl border border-transparent hover:border-black/8"
                         >
-                            <X className="w-5 h-5 text-white/60" />
+                            <X className="w-5 h-5 text-muted-foreground" />
                         </button>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="px-8 pt-6 flex gap-2 border-b border-white/5">
+                <div className="px-8 pt-6 flex gap-2 border-b border-black/5">
                     {[
                         { id: 'general', label: 'Buy Box', icon: Home },
                         { id: 'financial', label: 'Financial DNA', icon: TrendingUp },
@@ -378,8 +378,8 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             key={id}
                             onClick={() => setActiveTab(id as Tab)}
                             className={`flex items-center gap-2 px-5 py-3 font-medium rounded-t-xl border-b-2 ${activeTab === id
-                                ? 'text-white bg-white/5 border-[#C08B5C]'
-                                : 'text-white/50 hover:text-white/70 hover:bg-white/[0.02] border-transparent'
+                                ? 'text-white bg-black/5 border-[#C08B5C]'
+                                : 'text-muted-foreground hover:text-foreground/70 hover:bg-black/[0.02] border-transparent'
                                 }`}
                         >
                             <Icon className="w-4 h-4" />
@@ -400,10 +400,10 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Sparkles className="w-4 h-4 text-cyan-400" />
-                                        <h3 className="text-sm font-semibold text-white">Investment Strategy</h3>
+                                        <h3 className="text-sm font-semibold text-foreground">Investment Strategy</h3>
                                     </div>
                                     {defaultStrategy && (
-                                        <span className="text-xs text-white/40">{defaultStrategy}</span>
+                                        <span className="text-xs text-muted-foreground/70">{defaultStrategy}</span>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-4 text-xs">
@@ -415,7 +415,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                                 onClick={() => setDefaultStrategy(strategy.id as any)}
                                                 className={`flex items-center gap-1.5 ${isSelected
                                                         ? 'text-cyan-300 font-medium'
-                                                        : 'text-white/30 hover:text-white/60'
+                                                        : 'text-muted-foreground/50 hover:text-muted-foreground'
                                                     }`}
                                             >
                                                 <span className="text-base">{strategy.icon}</span>
@@ -433,7 +433,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <DollarSign className="w-4 h-4 text-emerald-400" />
-                                        <h3 className="text-sm font-semibold text-white">Investment Budget</h3>
+                                        <h3 className="text-sm font-semibold text-foreground">Investment Budget</h3>
                                     </div>
                                     <div className="text-sm font-mono text-emerald-300">
                                         {formatCurrency(minBudget)} - {formatCurrency(maxBudget)}
@@ -456,7 +456,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                             }}
                                             className={`${minBudget === preset.min && maxBudget === preset.max
                                                 ? 'text-emerald-300 font-medium'
-                                                : 'text-white/30 hover:text-white/60'
+                                                : 'text-muted-foreground/50 hover:text-muted-foreground'
                                                 }`}
                                         >
                                             {preset.icon} {preset.label}
@@ -467,27 +467,27 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 {/* Input Fields - Minimal */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs text-white/40 mb-1.5 block">Min</label>
+                                        <label className="text-xs text-muted-foreground/70 mb-1.5 block">Min</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 text-sm">$</span>
                                             <input
                                                 type="number"
                                                 value={minBudget}
                                                 onChange={(e) => setMinBudget(Number(e.target.value))}
-                                                className="w-full bg-transparent border-b border-white/10 py-2 pl-7 pr-2 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                                                className="w-full bg-transparent border-b border-black/8 py-2 pl-7 pr-2 text-foreground text-sm focus:outline-none focus:border-emerald-500/50"
                                                 step="10000"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs text-white/40 mb-1.5 block">Max</label>
+                                        <label className="text-xs text-muted-foreground/70 mb-1.5 block">Max</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#D4A27F] text-sm">$</span>
                                             <input
                                                 type="number"
                                                 value={maxBudget}
                                                 onChange={(e) => setMaxBudget(Number(e.target.value))}
-                                                className="w-full bg-transparent border-b border-white/10 py-2 pl-7 pr-2 text-white text-sm focus:outline-none focus:border-[#C08B5C]/50"
+                                                className="w-full bg-transparent border-b border-black/8 py-2 pl-7 pr-2 text-foreground text-sm focus:outline-none focus:border-[#C08B5C]/50"
                                                 step="10000"
                                             />
                                         </div>
@@ -500,7 +500,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                     const iconMap = { success: CheckCircle2, warning: AlertCircle, info: Info };
                                     const Icon = iconMap[rec.type as keyof typeof iconMap];
                                     return (
-                                        <div className="flex items-center gap-2 text-xs text-white/40">
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
                                             <Icon className="w-3.5 h-3.5" />
                                             <span>{rec.text}</span>
                                         </div>
@@ -517,7 +517,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <Home className="w-4 h-4 text-violet-400" />
-                                            <h4 className="text-sm font-semibold text-white/80">Bedrooms</h4>
+                                            <h4 className="text-sm font-semibold text-foreground/80">Bedrooms</h4>
                                         </div>
                                         {selectedBedrooms && (
                                             <span className="text-xs text-violet-300 font-mono">{selectedBedrooms}BR{selectedBedrooms === 5 ? '+' : ''}</span>
@@ -539,7 +539,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                                     onClick={() => setSelectedBedrooms(isSelected ? null : num)}
                                                     className={`flex-1 py-2 text-center ${isSelected
                                                             ? 'text-violet-300 font-medium'
-                                                            : 'text-white/30 hover:text-white/60'
+                                                            : 'text-muted-foreground/50 hover:text-muted-foreground'
                                                         }`}
                                                 >
                                                     <div className="text-lg">{icon}</div>
@@ -554,7 +554,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                         <Building2 className="w-4 h-4 text-sky-400" />
-                                        <h4 className="text-sm font-semibold text-white/80">Property Types</h4>
+                                        <h4 className="text-sm font-semibold text-foreground/80">Property Types</h4>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {PROPERTY_TYPES.map((type) => {
@@ -565,7 +565,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                                     onClick={() => togglePropertyType(type.id)}
                                                     className={`flex items-center gap-1.5 px-2.5 py-1 text-xs ${isSelected
                                                             ? 'text-sky-300 font-medium'
-                                                            : 'text-white/30 hover:text-white/60'
+                                                            : 'text-muted-foreground/50 hover:text-muted-foreground'
                                                         }`}
                                                 >
                                                     <span>{type.icon}</span>
@@ -583,9 +583,9 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <MapPin className="w-4 h-4 text-amber-400" />
-                                        <h3 className="text-sm font-semibold text-white">Target Markets</h3>
+                                        <h3 className="text-sm font-semibold text-foreground">Target Markets</h3>
                                     </div>
-                                    <span className="text-xs text-white/40">{favoriteMarkets.length} selected</span>
+                                    <span className="text-xs text-muted-foreground/70">{favoriteMarkets.length} selected</span>
                                 </div>
 
                                 <div className="market-search-container relative">
@@ -596,7 +596,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         onFocus={() => setShowMarketDropdown(true)}
                                         onKeyPress={(e) => e.key === 'Enter' && newMarket.trim() && handleAddMarket()}
                                         placeholder="Search 75+ markets..."
-                                        className="w-full bg-transparent border-b border-white/10 py-2 px-3 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-amber-500/50"
+                                        className="w-full bg-transparent border-b border-black/8 py-2 px-3 text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-amber-500/50"
                                     />
 
                                     {showMarketDropdown && (() => {
@@ -605,12 +605,12 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
 
                                         if (hasQuery && filteredCities.length > 0) {
                                             return (
-                                                <div className="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-2xl max-h-60 overflow-y-auto">
+                                                <div className="absolute z-50 w-full mt-2 bg-popover border border-black/8 rounded-lg shadow-2xl max-h-60 overflow-y-auto">
                                                     {filteredCities.slice(0, 15).map((city) => (
                                                         <button
                                                             key={city}
                                                             onClick={() => handleAddMarket(city)}
-                                                            className="w-full px-3 py-2 text-left text-white/70 hover:bg-white/5 hover:text-white text-xs border-b border-white/5 last:border-0"
+                                                            className="w-full px-3 py-2 text-left text-foreground/70 hover:bg-black/5 hover:text-foreground text-xs border-b border-black/5 last:border-0"
                                                         >
                                                             {city}
                                                         </button>
@@ -621,17 +621,17 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
 
                                         if (!hasQuery) {
                                             return (
-                                                <div className="absolute z-50 w-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-2xl max-h-80 overflow-y-auto">
+                                                <div className="absolute z-50 w-full mt-2 bg-popover border border-black/8 rounded-lg shadow-2xl max-h-80 overflow-y-auto">
                                                     {Object.entries(MARKET_CATEGORIES).map(([category, cities]) => (
-                                                        <div key={category} className="border-b border-white/5 last:border-0">
-                                                            <div className="px-3 py-1.5 bg-white/5 border-b border-white/5">
-                                                                <span className="text-xs font-semibold text-white/60">{category}</span>
+                                                        <div key={category} className="border-b border-black/5 last:border-0">
+                                                            <div className="px-3 py-1.5 bg-black/5 border-b border-black/5">
+                                                                <span className="text-xs font-semibold text-muted-foreground">{category}</span>
                                                             </div>
                                                             {cities.filter(city => !favoriteMarkets.includes(city)).map((city) => (
                                                                 <button
                                                                     key={city}
                                                                     onClick={() => handleAddMarket(city)}
-                                                                    className="w-full px-3 py-2 text-left text-white/60 hover:bg-white/5 hover:text-white text-xs border-b border-white/5 last:border-0"
+                                                                    className="w-full px-3 py-2 text-left text-muted-foreground hover:bg-black/5 hover:text-foreground text-xs border-b border-black/5 last:border-0"
                                                                 >
                                                                     {city}
                                                                 </button>
@@ -655,7 +655,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                                 <span>{market}</span>
                                                 <button
                                                     onClick={() => toggleFavoriteMarket(market)}
-                                                    className="text-white/20 hover:text-red-400"
+                                                    className="text-muted-foreground/40 hover:text-red-400"
                                                 >
                                                     <X className="w-3 h-3" />
                                                 </button>
@@ -663,7 +663,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-xs text-white/30 pt-2">No markets selected</div>
+                                    <div className="text-xs text-muted-foreground/50 pt-2">No markets selected</div>
                                 )}
                             </div>
                         </div>
@@ -677,7 +677,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2">
                                     <Sparkles className="w-4 h-4 text-indigo-400" />
-                                    <h3 className="text-sm font-semibold text-white">Financial Profile</h3>
+                                    <h3 className="text-sm font-semibold text-foreground">Financial Profile</h3>
                                 </div>
 
                                 <div className="flex items-center gap-4 text-xs">
@@ -695,7 +695,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                                 onClick={() => applyPreset(key as keyof typeof FINANCIAL_PRESETS)}
                                                 className={`flex items-center gap-1.5 ${isActive
                                                     ? 'text-indigo-300 font-medium'
-                                                    : 'text-white/30 hover:text-white/60'
+                                                    : 'text-muted-foreground/50 hover:text-muted-foreground'
                                                     }`}
                                             >
                                                 <Icon className="w-3.5 h-3.5" />
@@ -713,18 +713,18 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
                                         <Shield className="w-4 h-4 text-blue-400" />
-                                        <h4 className="text-sm font-semibold text-white/80">Financing</h4>
+                                        <h4 className="text-sm font-semibold text-foreground/80">Financing</h4>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-xs text-white/40 mb-1.5 block">Down Payment %</label>
+                                            <label className="text-xs text-muted-foreground/70 mb-1.5 block">Down Payment %</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
                                                     value={downPayment}
                                                     onChange={(e) => setDownPayment(e.target.value)}
-                                                    className="w-full bg-transparent border-b border-white/10 py-2 pr-8 text-white text-sm focus:outline-none focus:border-blue-500/50"
+                                                    className="w-full bg-transparent border-b border-black/8 py-2 pr-8 text-foreground text-sm focus:outline-none focus:border-blue-500/50"
                                                     placeholder="20"
                                                 />
                                                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 text-xs">%</span>
@@ -732,13 +732,13 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         </div>
 
                                         <div>
-                                            <label className="text-xs text-white/40 mb-1.5 block">Interest Rate %</label>
+                                            <label className="text-xs text-muted-foreground/70 mb-1.5 block">Interest Rate %</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
                                                     value={interestRate}
                                                     onChange={(e) => setInterestRate(e.target.value)}
-                                                    className="w-full bg-transparent border-b border-white/10 py-2 pr-8 text-white text-sm focus:outline-none focus:border-blue-500/50"
+                                                    className="w-full bg-transparent border-b border-black/8 py-2 pr-8 text-foreground text-sm focus:outline-none focus:border-blue-500/50"
                                                     placeholder="7.0"
                                                     step="0.1"
                                                 />
@@ -752,18 +752,18 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2">
                                         <BarChart3 className="w-4 h-4 text-rose-400" />
-                                        <h4 className="text-sm font-semibold text-white/80">Operating Costs</h4>
+                                        <h4 className="text-sm font-semibold text-foreground/80">Operating Costs</h4>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-xs text-white/40 mb-1.5 block">Property Mgmt %</label>
+                                            <label className="text-xs text-muted-foreground/70 mb-1.5 block">Property Mgmt %</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
                                                     value={mgmtFee}
                                                     onChange={(e) => setMgmtFee(e.target.value)}
-                                                    className="w-full bg-transparent border-b border-white/10 py-2 pr-8 text-white text-sm focus:outline-none focus:border-rose-500/50"
+                                                    className="w-full bg-transparent border-b border-black/8 py-2 pr-8 text-foreground text-sm focus:outline-none focus:border-rose-500/50"
                                                     placeholder="10"
                                                 />
                                                 <span className="absolute right-2 top-1/2 -translate-y-1/2 text-rose-400 text-xs">%</span>
@@ -772,26 +772,26 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
 
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-white/40 mb-1.5 block">CapEx %</label>
+                                                <label className="text-xs text-muted-foreground/70 mb-1.5 block">CapEx %</label>
                                                 <div className="relative">
                                                     <input
                                                         type="number"
                                                         value={capex}
                                                         onChange={(e) => setCapex(e.target.value)}
-                                                        className="w-full bg-transparent border-b border-white/10 py-2 pr-7 text-white text-sm focus:outline-none focus:border-rose-500/50"
+                                                        className="w-full bg-transparent border-b border-black/8 py-2 pr-7 text-foreground text-sm focus:outline-none focus:border-rose-500/50"
                                                         placeholder="5"
                                                     />
                                                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-rose-400 text-xs">%</span>
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="text-xs text-white/40 mb-1.5 block">Vacancy %</label>
+                                                <label className="text-xs text-muted-foreground/70 mb-1.5 block">Vacancy %</label>
                                                 <div className="relative">
                                                     <input
                                                         type="number"
                                                         value={vacancy}
                                                         onChange={(e) => setVacancy(e.target.value)}
-                                                        className="w-full bg-transparent border-b border-white/10 py-2 pr-7 text-white text-sm focus:outline-none focus:border-rose-500/50"
+                                                        className="w-full bg-transparent border-b border-black/8 py-2 pr-7 text-foreground text-sm focus:outline-none focus:border-rose-500/50"
                                                         placeholder="5"
                                                     />
                                                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-rose-400 text-xs">%</span>
@@ -812,7 +812,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <DollarSign className="w-4 h-4 text-emerald-400" />
-                                    <h4 className="text-sm font-semibold text-white/80">Monthly Cash Flow</h4>
+                                    <h4 className="text-sm font-semibold text-foreground/80">Monthly Cash Flow</h4>
                                 </div>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 text-sm">$</span>
@@ -821,17 +821,17 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         placeholder="300"
                                         value={minCashFlow}
                                         onChange={(e) => setMinCashFlow(e.target.value)}
-                                        className="w-full bg-transparent border-b border-white/10 py-2 pl-7 pr-2 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                                        className="w-full bg-transparent border-b border-black/8 py-2 pl-7 pr-2 text-foreground text-sm focus:outline-none focus:border-emerald-500/50"
                                     />
                                 </div>
-                                <div className="text-xs text-white/30">Typical: $200-500/month</div>
+                                <div className="text-xs text-muted-foreground/50">Typical: $200-500/month</div>
                             </div>
 
                             {/* Cash-on-Cash Return */}
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4 text-blue-400" />
-                                    <h4 className="text-sm font-semibold text-white/80">Cash-on-Cash Return</h4>
+                                    <h4 className="text-sm font-semibold text-foreground/80">Cash-on-Cash Return</h4>
                                 </div>
                                 <div className="relative">
                                     <input
@@ -839,18 +839,18 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         placeholder="10"
                                         value={minCoc}
                                         onChange={(e) => setMinCoc(e.target.value)}
-                                        className="w-full bg-transparent border-b border-white/10 py-2 pr-8 text-white text-sm focus:outline-none focus:border-blue-500/50"
+                                        className="w-full bg-transparent border-b border-black/8 py-2 pr-8 text-foreground text-sm focus:outline-none focus:border-blue-500/50"
                                     />
                                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 text-xs">%</span>
                                 </div>
-                                <div className="text-xs text-white/30">Typical: 8-12% annually</div>
+                                <div className="text-xs text-muted-foreground/50">Typical: 8-12% annually</div>
                             </div>
 
                             {/* Total Return */}
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <Target className="w-4 h-4 text-purple-400" />
-                                    <h4 className="text-sm font-semibold text-white/80">Total Return</h4>
+                                    <h4 className="text-sm font-semibold text-foreground/80">Total Return</h4>
                                 </div>
                                 <div className="relative">
                                     <input
@@ -858,11 +858,11 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         placeholder="15"
                                         value={minTotalReturn}
                                         onChange={(e) => setMinTotalReturn(e.target.value)}
-                                        className="w-full bg-transparent border-b border-white/10 py-2 pr-8 text-white text-sm focus:outline-none focus:border-purple-500/50"
+                                        className="w-full bg-transparent border-b border-black/8 py-2 pr-8 text-foreground text-sm focus:outline-none focus:border-purple-500/50"
                                     />
                                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-purple-400 text-xs">%</span>
                                 </div>
-                                <div className="text-xs text-white/30">Typical: 12-18% annually</div>
+                                <div className="text-xs text-muted-foreground/50">Typical: 12-18% annually</div>
                             </div>
 
                             {/* Investment Horizon */}
@@ -870,7 +870,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-amber-400" />
-                                        <h4 className="text-sm font-semibold text-white/80">Investment Horizon</h4>
+                                        <h4 className="text-sm font-semibold text-foreground/80">Investment Horizon</h4>
                                     </div>
                                     <span className="text-sm font-mono text-amber-400">{investmentHorizon} years</span>
                                 </div>
@@ -881,10 +881,10 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                     max="30"
                                     value={investmentHorizon}
                                     onChange={(e) => setInvestmentHorizon(Number(e.target.value))}
-                                    className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:cursor-pointer"
+                                    className="w-full h-1 bg-black/8 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400 [&::-webkit-slider-thumb]:cursor-pointer"
                                 />
 
-                                <div className="flex justify-between text-xs text-white/30">
+                                <div className="flex justify-between text-xs text-muted-foreground/50">
                                     <span>1 yr</span>
                                     <span>15 yrs</span>
                                     <span>30 yrs</span>
@@ -896,7 +896,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Shield className="w-4 h-4 text-rose-400" />
-                                        <h4 className="text-sm font-semibold text-white/80">Risk Tolerance</h4>
+                                        <h4 className="text-sm font-semibold text-foreground/80">Risk Tolerance</h4>
                                     </div>
                                     <span className="text-sm font-mono text-rose-400 capitalize">{riskTolerance}</span>
                                 </div>
@@ -910,10 +910,10 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                                         const levels: Array<'conservative' | 'moderate' | 'aggressive'> = ['conservative', 'moderate', 'aggressive'];
                                         setRiskTolerance(levels[Number(e.target.value)]);
                                     }}
-                                    className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-rose-400 [&::-webkit-slider-thumb]:cursor-pointer"
+                                    className="w-full h-1 bg-black/8 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-rose-400 [&::-webkit-slider-thumb]:cursor-pointer"
                                 />
 
-                                <div className="flex justify-between text-xs text-white/30">
+                                <div className="flex justify-between text-xs text-muted-foreground/50">
                                     <span>Conservative</span>
                                     <span>Moderate</span>
                                     <span>Aggressive</span>
@@ -924,17 +924,17 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({ isOpen, onCl
                 </div>
 
                 {/* Footer */}
-                <div className="px-8 py-5 border-t border-white/5 bg-white/[0.01] flex justify-end gap-4">
+                <div className="px-8 py-5 border-t border-black/5 bg-black/[0.01] flex justify-end gap-4">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 rounded-lg text-white/60 hover:text-white hover:bg-white/5 font-medium"
+                        className="px-6 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/5 font-medium"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="px-8 py-2.5 rounded-lg bg-[#A8734A] hover:bg-[#C08B5C] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-8 py-2.5 rounded-lg bg-[#A8734A] hover:bg-[#C08B5C] text-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isSaving ? 'Saving...' : 'Save Preferences'}
                     </button>

@@ -136,7 +136,7 @@ const FloatingLabel: React.FC<{
       exit={{ opacity: 0, y: 6 }}
       transition={{ delay: index * 0.08 + 0.15 }}
       className={`absolute pointer-events-none flex items-center gap-1.5 px-2.5 py-1 rounded-full
-        bg-black/50 backdrop-blur-xl border border-white/[0.06]
+        bg-black/50 backdrop-blur-xl border border-black/[0.06]
         ${isActive ? 'ring-1 ring-white/10' : ''}
       `}
       style={{
@@ -145,7 +145,7 @@ const FloatingLabel: React.FC<{
       }}
     >
       <div className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-      <span className="text-[10px] font-medium text-white/80 whitespace-nowrap">
+      <span className="text-[10px] font-medium text-foreground/80 whitespace-nowrap">
         {formatDamageClass(det.damage_class)}
       </span>
       <span className={`text-[9px] font-medium ${colors.text}`}>

@@ -38,7 +38,7 @@ export const TokenUsageMeter: React.FC<TokenUsageMeterProps> = ({
     ? 'text-red-400'
     : isNearLimit
       ? 'text-amber-400/80'
-      : 'text-white/40';
+      : 'text-muted-foreground/70';
 
   const glowStyle = isExhausted
     ? 'shadow-[0_0_8px_rgba(239,68,68,0.15)]'
@@ -56,15 +56,15 @@ export const TokenUsageMeter: React.FC<TokenUsageMeterProps> = ({
       onClick={onClick}
       className={cn(
         'relative flex items-center gap-2 px-2.5 py-[5px] rounded-full',
-        'bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm',
-        'transition-all duration-200 hover:bg-white/[0.06] hover:border-white/[0.1] group',
+        'bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm',
+        'transition-all duration-200 hover:bg-black/[0.05] hover:border-black/[0.08] group',
         glowStyle,
         className,
       )}
       title={tooltip}
     >
       {/* Progress bar track */}
-      <div className="w-[52px] h-[3px] rounded-full bg-white/[0.08] overflow-hidden flex-shrink-0">
+      <div className="w-[52px] h-[3px] rounded-full bg-black/[0.06] overflow-hidden flex-shrink-0">
         <div
           className={cn(
             'h-full rounded-full bg-gradient-to-r transition-all duration-500',

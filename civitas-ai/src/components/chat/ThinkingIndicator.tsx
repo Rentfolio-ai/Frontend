@@ -9,6 +9,23 @@ import type { ThinkingStep } from '@/hooks/useThinkingQueue';
 
 const GENERIC_MESSAGES = new Set(['Thinking', 'Thinking...', 'Thinking…', 'Working...']);
 
+/* ── Algorithm #2: Time-based message evolution ── */
+const TIME_EVOLUTION: Array<{ afterSec: number; message: string }> = [
+  { afterSec: 3,  message: 'Analyzing your request...' },
+  { afterSec: 8,  message: 'Running deeper analysis...' },
+  { afterSec: 15, message: 'This is a complex query — working through it...' },
+  { afterSec: 25, message: 'Almost there — refining results...' },
+  { afterSec: 40, message: 'Taking extra care with this one...' },
+];
+
+function getTimeEvolvedMessage(elapsedSec: number): string | null {
+  let result: string | null = null;
+  for (const entry of TIME_EVOLUTION) {
+    if (elapsedSec >= entry.afterSec) result = entry.message;
+  }
+  return result;
+}
+
 export function extractThinkingLabel(text: string): string | null {
   if (!text) return null;
   const headings = text.match(/\*\*(.+?)\*\*/g);
@@ -101,10 +118,10 @@ export const ThinkingContent: React.FC<{
     <div
       ref={scrollRef}
       className={cn(
-        "max-h-[340px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent space-y-2.5",
+        "max-h-[340px] overflow-y-auto scrollbar-thin scrollbar-thumb-black/10 scrollbar-track-transparent space-y-2.5",
         isInline
           ? "px-0 py-0.5"
-          : "rounded-lg bg-white/[0.02] border border-white/[0.04] px-3.5 py-3"
+          : "rounded-lg bg-black/[0.02] border border-black/[0.04] px-3.5 py-3"
       )}
     >
       {sections.map((section, idx) => (
@@ -119,7 +136,7 @@ export const ThinkingContent: React.FC<{
           )}
           {section.body && (
             <p className={cn(
-              "text-white/50",
+              "text-muted-foreground",
               isInline ? "text-[16px] leading-[28px]" : "text-[12px] leading-[19px]"
             )}>
               {section.body}
@@ -130,6 +147,27 @@ export const ThinkingContent: React.FC<{
       {isStreaming && (
         <span className="inline-block w-[5px] h-[13px] bg-[#C08B5C]/40 animate-pulse ml-0.5 align-middle rounded-sm" />
       )}
+    </div>
+  );
+};
+
+/* ── Completed tools timeline ── */
+const CompletedToolsTimeline: React.FC<{ steps: ThinkingStep[] }> = ({ steps }) => {
+  const completed = steps.filter(s => s.status === 'done');
+  if (completed.length < 2) return null;
+  return (
+    <div className="ml-8 mb-1.5 pl-3 flex items-center gap-1 flex-wrap">
+      {completed.map((step, i) => (
+        <React.Fragment key={step.id}>
+          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/40">
+            <span className="w-1 h-1 rounded-full bg-emerald-400/50" />
+            <span className="truncate max-w-[140px]">{step.message}</span>
+          </span>
+          {i < completed.length - 1 && (
+            <span className="text-[8px] text-muted-foreground/25">→</span>
+          )}
+        </React.Fragment>
+      ))}
     </div>
   );
 };
@@ -155,6 +193,9 @@ interface ThinkingIndicatorProps {
   hasThinkingModel?: boolean;
   /** Short display name for the currently active model (e.g. "Claude Sonnet"). */
   activeModel?: string;
+  reasoningEffort?: 'low' | 'medium' | 'high';
+  /** Agent mode for persona-aware messaging. */
+  agentMode?: 'hunter' | 'research' | 'strategist';
 }
 
 export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
@@ -171,6 +212,8 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
   reasoningText,
   hasThinkingModel = false,
   activeModel,
+  reasoningEffort = 'medium',
+  agentMode,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(true);
   const proseScrollRef = useRef<HTMLDivElement>(null);
@@ -201,28 +244,63 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
       : `${Math.floor(thinkingElapsed / 60)}:${String(thinkingElapsed % 60).padStart(2, '0')}`
     : null;
 
+  /* Algorithm #5: Persona-aware effort labels */
+  const personaLabels: Record<string, typeof effortLabelsDefault> = {
+    hunter: {
+      low:    { active: 'Quick scan...', done: (t: string) => `Scanned for ${t}` },
+      medium: { active: 'Hunting deals...', done: (t: string) => `Hunted for ${t}` },
+      high:   { active: 'Deep deal analysis...', done: (t: string) => `Analyzed deeply for ${t}` },
+    },
+    research: {
+      low:    { active: 'Quick lookup...', done: (t: string) => `Looked up for ${t}` },
+      medium: { active: 'Researching...', done: (t: string) => `Researched for ${t}` },
+      high:   { active: 'Deep research...', done: (t: string) => `Researched deeply for ${t}` },
+    },
+    strategist: {
+      low:    { active: 'Quick review...', done: (t: string) => `Reviewed for ${t}` },
+      medium: { active: 'Strategizing...', done: (t: string) => `Strategized for ${t}` },
+      high:   { active: 'Deep strategic analysis...', done: (t: string) => `Analyzed strategy for ${t}` },
+    },
+  };
+  const effortLabelsDefault = {
+    low:    { active: 'Quick check...', done: (t: string) => `Checked for ${t}` },
+    medium: { active: 'Thinking...', done: (t: string) => `Thought for ${t}` },
+    high:   { active: 'Deep reasoning...', done: (t: string) => `Thought deeply for ${t}` },
+  };
+  const activeLabels = (agentMode && personaLabels[agentMode]) || effortLabelsDefault;
+  const effortLabel = activeLabels[reasoningEffort] || activeLabels.medium;
+
+  /* Algorithm #2: Time-based evolution — if we have no tool-specific steps,
+     evolve the generic message based on elapsed time */
+  const timeEvolvedMsg = (!hasSteps && !hasNativeThinking && thinkingIsActive)
+    ? getTimeEvolvedMessage(thinkingElapsed)
+    : null;
+
   let headerText: string;
   let headerKey: string;
   if (thinkingIsDone) {
-    headerText = `Thought for ${timeText || '0s'}`;
+    headerText = effortLabel.done(timeText || '0s');
     headerKey = 'done';
   } else if (thinkingIsActive && currentStep) {
     headerText = currentStep.message;
     headerKey = `live-${currentStep.id}`;
   } else if (hasNativeThinking) {
-    headerText = thinkingLabel || 'Reasoning';
+    headerText = thinkingLabel || (reasoningEffort === 'high' ? 'Deep reasoning' : 'Reasoning');
     headerKey = `native-${thinkingLabel || 'reasoning'}`;
   } else if (hasThinkingModel) {
-    headerText = 'Thinking...';
+    headerText = effortLabel.active;
     headerKey = 'thinking-model';
+  } else if (timeEvolvedMsg) {
+    headerText = timeEvolvedMsg;
+    headerKey = `time-${thinkingElapsed}`;
   } else if (currentStep) {
     headerText = currentStep.message;
     headerKey = currentStep.id;
   } else if (showLegacy) {
-    headerText = GENERIC_MESSAGES.has(legacyStatus) ? 'Thinking...' : legacyStatus;
+    headerText = GENERIC_MESSAGES.has(legacyStatus) ? effortLabel.active : legacyStatus;
     headerKey = `legacy-${legacyStatus}`;
   } else {
-    headerText = 'Thinking...';
+    headerText = effortLabel.active;
     headerKey = 'default';
   }
 
@@ -256,7 +334,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
               <motion.span
                 animate={{ rotate: isExpanded ? 90 : 0 }}
                 transition={{ duration: 0.15 }}
-                className="text-white/30 group-hover:text-white/50 transition-colors flex-shrink-0 mt-[1px]"
+                className="text-muted-foreground/50 group-hover:text-muted-foreground transition-colors flex-shrink-0 mt-[1px]"
               >
                 <ChevronRight className="w-4 h-4" />
               </motion.span>
@@ -264,7 +342,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
               <span className="w-4 flex-shrink-0" />
             )}
 
-            <span className="text-white/45 mt-[1px]">
+            <span className="text-muted-foreground/70 mt-[1px]">
               <VasthuThinkingGlyph active={thinkingIsActive && !thinkingIsDone} />
             </span>
 
@@ -279,7 +357,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
                   transition={{ duration: 0.22, ease: 'easeOut' }}
                   className={cn(
                     'text-[16px] truncate font-medium absolute inset-0 flex items-center',
-                    thinkingIsDone ? 'text-white/35' : 'text-white/50',
+                    thinkingIsDone ? 'text-muted-foreground/60' : 'text-muted-foreground',
                   )}
                 >
                   {headerText}
@@ -288,18 +366,23 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
             </span>
 
             {timeText && (
-              <span className="text-[12px] font-mono text-white/20 flex-shrink-0 tabular-nums ml-2">
+              <span className="text-[12px] font-mono text-muted-foreground/40 flex-shrink-0 tabular-nums ml-2">
                 {timeText}
               </span>
             )}
 
             {/* Model badge — shown while streaming so user can see which model is active */}
             {thinkingIsActive && activeModel && (
-              <span className="text-[10px] font-mono text-white/20 flex-shrink-0 ml-1 px-1.5 py-0.5 rounded bg-white/[0.04] leading-tight">
+              <span className="text-[10px] font-mono text-muted-foreground/40 flex-shrink-0 ml-1 px-1.5 py-0.5 rounded bg-black/[0.03] leading-tight">
                 {activeModel}
               </span>
             )}
           </button>
+
+          {/* Completed tools timeline */}
+          {thinkingIsActive && !thinkingIsDone && meaningfulSteps.length >= 2 && (
+            <CompletedToolsTimeline steps={meaningfulSteps} />
+          )}
 
           {/* Expanded: flowing reasoning prose (only renders when prose exists) */}
           <AnimatePresence initial={false}>
@@ -314,7 +397,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
                   {thinkingIsActive && !thinkingIsDone ? (
                     <div
                       ref={proseScrollRef}
-                      className="max-h-[420px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent py-0.5"
+                      className="max-h-[420px] overflow-y-auto scrollbar-thin scrollbar-thumb-black/10 scrollbar-track-transparent py-0.5"
                     >
                       <AnimatePresence mode="wait" initial={false}>
                         <motion.div
@@ -329,7 +412,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
                               {latestSection.heading}
                             </p>
                           )}
-                          <p className="text-[14px] leading-[24px] text-white/45">
+                          <p className="text-[14px] leading-[24px] text-muted-foreground/70">
                             {latestSection?.body}
                           </p>
                         </motion.div>
@@ -355,7 +438,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
         <div className="flex justify-start ml-5 pl-4 pb-1">
           <button
             onClick={onCancel}
-            className="flex items-center gap-1 text-[11px] text-white/20 hover:text-red-400/60 transition-colors"
+            className="flex items-center gap-1 text-[11px] text-muted-foreground/40 hover:text-red-400/60 transition-colors"
           >
             <X className="w-3 h-3" />
             Stop
@@ -397,8 +480,8 @@ export const ThinkingIndicatorInline: React.FC<{ status: string; icon?: string }
   icon,
 }) => {
   return (
-    <div className="flex items-center gap-2.5 text-white/50 text-sm">
-      <span className="text-white/45">
+    <div className="flex items-center gap-2.5 text-muted-foreground text-sm">
+      <span className="text-muted-foreground/70">
         <VasthuThinkingGlyph active={true} className="w-4 h-4" />
       </span>
       {icon && <span>{icon}</span>}

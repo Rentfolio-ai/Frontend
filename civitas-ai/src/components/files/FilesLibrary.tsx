@@ -65,7 +65,7 @@ export const FilesLibrary: React.FC = () => {
         files.forEach(f => {
             const folderName = getFolderForFile(f);
             if (!groups[folderName]) {
-                let color = 'bg-slate-500/10 text-slate-400';
+                let color = 'bg-slate-500/10 text-muted-foreground';
                 if (folderName === 'Lease Agreements') color = 'bg-blue-500/10 text-blue-400';
                 if (folderName === 'Tax Documents') color = 'bg-emerald-500/10 text-emerald-400';
                 if (folderName === 'Property Deeds') color = 'bg-amber-500/10 text-amber-400';
@@ -90,16 +90,16 @@ export const FilesLibrary: React.FC = () => {
         <BiometricGate>
             <div className="h-full bg-background flex flex-col p-6 animate-in fade-in duration-500">
                 {/* Secure Header */}
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h2 className="text-2xl font-bold text-white">Secure Document Vault</h2>
+                            <h2 className="text-2xl font-bold text-foreground">Secure Document Vault</h2>
                             <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5">
                                 <ShieldCheck className="w-3 h-3 text-emerald-400" />
                                 <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">Encrypted</span>
                             </div>
                         </div>
-                        <p className="text-sm text-white/40 flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground/70 flex items-center gap-2">
                             <Lock className="w-3 h-3" />
                             <span>End-to-end encrypted storage • Auto-locks in 5m</span>
                         </p>
@@ -107,11 +107,11 @@ export const FilesLibrary: React.FC = () => {
                 </div>
 
                 {isLoading ? (
-                    <div className="flex-1 flex items-center justify-center text-white/40">
+                    <div className="flex-1 flex items-center justify-center text-muted-foreground/70">
                         <Loader2 className="w-8 h-8 animate-spin" />
                     </div>
                 ) : files.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-white/20">
+                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/40">
                         <FolderOpen className="w-16 h-16 mb-4 opacity-50" />
                         <p>Vault is empty</p>
                         <p className="text-sm mt-2">Upload files in Chat to see them here.</p>
@@ -122,17 +122,17 @@ export const FilesLibrary: React.FC = () => {
                         {folders.map((folder) => (
                             <button
                                 key={folder.name}
-                                className="group p-4 bg-[#0a0a0a] border border-white/5 hover:border-white/10 rounded-xl hover:bg-white/5 transition-all text-left flex flex-col gap-4 relative overflow-hidden"
+                                className="group p-4 bg-background border border-black/5 hover:border-black/8 rounded-xl hover:bg-black/5 transition-all text-left flex flex-col gap-4 relative overflow-hidden"
                             >
                                 <div className={`w-10 h-10 rounded-lg ${folder.color} flex items-center justify-center`}>
                                     <FolderOpen className="w-5 h-5" />
                                 </div>
 
                                 <div className="flex-1 z-10">
-                                    <h3 className="text-sm font-medium text-white group-hover:text-[#D4A27F] transition-colors mb-1">
+                                    <h3 className="text-sm font-medium text-foreground group-hover:text-[#D4A27F] transition-colors mb-1">
                                         {folder.name}
                                     </h3>
-                                    <div className="flex items-center gap-3 text-xs text-white/30">
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
                                         <span>{folder.count} files</span>
                                         <span>•</span>
                                         <span>{folder.date}</span>
@@ -140,7 +140,7 @@ export const FilesLibrary: React.FC = () => {
                                 </div>
 
                                 {/* Decorative background glow */}
-                                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-colors" />
+                                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-black/5 rounded-full blur-2xl group-hover:bg-black/8 transition-colors" />
                             </button>
                         ))}
                     </div>

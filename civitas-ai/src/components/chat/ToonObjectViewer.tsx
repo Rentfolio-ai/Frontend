@@ -37,13 +37,13 @@ export const ToonObjectViewer: React.FC<ToonObjectViewerProps> = ({ data, classN
             return (
                 <ul className="list-disc pl-4 mt-1">
                     {value.map((item, i) => (
-                        <li key={i} className="text-white/70">{String(item)}</li>
+                        <li key={i} className="text-foreground/70">{String(item)}</li>
                     ))}
                 </ul>
             );
         }
         if (typeof value === 'object' && value !== null) {
-            return <ToonObjectViewer data={value} className="mt-2 border-l border-white/10 pl-3" />;
+            return <ToonObjectViewer data={value} className="mt-2 border-l border-black/8 pl-3" />;
         }
         return String(value);
     };
@@ -58,7 +58,7 @@ export const ToonObjectViewer: React.FC<ToonObjectViewerProps> = ({ data, classN
         if (k.includes('risk') || k.includes('issue') || k.includes('alert')) return <AlertCircle className="w-3.5 h-3.5 text-red-400" />;
         if (k.includes('property') || k.includes('building') || k.includes('unit')) return <Building2 className="w-3.5 h-3.5 text-cyan-400" />;
         if (k.includes('refurb') || k.includes('renovate') || k.includes('repair')) return <HardHat className="w-3.5 h-3.5 text-yellow-400" />;
-        return <PieChart className="w-3.5 h-3.5 text-white/40" />;
+        return <PieChart className="w-3.5 h-3.5 text-muted-foreground/70" />;
     };
 
     return (
@@ -69,13 +69,13 @@ export const ToonObjectViewer: React.FC<ToonObjectViewerProps> = ({ data, classN
             {Object.entries(data).map(([key, value]) => (
                 <div
                     key={key}
-                    className="p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all flex flex-col gap-1"
+                    className="p-3 rounded-xl bg-black/[0.02] border border-black/8 hover:border-black/12 transition-all flex flex-col gap-1"
                 >
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
                         {getIcon(key)}
                         {key.replace(/_/g, ' ')}
                     </div>
-                    <div className="text-sm font-medium text-white/90">
+                    <div className="text-sm font-medium text-foreground">
                         {renderValue(key, value)}
                     </div>
                 </div>

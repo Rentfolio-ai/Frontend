@@ -94,12 +94,12 @@ const conditionColors: Record<string, string> = {
 // ── Skeleton Card ──────────────────────────────────────────
 
 const SkeletonCard: React.FC = () => (
-  <div className="bg-[#121216] rounded-2xl border border-white/[0.03] overflow-hidden">
-    <div className="w-full h-28 bg-white/[0.02] animate-shimmer" />
+  <div className="bg-card rounded-2xl border border-black/[0.05] overflow-hidden">
+    <div className="w-full h-28 bg-black/[0.02] animate-shimmer" />
     <div className="p-3 space-y-2">
-      <div className="h-3 w-20 bg-white/[0.04] rounded animate-shimmer" />
-      <div className="h-4 w-28 bg-white/[0.03] rounded animate-shimmer" />
-      <div className="h-3 w-16 bg-white/[0.02] rounded animate-shimmer" />
+      <div className="h-3 w-20 bg-black/[0.03] rounded animate-shimmer" />
+      <div className="h-4 w-28 bg-black/[0.02] rounded animate-shimmer" />
+      <div className="h-3 w-16 bg-black/[0.02] rounded animate-shimmer" />
     </div>
   </div>
 );
@@ -117,7 +117,7 @@ const FilterChip: React.FC<{
     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all capitalize ${
       active
         ? 'bg-violet-500/15 border-violet-500/20 text-violet-300'
-        : 'bg-white/[0.03] border-white/[0.04] text-white/30 hover:text-white/50'
+        : 'bg-black/[0.02] border-black/[0.04] text-muted-foreground/50 hover:text-muted-foreground'
     }`}
   >
     {label}
@@ -143,10 +143,10 @@ const HistoryCard: React.FC<{
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className={`relative bg-[#121216] rounded-2xl border overflow-hidden transition-all group ${
+      className={`relative bg-card rounded-2xl border overflow-hidden transition-all group ${
         isSelected
           ? 'border-violet-500/20 ring-1 ring-violet-500/10'
-          : 'border-white/[0.03] hover:border-white/[0.06]'
+          : 'border-black/[0.05] hover:border-black/[0.06]'
       }`}
     >
       <button
@@ -154,7 +154,7 @@ const HistoryCard: React.FC<{
         className="w-full text-left"
       >
         {/* Image */}
-        <div className="relative w-full h-28 bg-white/[0.02]">
+        <div className="relative w-full h-28 bg-black/[0.02]">
           {item.image_url ? (
             <img src={item.image_url} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -167,7 +167,7 @@ const HistoryCard: React.FC<{
           {selectionMode && (
             <div className="absolute top-2 right-2">
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                isSelected ? 'border-violet-400 bg-violet-500' : 'border-white/15 bg-black/30 backdrop-blur'
+                isSelected ? 'border-violet-400 bg-violet-500' : 'border-black/10 bg-black/30 backdrop-blur'
               }`}>
                 {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
               </div>
@@ -184,19 +184,19 @@ const HistoryCard: React.FC<{
 
         {/* Content */}
         <div className="p-3">
-          <div className="text-[10px] text-white/25 mb-1">
+          <div className="text-[10px] text-muted-foreground/50 mb-1">
             {new Date(item.analyzed_at).toLocaleDateString(undefined, {
               month: 'short', day: 'numeric', year: 'numeric',
             })}
           </div>
-          <div className="text-sm font-medium text-white/70 mb-1.5">
+          <div className="text-sm font-medium text-foreground/70 mb-1.5">
             {formatDamageClass(item.room_type || 'Unknown')}
           </div>
           <div className="flex items-center justify-between">
-            <span className={`inline-flex text-[10px] px-2 py-0.5 rounded-full border capitalize ${conditionColors[item.condition_rating] || 'text-white/30 bg-white/[0.03] border-white/[0.04]'}`}>
+            <span className={`inline-flex text-[10px] px-2 py-0.5 rounded-full border capitalize ${conditionColors[item.condition_rating] || 'text-muted-foreground/50 bg-black/[0.02] border-black/[0.04]'}`}>
               {item.condition_rating || 'N/A'}
             </span>
-            <div className="flex items-center gap-2 text-[10px] text-white/20">
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground/40">
               {issueCount > 0 && <span>{issueCount} issue{issueCount !== 1 ? 's' : ''}</span>}
               {cost > 0 && <span>{formatCurrency(cost)}</span>}
             </div>
@@ -335,39 +335,39 @@ export const EnhancedHistory: React.FC<EnhancedHistoryProps> = ({
   }, [selectedIds]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04] flex-shrink-0 z-20">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors">
+      <div className="flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04] flex-shrink-0 z-20">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
-        <span className="text-sm font-medium text-white/60">History</span>
+        <span className="text-sm font-medium text-muted-foreground">History</span>
         <button
           onClick={() => { setSelectionMode(!selectionMode); setSelectedIds(new Set()); }}
-          className={`text-xs font-medium ${selectionMode ? 'text-violet-400' : 'text-white/25 hover:text-white/50'} transition-colors`}
+          className={`text-xs font-medium ${selectionMode ? 'text-violet-400' : 'text-muted-foreground/50 hover:text-muted-foreground'} transition-colors`}
         >
           {selectionMode ? 'Done' : 'Select'}
         </button>
       </div>
 
       {/* Search + filter bar */}
-      <div className="px-4 py-3 space-y-3 border-b border-white/[0.03] flex-shrink-0">
+      <div className="px-4 py-3 space-y-3 border-b border-black/[0.05] flex-shrink-0">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/15" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by room type..."
-            className="w-full pl-9 pr-8 py-2.5 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-white/70 placeholder:text-white/15 focus:outline-none focus:border-violet-500/30 transition-colors"
+            className="w-full pl-9 pr-8 py-2.5 bg-black/[0.02] border border-black/[0.06] rounded-xl text-sm text-foreground/70 placeholder:text-muted-foreground/40 focus:outline-none focus:border-violet-500/30 transition-colors"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5"
             >
-              <X className="w-3 h-3 text-white/20" />
+              <X className="w-3 h-3 text-muted-foreground/40" />
             </button>
           )}
         </div>
@@ -386,13 +386,13 @@ export const EnhancedHistory: React.FC<EnhancedHistoryProps> = ({
 
         {/* Sort */}
         <div className="flex items-center justify-between">
-          <span className="text-[10px] text-white/20">
+          <span className="text-[10px] text-muted-foreground/40">
             {filteredHistory.length} result{filteredHistory.length !== 1 ? 's' : ''}
           </span>
           <select
             value={sortMode}
             onChange={e => setSortMode(e.target.value as SortMode)}
-            className="text-[11px] text-white/30 bg-transparent border-none focus:outline-none cursor-pointer"
+            className="text-[11px] text-muted-foreground/50 bg-transparent border-none focus:outline-none cursor-pointer"
           >
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
@@ -444,12 +444,12 @@ export const EnhancedHistory: React.FC<EnhancedHistoryProps> = ({
             {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filteredHistory.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-white/20">
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
             <ScanEye className="w-12 h-12 mb-3 opacity-20" />
             <p className="text-sm mb-1">
               {search ? 'No matching scans' : 'No scan history'}
             </p>
-            <p className="text-[11px] text-white/15">
+            <p className="text-[11px] text-muted-foreground/40">
               {search ? 'Try different search terms' : 'Take your first scan to get started'}
             </p>
           </div>
@@ -472,7 +472,7 @@ export const EnhancedHistory: React.FC<EnhancedHistoryProps> = ({
         {/* Infinite scroll trigger */}
         {hasMore && !loading && (
           <div ref={observerRef} className="flex items-center justify-center py-4">
-            {loadingMore && <Loader2 className="w-4 h-4 text-white/15 animate-spin" />}
+            {loadingMore && <Loader2 className="w-4 h-4 text-muted-foreground/40 animate-spin" />}
           </div>
         )}
       </div>

@@ -71,9 +71,9 @@ export function getSourceConfig(source: string): SourceConfig {
             color: 'slate',
             label: 'Tools',
             bgLight: 'bg-slate-100',
-            bgDark: 'bg-slate-800',
+            bgDark: 'bg-muted',
             textLight: 'text-slate-700',
-            textDark: 'text-slate-300',
+            textDark: 'text-foreground/70',
         },
     };
 
@@ -166,7 +166,7 @@ export function getBorderColor(source: string, isDark: boolean): string {
             'Multi-hop Reasoner': 'border-blue-800/50',
             'Adaptive Router': 'border-emerald-800/50',
             'RAG Optimizer': 'border-amber-800/50',
-            'Agent Tools': 'border-gray-700/50',
+            'Agent Tools': 'border-border/50',
         },
     };
 

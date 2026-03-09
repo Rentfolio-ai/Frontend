@@ -58,7 +58,7 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
       </div>
 
       {properties.length === 0 && (
-        <div className="flex items-center justify-center h-64 text-white/60">
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
           <p>No properties found</p>
         </div>
       )}
@@ -115,8 +115,8 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
     const ghostElement = document.createElement('div');
     ghostElement.className = 'p-3 bg-black/90 backdrop-blur-xl rounded-lg border border-[#C08B5C]/50 shadow-2xl';
     ghostElement.innerHTML = `
-      <div class="text-white font-semibold">$${property.price?.toLocaleString()}</div>
-      <div class="text-white/60 text-sm truncate max-w-[200px]">${property.address}</div>
+      <div class="text-foreground font-semibold">$${property.price?.toLocaleString()}</div>
+      <div class="text-muted-foreground text-sm truncate max-w-[200px]">${property.address}</div>
     `;
     ghostElement.style.position = 'absolute';
     ghostElement.style.top = '-1000px';
@@ -148,10 +148,10 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
       }}
       className={cn(
         'relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 group',
-        'bg-[#1E1E1E] border-2',
+        'bg-card border-2',
         isSelected
           ? 'border-[#C08B5C] shadow-lg shadow-[#C08B5C]/30 transform scale-[1.02]'
-          : 'border-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-xl',
+          : 'border-black/8 hover:border-black/12 hover:-translate-y-1 hover:shadow-xl',
         isDragging && 'opacity-50 scale-95'
       )}
       style={{
@@ -172,7 +172,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
       {/* Image Section (Left) */}
       <div className="absolute inset-0 flex">
-        <div className="relative w-[45%] bg-gray-800 group/image">
+        <div className="relative w-[45%] bg-muted group/image">
           <img
             src={photos[currentPhotoIndex]}
             alt={property.address}
@@ -185,13 +185,13 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
             <>
               <button
                 onClick={prevPhoto}
-                className="absolute left-1 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all z-20"
+                className="absolute left-1 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-foreground/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all z-20"
               >
                 <ChevronLeft className="w-3 h-3" />
               </button>
               <button
                 onClick={nextPhoto}
-                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-white/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all z-20"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-full bg-black/40 text-foreground/80 opacity-0 group-hover/image:opacity-100 hover:bg-black/60 transition-all z-20"
               >
                 <ChevronRight className="w-3 h-3" />
               </button>
@@ -229,15 +229,15 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
         <div className="flex-1 p-3 flex flex-col justify-between">
           {/* Price & Address */}
           <div>
-            <div className="text-xl font-bold text-white mb-1">
+            <div className="text-xl font-bold text-foreground mb-1">
               ${property.price?.toLocaleString()}
             </div>
-            <div className="text-xs text-white/70 line-clamp-2 mb-2">
+            <div className="text-xs text-foreground/70 line-clamp-2 mb-2">
               {property.address}
             </div>
 
             {/* Property Stats */}
-            <div className="flex items-center gap-3 text-[11px] text-white/60 mb-2">
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
               <span className="flex items-center gap-1">
                 <Building2 className="w-3 h-3" />
                 {property.bedrooms} bd
@@ -269,11 +269,11 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
 
           {/* Financial Preview */}
           {financial && (
-            <div className="text-[11px] text-white/60 space-y-0.5">
+            <div className="text-[11px] text-muted-foreground space-y-0.5">
               {financial.str_monthly_revenue && (
                 <div className="flex justify-between">
                   <span>STR Revenue:</span>
-                  <span className="text-white/80 font-medium">
+                  <span className="text-foreground/80 font-medium">
                     ${financial.str_monthly_revenue.toLocaleString()}/mo
                   </span>
                 </div>
@@ -281,7 +281,7 @@ const PropertyGridCard: React.FC<PropertyGridCardProps> = ({
               {financial.cap_rate && (
                 <div className="flex justify-between">
                   <span>Cap Rate:</span>
-                  <span className="text-white/80 font-medium">
+                  <span className="text-foreground/80 font-medium">
                     {financial.cap_rate.toFixed(1)}%
                   </span>
                 </div>

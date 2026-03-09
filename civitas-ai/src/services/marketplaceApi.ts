@@ -82,7 +82,7 @@ export async function fetchProfessional(id: string): Promise<ProfessionalDTO> {
 
 export async function connectProfessional(
   id: string,
-  method: 'chat' | 'voice',
+  method: 'chat' | 'voice' | 'email' | 'text',
 ): Promise<void> {
   const res = await fetch(`${BASE}/professionals/${id}/connect`, {
     method: 'POST',
@@ -93,4 +93,72 @@ export async function connectProfessional(
   if (!res.ok) {
     throw new Error(`connectProfessional failed: ${res.status} ${res.statusText}`);
   }
+}
+
+
+// ── Smart Search ───────────────────────────────────────────────────────────
+
+export interface SearchSuggestions {
+  locations: string[];
+  categories: string[];
+}
+
+export interface LocationEntry {
+  location: string;
+  count: number;
+}
+
+/**
+ * Fetch typeahead suggestions for the marketplace search bar.
+ */
+export async function fetchSearchSuggestions(query: string): Promise<SearchSuggestions> {
+  if (!query || query.length < 2) return { locations: [], categories: [] };
+
+  const res = await fetch(`${BASE}/search-suggestions?q=${encodeURIComponent(query)}`, {
+    headers: jsonHeaders(),
+  });
+
+  if (!res.ok) {
+    return { locations: [], categories: [] };
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetch all available locations with professional counts.
+ */
+export async function fetchLocations(): Promise<LocationEntry[]> {
+  const res = await fetch(`${BASE}/locations`, {
+    headers: jsonHeaders(),
+  });
+
+  if (!res.ok) {
+    return [];
+  }
+
+  const data = await res.json();
+  return data.locations || [];
+}
+
+/**
+ * Trigger a marketplace data refresh on the backend.
+ * Calls the seed-data generator which upserts professionals into the DB.
+ */
+export async function refreshMarketplace(): Promise<{
+  status: string;
+  total_generated: number;
+  upserted: number;
+  skipped: number;
+}> {
+  const res = await fetch(`${BASE}/admin/refresh`, {
+    method: 'POST',
+    headers: jsonHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error(`refreshMarketplace failed: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
 }

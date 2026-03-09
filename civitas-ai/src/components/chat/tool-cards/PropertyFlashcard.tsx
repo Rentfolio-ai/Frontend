@@ -67,7 +67,7 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
       >
         {/* ── Front: Property ─────────────────────────────────── */}
         <div
-          className="absolute inset-0 rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm overflow-hidden flex flex-col"
+          className="absolute inset-0 rounded-xl border border-black/[0.08] bg-black/[0.02] backdrop-blur-sm overflow-hidden flex flex-col"
           style={{ backfaceVisibility: 'hidden' }}
         >
           {/* Photo / placeholder */}
@@ -75,7 +75,7 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
             {photo ? (
               <img src={photo} alt="" className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/10 text-3xl font-bold">
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-3xl font-bold">
                 {rank}
               </div>
             )}
@@ -95,16 +95,16 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
           {/* Details */}
           <div className="flex-1 px-3 py-2.5 flex flex-col justify-between">
             <div>
-              <p className="text-[13px] font-semibold text-white/85 leading-tight truncate">{shortAddr}</p>
+              <p className="text-[13px] font-semibold text-foreground/85 leading-tight truncate">{shortAddr}</p>
               <p className="text-[17px] font-bold text-[#F5E6D0] mt-1">${price.toLocaleString()}</p>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-white/40 mt-1.5">
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground/70 mt-1.5">
               <span>{beds}bd</span>
-              <span className="w-px h-2.5 bg-white/10" />
+              <span className="w-px h-2.5 bg-black/8" />
               <span>{baths}ba</span>
               {sqft > 0 && (
                 <>
-                  <span className="w-px h-2.5 bg-white/10" />
+                  <span className="w-px h-2.5 bg-black/8" />
                   <span>{sqft.toLocaleString()} sqft</span>
                 </>
               )}
@@ -116,7 +116,7 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
               )}>
                 {cfPositive ? '+' : ''}{fmt(cashFlow)}/mo
               </span>
-              <span className="text-[10px] text-white/25 italic">tap to flip</span>
+              <span className="text-[10px] text-muted-foreground/50 italic">tap to flip</span>
             </div>
           </div>
 
@@ -124,16 +124,16 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
           {onToggleBookmark && (
             <button
               onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
-              className="absolute bottom-2.5 right-2.5 p-1 rounded-md hover:bg-white/10 transition-colors"
+              className="absolute bottom-2.5 right-2.5 p-1 rounded-md hover:bg-black/8 transition-colors"
             >
-              <Bookmark className={cn('w-3.5 h-3.5', isBookmarked ? 'fill-[#C08B5C] text-[#C08B5C]' : 'text-white/25')} />
+              <Bookmark className={cn('w-3.5 h-3.5', isBookmarked ? 'fill-[#C08B5C] text-[#C08B5C]' : 'text-muted-foreground/50')} />
             </button>
           )}
         </div>
 
         {/* ── Back: P&L Analysis ──────────────────────────────── */}
         <div
-          className="absolute inset-0 rounded-xl border border-white/[0.08] bg-[#141418] overflow-hidden flex flex-col px-3.5 py-3"
+          className="absolute inset-0 rounded-xl border border-black/[0.08] bg-card overflow-hidden flex flex-col px-3.5 py-3"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
           <p className="text-[10px] uppercase tracking-wider text-[#C08B5C]/60 font-semibold mb-2">
@@ -145,7 +145,7 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
             'rounded-lg px-3 py-2.5 mb-3 border',
             cfPositive ? 'bg-emerald-500/5 border-emerald-500/15' : 'bg-red-500/5 border-red-500/15',
           )}>
-            <p className="text-[10px] text-white/35 mb-0.5">Monthly Cash Flow</p>
+            <p className="text-[10px] text-muted-foreground/60 mb-0.5">Monthly Cash Flow</p>
             <div className="flex items-center gap-1.5">
               {cfPositive ? (
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
@@ -168,7 +168,7 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
             <MetricRow label="Price/sqft" value={sqft > 0 ? `$${Math.round(price / sqft)}` : '—'} />
           </div>
 
-          <p className="text-[9px] text-white/20 text-center mt-2 italic">tap to flip back</p>
+          <p className="text-[9px] text-muted-foreground/40 text-center mt-2 italic">tap to flip back</p>
         </div>
       </motion.div>
     </div>
@@ -177,9 +177,9 @@ export const PropertyFlashcard: React.FC<PropertyFlashcardProps> = ({
 
 const MetricRow: React.FC<{ label: string; value: string; suffix?: string }> = ({ label, value, suffix }) => (
   <div>
-    <p className="text-[9px] text-white/30 leading-none">{label}</p>
-    <p className="text-[13px] font-semibold text-white/75 mt-0.5">
-      {value}{suffix && <span className="text-[10px] font-normal text-white/35">{suffix}</span>}
+    <p className="text-[9px] text-muted-foreground/50 leading-none">{label}</p>
+    <p className="text-[13px] font-semibold text-foreground/75 mt-0.5">
+      {value}{suffix && <span className="text-[10px] font-normal text-muted-foreground/60">{suffix}</span>}
     </p>
   </div>
 );

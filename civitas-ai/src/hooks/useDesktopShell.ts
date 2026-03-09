@@ -32,6 +32,17 @@ const CIVITAS_API_KEY = import.meta.env.VITE_API_KEY;
 
 export type AgentMode = 'research' | 'strategist' | 'hunter';
 
+const TRIVIAL_QUERIES = new Set([
+  'hi', 'hey', 'hello', 'yo', 'sup', 'thanks', 'thank you', 'thx',
+  'ok', 'okay', 'sure', 'yes', 'no', 'yep', 'nope', 'got it',
+  'cool', 'great', 'nice', 'bye', 'goodbye', 'k', 'ty', 'np',
+]);
+
+function isTrivialQuery(msg: string): boolean {
+  const normalized = msg.toLowerCase().replace(/[^a-z\s]/g, '').trim();
+  return normalized.split(/\s+/).length <= 4 && TRIVIAL_QUERIES.has(normalized);
+}
+
 
 export interface ChatSession {
   id: string;
@@ -47,7 +58,7 @@ export interface ChatSession {
 
 import { useToast } from './useToast';
 
-export type TabType = 'home' | 'deals' | 'teams' | 'chat' | 'marketplace' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'integrations';
+export type TabType = 'home' | 'deals' | 'teams' | 'chat' | 'inbox' | 'marketplace' | 'reports' | 'portfolio' | 'analysis' | 'files' | 'settings' | 'help' | 'upgrade' | 'about' | 'profile' | 'notifications' | 'appearance' | 'language_region' | 'investment_preferences' | 'contact_support' | 'privacy_security' | 'integrations';
 
 // Deal Analyzer state
 export interface DealAnalyzerState {
@@ -300,6 +311,8 @@ export function useDesktopShell() {
 
   // Active model label for ThinkingIndicator badge (set by model-selected events)
   const [activeModelLabel, setActiveModelLabel] = useState<string>('');
+  const [reasoningEffort, setReasoningEffort] = useState<'low' | 'medium' | 'high'>('medium');
+  const taskTypeRef = useRef<string>('');
 
   // --- Mode suggestion from AI (research/strategist → hunter switch) ---
   const modeSuggestionRef = useRef<{ suggestedMode: string; reason: string; autoQuery: string } | null>(null);
@@ -669,6 +682,8 @@ export function useDesktopShell() {
     thinkingTraceRef.current = [];
     reasoningTraceRef.current = [];
     setActiveModelLabel('');
+    setReasoningEffort('medium');
+    taskTypeRef.current = '';
     thinkingStartTimeRef.current = Date.now();
     pendingFinalizationRef.current = null;
     finalReceivedRef.current = false;
@@ -816,12 +831,14 @@ export function useDesktopShell() {
       });
       setMessages(prev => prev.map(m =>
         m.id === messageId
-          ? { ...m, action: {
+          ? {
+            ...m, action: {
               type: 'confirm' as const,
               message: eventAny.message,
               options: eventAny.options,
               context: eventAny.context,
-            }}
+            }
+          }
           : m
       ));
       return;
@@ -885,7 +902,8 @@ export function useDesktopShell() {
         const msReason = msEvt.reason || '';
         logger.info(`[useDesktopShell] Auto-selected model: ${msName}`, { reason: msReason });
         setActiveModelLabel(msName);
-        // Keep model selection in badge/UI state, not as the live one-line trace.
+        if (msEvt.reasoning_effort) setReasoningEffort(msEvt.reasoning_effort);
+        if (msEvt.task_type) taskTypeRef.current = msEvt.task_type;
         break;
       }
 
@@ -1111,6 +1129,8 @@ export function useDesktopShell() {
             const reason = payload.reason || '';
             logger.info(`[useDesktopShell] Auto-selected model: ${modelName}`, { reason });
             setActiveModelLabel(modelName);
+            if (payload.reasoning_effort) setReasoningEffort(payload.reasoning_effort);
+            if (payload.task_type) taskTypeRef.current = payload.task_type;
             break;
           }
           case 'web_sources': {
@@ -1914,7 +1934,9 @@ export function useDesktopShell() {
         // V1 fallback: capture finalization data now (refs may change)
         const doneInlineActions = inlineActionsRef.current.length > 0
           ? [...inlineActionsRef.current]
-          : generateInlineActions([...currentToolsRef.current], currentMode);
+          : taskTypeRef.current === 'trivial'
+            ? []
+            : generateInlineActions([...currentToolsRef.current], currentMode);
         const doneDuration = thinkingStartTimeRef.current
           ? Date.now() - thinkingStartTimeRef.current
           : 0;
@@ -1997,6 +2019,23 @@ export function useDesktopShell() {
         }
         break;
 
+      case 'mode_hint':
+        if (event.suggested_mode && event.reason) {
+          setMessages(prev => prev.map(m =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  modeSuggestion: {
+                    suggestedMode: event.suggested_mode,
+                    reason: event.reason,
+                    autoQuery: '',
+                  },
+                }
+              : m
+          ));
+        }
+        break;
+
       case 'error':
         setThinking(null);
         setIsLoading(false);
@@ -2017,7 +2056,7 @@ export function useDesktopShell() {
   }, [activeChatId, currentMode, pushLiveThinkingStep, updateThreadIdForChat]);
 
   // Send message with SSE streaming
-  const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }, extra?: { propertyContext?: any }) => {
+  const sendMessageWithStream = useCallback(async (message: string, options?: { skipUserMessage?: boolean }, extra?: { propertyContext?: any; hidePropertyCard?: boolean; pageContext?: any }) => {
     if (!message.trim() && !attachment) return;
 
     const currentAttachment = attachment;
@@ -2035,7 +2074,7 @@ export function useDesktopShell() {
     if (!options?.skipUserMessage) {
       const userMessage: Message = ChatService.createUserMessage(trimmedMessage);
       // Attach property context if provided (from property card handoff)
-      if (extra?.propertyContext) {
+      if (extra?.propertyContext && !extra?.hidePropertyCard) {
         userMessage.propertyContext = extra.propertyContext;
       }
       setMessages(prev => [...prev, userMessage]);
@@ -2139,14 +2178,14 @@ export function useDesktopShell() {
             client_location: clientLocation || undefined
           }
         };
-      } else if (extra?.propertyContext) {
+      } else if (extra?.propertyContext || extra?.pageContext) {
         endpoint = `${CIVITAS_API_BASE}/v2/chat/stream`;
-        requestBody = parseChatQuery(trimmedMessage, 'research', effectiveThreadId, language, extra.propertyContext, identity, recentHistory, profContext, prefs, selectedModelRef.current, isCurrentChatTemporary);
+        requestBody = parseChatQuery(trimmedMessage, 'research', effectiveThreadId, language, extra?.propertyContext, identity, recentHistory, profContext, prefs, selectedModelRef.current, isCurrentChatTemporary, extra?.pageContext);
       } else {
         const effectiveMode = currentMode;
         const effectiveModel = selectedModelRef.current;
 
-        if (effectiveMode === 'hunter') {
+        if (effectiveMode === 'hunter' && !isTrivialQuery(trimmedMessage)) {
           endpoint = `${CIVITAS_API_BASE}/v2/property/search/stream`;
           requestBody = parsePropertyQuery(trimmedMessage, { budgetRange, defaultStrategy, interactionProfile, favoriteMarkets, financialDna, clientLocation, language }, effectiveMode, effectiveModel);
         } else {
@@ -3144,6 +3183,7 @@ export function useDesktopShell() {
       elapsedSeconds: thinkingQueue.elapsedSeconds,
     },
     activeModelLabel,
+    reasoningEffort,
     handleRegenerate,
     refreshToolResults,
     toolResultsByThread,

@@ -164,29 +164,29 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
             />
 
             {/* Compact Popover - Bottom Left (right of sidebar) */}
-            <div className="fixed bottom-16 left-20 w-96 max-h-[calc(100vh-5rem)] bg-[#1a1a1a] border border-white/10 rounded-2xl z-50 flex flex-col shadow-2xl">
+            <div className="fixed bottom-16 left-20 w-96 max-h-[calc(100vh-5rem)] bg-popover border border-black/8 rounded-2xl z-50 flex flex-col shadow-2xl">
                 {/* Header */}
-                <div className="p-6 border-b border-white/10">
+                <div className="p-6 border-b border-black/8">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-white">Search Chats</h2>
+                        <h2 className="text-lg font-semibold text-foreground">Search Chats</h2>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            className="p-2 hover:bg-black/5 rounded-lg transition-colors"
                         >
-                            <X className="w-5 h-5 text-white/70" />
+                            <X className="w-5 h-5 text-foreground/70" />
                         </button>
                     </div>
 
                     {/* Search Input */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/70" />
                         <input
                             ref={searchInputRef}
                             type="text"
                             placeholder="Search by keyword, property, or topic..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#C08B5C]/50 focus:ring-2 focus:ring-[#C08B5C]/20 transition-all"
+                            className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/8 rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-[#C08B5C]/50 focus:ring-2 focus:ring-[#C08B5C]/20 transition-all"
                         />
                     </div>
 
@@ -196,7 +196,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                             onClick={() => toggleFilter('today')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('today')
                                 ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
-                                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                                : 'bg-black/5 text-muted-foreground border border-black/8 hover:bg-black/8'
                                 }`}
                         >
                             <Calendar className="w-3.5 h-3.5 inline mr-1" />
@@ -206,7 +206,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                             onClick={() => toggleFilter('week')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('week')
                                 ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
-                                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                                : 'bg-black/5 text-muted-foreground border border-black/8 hover:bg-black/8'
                                 }`}
                         >
                             This Week
@@ -215,7 +215,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                             onClick={() => toggleFilter('bookmarked')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('bookmarked')
                                 ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
-                                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                                : 'bg-black/5 text-muted-foreground border border-black/8 hover:bg-black/8'
                                 }`}
                         >
                             ⭐ Bookmarked
@@ -224,7 +224,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                             onClick={() => toggleFilter('analyzed')}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${activeFilters.includes('analyzed')
                                 ? 'bg-[#C08B5C]/20 text-[#D4A27F] border border-[#C08B5C]/30'
-                                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                                : 'bg-black/5 text-muted-foreground border border-black/8 hover:bg-black/8'
                                 }`}
                         >
                             <TrendingUp className="w-3.5 h-3.5 inline mr-1" />
@@ -235,9 +235,9 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
 
                 {/* Results Header with Count */}
                 {(searchQuery || activeFilters.length > 0) && (
-                    <div className="px-6 py-3 border-b border-white/10 bg-white/5">
+                    <div className="px-6 py-3 border-b border-black/8 bg-black/5">
                         <div className="flex items-center justify-between text-xs">
-                            <span className="text-white/60 font-medium">
+                            <span className="text-muted-foreground font-medium">
                                 {filteredChats.length} {filteredChats.length === 1 ? 'chat' : 'chats'} found
                             </span>
                             {activeFilters.length > 0 && (
@@ -256,8 +256,8 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
                     {filteredChats.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                            <Search className="w-12 h-12 text-white/20 mb-4" />
-                            <p className="text-white/60 text-sm">
+                            <Search className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                            <p className="text-muted-foreground text-sm">
                                 {searchQuery || activeFilters.length > 0
                                     ? 'No chats match your search'
                                     : 'Start typing to search your chats'}
@@ -277,12 +277,12 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                                         onClick={() => handleChatClick(chat.id)}
                                         className={`w-full p-4  rounded-lg text-left transition-all ${isActive
                                             ? 'bg-[#C08B5C]/10 border border-[#C08B5C]/30'
-                                            : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20'
+                                            : 'bg-black/5 border border-black/8 hover:bg-black/8 hover:border-black/12'
                                             }`}
                                     >
                                         <div className="flex items-start gap-3">
                                             {/* Icon */}
-                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${hasProperty ? 'bg-[#C08B5C]/20' : 'bg-white/10'
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${hasProperty ? 'bg-[#C08B5C]/20' : 'bg-black/8'
                                                 }`}>
                                                 {hasProperty ? (
                                                     <MapPin className="w-5 h-5 text-[#D4A27F]" />
@@ -294,7 +294,7 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="font-medium text-white truncate flex-1">
+                                                    <h3 className="font-medium text-foreground truncate flex-1">
                                                         {chat.title || 'Untitled Chat'}
                                                     </h3>
                                                     {chat.isPinned && (
@@ -304,13 +304,13 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
 
                                                 {/* Preview text */}
                                                 {chat.messages && chat.messages.length > 0 && !matchingMessages.length && (
-                                                    <p className="text-sm text-white/50 truncate mb-2">
+                                                    <p className="text-sm text-muted-foreground truncate mb-2">
                                                         {chat.messages[chat.messages.length - 1]?.content.substring(0, 80)}...
                                                     </p>
                                                 )}
 
                                                 {/* Metadata */}
-                                                <div className="flex items-center gap-2 text-xs text-white/40">
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
                                                     <span>{formatChatDateCompact(chat.timestamp || chat.createdAt)}</span>
                                                     {hasProperty && (
                                                         <>
@@ -345,11 +345,11 @@ export const ChatSearchDrawer: React.FC<ChatSearchDrawerProps> = ({
                                                     <button
                                                         key={msg.id}
                                                         onClick={() => handleChatClick(chat.id, msg.id)}
-                                                        className="w-full px-3 py-2 text-left text-xs rounded bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] hover:border-[#C08B5C]/30 transition-all group"
+                                                        className="w-full px-3 py-2 text-left text-xs rounded bg-black/[0.02] hover:bg-black/[0.06] border border-black/[0.05] hover:border-[#C08B5C]/30 transition-all group"
                                                     >
                                                         <div className="flex items-start gap-2">
-                                                            <span className="text-[10px] text-white/30 mt-0.5">↳</span>
-                                                            <p className="text-white/50 group-hover:text-white/70 line-clamp-2">
+                                                            <span className="text-[10px] text-muted-foreground/50 mt-0.5">↳</span>
+                                                            <p className="text-muted-foreground group-hover:text-foreground/70 line-clamp-2">
                                                                 {snippet}
                                                             </p>
                                                         </div>

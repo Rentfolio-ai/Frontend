@@ -78,13 +78,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-md rounded-2xl border border-white/[0.08] p-6"
-                    style={{ backgroundColor: '#161619' }}
+                    className="relative w-full max-w-md rounded-2xl border border-black/[0.08] p-6"
+                    style={{ backgroundColor: 'hsl(var(--background))' }}
                 >
                     {/* Close Button */}
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:bg-white/[0.06] hover:text-white/60 transition-colors"
+                        className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground/70 hover:bg-black/[0.05] hover:text-muted-foreground transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -95,10 +95,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             <div className="w-16 h-16 rounded-full bg-[#C08B5C]/20 flex items-center justify-center mx-auto mb-4">
                                 <Check className="w-8 h-8 text-[#D4A27F]" />
                             </div>
-                            <h2 className="text-2xl font-bold text-white/90 mb-2">
+                            <h2 className="text-2xl font-bold text-foreground mb-2">
                                 Welcome to Pro!
                             </h2>
-                            <p className="text-sm text-white/50">
+                            <p className="text-sm text-muted-foreground">
                                 Your subscription is now active
                             </p>
                             <button
@@ -112,10 +112,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         <>
                             {/* ────── Header ────── */}
                             <div className="mb-6">
-                                <h2 className="text-xl font-bold text-white/90 mb-1">
+                                <h2 className="text-xl font-bold text-foreground mb-1">
                                     Upgrade to Pro
                                 </h2>
-                                <p className="text-[13px] text-white/40">
+                                <p className="text-[13px] text-muted-foreground/70">
                                     Secure payment via Stripe
                                 </p>
                             </div>
@@ -123,18 +123,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             {/* ────── Price Summary ────── */}
                             <div className="p-4 rounded-xl mb-6 bg-[#C08B5C]/8 border border-[#C08B5C]/20">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm text-white/50">
+                                    <span className="text-sm text-muted-foreground">
                                         Pro Plan {isFirstMonth && '(First Month)'}
                                     </span>
-                                    <span className="text-lg font-bold text-white/90">
+                                    <span className="text-lg font-bold text-foreground">
                                         ${price}/month
                                     </span>
                                 </div>
                                 {isFirstMonth && (
                                     <>
                                         <div className="flex items-center justify-between text-sm mb-1">
-                                            <span className="text-white/40">Regular price</span>
-                                            <span className="text-white/40 line-through">
+                                            <span className="text-muted-foreground/70">Regular price</span>
+                                            <span className="text-muted-foreground/70 line-through">
                                                 ${regularPrice}
                                             </span>
                                         </div>
@@ -144,14 +144,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                                         </div>
                                         <div className="mt-3 pt-3 border-t border-[#C08B5C]/20">
                                             <div className="flex items-center justify-between">
-                                                <span className="font-semibold text-white/85">
+                                                <span className="font-semibold text-foreground/85">
                                                     Due Today
                                                 </span>
                                                 <span className="text-2xl font-bold text-[#D4A27F]">
                                                     ${firstMonthPrice}
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] mt-1 text-white/35">
+                                            <p className="text-[11px] mt-1 text-muted-foreground/60">
                                                 Then ${regularPrice}/month starting next month
                                             </p>
                                         </div>
@@ -169,7 +169,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                                 ].map((feature) => (
                                     <div key={feature} className="flex items-start gap-2">
                                         <Check className="w-3.5 h-3.5 text-[#D4A27F] flex-shrink-0 mt-0.5" />
-                                        <span className="text-[12px] text-white/55">{feature}</span>
+                                        <span className="text-[12px] text-muted-foreground/70">{feature}</span>
                                     </div>
                                 ))}
                             </div>
@@ -188,7 +188,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                                 disabled={isProcessing}
                                 className={`w-full py-3 rounded-lg font-semibold text-[14px] transition-all flex items-center justify-center gap-2 ${
                                     isProcessing
-                                        ? 'bg-white/[0.1] text-white/40 cursor-not-allowed'
+                                        ? 'bg-black/[0.07] text-muted-foreground/70 cursor-not-allowed'
                                         : 'bg-[#C08B5C] text-white hover:bg-[#A8734A]'
                                 }`}
                             >
@@ -206,11 +206,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             </button>
 
                             {/* ────── Terms ────── */}
-                            <p className="text-[10px] text-center mt-4 text-white/25">
+                            <p className="text-[10px] text-center mt-4 text-muted-foreground/50">
                                 By subscribing you agree to our{' '}
-                                <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/40">Terms of Service</a>
+                                <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="underline hover:text-muted-foreground/70">Terms of Service</a>
                                 {' '}and{' '}
-                                <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/40">Privacy Policy</a>.
+                                <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline hover:text-muted-foreground/70">Privacy Policy</a>.
                                 {' '}Cancel anytime.
                             </p>
                         </>

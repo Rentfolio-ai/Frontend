@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import type { StreamEvent, CompletedTool, StreamState } from '../types/stream';
-import type { AgentMode } from '../types/chat';
+import type { AgentMode, PageContextData } from '../types/chat';
 
 const envApiUrl = import.meta.env.VITE_DATALAYER_API_URL;
 // Use relative URLs in dev (proxied by Vite), absolute in prod
@@ -71,7 +71,7 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
         // V2 uses 'message' field, V1 uses 'status' field
         const thinkingStatusText = event.status || event.message || 'Thinking';
         const shouldAccum = event.source === 'Agent Reasoning' || event.progress !== undefined;
-        
+
         setStreamState(prev => {
           if (shouldAccum && prev.thinking) {
             const alreadyHas = (prev.thinking.status || '').includes(thinkingStatusText);
@@ -251,7 +251,9 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
     message: string,
     threadId?: string,
     userContext?: { name?: string; onboarding_completed?: boolean },
-    mode?: AgentMode
+    mode?: AgentMode,
+    modelId?: string,
+    pageContext?: PageContextData
   ) => {
     // Cancel any existing stream
     if (abortControllerRef.current) {
@@ -288,12 +290,15 @@ export function useStreamChat(options: UseStreamChatOptions = {}) {
         method: 'POST',
         headers,
         body: JSON.stringify({
+          query: message,
           message,
           thread_id: effectiveThreadId,
           temperature: 0.2,
           max_tokens: null,
           context: userContext ? { user_context: userContext } : undefined,
-          mode: mode || 'hunter',
+          mode: mode || 'research',
+          model_id: modelId || 'auto',
+          page_context: pageContext,
         }),
         signal: abortControllerRef.current.signal,
       });

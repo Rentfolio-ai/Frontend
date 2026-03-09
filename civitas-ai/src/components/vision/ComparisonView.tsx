@@ -123,16 +123,16 @@ const ComparisonRow: React.FC<{
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="py-3 border-b border-white/[0.03]"
+    className="py-3 border-b border-black/[0.05]"
   >
     <div className="flex items-center gap-2 mb-2">
       {icon}
-      <span className="text-[10px] text-white/25 uppercase tracking-wider">{label}</span>
+      <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">{label}</span>
     </div>
     <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${values.length}, 1fr)` }}>
       {values.map((v, i) => (
         <div key={i} className={`text-center ${v.isWinner ? 'relative' : ''}`}>
-          <span className={`text-sm font-semibold ${v.isWinner ? 'text-violet-400' : 'text-white/50'}`}>
+          <span className={`text-sm font-semibold ${v.isWinner ? 'text-violet-400' : 'text-muted-foreground'}`}>
             {v.value}
           </span>
           {v.isWinner && (
@@ -212,16 +212,16 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
     : null;
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04] flex-shrink-0 z-10">
-        <button onClick={showPicker ? onBack : () => setShowPicker(true)} className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors">
+      <div className="flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04] flex-shrink-0 z-10">
+        <button onClick={showPicker ? onBack : () => setShowPicker(true)} className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           {showPicker ? 'Back' : 'Change selection'}
         </button>
         <div className="flex items-center gap-2">
           <GitCompareArrows className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-medium text-white/60">Compare</span>
+          <span className="text-sm font-medium text-muted-foreground">Compare</span>
         </div>
         <div className="w-16" />
       </div>
@@ -238,16 +238,16 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
               className="p-4 space-y-4"
             >
               <div className="text-center">
-                <h3 className="text-sm font-medium text-white/60 mb-1">Select properties to compare</h3>
-                <p className="text-[11px] text-white/25">Choose 2–3 from your scan history</p>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Select properties to compare</h3>
+                <p className="text-[11px] text-muted-foreground/50">Choose 2–3 from your scan history</p>
               </div>
 
               {loading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-5 h-5 text-white/20 animate-spin" />
+                  <Loader2 className="w-5 h-5 text-muted-foreground/40 animate-spin" />
                 </div>
               ) : history.length === 0 ? (
-                <div className="flex flex-col items-center py-16 text-white/20">
+                <div className="flex flex-col items-center py-16 text-muted-foreground/40">
                   <ScanEye className="w-10 h-10 mb-3 opacity-30" />
                   <p className="text-xs">No scan history available</p>
                 </div>
@@ -263,26 +263,26 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
                           isSelected
                             ? 'bg-violet-500/8 border-violet-500/15'
-                            : 'bg-white/[0.02] border-white/[0.03] hover:bg-white/[0.04]'
+                            : 'bg-black/[0.02] border-black/[0.05] hover:bg-black/[0.03]'
                         }`}
                       >
                         {item.image_url ? (
                           <img src={item.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-white/[0.03] flex items-center justify-center">
-                            <ScanEye className="w-5 h-5 text-white/10" />
+                          <div className="w-12 h-12 rounded-lg bg-black/[0.02] flex items-center justify-center">
+                            <ScanEye className="w-5 h-5 text-muted-foreground/30" />
                           </div>
                         )}
                         <div className="flex-1 text-left">
-                          <div className="text-xs font-medium text-white/70">
+                          <div className="text-xs font-medium text-foreground/70">
                             {formatDamageClass(item.room_type || 'Unknown')}
                           </div>
-                          <div className="text-[10px] text-white/25">
+                          <div className="text-[10px] text-muted-foreground/50">
                             {new Date(item.analyzed_at).toLocaleDateString()}
                           </div>
                         </div>
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          isSelected ? 'border-violet-400 bg-violet-500' : 'border-white/10'
+                          isSelected ? 'border-violet-400 bg-violet-500' : 'border-black/8'
                         }`}>
                           {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                         </div>
@@ -299,7 +299,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
                   animate={{ opacity: 1, y: 0 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={startComparison}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-violet-500 hover:bg-violet-600 text-white text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)]"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-violet-500 hover:bg-violet-600 text-foreground text-sm font-medium transition-colors shadow-[0_4px_24px_rgba(139,92,246,0.3)]"
                 >
                   <GitCompareArrows className="w-4 h-4" />
                   Compare {selected.length} Properties
@@ -325,8 +325,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.08 }}
-                    className={`bg-[#121216] rounded-2xl p-4 border text-center relative ${
-                      prop.id === bestDealId ? 'border-violet-500/20' : 'border-white/[0.03]'
+                    className={`bg-card rounded-2xl p-4 border text-center relative ${
+                      prop.id === bestDealId ? 'border-violet-500/20' : 'border-black/[0.05]'
                     }`}
                   >
                     {prop.id === bestDealId && (
@@ -338,8 +338,8 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
                     <div className="flex justify-center mb-3 mt-1">
                       <ScoreGauge score={prop.dealScore} size={72} strokeWidth={5} />
                     </div>
-                    <div className="text-xs font-medium text-white/70 mb-1">{prop.name}</div>
-                    <div className={`inline-flex text-[10px] px-2 py-0.5 rounded-full border capitalize ${conditionColors[prop.condition] || 'text-white/30 bg-white/[0.03] border-white/[0.04]'}`}>
+                    <div className="text-xs font-medium text-foreground/70 mb-1">{prop.name}</div>
+                    <div className={`inline-flex text-[10px] px-2 py-0.5 rounded-full border capitalize ${conditionColors[prop.condition] || 'text-muted-foreground/50 bg-black/[0.02] border-black/[0.04]'}`}>
                       {prop.condition}
                     </div>
                   </motion.div>
@@ -347,7 +347,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
               </div>
 
               {/* Comparison rows */}
-              <div className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]">
+              <div className="bg-card rounded-2xl p-4 border border-black/[0.05]">
                 <ComparisonRow
                   label="Deal Score"
                   icon={<BarChart3 className="w-3 h-3 text-violet-400" />}
@@ -375,14 +375,14 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
               </div>
 
               {/* Cost tiers breakdown */}
-              <div className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]">
-                <div className="text-[10px] text-white/20 uppercase tracking-wider mb-3">Cost Tiers</div>
+              <div className="bg-card rounded-2xl p-4 border border-black/[0.05]">
+                <div className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mb-3">Cost Tiers</div>
                 {['Basic', 'Standard', 'Premium'].map((tier, ti) => (
-                  <div key={tier} className="py-2 border-b border-white/[0.03] last:border-0">
-                    <div className="text-[10px] text-white/25 mb-1">{tier}</div>
+                  <div key={tier} className="py-2 border-b border-black/[0.05] last:border-0">
+                    <div className="text-[10px] text-muted-foreground/50 mb-1">{tier}</div>
                     <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${selected.length}, 1fr)` }}>
                       {selected.map(p => (
-                        <div key={p.id} className="text-center text-xs font-medium text-white/50">
+                        <div key={p.id} className="text-center text-xs font-medium text-muted-foreground">
                           {formatCurrency(ti === 0 ? p.basicCost : ti === 1 ? p.standardCost : p.premiumCost)}
                         </div>
                       ))}
@@ -400,7 +400,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({ onBack }) => {
                   className="bg-violet-500/8 rounded-2xl p-4 border border-violet-500/15 text-center"
                 >
                   <Trophy className="w-5 h-5 text-violet-400 mx-auto mb-2" />
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-muted-foreground">
                     <span className="font-semibold text-violet-300">
                       {selected.find(p => p.id === bestDealId)?.name}
                     </span>{' '}

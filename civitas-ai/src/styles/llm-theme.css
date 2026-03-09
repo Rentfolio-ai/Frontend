@@ -8,30 +8,30 @@
    ============================================================================ */
 
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.70);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .glass-subtle {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.50);
   backdrop-filter: blur(10px) saturate(150%);
   -webkit-backdrop-filter: blur(10px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================================================
@@ -51,7 +51,7 @@
 }
 
 .user-message {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.60);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 2px solid #D4A27F;
@@ -59,11 +59,11 @@
 }
 
 .system-message {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.40);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* ============================================================================
@@ -202,9 +202,9 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 100%
+    rgba(0, 0, 0, 0.04) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 100%
   );
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
@@ -245,7 +245,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 4px;
 }
 
@@ -262,7 +262,7 @@
 /* Firefox scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(192, 139, 92, 0.4) rgba(255, 255, 255, 0.05);
+  scrollbar-color: rgba(192, 139, 92, 0.4) rgba(0, 0, 0, 0.04);
 }
 
 /* ============================================================================
@@ -322,21 +322,21 @@
    ============================================================================ */
 
 .card-ai {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.70);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 1rem;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-ai:hover {
   transform: translateY(-4px);
   box-shadow: 
-    0 12px 40px rgba(192, 139, 92, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 12px 40px rgba(192, 139, 92, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   border-color: rgba(192, 139, 92, 0.25);
 }
 
@@ -372,13 +372,4 @@
   }
 }
 
-/* ============================================================================
-   DARK MODE SUPPORT (already in dark mode, but adding for completeness)
-   ============================================================================ */
-
-@media (prefers-color-scheme: light) {
-  :root {
-    /* Light mode overrides if needed */
-    /* Currently designed for dark mode only */
-  }
-}
+/* Light peach-cream theme -- no dark mode support needed */

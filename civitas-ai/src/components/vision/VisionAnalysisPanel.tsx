@@ -134,14 +134,14 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 16, scale: 0.97 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="mx-4 mt-3 rounded-2xl border border-white/[0.08] bg-[#0c0c0c]/95 backdrop-blur-2xl overflow-hidden shadow-2xl"
+      className="mx-4 mt-3 rounded-2xl border border-black/[0.08] bg-surface/95 backdrop-blur-2xl overflow-hidden shadow-2xl"
     >
       {/* ── Loading State ── */}
       {isAnalyzing && (
         <div className="p-6">
           <div className="flex items-center gap-4">
             {/* Image preview */}
-            <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10 shrink-0 relative">
+            <div className="w-20 h-20 rounded-xl overflow-hidden border border-black/8 shrink-0 relative">
               <img src={previewUrl} alt="Property" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                 <div className="w-8 h-8 rounded-full border-2 border-[#C08B5C] border-t-transparent animate-spin" />
@@ -151,10 +151,10 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4 text-[#C08B5C]" />
-                <span className="text-sm font-semibold text-white">Property Diagnosis</span>
+                <span className="text-sm font-semibold text-foreground">Property Diagnosis</span>
               </div>
-              <p className="text-xs text-white/50">{analysisStage}</p>
-              <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
+              <p className="text-xs text-muted-foreground">{analysisStage}</p>
+              <div className="h-1 rounded-full bg-black/[0.05] overflow-hidden">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-[#C08B5C] to-[#C08B5C]/60"
                   initial={{ width: '5%' }}
@@ -164,7 +164,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
               </div>
             </div>
 
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors self-start">
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/8 text-muted-foreground/50 hover:text-muted-foreground transition-colors self-start">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -178,16 +178,16 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
             <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-medium text-red-400">Diagnosis Failed</p>
-              <p className="text-xs text-white/40 mt-1">{error}</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">{error}</p>
               <button
                 onClick={handleRetry}
-                className="mt-3 px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.10] text-white/70 text-xs font-medium transition-all flex items-center gap-1.5"
+                className="mt-3 px-3 py-1.5 rounded-lg bg-black/[0.05] hover:bg-black/[0.07] text-foreground/70 text-xs font-medium transition-all flex items-center gap-1.5"
               >
                 <RotateCcw className="w-3 h-3" />
                 Retry Analysis
               </button>
             </div>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors">
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/8 text-muted-foreground/50 hover:text-muted-foreground transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -205,7 +205,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/60 to-transparent" />
 
               {/* Close button */}
-              <button onClick={onClose} className="absolute top-3 right-3 p-1.5 rounded-lg bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors z-10">
+              <button onClick={onClose} className="absolute top-3 right-3 p-1.5 rounded-lg bg-black/50 hover:bg-black/70 text-muted-foreground hover:text-foreground transition-colors z-10">
                 <X className="w-4 h-4" />
               </button>
 
@@ -220,7 +220,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
                 </div>
 
                 {result.room_type && result.room_type !== 'auto' && (
-                  <span className="text-xs text-white/40 mb-1 capitalize">
+                  <span className="text-xs text-muted-foreground/70 mb-1 capitalize">
                     {result.room_type.replace('_', ' ')}
                   </span>
                 )}
@@ -231,7 +231,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
           {/* Content */}
           <div className="px-4 pb-4 pt-2 space-y-3.5">
             {/* Summary */}
-            <p className="text-[13px] text-white/70 leading-relaxed">{result.summary}</p>
+            <p className="text-[13px] text-foreground/70 leading-relaxed">{result.summary}</p>
 
             {/* ── Renovation Cost Tiers ── */}
             {hasValidCosts && (
@@ -284,15 +284,15 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
                           premium_upgrade: 'text-violet-400/50',
                         };
                         return (
-                          <div key={tier} className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
-                            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-2 ${tierColors[tier] || 'text-white/40'}`}>
+                          <div key={tier} className="rounded-xl border border-black/[0.05] bg-black/[0.02] p-3">
+                            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-2 ${tierColors[tier] || 'text-muted-foreground/70'}`}>
                               {tier.replace(/_/g, ' ')}
                             </p>
                             <div className="space-y-1.5">
                               {tierData.breakdown.map((item: any, idx: number) => (
                                 <div key={idx} className="flex items-center justify-between text-xs">
-                                  <span className="text-white/50">{item.category || item.description}</span>
-                                  <span className="text-white/70 font-medium tabular-nums">${(item.cost || 0).toLocaleString()}</span>
+                                  <span className="text-muted-foreground">{item.category || item.description}</span>
+                                  <span className="text-foreground/70 font-medium tabular-nums">${(item.cost || 0).toLocaleString()}</span>
                                 </div>
                               ))}
                             </div>
@@ -310,7 +310,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
               <div className="space-y-2">
                 <button
                   onClick={() => setShowIssues(!showIssues)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-white/50 hover:text-white/70 transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground/70 transition-colors"
                 >
                   <Shield className="w-3.5 h-3.5" />
                   {allIssues.length} Issue{allIssues.length !== 1 ? 's' : ''} Detected
@@ -332,8 +332,8 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
                               : issue.type === 'structural' ? 'bg-orange-400'
                                 : 'bg-amber-400'
                           }`} />
-                          <span className="text-white/50">
-                            <span className="text-white/70 font-medium capitalize">{issue.type}: </span>
+                          <span className="text-muted-foreground">
+                            <span className="text-foreground/70 font-medium capitalize">{issue.type}: </span>
                             {typeof issue === 'string' ? issue : (issue.description || issue.issue || JSON.stringify(issue))}
                           </span>
                         </div>
@@ -347,7 +347,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
             {/* ── Recommendations ── */}
             {result.recommendations && result.recommendations.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-white/40 uppercase tracking-wider flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
                   <Wrench className="w-3.5 h-3.5" />
                   Action Items
                 </p>
@@ -362,9 +362,9 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
                             : 'bg-emerald-400'
                       }`} />
                       <div className="flex-1">
-                        <span className="text-white/60">{rec.action}</span>
+                        <span className="text-muted-foreground">{rec.action}</span>
                         {rec.estimated_cost > 0 && (
-                          <span className="text-white/30 ml-1 tabular-nums">(~${rec.estimated_cost.toLocaleString()})</span>
+                          <span className="text-muted-foreground/50 ml-1 tabular-nums">(~${rec.estimated_cost.toLocaleString()})</span>
                         )}
                       </div>
                     </div>
@@ -375,7 +375,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
 
             {/* ── Investment Metrics ── */}
             {result.investment_metrics && (
-              <div className="pt-2 border-t border-white/[0.05] space-y-3">
+              <div className="pt-2 border-t border-black/[0.05] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5 text-[#C08B5C]" />
@@ -397,39 +397,39 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
                   <div className="p-2.5 rounded-xl bg-[#C08B5C]/[0.07] border border-[#C08B5C]/15 text-center">
                     <p className="text-[10px] font-semibold text-[#C08B5C]/60 uppercase tracking-wider">Deal Score</p>
                     <p className="text-lg font-bold text-[#C08B5C] mt-0.5">{result.investment_metrics.deal_score}</p>
-                    <p className="text-[10px] text-white/30">/ 100</p>
+                    <p className="text-[10px] text-muted-foreground/50">/ 100</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center">
-                    <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">Strategy</p>
-                    <p className="text-sm font-bold text-white/80 mt-0.5 capitalize">
+                  <div className="p-2.5 rounded-xl bg-black/[0.02] border border-black/[0.06] text-center">
+                    <p className="text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Strategy</p>
+                    <p className="text-sm font-bold text-foreground/80 mt-0.5 capitalize">
                       {result.investment_metrics.recommended_strategy.replace(/-/g, ' ')}
                     </p>
-                    <p className="text-[10px] text-white/30">Recommended</p>
+                    <p className="text-[10px] text-muted-foreground/50">Recommended</p>
                   </div>
                 </div>
 
                 {/* Metrics grid */}
                 <div className="grid grid-cols-3 gap-1.5">
-                  <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                    <p className="text-[9px] font-semibold text-white/30 uppercase">Value-Add</p>
-                    <p className="text-xs font-bold text-white/70 mt-0.5">{result.investment_metrics.value_add_potential_pct}</p>
+                  <div className="p-2 rounded-lg bg-black/[0.02] text-center">
+                    <p className="text-[9px] font-semibold text-muted-foreground/50 uppercase">Value-Add</p>
+                    <p className="text-xs font-bold text-foreground/70 mt-0.5">{result.investment_metrics.value_add_potential_pct}</p>
                   </div>
-                  <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                    <p className="text-[9px] font-semibold text-white/30 uppercase">Rent Upside</p>
-                    <p className="text-xs font-bold text-white/70 mt-0.5">{result.investment_metrics.rental_premium_pct}</p>
+                  <div className="p-2 rounded-lg bg-black/[0.02] text-center">
+                    <p className="text-[9px] font-semibold text-muted-foreground/50 uppercase">Rent Upside</p>
+                    <p className="text-xs font-bold text-foreground/70 mt-0.5">{result.investment_metrics.rental_premium_pct}</p>
                   </div>
-                  <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                    <p className="text-[9px] font-semibold text-white/30 uppercase">BRRRR</p>
+                  <div className="p-2 rounded-lg bg-black/[0.02] text-center">
+                    <p className="text-[9px] font-semibold text-muted-foreground/50 uppercase">BRRRR</p>
                     <p className={`text-xs font-bold mt-0.5 capitalize ${
                       result.investment_metrics.brrrr_viability === 'yes' ? 'text-emerald-400'
                         : result.investment_metrics.brrrr_viability === 'maybe' ? 'text-amber-400'
-                          : 'text-white/40'
+                          : 'text-muted-foreground/70'
                     }`}>{result.investment_metrics.brrrr_viability}</p>
                   </div>
                 </div>
 
                 {/* Strategy reasoning */}
-                <p className="text-xs text-white/40 leading-relaxed">
+                <p className="text-xs text-muted-foreground/70 leading-relaxed">
                   {result.investment_metrics.strategy_reasoning}
                 </p>
               </div>
@@ -437,12 +437,12 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
 
             {/* Fallback investment insight when no investment_metrics */}
             {!result.investment_metrics && hasValidCosts && (
-              <div className="pt-2 border-t border-white/[0.05]">
+              <div className="pt-2 border-t border-black/[0.05]">
                 <div className="flex items-center gap-1.5 mb-2">
                   <TrendingUp className="w-3.5 h-3.5 text-[#C08B5C]" />
                   <span className="text-xs font-semibold text-[#C08B5C]">Investment Insight</span>
                 </div>
-                <p className="text-xs text-white/50 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {overallCondition === 'excellent' || overallCondition === 'good'
                     ? 'This property is in strong condition. Minimal renovation needed — focus on cosmetic upgrades to maximize rental premium.'
                     : overallCondition === 'fair'
@@ -457,7 +457,7 @@ export const VisionAnalysisPanel: React.FC<VisionAnalysisPanelProps> = ({
             <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={handleRetry}
-                className="flex-1 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] text-white/60 text-xs font-medium transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 rounded-xl bg-black/[0.03] hover:bg-black/[0.06] border border-black/[0.06] text-muted-foreground text-xs font-medium transition-all flex items-center justify-center gap-1.5"
               >
                 <RotateCcw className="w-3 h-3" />
                 Re-analyze

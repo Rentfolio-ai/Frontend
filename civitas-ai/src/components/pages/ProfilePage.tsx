@@ -67,23 +67,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
         field: keyof typeof formData;
         type?: string;
     }> = ({ icon: Icon, label, value, field, type = 'text' }) => (
-        <div className="flex items-center gap-4 px-5 py-4 group hover:bg-white/[0.015] transition-colors">
-            <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center flex-shrink-0 group-hover:bg-white/[0.06] transition-colors">
-                <Icon className="w-[18px] h-[18px] text-white/40 group-hover:text-white/60 transition-colors" />
+        <div className="flex items-center gap-4 px-5 py-4 group hover:bg-black/[0.01] transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-black/[0.03] flex items-center justify-center flex-shrink-0 group-hover:bg-black/[0.05] transition-colors">
+                <Icon className="w-[18px] h-[18px] text-muted-foreground/70 group-hover:text-muted-foreground transition-colors" />
             </div>
             <div className="flex-1 min-w-0">
-                <label className="text-[11px] font-medium text-white/35 block mb-1 uppercase tracking-wider">{label}</label>
+                <label className="text-[11px] font-medium text-muted-foreground/60 block mb-1 uppercase tracking-wider">{label}</label>
                 {isEditing ? (
                     <input
                         type={type}
                         value={formData[field]}
                         onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg bg-[#0E0E11] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all placeholder-white/20"
+                        className="w-full px-3 py-2 rounded-lg bg-background border border-black/[0.08] text-sm text-foreground focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all placeholder-muted-foreground/40"
                         placeholder={`Enter your ${label.toLowerCase()}`}
                     />
                 ) : (
-                    <p className="text-[14px] font-medium text-white/85 truncate">
-                        {value || <span className="text-white/20 italic font-normal">Not set</span>}
+                    <p className="text-[14px] font-medium text-foreground/85 truncate">
+                        {value || <span className="text-muted-foreground/40 italic font-normal">Not set</span>}
                     </p>
                 )}
             </div>
@@ -91,17 +91,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
     );
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Profile</h1>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Profile</h1>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -118,7 +118,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                 : isEditing
                                     ? 'bg-[#C08B5C] text-[#0A0A0C] hover:bg-[#D4A27F] shadow-lg shadow-[#C08B5C]/20'
-                                    : 'bg-white/[0.05] text-white/60 hover:bg-white/[0.08] hover:text-white border border-white/[0.06]'
+                                    : 'bg-black/[0.04] text-muted-foreground hover:bg-black/[0.06] hover:text-foreground border border-black/[0.06]'
                         }`}
                     >
                         {isSaving ? (
@@ -151,7 +151,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                     {/* Avatar Card */}
                     <motion.div
                         variants={reveal}
-                        className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-6 md:p-8 overflow-hidden"
+                        className="relative rounded-2xl border border-black/[0.06] bg-black/[0.02] backdrop-blur-sm p-6 md:p-8 overflow-hidden"
                     >
                         {/* Subtle copper glow orb */}
                         <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-[#C08B5C]/[0.04] blur-3xl pointer-events-none" />
@@ -179,19 +179,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
                                         </div>
                                     </div>
                                 )}
-                                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#C08B5C] border-2 border-[#161619] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#C08B5C] border-2 border-border flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                                     <Camera className="w-3.5 h-3.5 text-[#0A0A0C]" />
                                 </div>
                             </div>
 
                             <div className="flex-1">
-                                <h2 className="text-xl font-semibold text-white mb-1">{user?.name || 'User Name'}</h2>
-                                <p className="text-sm text-white/35">{user?.email || 'user@example.com'}</p>
+                                <h2 className="text-xl font-semibold text-foreground mb-1">{user?.name || 'User Name'}</h2>
+                                <p className="text-sm text-muted-foreground/60">{user?.email || 'user@example.com'}</p>
                                 <div className="flex gap-2 mt-3">
                                     <span className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                                         isPro
                                             ? 'bg-[#C08B5C]/10 text-[#D4A27F] border border-[#C08B5C]/20'
-                                            : 'bg-white/[0.04] text-white/35 border border-white/[0.06]'
+                                            : 'bg-black/[0.03] text-muted-foreground/60 border border-black/[0.06]'
                                     }`}>
                                         {isPro ? <Crown className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
                                         {isPro ? 'Pro' : 'Free Plan'}
@@ -206,10 +206,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
 
                     {/* Personal Details */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
                             Personal Details
                         </h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <Field icon={User} label="Full Name" value={formData.name} field="name" />
                             <Field icon={Mail} label="Email Address" value={formData.email} field="email" type="email" />
                             <Field icon={Phone} label="Phone Number" value={formData.phone} field="phone" type="tel" />
@@ -219,20 +219,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onBack }) => {
 
                     {/* Investor Profile Bio */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
                             Investor Profile
                         </h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-5">
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm p-5">
                             {isEditing ? (
                                 <textarea
                                     value={formData.bio}
                                     onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                                     placeholder="Tell us about your investment strategy and goals..."
                                     rows={4}
-                                    className="w-full px-4 py-3 rounded-lg bg-[#0E0E11] border border-white/[0.08] text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
+                                    className="w-full px-4 py-3 rounded-lg bg-background border border-black/[0.08] text-sm text-foreground placeholder-muted-foreground/40 resize-none focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
                                 />
                             ) : (
-                                <p className="text-sm text-white/50 leading-relaxed italic">
+                                <p className="text-sm text-muted-foreground leading-relaxed italic">
                                     {formData.bio || "No bio added yet. Click 'Edit Profile' to share your investment goals."}
                                 </p>
                             )}

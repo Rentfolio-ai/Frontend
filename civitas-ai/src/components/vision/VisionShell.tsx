@@ -48,7 +48,7 @@ const ScanModeToggle: React.FC<{
   mode: ScanSubMode;
   onChange: (mode: ScanSubMode) => void;
 }> = ({ mode, onChange }) => (
-  <div className="relative inline-flex items-center bg-white/[0.04] rounded-full p-0.5 border border-white/[0.04]">
+  <div className="relative inline-flex items-center bg-black/[0.03] rounded-full p-0.5 border border-black/[0.04]">
     {/* Sliding indicator */}
     <motion.div
       className="absolute top-0.5 bottom-0.5 rounded-full bg-violet-500/20 border border-violet-500/15"
@@ -63,7 +63,7 @@ const ScanModeToggle: React.FC<{
     <button
       onClick={() => onChange('quick')}
       className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-        mode === 'quick' ? 'text-violet-300' : 'text-white/30 hover:text-white/50'
+        mode === 'quick' ? 'text-violet-300' : 'text-muted-foreground/50 hover:text-muted-foreground'
       }`}
     >
       <Camera className="w-3.5 h-3.5" />
@@ -72,7 +72,7 @@ const ScanModeToggle: React.FC<{
     <button
       onClick={() => onChange('live')}
       className={`relative z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-        mode === 'live' ? 'text-violet-300' : 'text-white/30 hover:text-white/50'
+        mode === 'live' ? 'text-violet-300' : 'text-muted-foreground/50 hover:text-muted-foreground'
       }`}
     >
       <Zap className="w-3.5 h-3.5" />
@@ -119,13 +119,13 @@ export const VisionShell: React.FC<VisionShellProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="h-full w-full bg-[#0a0a0c] text-white flex flex-col overflow-hidden">
+    <div className="h-full w-full bg-background text-foreground flex flex-col overflow-hidden">
       {/* Scan sub-mode toggle (only visible on scan tab) */}
       {activeMode === 'scan' && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex-shrink-0 flex items-center justify-center py-2 bg-[#0a0a0c] z-10"
+          className="flex-shrink-0 flex items-center justify-center py-2 bg-background z-10"
         >
           <ScanModeToggle mode={scanSubMode} onChange={setScanSubMode} />
         </motion.div>
@@ -149,7 +149,7 @@ export const VisionShell: React.FC<VisionShellProps> = ({ onBack }) => {
 
       {/* ── Bottom Tab Bar ─────────────────────────────────── */}
       <div
-        className="flex-shrink-0 border-t border-white/[0.04] bg-[#0a0a0c]/95 backdrop-blur-2xl z-50"
+        className="flex-shrink-0 border-t border-black/[0.04] bg-background/95 backdrop-blur-2xl z-50"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex justify-around items-center h-[68px] max-w-lg mx-auto px-4">
@@ -164,7 +164,7 @@ export const VisionShell: React.FC<VisionShellProps> = ({ onBack }) => {
                 transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                 onClick={() => setActiveMode(tab.key)}
                 className={`relative flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all duration-200 min-w-[60px] ${
-                  isActive ? 'text-violet-400' : 'text-white/25 hover:text-white/40'
+                  isActive ? 'text-violet-400' : 'text-muted-foreground/50 hover:text-muted-foreground/70'
                 }`}
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
@@ -179,11 +179,11 @@ export const VisionShell: React.FC<VisionShellProps> = ({ onBack }) => {
                 />
 
                 <Icon className={`w-5 h-5 transition-colors duration-200 ${
-                  isActive ? 'text-violet-400' : 'text-white/25'
+                  isActive ? 'text-violet-400' : 'text-muted-foreground/50'
                 }`} />
 
                 <span className={`text-[10px] font-medium tracking-wide transition-colors duration-200 ${
-                  isActive ? 'text-violet-400' : 'text-white/25'
+                  isActive ? 'text-violet-400' : 'text-muted-foreground/50'
                 }`}>
                   {tab.label}
                 </span>

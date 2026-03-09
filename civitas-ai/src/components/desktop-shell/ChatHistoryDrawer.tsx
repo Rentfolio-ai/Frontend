@@ -91,24 +91,24 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                         animate={{ x: 0 }}
                         exit={{ x: -320 }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="absolute top-0 left-[72px] bottom-0 w-80 bg-[#0A0A0A]/95 backdrop-blur-xl border-r border-white/[0.06] z-30 flex flex-col shadow-2xl"
+                        className="absolute top-0 left-[72px] bottom-0 w-80 bg-surface/95 backdrop-blur-xl border-r border-black/[0.06] z-30 flex flex-col shadow-2xl"
                     >
                         {/* Header */}
-                        <div className="h-16 flex items-center justify-between px-6 border-b border-white/[0.06]">
-                            <h2 className="text-sm font-semibold text-white/90 tracking-wide">
+                        <div className="h-16 flex items-center justify-between px-6 border-b border-black/[0.06]">
+                            <h2 className="text-sm font-semibold text-foreground tracking-wide">
                                 {showArchived ? 'Archived Chats' : 'Chat History'}
                             </h2>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setShowArchived(!showArchived)}
-                                    className="text-xs text-white/50 hover:text-white transition-colors flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-white/5"
+                                    className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-black/5"
                                 >
                                     {showArchived ? <ArrowLeft size={12} /> : <Archive size={12} />}
                                     {showArchived ? 'Back' : 'Archive'}
                                 </button>
                                 <button
                                     onClick={onClose}
-                                    className="text-white/50 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5"
+                                    className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-black/5"
                                     title="Close"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,15 +119,15 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                         </div>
 
                         {/* Search */}
-                        <div className="p-4 border-b border-white/[0.03]">
+                        <div className="p-4 border-b border-black/[0.05]">
                             <div className="relative group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-white/80 transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-foreground/80 transition-colors" />
                                 <input
                                     type="text"
                                     placeholder="Search conversations..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-9 pl-9 pr-3 bg-white/5 border border-white/5 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:bg-white/10 focus:border-white/10 transition-all"
+                                    className="w-full h-9 pl-9 pr-3 bg-black/5 border border-black/5 rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:bg-black/8 focus:border-black/8 transition-all"
                                 />
                             </div>
                         </div>
@@ -135,8 +135,8 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                         {/* List */}
                         <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                             {filteredChats.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-48 text-white/30 gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground/50 gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center">
                                         {showArchived ? <Archive size={20} /> : <MessageSquare size={20} />}
                                     </div>
                                     <p className="text-sm">No chats found</p>
@@ -150,25 +150,25 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                                             if (window.innerWidth < 1024) onClose();
                                         }}
                                         className={`group relative p-3 rounded-xl cursor-pointer transition-all duration-200 border border-transparent ${activeChatId === chat.id
-                                            ? 'bg-white/10 border-white/10 shadow-sm'
-                                            : 'hover:bg-white/5 hover:border-white/5'
+                                            ? 'bg-black/8 border-black/8 shadow-sm'
+                                            : 'hover:bg-black/5 hover:border-black/5'
                                             }`}
                                     >
                                         {/* Title & Date */}
                                         <div className="flex justify-between items-start mb-1">
-                                            <h3 className={`text-sm font-medium truncate pr-4 ${activeChatId === chat.id ? 'text-white' : 'text-white/80 group-hover:text-white'
+                                            <h3 className={`text-sm font-medium truncate pr-4 ${activeChatId === chat.id ? 'text-foreground' : 'text-foreground/80 group-hover:text-foreground'
                                                 }`}>
                                                 {chat.title || 'New Conversation'}
                                             </h3>
                                             {chat.isPinned && <Pin size={12} className="text-emerald-400 shrink-0 transform rotate-45" />}
                                         </div>
 
-                                        <p className="text-xs text-white/40 group-hover:text-white/60 truncate transition-colors">
+                                        <p className="text-xs text-muted-foreground/70 group-hover:text-muted-foreground truncate transition-colors">
                                             {chat.messages[chat.messages.length - 1]?.content || 'Empty chat'}
                                         </p>
 
                                         <div className="flex items-center justify-between mt-2.5">
-                                            <span className="text-[10px] text-white/30 font-medium tracking-wide">
+                                            <span className="text-[10px] text-muted-foreground/50 font-medium tracking-wide">
                                                 {formatChatDateCompact(chat.createdAt || new Date().toISOString())}
                                             </span>
 
@@ -179,7 +179,7 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                                                         e.stopPropagation();
                                                         setOpenMenuId(openMenuId === chat.id ? null : chat.id);
                                                     }}
-                                                    className="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                                                    className="p-1.5 rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-black/8 transition-colors"
                                                     title="More options"
                                                 >
                                                     <MoreVertical size={14} />
@@ -194,7 +194,7 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                                             exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                                             transition={{ duration: 0.1 }}
-                                                            className="absolute right-0 top-8 w-40 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                                            className="absolute right-0 top-8 w-40 bg-background border border-black/8 rounded-lg shadow-2xl z-50 overflow-hidden"
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
                                                             <button
@@ -202,7 +202,7 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                                                                     onPinChat(chat.id, e);
                                                                     setOpenMenuId(null);
                                                                 }}
-                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 hover:bg-black/5 transition-colors"
                                                             >
                                                                 <Pin size={14} className={chat.isPinned ? 'text-emerald-400' : ''} />
                                                                 <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
@@ -212,7 +212,7 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                                                                     onArchiveChat(chat.id, e);
                                                                     setOpenMenuId(null);
                                                                 }}
-                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 hover:bg-black/5 transition-colors"
                                                             >
                                                                 <Archive size={14} />
                                                                 <span>{showArchived ? 'Unarchive' : 'Archive'}</span>
@@ -238,9 +238,9 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
                         </div>
 
                         {/* Footer */}
-                        <div className="p-3 border-t border-white/[0.06]">
+                        <div className="p-3 border-t border-black/[0.06]">
                             {/* Could add 'Delete All' or stats here */}
-                            <div className="text-[10px] text-center text-white/30">
+                            <div className="text-[10px] text-center text-muted-foreground/50">
                                 {chatHistory.length} conversations stored locally
                             </div>
                         </div>

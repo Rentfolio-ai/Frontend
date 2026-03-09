@@ -104,7 +104,7 @@ export const CitationBadge: React.FC<CitationBadgeProps> = ({
             transition={{ duration: 0.15 }}
             className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 pointer-events-none"
           >
-            <div className="min-w-[280px] max-w-[400px] p-3 rounded-lg bg-black/95 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <div className="min-w-[280px] max-w-[400px] p-3 rounded-lg bg-black/95 backdrop-blur-xl border border-black/12 shadow-2xl">
               {/* Source info */}
               <div className="flex items-start gap-2 mb-2">
                 <div className="flex-shrink-0 w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center text-blue-400 mt-0.5">
@@ -112,7 +112,7 @@ export const CitationBadge: React.FC<CitationBadgeProps> = ({
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-white/90 line-clamp-2">
+                  <div className="text-xs font-bold text-foreground line-clamp-2">
                     {citation.title}
                   </div>
                   
@@ -134,14 +134,14 @@ export const CitationBadge: React.FC<CitationBadgeProps> = ({
               
               {/* Snippet */}
               {citation.snippet && (
-                <div className="text-[11px] text-white/70 line-clamp-3 leading-relaxed">
+                <div className="text-[11px] text-foreground/70 line-clamp-3 leading-relaxed">
                   {citation.snippet}
                 </div>
               )}
               
               {/* Date */}
               {citation.publishedDate && (
-                <div className="text-[10px] text-white/40 mt-2">
+                <div className="text-[10px] text-muted-foreground/70 mt-2">
                   {new Date(citation.publishedDate).toLocaleDateString()}
                 </div>
               )}
@@ -156,7 +156,7 @@ export const CitationBadge: React.FC<CitationBadgeProps> = ({
             </div>
             
             {/* Tooltip arrow */}
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black/95 border-l border-b border-white/20 rotate-45" />
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black/95 border-l border-b border-black/12 rotate-45" />
           </motion.div>
         )}
       </AnimatePresence>

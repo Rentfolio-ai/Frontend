@@ -118,12 +118,12 @@ const BreakdownBar: React.FC<{
   >
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <span className="text-xs text-white/50">{label}</span>
-        <span className="text-[9px] text-white/15">{weight}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-[9px] text-muted-foreground/40">{weight}</span>
       </div>
-      <span className="text-xs font-semibold text-white/70">{score}</span>
+      <span className="text-xs font-semibold text-foreground/70">{score}</span>
     </div>
-    <div className="w-full h-1 rounded-full bg-white/[0.04] overflow-hidden">
+    <div className="w-full h-1 rounded-full bg-black/[0.03] overflow-hidden">
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${score}%` }}
@@ -151,21 +151,21 @@ const RoomDashCard: React.FC<{
       transition={{ delay: 0.1 + index * 0.05 }}
       whileTap={{ scale: 0.97 }}
       onClick={onTap}
-      className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03] hover:border-white/[0.06] hover:-translate-y-1 transition-all duration-300 text-left"
+      className="bg-card rounded-2xl p-4 border border-black/[0.05] hover:border-black/[0.06] hover:-translate-y-1 transition-all duration-300 text-left"
     >
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="text-lg mb-1">{room.icon}</div>
-          <div className="text-xs font-medium text-white/70">{room.name}</div>
+          <div className="text-xs font-medium text-foreground/70">{room.name}</div>
         </div>
         <ScoreGauge score={dealScore} size={44} strokeWidth={3} showValue={false} animate={true} />
       </div>
 
       <div className="flex items-center justify-between">
-        <span className={`text-[10px] font-medium capitalize ${conditionColors[room.result.condition] || 'text-white/40'}`}>
+        <span className={`text-[10px] font-medium capitalize ${conditionColors[room.result.condition] || 'text-muted-foreground/70'}`}>
           {room.result.condition}
         </span>
-        <span className="text-[10px] text-white/25">
+        <span className="text-[10px] text-muted-foreground/50">
           {issueCount} issue{issueCount !== 1 ? 's' : ''}
         </span>
       </div>
@@ -198,7 +198,7 @@ const RiskHeatmap: React.FC<{
           <div key={room.name} className="flex items-center gap-3">
             <span className="text-sm w-5 text-center">{room.icon}</span>
             <div className="flex-1">
-              <div className="w-full h-3 rounded-full bg-white/[0.03] overflow-hidden">
+              <div className="w-full h-3 rounded-full bg-black/[0.02] overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${intensity * 100}%` }}
@@ -214,7 +214,7 @@ const RiskHeatmap: React.FC<{
                 />
               </div>
             </div>
-            <span className="text-[10px] text-white/30 w-4 text-right">{issues}</span>
+            <span className="text-[10px] text-muted-foreground/50 w-4 text-right">{issues}</span>
           </div>
         );
       })}
@@ -270,14 +270,14 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
   }, [rooms]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#0a0a0c] overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#0a0a0c]/90 backdrop-blur-xl border-b border-white/[0.04] flex-shrink-0 z-10">
-        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-white/35 hover:text-white/60 transition-colors">
+      <div className="flex items-center justify-between px-4 py-3 bg-background/90 backdrop-blur-xl border-b border-black/[0.04] flex-shrink-0 z-10">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground/60 hover:text-muted-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
-        <span className="text-xs text-white/20 font-medium">
+        <span className="text-xs text-muted-foreground/40 font-medium">
           {rooms.length} rooms · {totalIssues} issues
         </span>
       </div>
@@ -288,9 +288,9 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#121216] rounded-2xl p-6 border border-white/[0.03] text-center"
+          className="bg-card rounded-2xl p-6 border border-black/[0.05] text-center"
         >
-          <div className="text-[10px] text-white/25 uppercase tracking-widest font-medium mb-4">
+          <div className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-medium mb-4">
             Property Vision Score
           </div>
           <div className="flex justify-center mb-4">
@@ -309,13 +309,13 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03] space-y-3"
+          className="bg-card rounded-2xl p-4 border border-black/[0.05] space-y-3"
         >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg bg-violet-500/10 flex items-center justify-center">
               <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
             </div>
-            <span className="text-sm font-medium text-white/60">Score Breakdown</span>
+            <span className="text-sm font-medium text-muted-foreground">Score Breakdown</span>
           </div>
           <BreakdownBar label="Deal Score" score={propertyScore?.deal_score ?? Math.round(avgDealScore)} weight="35%" delay={0.1} />
           <BreakdownBar label="Property Health" score={propertyScore?.property_health ?? Math.round(100 - totalIssues * 5)} weight="30%" delay={0.15} />
@@ -328,7 +328,7 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="text-[10px] text-white/25 uppercase tracking-widest font-medium mb-3 px-1">
+          <div className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-medium mb-3 px-1">
             Room by room
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -362,13 +362,13 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+          className="bg-card rounded-2xl p-4 border border-black/[0.05]"
         >
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center">
               <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
             </div>
-            <span className="text-sm font-medium text-white/60">Risk Assessment</span>
+            <span className="text-sm font-medium text-muted-foreground">Risk Assessment</span>
           </div>
           <RiskHeatmap rooms={rooms} />
         </motion.div>
@@ -378,13 +378,13 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="bg-[#121216] rounded-2xl p-4 border border-white/[0.03]"
+          className="bg-card rounded-2xl p-4 border border-black/[0.05]"
         >
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
               <Clock className="w-3.5 h-3.5 text-blue-400" />
             </div>
-            <span className="text-sm font-medium text-white/60">Estimated Timeline</span>
+            <span className="text-sm font-medium text-muted-foreground">Estimated Timeline</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex-1 space-y-2">
@@ -395,10 +395,10 @@ export const PropertyDashboard: React.FC<PropertyDashboardProps> = ({
               ].map((phase, i) => (
                 <div key={phase.label} className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-white/30">{phase.label}</span>
-                    <span className="text-[10px] text-white/20">{phase.weeks}w</span>
+                    <span className="text-[10px] text-muted-foreground/50">{phase.label}</span>
+                    <span className="text-[10px] text-muted-foreground/40">{phase.weeks}w</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-white/[0.03] overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full bg-black/[0.02] overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min(100, phase.weeks * 8)}%` }}

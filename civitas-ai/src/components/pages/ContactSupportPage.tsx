@@ -27,10 +27,10 @@ interface ContactSupportPageProps {
 // ── Reason chips — what the user is filing about ──────────────────────────────
 
 const REASONS = [
-    { key: 'broken', label: 'Something is broken', icon: Bug, color: 'text-white/70', bg: 'bg-white/[0.05]' },
-    { key: 'bad_response', label: 'Bad AI response', icon: ThumbsDown, color: 'text-white/70', bg: 'bg-white/[0.05]' },
-    { key: 'confusing', label: 'Confusing / hard to use', icon: Frown, color: 'text-white/70', bg: 'bg-white/[0.05]' },
-    { key: 'other', label: 'Other feedback', icon: HelpCircle, color: 'text-white/70', bg: 'bg-white/[0.05]' },
+    { key: 'broken', label: 'Something is broken', icon: Bug, color: 'text-foreground/70', bg: 'bg-black/[0.04]' },
+    { key: 'bad_response', label: 'Bad AI response', icon: ThumbsDown, color: 'text-foreground/70', bg: 'bg-black/[0.04]' },
+    { key: 'confusing', label: 'Confusing / hard to use', icon: Frown, color: 'text-foreground/70', bg: 'bg-black/[0.04]' },
+    { key: 'other', label: 'Other feedback', icon: HelpCircle, color: 'text-foreground/70', bg: 'bg-black/[0.04]' },
 ] as const;
 
 type ReasonKey = typeof REASONS[number]['key'];
@@ -88,18 +88,18 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
     };
 
     return (
-        <div className="h-full flex flex-col bg-[#0C0C0E]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.08]">
+            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-black/[0.08]">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-lg bg-black/[0.04] hover:bg-black/[0.06] flex items-center justify-center transition-colors"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/60" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground" />
                 </button>
                 <div>
-                    <h1 className="text-lg font-semibold text-white/90">Send Feedback</h1>
-                    <p className="text-[11px] text-white/35">Let us know what's wrong or what could be better</p>
+                    <h1 className="text-lg font-semibold text-foreground">Send Feedback</h1>
+                    <p className="text-[11px] text-muted-foreground/60">Let us know what's wrong or what could be better</p>
                 </div>
             </div>
 
@@ -120,7 +120,7 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                                 </div>
                                 <div>
                                     <h3 className="text-[13px] font-medium text-emerald-300">Thanks for your feedback!</h3>
-                                    <p className="text-[11px] text-white/40">
+                                    <p className="text-[11px] text-muted-foreground/70">
                                         Our team has been notified and a ticket has been created.
                                     </p>
                                 </div>
@@ -130,7 +130,7 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
 
                     {/* ── What happened? ── */}
                     <div>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2.5 px-1">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-2.5 px-1">
                             What happened?
                         </h2>
                         <div className="grid grid-cols-2 gap-2">
@@ -143,13 +143,13 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                                         onClick={() => setReason(r.key)}
                                         className={`flex items-center gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${isActive
                                                 ? 'border-[#C08B5C]/30 bg-[#C08B5C]/[0.06]'
-                                                : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
+                                                : 'border-black/[0.06] bg-black/[0.02] hover:bg-black/[0.03]'
                                             }`}
                                     >
                                         <div className={`w-8 h-8 rounded-lg ${r.bg} flex items-center justify-center flex-shrink-0`}>
                                             <Icon className={`w-4 h-4 ${r.color}`} />
                                         </div>
-                                        <span className="text-[12px] font-medium text-white/75">{r.label}</span>
+                                        <span className="text-[12px] font-medium text-foreground/75">{r.label}</span>
                                     </button>
                                 );
                             })}
@@ -159,7 +159,7 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                     {/* ── Message ── */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5 px-1">
+                            <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-1.5 px-1">
                                 Tell us more
                             </h2>
                             <textarea
@@ -177,9 +177,9 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                                 rows={5}
                                 maxLength={5000}
                                 required
-                                className="w-full px-3.5 py-2.5 bg-white/[0.06] border border-white/[0.08] rounded-xl text-[13px] text-white/85 placeholder-white/25 focus:outline-none focus:border-[#C08B5C]/30 transition-colors resize-none leading-relaxed"
+                                className="w-full px-3.5 py-2.5 bg-black/[0.05] border border-black/[0.08] rounded-xl text-[13px] text-foreground/85 placeholder:text-muted-foreground/50 focus:outline-none focus:border-[#C08B5C]/30 transition-colors resize-none leading-relaxed"
                             />
-                            <p className="text-[10px] text-white/20 text-right mt-1 px-1">
+                            <p className="text-[10px] text-muted-foreground/40 text-right mt-1 px-1">
                                 {message.length}/5000
                             </p>
                         </div>
@@ -197,7 +197,7 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                             type="submit"
                             disabled={submitting || !message.trim()}
                             className={`w-full py-2.5 rounded-xl text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${submitting || !message.trim()
-                                    ? 'bg-white/[0.06] text-white/30 cursor-not-allowed'
+                                    ? 'bg-black/[0.05] text-muted-foreground/50 cursor-not-allowed'
                                     : 'bg-[#C08B5C] text-white hover:bg-[#A8734A]'
                                 }`}
                         >
@@ -214,7 +214,7 @@ export const ContactSupportPage: React.FC<ContactSupportPageProps> = ({ onBack }
                             )}
                         </button>
 
-                        <p className="text-[10px] text-center text-white/20">
+                        <p className="text-[10px] text-center text-muted-foreground/40">
                             Your feedback creates a tracked issue for our team.
                             We'll follow up if needed.
                         </p>

@@ -22,7 +22,7 @@ export const AgentModeSelector: React.FC<AgentModeSelectorProps> = ({
 
     return (
         <div className="absolute top-4 left-0 right-0 z-10 flex justify-center pointer-events-none">
-            <div className="bg-black/40 backdrop-blur-md p-0.5 rounded-full border border-white/10 pointer-events-auto flex gap-0.5">
+            <div className="bg-black/40 backdrop-blur-md p-0.5 rounded-full border border-black/8 pointer-events-auto flex gap-0.5">
                 {modes.map(mode => (
                     <button
                         key={mode.id}
@@ -32,8 +32,8 @@ export const AgentModeSelector: React.FC<AgentModeSelectorProps> = ({
                             ? mode.id === 'hunter' ? 'bg-[#C08B5C]/15 text-[#D4A27F] shadow-lg border border-[#C08B5C]/20' :
                                 mode.id === 'research' ? 'bg-blue-400/15 text-blue-300 shadow-lg border border-blue-400/20' :
                                     mode.id === 'strategist' ? 'bg-purple-400/15 text-purple-300 shadow-lg border border-purple-400/20' :
-                                        'bg-white/10 text-white shadow-lg border border-white/10'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                                        'bg-black/8 text-foreground shadow-lg border border-black/8'
+                            : 'text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/5'
                             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title={mode.description}
                     >

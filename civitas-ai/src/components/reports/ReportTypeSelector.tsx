@@ -76,8 +76,8 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
                 isSelected
                   ? 'bg-violet-500/15 text-violet-300 border-violet-500/25'
                   : isInferred
-                  ? 'bg-white/[0.06] text-white/60 border-violet-500/15'
-                  : 'bg-white/[0.03] text-white/40 border-white/[0.06] hover:bg-white/[0.05] hover:text-white/55',
+                  ? 'bg-black/[0.05] text-muted-foreground border-violet-500/15'
+                  : 'bg-black/[0.02] text-muted-foreground/70 border-black/[0.06] hover:bg-black/[0.04] hover:text-foreground/55',
                 disabled && 'opacity-40 cursor-not-allowed'
               )}
             >
@@ -99,9 +99,9 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-[12px] font-medium text-white/60">Report Type</label>
+        <label className="text-[12px] font-medium text-muted-foreground">Report Type</label>
         {inferredType && !selectedType && (
-          <span className="text-[10px] text-white/30">
+          <span className="text-[10px] text-muted-foreground/50">
             Auto-detected: {REPORT_TYPE_OPTIONS.find(o => o.value === inferredType)?.label}
           </span>
         )}
@@ -113,7 +113,7 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
 
         return (
           <div key={group}>
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-white/20 mb-2 block">
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/40 mb-2 block">
               {GROUP_LABELS[group]}
             </span>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
@@ -133,8 +133,8 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
                       isSelected
                         ? 'bg-violet-500/10 border-violet-500/25 shadow-sm shadow-violet-500/5'
                         : isInferred
-                        ? 'bg-white/[0.03] border-violet-500/15'
-                        : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04] hover:border-white/[0.08]',
+                        ? 'bg-black/[0.02] border-violet-500/15'
+                        : 'bg-black/[0.02] border-black/[0.06] hover:bg-black/[0.03] hover:border-black/[0.08]',
                       disabled && 'opacity-40 cursor-not-allowed'
                     )}
                   >
@@ -156,13 +156,13 @@ export const ReportTypeSelector: React.FC<ReportTypeSelectorProps> = ({
 
                     <div className={cn(
                       'p-1.5 rounded-lg flex-shrink-0',
-                      isSelected ? 'bg-violet-500/20' : 'bg-white/[0.04]'
+                      isSelected ? 'bg-violet-500/20' : 'bg-black/[0.03]'
                     )}>
                       <span className={option.color}>{option.icon}</span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[12px] font-medium text-white/80">{option.label}</p>
-                      <p className="text-[10px] text-white/30 mt-0.5 leading-tight">{option.description}</p>
+                      <p className="text-[12px] font-medium text-foreground/80">{option.label}</p>
+                      <p className="text-[10px] text-muted-foreground/50 mt-0.5 leading-tight">{option.description}</p>
                     </div>
                   </motion.button>
                 );

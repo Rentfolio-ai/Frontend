@@ -30,6 +30,7 @@ import { ReportsPage } from '../components/reports/ReportsPage';
 import { CommandCenterChatView } from '../components/desktop-shell/CommandCenterChatView';
 import { SimpleSidebar } from '../components/desktop-shell/SimpleSidebar';
 import { CommandSearch } from '../components/desktop-shell/CommandSearch';
+import { FloatingAIChat } from '../components/common/FloatingAIChat';
 import { PropertyAnalysisPage } from '../components/pages/PropertyAnalysisPage';
 import { DealAnalyzerDrawer } from '../components/analysis';
 import { ReportDrawer } from '../components/reports';
@@ -38,6 +39,7 @@ import { useSubscription } from '../hooks/useSubscription';
 import { OnboardingTour } from '../components/onboarding';
 import { hasCompletedOnboarding } from '../services/onboardingApi';
 import type { ScoutedProperty } from '../types/backendTools';
+import type { PageContextData } from '../types/chat';
 import { FilesPage } from '../components/files/FilesPage';
 import { SettingsPage } from '../components/pages/SettingsPage';
 import { HelpPopup } from '../components/help/HelpPopup';
@@ -58,6 +60,10 @@ import { subscriptionService } from '../services/subscriptionService';
 import { HomePage } from '../components/home/HomePage';
 import { DealsPage } from '../components/deals/DealsPage';
 import { TeamsPage } from '../components/teams/TeamsPage';
+import { InboxPage } from '../components/inbox/InboxPage';
+import { useAutopilotWand } from '../hooks/useAutopilotWand';
+import { useAppStateBridge } from '../hooks/useAppStateBridge';
+import { WandCursorOverlay } from '../components/wand/WandCursorOverlay';
 
 interface DesktopShellProps {
   children?: React.ReactNode;
@@ -115,6 +121,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     openDealAnalyzer,
     closeDealAnalyzer,
     reportDrawer,
+    openReportDrawer: _openReportDrawer,
     closeReportDrawer,
     generateReportWithType,
     reportBilling,
@@ -128,6 +135,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     reasoningText,
     thinkingQueue,
     activeModelLabel,
+    reasoningEffort,
     handleRegenerate,
     activeProperty,
     handleViewPropertyDetails,
@@ -194,6 +202,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
 
   const { selectedState } = useThemeState();
 
+  // Track focused block/item for contextual AI (Notion-style)
+  const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
+
   // Track scroll direction for hamburger button visibility
   const [isScrollingDown, setIsScrollingDown] = useState(false);
 
@@ -241,11 +252,61 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     findMatchingBookmark,
   } = usePropertyBookmarks();
 
-  // Saved reports - now fetches from backend API
+  // Saved reports - now fetches from backend API (must be above wand hook)
   const {
     reports: savedReports,
     refreshReports,
   } = useSavedReports();
+
+  // App State Bridge for Wand
+  const { getSnapshot, getUserPreferences } = useAppStateBridge({
+    activeTab,
+    currentMode,
+    isStreaming: isLoading,
+    messages,
+    bookmarkCount: bookmarks.length,
+    reportsCount: savedReports.length,
+  });
+
+  // Wand: readDeals — summarize bookmarks as deals
+  const wandReadDeals = useCallback(() => {
+    const pipeline = { active: 0, under_contract: 0, closed: 0, lost: 0 };
+    const deals = bookmarks.map(b => {
+      const s = b.dealStatus || 'active';
+      if (s in pipeline) pipeline[s as keyof typeof pipeline]++;
+      return { name: b.displayName, price: b.property.price || 0, status: s };
+    });
+    return { total: bookmarks.length, ...pipeline, deals };
+  }, [bookmarks]);
+
+  // Wand: readPortfolio — surface portfolio dashboard metrics
+  const wandReadPortfolio = useCallback(() => {
+    return { totalValue: 0, cashflow: 0, capRate: 0, propertyCount: bookmarks.length };
+  }, [bookmarks]);
+
+  // Autopilot Wand — chat-only (no direct API calls)
+  const { wand: wandState, activateWand, deactivateWand } = useAutopilotWand({
+    userId: user?.id || user?.email || 'dev-user-123',
+    mode: currentMode,
+    sendMessage: sendMessageWithStream,
+    setActiveTab,
+    setCurrentMode,
+    handleNewChat,
+    isStreaming: isLoading,
+    messages,
+    bookmarkCount: bookmarks.length,
+    getSnapshot,
+    getUserPreferences,
+    // Tier 4: Read local state
+    readDeals: wandReadDeals,
+    readPortfolio: wandReadPortfolio,
+    savedReports: savedReports.map(r => ({
+      report_id: r.report_id || '',
+      property_address: r.property_address || '',
+      recommendation: r.recommendation || '',
+      report_type: r.report_type || '',
+    })),
+  });
 
   // Toggle bookmark handler
   const handleToggleBookmark = useCallback((property: ScoutedProperty) => {
@@ -364,6 +425,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
       if (tab === 'reports') targetTab = 'reports';
       else if (tab === 'chat') targetTab = 'chat';
       else if (tab === 'deals') targetTab = 'deals';
+      else if (tab === 'inbox') targetTab = 'inbox';
       else if (tab === 'home') targetTab = 'home';
       setActiveTab(targetTab);
     };
@@ -372,11 +434,75 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
     return () => window.removeEventListener('navigate-to-tab', handleNavigate as EventListener);
   }, [setActiveTab]);
 
+  // Listen for block-level focus events for contextual AI
+  useEffect(() => {
+    const handleFocusItem = (event: CustomEvent) => {
+      const { id } = event.detail as { id: string | null };
+      setFocusedItemId(id);
+    };
+
+    window.addEventListener('set-focus-item', handleFocusItem as EventListener);
+    return () => window.removeEventListener('set-focus-item', handleFocusItem as EventListener);
+  }, []);
+
   // Navigation menu items - Always include Property Analysis
 
+  // Build rich context payload for the global floating AI chat
+  const buildPageContext = (): PageContextData => {
+    let data: Record<string, unknown> = {};
+    switch (activeTab) {
+      case 'home':
+        data = { pipelineStats: dealsPipeline };
+        break;
+      case 'deals':
+        data = { bookmarkedDeals: bookmarks };
+        break;
+      case 'analysis':
+        data = { activeProperty: activeProperty };
+        break;
+      case 'portfolio':
+        data = {
+          totalProperties: bookmarks.length,
+          dealsPipeline,
+          topStatus: Object.entries(dealsPipeline)
+            .filter(([k]) => k !== 'total')
+            .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0] || 'none',
+        };
+        break;
+      case 'marketplace':
+        data = {
+          summary: 'User is browsing the marketplace for off-market and listed properties.',
+        };
+        break;
+      case 'reports':
+        data = {
+          totalReports: savedReports.length,
+          buySignals: reportsSummary.buySignals,
+          recentReports: savedReports.slice(0, 5).map(r => ({
+            title: r.property_address || 'Untitled',
+            date: r.created_at,
+            recommendation: r.recommendation,
+          })),
+        };
+        break;
+      case 'teams':
+        data = {
+          partnerCount: teamsSummary.partnerCount,
+          sharedProperties: teamsSummary.sharedProperties,
+          unreadMessages: teamsSummary.unreadMessages,
+        };
+        break;
+    }
+
+    return {
+      page: activeTab,
+      focusedItemId: focusedItemId || undefined,
+      data,
+    };
+  };
 
   return (
-    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: '#1e1e22' }}>
+    <div className="h-screen w-full relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--background))' }}>
       {/* Simple Left Sidebar with integrated chat history */}
       <SimpleSidebar
         onNewChat={() => {
@@ -386,6 +512,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
         onHomeClick={() => setActiveTab('home')}
         onDealsClick={() => setActiveTab('deals')}
         onTeamsClick={() => setActiveTab('teams')}
+        onInboxClick={() => setActiveTab('inbox')}
         onChatClick={() => { handleNewChat(); setActiveTab('chat'); }}
         onMarketplaceClick={() => setActiveTab('marketplace')}
         onAnalyticsClick={() => setActiveTab('portfolio')}
@@ -465,6 +592,11 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                 <TeamsPage onBack={() => setActiveTab('home')} />
               </ErrorBoundary>
             )}
+            {activeTab === 'inbox' && (
+              <ErrorBoundary pageName="Inbox">
+                <InboxPage onBack={() => setActiveTab('home')} />
+              </ErrorBoundary>
+            )}
             {activeTab === 'chat' && (() => {
               const activeChat = chatHistory.find(c => c.id === activeChatId);
               return (
@@ -497,6 +629,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   nativeThinkingText={nativeThinkingText}
                   reasoningText={reasoningText}
                   activeModelLabel={activeModelLabel}
+                  reasoningEffort={reasoningEffort}
                   onRefresh={handleRegenerate}
                   onViewDetails={handleViewPropertyDetails}
                   onCancel={cancelStream}
@@ -530,6 +663,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
                   onOpenIntegrations={() => setShowIntegrationsPopup(true)}
                   onSendComplete={handleSendComplete}
                   onBuyTokenPack={handleBuyTokenPack}
+                  wandState={wandState}
+                  onActivateWand={activateWand}
+                  onDeactivateWand={deactivateWand}
                 />
               );
             })()}
@@ -721,8 +857,51 @@ export const DesktopShell: React.FC<DesktopShellProps> = () => {
           onClose={() => setShowIntegrationsPopup(false)}
         />
 
+
+        {/* Universal Floating AI Chat for Non-Chat Pages */}
+        {activeTab !== 'chat' && (
+          <FloatingAIChat
+            pageContext={buildPageContext()}
+            onExpandToFullChat={(query) => {
+              setActiveTab('chat');
+              if (query) {
+                setTimeout(() => sendMessageWithStream(query), 300);
+              }
+            }}
+            messages={messages}
+            isStreaming={isLoading}
+            thinking={thinking}
+            error={streamError}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            onSendMessage={sendMessageWithStream}
+            onNewChat={handleNewChat}
+            completedTools={completedTools}
+            thinkingSteps={thinkingQueue?.steps}
+            thinkingIsActive={thinkingQueue?.isActive}
+            thinkingIsDone={thinkingQueue?.isDone}
+            thinkingElapsed={thinkingQueue?.elapsedSeconds}
+            nativeThinkingText={nativeThinkingText}
+            reasoningText={reasoningText}
+            onAction={handleAction}
+          />
+        )}
+
         {/* Floating Search Button */}
       </div>
+
+      {/* Wand Cursor Overlay — rendered at root level to float over entire app */}
+      {wandState.isActive && (
+        <WandCursorOverlay
+          targetElementId={wandState.targetElementId}
+          actionLabel={wandState.statusText}
+          status={wandState.status}
+          isVisible={wandState.isActive}
+          confidence={wandState.confidence}
+          currentStep={wandState.currentStep}
+          estimatedTotal={wandState.estimatedTotal}
+        />
+      )}
     </div>
   );
 };

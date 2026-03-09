@@ -91,21 +91,21 @@ export const PropertySearchLayout: React.FC<PropertySearchLayoutProps> = ({
             onClick={() => setMapExpanded(!mapExpanded)}
             className={cn(
               'flex items-center gap-2.5 w-full px-4 py-2.5 text-[12px] font-medium transition-all',
-              'bg-[#1A1920]/50 border border-white/[0.08] hover:bg-[#1A1920]/70',
+              'bg-background/50 border border-black/[0.08] hover:bg-background/70',
               mapExpanded ? 'rounded-t-2xl' : 'rounded-2xl',
             )}
           >
-            <MapIcon className="w-4 h-4 text-white/35" />
-            <span className="text-white/50">
+            <MapIcon className="w-4 h-4 text-muted-foreground/60" />
+            <span className="text-muted-foreground">
               {mapExpanded ? 'Hide Map' : 'View on Map'}
             </span>
-            <span className="text-white/20 text-[10px]">
+            <span className="text-muted-foreground/40 text-[10px]">
               {mappableCount} pins
             </span>
             <div className="flex-1" />
             {mapExpanded
-              ? <ChevronUp className="w-3.5 h-3.5 text-white/25" />
-              : <ChevronDown className="w-3.5 h-3.5 text-white/25" />
+              ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground/50" />
+              : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/50" />
             }
           </button>
 

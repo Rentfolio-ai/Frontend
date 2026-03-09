@@ -40,23 +40,23 @@ export const PersonaPickerModal: React.FC<PersonaPickerModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="relative w-full max-w-lg mx-4 bg-[#111] border border-white/[0.08] rounded-2xl shadow-2xl p-6"
+            className="relative w-full max-w-lg mx-4 bg-background border border-black/[0.08] rounded-2xl shadow-2xl p-6"
             onClick={e => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/[0.05] hover:bg-white/[0.10] text-white/40 hover:text-white transition-all"
+              className="absolute top-4 right-4 p-2 rounded-full bg-black/[0.04] hover:bg-black/[0.07] text-muted-foreground/70 hover:text-foreground transition-all"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Header */}
             <div className="mb-6 text-center">
-              <h2 className="text-white/90 text-lg font-semibold tracking-tight">
+              <h2 className="text-foreground text-lg font-semibold tracking-tight">
                 Choose your advisor
               </h2>
-              <p className="text-white/35 text-[13px] mt-1">
+              <p className="text-muted-foreground/60 text-[13px] mt-1">
                 Each advisor brings a distinct perspective and expertise
               </p>
             </div>
@@ -81,7 +81,7 @@ export const PersonaPickerModal: React.FC<PersonaPickerModalProps> = ({
                     className={`relative flex items-start gap-3 p-3.5 rounded-xl text-left transition-all border overflow-hidden ${
                       isSelected
                         ? 'border-opacity-40'
-                        : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.10]'
+                        : 'bg-black/[0.02] border-black/[0.06] hover:bg-black/[0.04] hover:border-black/[0.08]'
                     }`}
                     style={
                       isSelected
@@ -115,7 +115,7 @@ export const PersonaPickerModal: React.FC<PersonaPickerModalProps> = ({
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm font-semibold text-foreground">
                           {persona.name}
                         </span>
                         {isSelected && (
@@ -125,10 +125,10 @@ export const PersonaPickerModal: React.FC<PersonaPickerModalProps> = ({
                           />
                         )}
                       </div>
-                      <span className="text-[11px] text-white/30 font-medium uppercase tracking-wider">
+                      <span className="text-[11px] text-muted-foreground/50 font-medium uppercase tracking-wider">
                         {persona.tagline}
                       </span>
-                      <p className="text-xs text-white/40 mt-1 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed line-clamp-2">
                         {persona.description}
                       </p>
 

@@ -264,6 +264,12 @@ export interface StreamModeSuggestionEvent {
   auto_query?: string;
 }
 
+export interface StreamModeHintEvent extends StreamEventBase {
+  type: 'mode_hint';
+  suggested_mode: 'hunter' | 'research' | 'strategist';
+  reason: string;
+}
+
 export interface StreamModeSwitchedEvent {
   type: 'mode_switched';
   from_mode: 'hunter' | 'research' | 'strategist';
@@ -376,6 +382,7 @@ export type StreamEvent =
   | StreamToolsBatchStartEvent
   | StreamToolResultEvent
   | StreamInlineActionsEvent
+  | StreamModeHintEvent
   | StreamModeSuggestionEvent
   | StreamModeSwitchedEvent;
 

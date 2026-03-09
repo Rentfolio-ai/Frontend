@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, MessageSquare, Phone, Mail, MapPin } from 'lucide-react';
+import { Star, MessageSquare, Phone, Mail } from 'lucide-react';
 import type { Professional } from './marketplaceData';
 
 interface ProfessionalCardProps {
@@ -16,122 +16,125 @@ interface ProfessionalCardProps {
 export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
   professional,
   index,
-  rank,
+  rank: _rank,
   onChat,
   onVoice,
   onEmail,
   onText,
 }) => {
   const area = professional.serviceAreas?.[0];
+  const companyOrCategory = professional.specialties?.[0] || professional.category;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.04 }}
-      className="group relative flex items-start gap-2.5 px-3 py-2 rounded-xl
-                 hover:bg-white/[0.04] transition-all duration-150"
+      className="group flex items-center justify-between gap-4 p-3 rounded-2xl bg-muted hover:bg-muted border border-transparent transition-all duration-200 cursor-pointer"
+      onClick={() => onChat(professional)} // Default action on whole card click
     >
-      {/* Rank number */}
-      <span className="text-[11px] text-white/15 font-mono w-5 pt-1 text-right flex-shrink-0 select-none">
-        #{rank}
-      </span>
+      {/* ━━ Left: Avatar & Details ━━ */}
+      <div className="flex items-center gap-4 min-w-0 flex-1">
+        {/* Avatar */}
+        {professional.imageUrl ? (
+          <img
+            src={professional.imageUrl}
+            alt={professional.name}
+            className="w-[52px] h-[52px] rounded-[14px] object-cover flex-shrink-0"
+          />
+        ) : (
+          <div
+            className={`w-[52px] h-[52px] rounded-[14px] bg-gradient-to-br ${professional.accentColor}
+                        flex items-center justify-center text-white text-[18px] font-bold flex-shrink-0 shadow-sm`}
+          >
+            {professional.name.charAt(0)}
+          </div>
+        )}
 
-      {/* Avatar */}
-      {professional.imageUrl ? (
-        <img
-          src={professional.imageUrl}
-          alt={professional.name}
-          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-        />
-      ) : (
-        <div
-          className={`w-10 h-10 rounded-lg bg-gradient-to-br ${professional.accentColor}
-                      flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}
+        {/* Text Details */}
+        <div className="flex flex-col min-w-0 flex-1 pt-0.5">
+          {/* Name & Byline */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[14px] font-medium text-foreground truncate">
+              {professional.name}
+            </span>
+            <span className="text-[13px] text-muted-foreground/70 truncate">
+              <span className="text-muted-foreground/40 mx-1">By</span>
+              {companyOrCategory}
+            </span>
+          </div>
+
+          {/* Description */}
+          <p className="text-[13px] leading-[1.3] text-muted-foreground line-clamp-1 mb-1.5 pr-4">
+            {professional.description || `${professional.category} professional located in ${area || 'your area'}.`}
+          </p>
+
+          {/* Bottom Metatadata: Rating + Location */}
+          <div className="flex items-center gap-3">
+            {professional.reviewCount > 0 ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[12px] text-muted-foreground/70 font-medium">{professional.rating}</span>
+                <Star className="w-3 h-3 text-muted-foreground/50 fill-foreground/20" />
+                <span className="text-[12px] text-muted-foreground/50">({professional.reviewCount})</span>
+              </div>
+            ) : (
+              <span className="text-[12px] text-muted-foreground/50 italic">New</span>
+            )}
+
+            {area && (
+              <div className="flex items-center gap-1 text-[12px] text-muted-foreground/50">
+                <span className="w-1 h-1 rounded-full bg-black/8" />
+                <span>{area}</span>
+              </div>
+            )}
+
+            {professional.featured && (
+              <div className="flex items-center gap-1 text-[12px] text-[#C08B5C]">
+                <span className="w-1 h-1 rounded-full bg-[#C08B5C]/30" />
+                <span>Top Pick</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ━━ Right: Flat Icon Buttons ━━ */}
+      <div className="flex items-center gap-1.5 pr-1 flex-shrink-0">
+        <button
+          onClick={(e) => { e.stopPropagation(); onChat(professional); }}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.06] border border-black/5 transition-colors"
+          title="Chat"
         >
-          {professional.name.charAt(0)}
-        </div>
-      )}
+          <MessageSquare className="w-4 h-4" />
+        </button>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        {/* Row 1: name + rating */}
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-[13px] font-semibold text-white/90 truncate">
-            {professional.name}
-          </span>
-          {professional.featured && (
-            <span className="gradient-text text-[10px] font-semibold flex-shrink-0">
-              Featured
-            </span>
-          )}
-          <div className="flex items-center gap-1 ml-auto flex-shrink-0">
-            <Star className="w-3 h-3 text-[#D4A27F] fill-[#D4A27F]" />
-            <span className="text-[12px] text-white/70 font-medium">{professional.rating}</span>
-            {professional.reviewCount > 0 && (
-              <span className="text-[11px] text-white/25">({professional.reviewCount})</span>
-            )}
-          </div>
-        </div>
+        {professional.email && onEmail && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onEmail(professional); }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.06] border border-black/5 transition-colors"
+            title="Email"
+          >
+            <Mail className="w-4 h-4" />
+          </button>
+        )}
 
-        {/* Row 2: description */}
-        <p className="text-[12px] text-white/45 line-clamp-1">
-          {professional.description}
-        </p>
+        <button
+          onClick={(e) => { e.stopPropagation(); onVoice(professional); }}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.06] border border-black/5 transition-colors"
+          title="Call"
+        >
+          <Phone className="w-4 h-4" />
+        </button>
 
-        {/* Row 3: location + actions */}
-        <div className="flex items-center gap-1.5 mt-0.5">
-          {area && (
-            <span className="flex items-center gap-0.5 text-[10px] text-white/20 ml-1">
-              <MapPin className="w-2.5 h-2.5" />
-              {area}
-            </span>
-          )}
-
-          {/* Inline action buttons — visible on hover */}
-          <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            <button
-              onClick={(e) => { e.stopPropagation(); onChat(professional); }}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium
-                         text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all"
-              title="Chat"
-            >
-              <MessageSquare className="w-3 h-3" />
-              <span>Chat</span>
-            </button>
-            {professional.email && onEmail && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onEmail(professional); }}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium
-                           text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all"
-                title="Email"
-              >
-                <Mail className="w-3 h-3" />
-                <span>Email</span>
-              </button>
-            )}
-            {professional.phone && onText && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onText(professional); }}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium
-                           text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all"
-                title="Text"
-              >
-                <MessageSquare className="w-3 h-3" />
-                <span>Text</span>
-              </button>
-            )}
-            <button
-              onClick={(e) => { e.stopPropagation(); onVoice(professional); }}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium
-                         text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-all"
-              title="Voice"
-            >
-              <Phone className="w-3 h-3" />
-              <span>Call</span>
-            </button>
-          </div>
-        </div>
+        {professional.phone && onText && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onText(professional); }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-black/[0.06] border border-black/5 transition-colors"
+            title="Text"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </motion.div>
   );

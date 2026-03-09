@@ -41,7 +41,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
     <motion.button
         variants={reveal}
         onClick={onClick}
-        className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-white/[0.03] group"
+        className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-all duration-200 hover:bg-black/[0.02] group"
         whileHover={{ x: 2 }}
         whileTap={{ scale: 0.995 }}
     >
@@ -52,16 +52,16 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
         </div>
         <div className="flex-1 text-left min-w-0">
             <div className="flex items-center gap-2">
-                <h3 className="text-[13px] font-medium text-white/85 group-hover:text-white transition-colors">{title}</h3>
+                <h3 className="text-[13px] font-medium text-foreground/85 group-hover:text-foreground transition-colors">{title}</h3>
                 {badge && (
                     <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#C08B5C]/10 text-[#C08B5C] border border-[#C08B5C]/15">
                         {badge}
                     </span>
                 )}
             </div>
-            <p className="text-[11px] text-white/35 truncate mt-0.5">{subtitle}</p>
+            <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">{subtitle}</p>
         </div>
-        <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/35 transition-colors flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors flex-shrink-0" />
     </motion.button>
 );
 
@@ -78,18 +78,18 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     const { isPro } = useSubscription();
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Settings</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Manage your account and preferences</p>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Settings</h1>
+                    <p className="text-[11px] text-muted-foreground/50 mt-0.5">Manage your account and preferences</p>
                 </div>
             </header>
 
@@ -104,7 +104,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     {/* Profile Summary Card */}
                     <motion.div
                         variants={reveal}
-                        className="rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-5 flex items-center gap-4 group cursor-pointer hover:border-white/[0.1] transition-all duration-300"
+                        className="rounded-2xl border border-black/[0.06] bg-black/[0.02] backdrop-blur-sm p-5 flex items-center gap-4 group cursor-pointer hover:border-black/[0.08] transition-all duration-300"
                         onClick={onNavigateToProfile}
                         whileHover={{ y: -1 }}
                     >
@@ -121,30 +121,30 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                                 </div>
                             )}
                             {isPro && (
-                                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-[#C08B5C] flex items-center justify-center border-2 border-[#161619]">
+                                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-[#C08B5C] flex items-center justify-center border-2 border-border">
                                     <Crown className="w-2.5 h-2.5 text-[#0A0A0C]" />
                                 </div>
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-[14px] font-medium text-white truncate">{user?.name || 'User'}</h2>
-                            <p className="text-[12px] text-white/35 truncate">{user?.email || 'user@example.com'}</p>
+                            <h2 className="text-[14px] font-medium text-foreground truncate">{user?.name || 'User'}</h2>
+                            <p className="text-[12px] text-muted-foreground/60 truncate">{user?.email || 'user@example.com'}</p>
                         </div>
                         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${
                             isPro
                                 ? 'bg-[#C08B5C]/10 border border-[#C08B5C]/20 text-[#D4A27F]'
-                                : 'bg-white/[0.04] border border-white/[0.08] text-white/40'
+                                : 'bg-black/[0.03] border border-black/[0.08] text-muted-foreground/70'
                         }`}>
                             {isPro ? <Crown className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
                             <span>{isPro ? 'Pro' : 'Free'}</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/35 transition-colors flex-shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors flex-shrink-0" />
                     </motion.div>
 
                     {/* Account Group */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Account</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Account</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <SettingsRow icon={User} title="Profile" subtitle="Personal information and avatar" onClick={onNavigateToProfile} />
                             <SettingsRow icon={Shield} title="Privacy & Security" subtitle="Data, privacy, and security settings" onClick={onNavigateToPrivacySecurity} />
                         </div>
@@ -152,8 +152,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
                     {/* Preferences Group */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Preferences</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Preferences</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <SettingsRow icon={Database} title="Investment Preferences" subtitle="Buy box, budget, strategy, criteria" onClick={onNavigateToInvestmentPreferences} badge="Key" />
                             <SettingsRow icon={Bell} title="Notifications" subtitle="Email, push, and in-app alerts" onClick={onNavigateToNotifications} />
                             <SettingsRow icon={Palette} title="Appearance" subtitle="Theme, font size, display options" onClick={onNavigateToAppearance} />
@@ -162,7 +162,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     </motion.div>
 
                     {/* App Info Footer */}
-                    <motion.div variants={reveal} className="pt-4 flex items-center justify-center gap-2 text-white/15">
+                    <motion.div variants={reveal} className="pt-4 flex items-center justify-center gap-2 text-muted-foreground/40">
                         <Sparkles className="w-3 h-3" />
                         <span className="text-[11px] font-medium">Vasthu v2.4.0</span>
                     </motion.div>

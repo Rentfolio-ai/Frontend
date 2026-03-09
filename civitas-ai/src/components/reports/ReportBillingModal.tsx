@@ -38,13 +38,13 @@ export const ReportBillingModal: React.FC<ReportBillingModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-md mx-4 rounded-xl bg-[#1C1C20] border border-white/[0.08] shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-          <h3 className="text-[14px] font-semibold text-white/90 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-white/40" />
+      <div className="relative w-full max-w-md mx-4 rounded-xl bg-popover border border-black/[0.08] shadow-xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/[0.06]">
+          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2">
+            <FileText className="w-4 h-4 text-muted-foreground/70" />
             Generate Report
           </h3>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-white/[0.06] text-white/30 hover:text-white/60">
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-black/[0.05] text-muted-foreground/50 hover:text-muted-foreground">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -65,7 +65,7 @@ export const ReportBillingModal: React.FC<ReportBillingModalProps> = ({
               <div className="flex items-center justify-end gap-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                  className="px-4 py-2 rounded-lg text-[12px] font-medium text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.03]"
                 >
                   Cancel
                 </button>
@@ -82,27 +82,27 @@ export const ReportBillingModal: React.FC<ReportBillingModalProps> = ({
             </>
           ) : isPro ? (
             <>
-              <div className="flex items-start gap-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] px-3.5 py-3">
+              <div className="flex items-start gap-2.5 rounded-lg bg-black/[0.02] border border-black/[0.06] px-3.5 py-3">
                 <DollarSign className="w-4 h-4 text-[#C08B5C] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-[11px] font-semibold text-white/70">Report Generation Fee</div>
-                  <div className="text-[10px] text-white/40 mt-0.5 leading-relaxed">
-                    A <span className="font-semibold text-white/60">$5.00</span> fee will be added to your current billing period.
+                  <div className="text-[11px] font-semibold text-foreground/70">Report Generation Fee</div>
+                  <div className="text-[10px] text-muted-foreground/70 mt-0.5 leading-relaxed">
+                    A <span className="font-semibold text-muted-foreground">$5.00</span> fee will be added to your current billing period.
                   </div>
                 </div>
               </div>
 
               {currentUsage && (
-                <div className="rounded-lg bg-white/[0.02] border border-white/[0.05] px-3.5 py-2.5">
+                <div className="rounded-lg bg-black/[0.02] border border-black/[0.05] px-3.5 py-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-white/30">Current period reports</span>
-                    <span className="text-[10px] font-mono text-white/50">
+                    <span className="text-[10px] text-muted-foreground/50">Current period reports</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
                       {currentUsage.count} reports &middot; ${(currentUsage.total_cents / 100).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-[10px] text-white/30">After this report</span>
-                    <span className="text-[10px] font-mono text-white/50">
+                    <span className="text-[10px] text-muted-foreground/50">After this report</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
                       {currentUsage.count + 1} reports &middot; ${((currentUsage.total_cents + 500) / 100).toFixed(2)}
                     </span>
                   </div>
@@ -113,7 +113,7 @@ export const ReportBillingModal: React.FC<ReportBillingModalProps> = ({
                 <button
                   onClick={onClose}
                   disabled={loading}
-                  className="px-4 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                  className="px-4 py-2 rounded-lg text-[12px] font-medium text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.03]"
                 >
                   Cancel
                 </button>
@@ -128,15 +128,15 @@ export const ReportBillingModal: React.FC<ReportBillingModalProps> = ({
             </>
           ) : (
             <>
-              <p className="text-[12px] text-white/45 leading-relaxed">
-                You have <span className="font-semibold text-white/70">{freeReportsRemaining}</span> free report{freeReportsRemaining !== 1 ? 's' : ''} remaining this month.
+              <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
+                You have <span className="font-semibold text-foreground/70">{freeReportsRemaining}</span> free report{freeReportsRemaining !== 1 ? 's' : ''} remaining this month.
               </p>
 
               <div className="flex items-center justify-end gap-2">
                 <button
                   onClick={onClose}
                   disabled={loading}
-                  className="px-4 py-2 rounded-lg text-[12px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                  className="px-4 py-2 rounded-lg text-[12px] font-medium text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.03]"
                 >
                   Cancel
                 </button>

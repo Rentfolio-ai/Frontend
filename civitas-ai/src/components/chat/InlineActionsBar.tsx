@@ -57,10 +57,10 @@ const CHIP_STYLES = {
     chevron: 'text-[#C08B5C]/60',
   },
   secondary: {
-    base: 'border-white/[0.08] bg-white/[0.03] text-zinc-400',
-    hover: 'hover:bg-white/[0.07] hover:text-zinc-200 hover:border-white/[0.15]',
-    icon: 'text-zinc-500 group-hover:text-zinc-300',
-    chevron: 'text-zinc-600',
+    base: 'border-black/[0.08] bg-black/[0.02] text-muted-foreground',
+    hover: 'hover:bg-black/[0.05] hover:text-foreground/80 hover:border-black/[0.12]',
+    icon: 'text-muted-foreground/70 group-hover:text-foreground/70',
+    chevron: 'text-muted-foreground',
   },
   danger: {
     base: 'border-red-500/20 bg-red-500/5 text-red-400',

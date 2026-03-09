@@ -35,7 +35,7 @@ export const HolographicPropertyModal: React.FC<HolographicModalProps> = ({
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute -top-12 right-0 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-2"
+                    className="absolute -top-12 right-0 p-2 text-muted-foreground hover:text-foreground hover:bg-black/8 rounded-lg transition-colors flex items-center gap-2"
                 >
                     <span className="text-sm">Close</span>
                     <X className="w-5 h-5" />

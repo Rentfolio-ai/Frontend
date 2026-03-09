@@ -175,14 +175,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -320, opacity: 0 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col bg-surface border-r border-white/[0.06]"
+            className="fixed left-0 top-0 h-full w-80 z-50 flex flex-col bg-surface border-r border-black/[0.06]"
           >
             {/* Header with Logo and Minimize */}
-            <div className="p-4 border-b border-white/[0.06]">
+            <div className="p-4 border-b border-black/[0.06]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
-                    <span className="text-white text-sm font-bold">O</span>
+                    <span className="text-foreground text-sm font-bold">O</span>
                   </div>
                   <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Vasthu</h2>
                 </div>
@@ -191,7 +191,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                   className="p-1.5 rounded-lg hover:scale-110 transition-all duration-300"
                   aria-label="Close sidebar"
                 >
-                  <svg className="w-4 h-4 text-white/60 hover:text-white transition-all hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-muted-foreground hover:text-foreground transition-all hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -221,10 +221,10 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto">
               {/* Search Chats - Subtle and modern */}
-              <div className="px-4 py-3 border-b border-white/[0.06]">
+              <div className="px-4 py-3 border-b border-black/[0.06]">
                 <div className="relative group">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-blue-400 transition-colors group-focus-within:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/70 group-focus-within:text-blue-400 transition-colors group-focus-within:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -244,14 +244,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                         setSearchQuery('');
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white placeholder:text-white/40 text-sm focus:outline-none focus:border-blue-400/50 focus:bg-white/[0.05] transition-all"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-black/[0.02] border border-black/[0.06] text-foreground placeholder:text-muted-foreground/70 text-sm focus:outline-none focus:border-blue-400/50 focus:bg-black/[0.04] transition-all"
                     autoComplete="off"
                   />
                 </div>
               </div>
 
               {/* Main Navigation */}
-              <div className="px-4 py-3 border-b border-white/[0.06]">
+              <div className="px-4 py-3 border-b border-black/[0.06]">
                 <div className="space-y-1.5">
                   {menuItems.map((item, index) => {
                     const isActive = activeTab === item.id;
@@ -278,7 +278,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                         }}
                         className={`w-full px-3.5 py-3 rounded-xl flex items-center gap-3 transition-all duration-300 group relative overflow-hidden ${isActive
                           ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 shadow-lg shadow-blue-500/5'
-                          : 'hover:bg-white/[0.04]'
+                          : 'hover:bg-black/[0.03]'
                           }`}
                       >
                         {/* Gradient border for active state */}
@@ -289,18 +289,18 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                         {/* Icon with gradient background */}
                         <div className={`relative flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300 ${isActive
                           ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20'
-                          : 'bg-white/[0.03] group-hover:bg-white/[0.06]'
+                          : 'bg-black/[0.02] group-hover:bg-black/[0.05]'
                           }`}>
                           <IconComponent className={`w-4.5 h-4.5 transition-all duration-300 ${isActive
                             ? 'text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.6)]'
-                            : 'text-white/60 group-hover:text-white/80'
+                            : 'text-muted-foreground group-hover:text-foreground/80'
                             }`} />
                         </div>
 
                         {/* Label with gradient for active */}
                         <span className={`text-sm font-semibold transition-all duration-300 ${isActive
                           ? 'text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text'
-                          : 'text-white/70 group-hover:text-white'
+                          : 'text-foreground/70 group-hover:text-foreground'
                           }`}>
                           {item.label}
                         </span>
@@ -312,26 +312,26 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
               {/* Bookmarks Section */}
               {bookmarks.length > 0 && (
-                <div className="px-4 py-3 border-b border-white/[0.06]">
+                <div className="px-4 py-3 border-b border-black/[0.06]">
                   <button
                     onClick={() => setShowBookmarks(!showBookmarks)}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors group"
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-black/[0.03] transition-colors group"
                   >
                     <div className="flex items-center gap-2">
                       <svg
-                        className="w-4 h-4 text-white/40"
+                        className="w-4 h-4 text-muted-foreground/70"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                       </svg>
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                         Bookmarks
                       </h3>
                     </div>
                     <svg
-                      className={`w-4 h-4 text-white/40 transition-transform ${showBookmarks ? 'rotate-90' : ''}`}
+                      className={`w-4 h-4 text-muted-foreground/70 transition-transform ${showBookmarks ? 'rotate-90' : ''}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -362,14 +362,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                 onClose();
                               }
                             }}
-                            className="w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group hover:bg-white/[0.04] border border-transparent"
+                            className="w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group hover:bg-black/[0.03] border border-transparent"
                           >
                             <div className="flex-1 min-w-0 text-left">
-                              <p className="text-sm font-medium truncate text-white/80">
+                              <p className="text-sm font-medium truncate text-foreground/80">
                                 {bookmark.displayName || bookmark.property.address}
                               </p>
                               {bookmark.property.price && (
-                                <p className="text-[11px] text-white/40 truncate">
+                                <p className="text-[11px] text-muted-foreground/70 truncate">
                                   ${bookmark.property.price.toLocaleString()}
                                   {bookmark.property.city && ` • ${bookmark.property.city}`}
                                 </p>
@@ -381,10 +381,10 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                   e.stopPropagation();
                                   onRemoveBookmark(bookmark.id);
                                 }}
-                                className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-white/[0.08] transition-all"
+                                className="p-1.5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-black/[0.06] transition-all"
                                 aria-label="Remove bookmark"
                               >
-                                <svg className="w-3.5 h-3.5 text-white/40 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                               </button>
@@ -411,14 +411,14 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                               onClose();
                             }
                           }}
-                          className="w-full px-3 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 group hover:bg-white/[0.04] border border-transparent"
+                          className="w-full px-3 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 group hover:bg-black/[0.03] border border-transparent"
                         >
                           <div className="flex-1 min-w-0 text-left">
-                            <p className="text-sm font-medium truncate text-white/80">
+                            <p className="text-sm font-medium truncate text-foreground/80">
                               {bookmark.displayName || bookmark.property.address}
                             </p>
                             {bookmark.property.price && (
-                              <p className="text-[11px] text-white/40 truncate">
+                              <p className="text-[11px] text-muted-foreground/70 truncate">
                                 ${bookmark.property.price.toLocaleString()}
                               </p>
                             )}
@@ -428,7 +428,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                       {bookmarks.length > 3 && (
                         <button
                           onClick={() => setShowBookmarks(true)}
-                          className="w-full px-3 py-2 text-sm text-white/60 hover:text-white/80 hover:bg-white/[0.04] rounded-lg transition-colors"
+                          className="w-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground/80 hover:bg-black/[0.03] rounded-lg transition-colors"
                         >
                           Show {bookmarks.length - 3} more
                         </button>
@@ -440,8 +440,8 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
               {/* Pinned Chats Section */}
               {!isSearching && pinnedChats.length > 0 && (
-                <div className="px-4 py-3 border-b border-white/[0.06]">
-                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/40 mb-2 px-1">
+                <div className="px-4 py-3 border-b border-black/[0.06]">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-2 px-1">
                     Pinned
                   </h3>
                   <div className="space-y-1">
@@ -457,15 +457,15 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                         }}
                         className={`w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group ${activeChatId === chat.id
                           ? 'bg-primary/20 border border-primary/30'
-                          : 'hover:bg-white/[0.04] border border-transparent'
+                          : 'hover:bg-black/[0.03] border border-transparent'
                           }`}
                       >
                         <div className="flex-1 min-w-0 text-left">
-                          <p className={`text-sm font-medium truncate ${activeChatId === chat.id ? 'text-primary' : 'text-white/80'
+                          <p className={`text-sm font-medium truncate ${activeChatId === chat.id ? 'text-primary' : 'text-foreground/80'
                             }`}>
                             {chat.title || 'Untitled Chat'}
                           </p>
-                          <p className="text-[11px] text-white/40 truncate">
+                          <p className="text-[11px] text-muted-foreground/70 truncate">
                             {formatChatDateCompact(chat.createdAt)}
                           </p>
                         </div>
@@ -473,7 +473,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                           {onPinChat && (
                             <button
                               onClick={(e) => onPinChat(chat.id, e)}
-                              className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                              className="p-1.5 rounded-md hover:bg-black/[0.06]"
                               title="Unpin chat"
                             >
                               <Pin className="w-3.5 h-3.5 text-primary fill-current" />
@@ -488,17 +488,17 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
               {/* Your Chats Section */}
               {(recentChats.length > 0 || isSearching) && (
-                <div className="px-4 py-3 border-b border-white/[0.06]">
+                <div className="px-4 py-3 border-b border-black/[0.06]">
                   <button
                     onClick={() => setShowAllChats(!showAllChats)}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors group"
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-black/[0.03] transition-colors group"
                   >
-                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                       {isSearching ? 'Search Results' : 'Your chats'}
                     </h3>
                     {recentChats.length > 0 && !isSearching && (
                       <svg
-                        className={`w-4 h-4 text-white/40 transition-transform ${showAllChats ? 'rotate-90' : ''}`}
+                        className={`w-4 h-4 text-muted-foreground/70 transition-transform ${showAllChats ? 'rotate-90' : ''}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -519,11 +519,11 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                       >
                         {(isSearching ? filteredChatHistory : displayedRecentChats).length === 0 ? (
                           <div className="py-8 text-center">
-                            <p className="text-sm text-white/40">
+                            <p className="text-sm text-muted-foreground/70">
                               {isSearching ? 'No chats found' : 'No chats yet'}
                             </p>
                             {isSearching && (
-                              <p className="text-xs text-white/30 mt-1">
+                              <p className="text-xs text-muted-foreground/50 mt-1">
                                 Try a different search term
                               </p>
                             )}
@@ -541,15 +541,15 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                               }}
                               className={`w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group ${activeChatId === chat.id
                                 ? 'bg-primary/20 border border-primary/30'
-                                : 'hover:bg-white/[0.04] border border-transparent'
+                                : 'hover:bg-black/[0.03] border border-transparent'
                                 }`}
                             >
                               <div className="flex-1 min-w-0 text-left">
-                                <p className={`text-sm font-medium truncate ${activeChatId === chat.id ? 'text-primary' : 'text-white/80'
+                                <p className={`text-sm font-medium truncate ${activeChatId === chat.id ? 'text-primary' : 'text-foreground/80'
                                   }`}>
                                   {chat.title || 'Untitled Chat'}
                                 </p>
-                                <p className="text-[11px] text-white/40 truncate">
+                                <p className="text-[11px] text-muted-foreground/70 truncate">
                                   {formatChatDateCompact(chat.createdAt)}
                                 </p>
                               </div>
@@ -560,10 +560,10 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                     e.stopPropagation();
                                     setOpenMenuId(openMenuId === chat.id ? null : chat.id);
                                   }}
-                                  className="p-1.5 rounded-md hover:bg-white/[0.08] transition-colors"
+                                  className="p-1.5 rounded-md hover:bg-black/[0.06] transition-colors"
                                   title="More options"
                                 >
-                                  <MoreVertical className="w-3.5 h-3.5 text-white/40 hover:text-white" />
+                                  <MoreVertical className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-foreground" />
                                 </button>
 
                                 {/* Dropdown Menu */}
@@ -575,7 +575,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                       animate={{ opacity: 1, scale: 1, y: 0 }}
                                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                       transition={{ duration: 0.1 }}
-                                      className="absolute right-0 top-8 w-40 bg-[#1A1A1A] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden"
+                                      className="absolute right-0 top-8 w-40 bg-background border border-black/8 rounded-lg shadow-2xl z-50 overflow-hidden"
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       {onPinChat && !chat.isArchived && (
@@ -584,7 +584,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                             onPinChat(chat.id, e);
                                             setOpenMenuId(null);
                                           }}
-                                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 hover:bg-black/5 transition-colors"
                                         >
                                           <Pin size={14} className={chat.isPinned ? 'text-emerald-400' : ''} />
                                           <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
@@ -596,7 +596,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                                             onArchiveChat(chat.id, e);
                                             setOpenMenuId(null);
                                           }}
-                                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-white/80 hover:bg-white/5 transition-colors"
+                                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground/80 hover:bg-black/5 transition-colors"
                                         >
                                           {chat.isArchived ? (
                                             <>
@@ -631,7 +631,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                         {recentChats.length > 8 && !showAllChats && !isSearching && (
                           <button
                             onClick={() => setShowAllChats(true)}
-                            className="w-full px-3 py-2 text-sm text-white/60 hover:text-white/80 hover:bg-white/[0.04] rounded-lg transition-colors"
+                            className="w-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground/80 hover:bg-black/[0.03] rounded-lg transition-colors"
                           >
                             Show {recentChats.length - 8} more
                           </button>
@@ -645,7 +645,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                     <div className="mt-2 space-y-1 max-h-48 overflow-y-auto chat-scroll">
                       {displayedRecentChats.length === 0 && (
                         <div className="py-6 text-center">
-                          <p className="text-sm text-white/40">No chats yet</p>
+                          <p className="text-sm text-muted-foreground/70">No chats yet</p>
                         </div>
                       )}
 
@@ -661,15 +661,15 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                           }}
                           className={`w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group ${activeChatId === chat.id
                             ? 'bg-primary/20 border border-primary/30'
-                            : 'hover:bg-white/[0.04] border border-transparent'
+                            : 'hover:bg-black/[0.03] border border-transparent'
                             }`}
                         >
                           <div className="flex-1 min-w-0 text-left">
-                            <p className={`text-sm font-medium truncate ${activeChatId === chat.id ? 'text-primary' : 'text-white/80'
+                            <p className={`text-sm font-medium truncate ${activeChatId === chat.id ? 'text-primary' : 'text-foreground/80'
                               }`}>
                               {chat.title || 'Untitled Chat'}
                             </p>
-                            <p className="text-[11px] text-white/40 truncate">
+                            <p className="text-[11px] text-muted-foreground/70 truncate">
                               {formatChatDateCompact(chat.createdAt)}
                             </p>
                           </div>
@@ -678,18 +678,18 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                             {!chat.isArchived && (
                               <button
                                 onClick={(e) => onPinChat?.(chat.id, e)}
-                                className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                                className="p-1.5 rounded-md hover:bg-black/[0.06]"
                                 title="Pin chat"
                               >
-                                <Pin className="w-3.5 h-3.5 text-white/40 hover:text-white" />
+                                <Pin className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-foreground" />
                               </button>
                             )}
                             <button
                               onClick={(e) => onArchiveChat?.(chat.id, e)}
-                              className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                              className="p-1.5 rounded-md hover:bg-black/[0.06]"
                               title="Archive"
                             >
-                              <Archive className="w-3.5 h-3.5 text-white/40 hover:text-white" />
+                              <Archive className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-foreground" />
                             </button>
                           </div>
                         </motion.button>
@@ -701,16 +701,16 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
 
               {/* Archived Chats Section */}
               {!isSearching && archivedChats.length > 0 && (
-                <div className="px-4 py-3 border-b border-white/[0.06]">
+                <div className="px-4 py-3 border-b border-black/[0.06]">
                   <button
                     onClick={() => setShowArchived(!showArchived)}
-                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-white/[0.04] transition-colors group"
+                    className="w-full flex items-center justify-between px-1 py-1.5 rounded-lg hover:bg-black/[0.03] transition-colors group"
                   >
-                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
                       Archived Chats
                     </h3>
                     <svg
-                      className={`w-4 h-4 text-white/40 transition-transform ${showArchived ? 'rotate-90' : ''}`}
+                      className={`w-4 h-4 text-muted-foreground/70 transition-transform ${showArchived ? 'rotate-90' : ''}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -739,32 +739,32 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
                               onClose();
                             }}
                             className={`w-full px-3 py-2 rounded-lg flex items-center justify-between gap-2 transition-all duration-200 group ${activeChatId === chat.id
-                              ? 'bg-white/[0.08]'
-                              : 'hover:bg-white/[0.04] border border-transparent'
+                              ? 'bg-black/[0.06]'
+                              : 'hover:bg-black/[0.03] border border-transparent'
                               }`}
                           >
                             <div className="flex-1 min-w-0 text-left opacity-60">
-                              <p className="text-sm font-medium truncate text-white/80">
+                              <p className="text-sm font-medium truncate text-foreground/80">
                                 {chat.title || 'Untitled Chat'}
                               </p>
-                              <p className="text-[11px] text-white/40 truncate">
+                              <p className="text-[11px] text-muted-foreground/70 truncate">
                                 {formatChatDateCompact(chat.createdAt)}
                               </p>
                             </div>
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={(e) => onArchiveChat?.(chat.id, e)}
-                                className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                                className="p-1.5 rounded-md hover:bg-black/[0.06]"
                                 title="Unarchive"
                               >
-                                <ArchiveRestore className="w-3.5 h-3.5 text-white/40 hover:text-white" />
+                                <ArchiveRestore className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-foreground" />
                               </button>
                               <button
                                 onClick={(e) => onDeleteChat(chat.id, e)}
-                                className="p-1.5 rounded-md hover:bg-white/[0.08]"
+                                className="p-1.5 rounded-md hover:bg-black/[0.06]"
                                 aria-label="Delete chat"
                               >
-                                <Trash2 className="w-3.5 h-3.5 text-white/40 hover:text-red-400" />
+                                <Trash2 className="w-3.5 h-3.5 text-muted-foreground/70 hover:text-red-400" />
                               </button>
                             </div>
                           </motion.button>
@@ -777,16 +777,16 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             </div>
 
             {/* User Profile */}
-            <div className="p-4 border-t border-white/[0.06]">
+            <div className="p-4 border-t border-black/[0.06]">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-white text-sm shadow-lg">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center font-bold text-foreground text-sm shadow-lg">
                   {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">
+                  <p className="text-sm font-semibold text-foreground truncate">
                     {user?.name || 'User'}
                   </p>
-                  <p className="text-[11px] text-white/40 truncate">
+                  <p className="text-[11px] text-muted-foreground/70 truncate">
                     {user?.email || 'user@example.com'}
                   </p>
                 </div>
@@ -809,7 +809,7 @@ export const DesktopSidebarMenu: React.FC<DesktopSidebarMenuProps> = ({
             {modelVersion && (
               <div className="px-4 pb-4">
                 <div className="flex items-center justify-center">
-                  <span className="text-[10px] font-semibold text-white/40 tracking-wide uppercase">
+                  <span className="text-[10px] font-semibold text-muted-foreground/70 tracking-wide uppercase">
                     {modelVersion.version}
                   </span>
                 </div>

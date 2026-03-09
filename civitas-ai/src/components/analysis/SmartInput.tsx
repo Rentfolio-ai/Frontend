@@ -157,7 +157,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
       {/* Label with data source indicator */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-slate-200">
+          <label className="text-sm font-medium text-foreground/80">
             {label}
           </label>
           {tooltip && (
@@ -166,14 +166,14 @@ export const SmartInput: React.FC<SmartInputProps> = ({
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
             >
-              <Info className="w-3.5 h-3.5 text-slate-500 cursor-help" />
+              <Info className="w-3.5 h-3.5 text-muted-foreground/70 cursor-help" />
               <AnimatePresence>
                 {showTooltip && (
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -5 }}
-                    className="absolute left-0 bottom-full mb-2 w-64 p-3 rounded-lg bg-slate-800 border border-white/10 shadow-xl text-xs text-slate-300 z-50"
+                    className="absolute left-0 bottom-full mb-2 w-64 p-3 rounded-lg bg-muted border border-black/8 shadow-xl text-xs text-foreground/70 z-50"
                   >
                     {tooltip}
                   </motion.div>
@@ -203,14 +203,14 @@ export const SmartInput: React.FC<SmartInputProps> = ({
               ? 'border-[#C08B5C]/50 ring-2 ring-[#C08B5C]/20' 
               : error 
               ? 'border-red-500/50' 
-              : 'border-white/10 hover:border-white/20',
+              : 'border-black/8 hover:border-black/12',
             disabled && 'opacity-50 cursor-not-allowed',
             isOverridden && 'border-amber-500/30 bg-amber-500/5'
           )}
         >
           {/* Prefix */}
           {(prefix || format === 'currency') && (
-            <span className="pl-4 text-slate-400 text-sm font-medium">
+            <span className="pl-4 text-muted-foreground text-sm font-medium">
               {format === 'currency' ? '$' : prefix}
             </span>
           )}
@@ -229,39 +229,39 @@ export const SmartInput: React.FC<SmartInputProps> = ({
             placeholder={placeholder}
             disabled={disabled}
             className={cn(
-              'flex-1 px-4 py-3 bg-transparent text-white text-sm font-medium',
-              'focus:outline-none placeholder:text-slate-500',
+              'flex-1 px-4 py-3 bg-transparent text-foreground text-sm font-medium',
+              'focus:outline-none placeholder:text-muted-foreground/70',
               (prefix || format === 'currency') && 'pl-2'
             )}
           />
           
           {/* Suffix */}
           {(suffix || format === 'percentage') && (
-            <span className="pr-4 text-slate-400 text-sm font-medium">
+            <span className="pr-4 text-muted-foreground text-sm font-medium">
               {format === 'percentage' ? '%' : suffix}
             </span>
           )}
           
           {/* Quick increment buttons */}
           {!disabled && (shortcuts.up || shortcuts.down) && (
-            <div className="flex flex-col border-l border-white/10 ml-2">
+            <div className="flex flex-col border-l border-black/8 ml-2">
               <button
                 onClick={() => handleIncrement(
                   typeof shortcuts.up === 'number' ? shortcuts.up : parseValue(shortcuts.up || '0')
                 )}
-                className="px-3 py-1 hover:bg-white/5 transition-colors"
+                className="px-3 py-1 hover:bg-black/5 transition-colors"
                 type="button"
               >
-                <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
               <button
                 onClick={() => handleIncrement(
                   -(typeof shortcuts.down === 'number' ? shortcuts.down : parseValue(shortcuts.down || '0'))
                 )}
-                className="px-3 py-1 hover:bg-white/5 transition-colors border-t border-white/10"
+                className="px-3 py-1 hover:bg-black/5 transition-colors border-t border-black/8"
                 type="button"
               >
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </div>
           )}
@@ -270,7 +270,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           {isOverridden && !disabled && (
             <button
               onClick={handleReset}
-              className="px-3 py-2 hover:bg-white/5 transition-colors border-l border-white/10"
+              className="px-3 py-2 hover:bg-black/5 transition-colors border-l border-black/8"
               title="Reset to default"
               type="button"
             >
@@ -284,9 +284,9 @@ export const SmartInput: React.FC<SmartInputProps> = ({
           <motion.div
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-full left-0 right-0 mt-2 p-2 rounded-lg bg-slate-800 border border-white/10 shadow-xl z-50"
+            className="absolute top-full left-0 right-0 mt-2 p-2 rounded-lg bg-muted border border-black/8 shadow-xl z-50"
           >
-            <div className="text-xs text-slate-500 mb-2 px-2">Quick values:</div>
+            <div className="text-xs text-muted-foreground/70 mb-2 px-2">Quick values:</div>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((suggestion) => (
                 <button
@@ -295,7 +295,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
                     onChange(suggestion);
                     setIsFocused(false);
                   }}
-                  className="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs text-slate-300 transition-colors"
+                  className="px-3 py-1.5 rounded-md bg-black/5 hover:bg-black/8 text-xs text-foreground/70 transition-colors"
                   type="button"
                 >
                   {formatValue(suggestion)}
@@ -308,14 +308,14 @@ export const SmartInput: React.FC<SmartInputProps> = ({
 
       {/* Help text or error */}
       {(helpText || error) && (
-        <div className={cn('text-xs', error ? 'text-red-400' : 'text-slate-500')}>
+        <div className={cn('text-xs', error ? 'text-red-400' : 'text-muted-foreground/70')}>
           {error || helpText}
         </div>
       )}
       
       {/* Keyboard shortcut hint */}
       {!disabled && shortcuts.up && (
-        <div className="text-xs text-slate-600 flex items-center gap-2">
+        <div className="text-xs text-muted-foreground flex items-center gap-2">
           <span>↑↓ to adjust</span>
           {shortcuts.shift_up && <span>• Shift+↑↓ for larger increments</span>}
         </div>

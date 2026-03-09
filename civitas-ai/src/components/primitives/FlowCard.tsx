@@ -82,7 +82,7 @@ export function FlowCard({
     success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
     warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     info: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    neutral: 'bg-white/5 text-white/60 border-white/10',
+    neutral: 'bg-black/5 text-muted-foreground border-black/8',
   };
 
   return (
@@ -95,11 +95,11 @@ export function FlowCard({
       className={cn(
         // Base styles - minimal, breathable
         'group relative rounded-xl',
-        'bg-white/[0.02] backdrop-blur-sm',
-        'border border-white/[0.05]',
+        'bg-black/[0.02] backdrop-blur-sm',
+        'border border-black/[0.05]',
         'transition-all duration-300 ease-out',
         // Hover - subtle lift
-        'hover:bg-white/[0.04] hover:border-white/10',
+        'hover:bg-black/[0.03] hover:border-black/8',
         'hover:shadow-lg hover:shadow-black/5',
         className
       )}
@@ -116,17 +116,17 @@ export function FlowCard({
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             {icon && (
-              <div className="mt-0.5 text-white/40 group-hover:text-white/60 transition-colors">
+              <div className="mt-0.5 text-muted-foreground/70 group-hover:text-muted-foreground transition-colors">
                 {icon}
               </div>
             )}
             
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-white/90 truncate group-hover:text-white transition-colors">
+              <h3 className="text-base font-semibold text-foreground truncate group-hover:text-foreground transition-colors">
                 {title}
               </h3>
               {subtitle && (
-                <p className="text-xs text-white/40 mt-0.5 truncate">
+                <p className="text-xs text-muted-foreground/70 mt-0.5 truncate">
                   {subtitle}
                 </p>
               )}
@@ -153,7 +153,7 @@ export function FlowCard({
                   {metric.value}
                 </div>
                 {metric.label && (
-                  <div className="text-[10px] text-white/40 uppercase tracking-wider font-medium mt-0.5">
+                  <div className="text-[10px] text-muted-foreground/70 uppercase tracking-wider font-medium mt-0.5">
                     {metric.label}
                   </div>
                 )}
@@ -171,13 +171,13 @@ export function FlowCard({
 
         {/* Expand indicator */}
         {hasExpandable && (
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.05]">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-black/[0.05]">
             <div className="flex items-center gap-2">
               <motion.div
                 animate={{ opacity: isExpanded ? 0 : 1 }}
                 className="w-1.5 h-1.5 rounded-full bg-blue-400/60"
               />
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-muted-foreground/70">
                 {isExpanded ? 'Less detail' : 'More detail'}
               </span>
             </div>
@@ -185,7 +185,7 @@ export function FlowCard({
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
               transition={{ duration: 0.2 }}
-              className="text-white/30 group-hover:text-white/50 transition-colors"
+              className="text-muted-foreground/50 group-hover:text-muted-foreground transition-colors"
             >
               <ChevronDown className="w-4 h-4" />
             </motion.div>
@@ -217,7 +217,7 @@ export function FlowCard({
                   'p-2 rounded-lg backdrop-blur-sm transition-all',
                   action.variant === 'primary' && 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300',
                   action.variant === 'danger' && 'bg-red-500/20 hover:bg-red-500/30 text-red-300',
-                  (!action.variant || action.variant === 'secondary') && 'bg-white/10 hover:bg-white/20 text-white/60'
+                  (!action.variant || action.variant === 'secondary') && 'bg-black/8 hover:bg-black/12 text-muted-foreground'
                 )}
                 title={action.label}
               >
@@ -236,9 +236,9 @@ export function FlowCard({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            className="overflow-hidden border-t border-white/[0.05]"
+            className="overflow-hidden border-t border-black/[0.05]"
           >
-            <div className="p-5 pt-4 space-y-4 bg-gradient-to-b from-white/[0.02] to-transparent">
+            <div className="p-5 pt-4 space-y-4 bg-gradient-to-b from-black/[0.02] to-transparent">
               {details}
               
               {/* Deep dive CTA */}
@@ -248,7 +248,7 @@ export function FlowCard({
                     e.stopPropagation();
                     onDeepDive?.();
                   }}
-                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/20 text-white/80 text-sm font-medium hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-blue-400/30 hover:text-white transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+                  className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/20 text-foreground/80 text-sm font-medium hover:from-blue-500/30 hover:to-cyan-500/30 hover:border-blue-400/30 hover:text-foreground transition-all duration-200 flex items-center justify-center gap-2 group/btn"
                 >
                   <span>View Full Analysis</span>
                   <motion.span

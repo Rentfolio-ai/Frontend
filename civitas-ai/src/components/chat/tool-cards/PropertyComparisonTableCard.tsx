@@ -142,36 +142,36 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, htmlContent,
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white dark:bg-card rounded-xl shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-border bg-slate-50 dark:bg-muted/50">
           <div className="flex items-center gap-2">
             <DocumentIcon className="w-5 h-5 text-blue-500" />
-            <h2 className="font-semibold text-slate-800 dark:text-slate-200">
+            <h2 className="font-semibold text-slate-800 dark:text-foreground/80">
               Property Comparison Report
             </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-muted-foreground/70 dark:text-muted-foreground">
               ({propertiesCount} properties)
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-muted-foreground dark:text-muted-foreground"
               title="Print report"
             >
               <PrintIcon />
             </button>
             <button
               onClick={handleOpenNewTab}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-muted-foreground dark:text-muted-foreground"
               title="Open in new tab"
             >
               <ExternalLinkIcon />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-muted-foreground dark:text-muted-foreground"
               title="Close"
             >
               <CloseIcon />
@@ -242,13 +242,13 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
     // Fallback: render raw markdown if parsing fails
     return (
       <div className="mt-3 space-y-3">
-        <pre className="text-xs bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg overflow-x-auto">
+        <pre className="text-xs bg-slate-50 dark:bg-muted/50 p-3 rounded-lg overflow-x-auto">
           {comparison_table}
         </pre>
         {summary?.insights && summary.insights.length > 0 && (
           <div className="space-y-1.5">
             {summary.insights.map((insight, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
+              <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
                 <LightbulbIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <span>{insight}</span>
               </div>
@@ -286,8 +286,8 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
                   <th
                     key={i}
                     className={cn(
-                      'px-3 py-2 text-left font-semibold text-slate-700 dark:text-slate-300 border-b-2 border-slate-200 dark:border-slate-700',
-                      i === 0 ? 'bg-slate-50 dark:bg-slate-800/50' : 'text-center'
+                      'px-3 py-2 text-left font-semibold text-slate-700 dark:text-foreground/70 border-b-2 border-slate-200 dark:border-border',
+                      i === 0 ? 'bg-slate-50 dark:bg-muted/50' : 'text-center'
                     )}
                   >
                     {header}
@@ -304,7 +304,7 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
                     key={rowIndex}
                     className={cn(
                       'border-b border-slate-100 dark:border-slate-800',
-                      rowIndex % 2 === 0 ? 'bg-white dark:bg-slate-900/30' : 'bg-slate-50/50 dark:bg-slate-800/20'
+                      rowIndex % 2 === 0 ? 'bg-white dark:bg-card/30' : 'bg-slate-50/50 dark:bg-muted/20'
                     )}
                   >
                     {row.map((cell, cellIndex) => {
@@ -317,9 +317,9 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
                           className={cn(
                             'px-3 py-2',
                             isMetricLabel
-                              ? 'font-medium text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50'
+                              ? 'font-medium text-muted-foreground dark:text-muted-foreground bg-slate-50 dark:bg-muted/50'
                               : 'text-center',
-                            isPriceRow && !isMetricLabel && 'font-semibold text-slate-900 dark:text-slate-100'
+                            isPriceRow && !isMetricLabel && 'font-semibold text-slate-900 dark:text-foreground'
                           )}
                         >
                           {cleanCell}
@@ -336,17 +336,17 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
         {/* Bookmark Actions */}
         {properties && properties.length > 0 && onToggleBookmark && (
           <div className="flex flex-wrap gap-2 pt-2">
-            <span className="text-xs text-slate-400 mr-1">Save:</span>
+            <span className="text-xs text-muted-foreground mr-1">Save:</span>
             {properties.map((prop) => (
               <div key={prop._index} className="flex items-center gap-1">
                 <button
                   onClick={() => handleBookmarkClick(prop)}
                   className={cn(
                     'inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-all',
-                    'hover:bg-slate-100 dark:hover:bg-slate-800',
+                    'hover:bg-slate-100 dark:hover:bg-muted',
                     isPropertyBookmarked(prop)
                       ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                      : 'text-slate-500'
+                      : 'text-muted-foreground/70'
                   )}
                   title={isPropertyBookmarked(prop) ? 'Remove bookmark' : 'Bookmark property'}
                 >
@@ -370,14 +370,14 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
         {/* Insights */}
         {summary?.insights && summary.insights.length > 0 && (
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <div className="text-xs font-medium text-muted-foreground/70 dark:text-muted-foreground uppercase tracking-wide">
               Key Insights
             </div>
             <div className="space-y-1.5">
               {summary.insights.map((insight, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400"
+                  className="flex items-start gap-2 text-sm text-muted-foreground dark:text-muted-foreground"
                 >
                   <LightbulbIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <span>{insight}</span>
@@ -389,7 +389,7 @@ export const PropertyComparisonTableCard: React.FC<PropertyComparisonTableCardPr
 
         {/* Price Range Summary */}
         {summary?.price_range && (
-          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-2">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground/70 dark:text-muted-foreground pt-2">
             <span>
               Range: {formatPrice(summary.price_range.min)} – {formatPrice(summary.price_range.max)}
             </span>

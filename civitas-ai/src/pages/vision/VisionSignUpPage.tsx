@@ -119,20 +119,20 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
   };
 
   const inputClass = (field: string) =>
-    `w-full px-4 py-3 rounded-xl bg-[#1A1A1C] border text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${
+    `w-full px-4 py-3 rounded-xl bg-input border text-foreground placeholder-muted-foreground/40 focus:outline-none focus:ring-1 transition-all font-sans text-[15px] ${
       errors[field]
         ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-        : 'border-white/[0.08] focus:border-violet-500 focus:ring-violet-500'
+        : 'border-black/[0.08] focus:border-violet-500 focus:ring-violet-500'
     }`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#0C0C0E]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background">
       <div className="w-full max-w-[480px]">
         {/* Back to Vision Home */}
         {onNavigateToLanding && (
           <button
             onClick={onNavigateToLanding}
-            className="group flex items-center gap-2 mb-8 text-white/40 hover:text-violet-400 transition-colors font-sans"
+            className="group flex items-center gap-2 mb-8 text-muted-foreground/70 hover:text-violet-400 transition-colors font-sans"
           >
             <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -142,7 +142,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
         )}
 
         {/* Main Auth Card */}
-        <div className="rounded-2xl p-8 md:p-10 bg-[#161618] border border-white/[0.08] shadow-2xl">
+        <div className="rounded-2xl p-8 md:p-10 bg-card border border-black/[0.08] shadow-2xl">
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
@@ -152,10 +152,10 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
 
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-display font-bold text-[#FBF9F7] mb-3 tracking-tight">
+            <h1 className="text-3xl font-display font-bold text-foreground mb-3 tracking-tight">
               Get started with Vision
             </h1>
-            <p className="text-white/50 font-sans text-[15px]">
+            <p className="text-muted-foreground font-sans text-[15px]">
               AI-powered property damage detection
             </p>
           </div>
@@ -173,7 +173,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
             <button
               onClick={handleAppleSignUp}
               disabled={isAppleLoading}
-              className="h-12 rounded-xl font-sans font-medium flex items-center justify-center transition-all disabled:opacity-50 bg-[#1A1A1C] hover:bg-[#222224] border border-white/[0.08] text-[#FBF9F7] focus:ring-2 focus:ring-violet-500/20 outline-none"
+              className="h-12 rounded-xl font-sans font-medium flex items-center justify-center transition-all disabled:opacity-50 bg-input hover:bg-muted border border-black/[0.08] text-foreground focus:ring-2 focus:ring-violet-500/20 outline-none"
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
@@ -183,7 +183,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
             <button
               onClick={handleGoogleSignUp}
               disabled={isGoogleLoading}
-              className="h-12 rounded-xl font-sans font-medium flex items-center justify-center transition-all disabled:opacity-50 bg-[#1A1A1C] hover:bg-[#222224] border border-white/[0.08] text-[#FBF9F7] focus:ring-2 focus:ring-violet-500/20 outline-none"
+              className="h-12 rounded-xl font-sans font-medium flex items-center justify-center transition-all disabled:opacity-50 bg-input hover:bg-muted border border-black/[0.08] text-foreground focus:ring-2 focus:ring-violet-500/20 outline-none"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -197,10 +197,10 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
           {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/[0.08]"></div>
+              <div className="w-full border-t border-black/[0.08]"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase tracking-wider font-mono">
-              <span className="px-3 bg-[#161618] text-white/30">or continue with email</span>
+              <span className="px-3 bg-card text-muted-foreground/50">or continue with email</span>
             </div>
           </div>
 
@@ -208,7 +208,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="vision-firstName" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                <label htmlFor="vision-firstName" className="block text-sm font-medium text-foreground/80 mb-2 font-sans">
                   First name <span className="text-red-500/80">*</span>
                 </label>
                 <input
@@ -222,7 +222,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
               </div>
 
               <div>
-                <label htmlFor="vision-lastName" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+                <label htmlFor="vision-lastName" className="block text-sm font-medium text-foreground/80 mb-2 font-sans">
                   Last name <span className="text-red-500/80">*</span>
                 </label>
                 <input
@@ -237,7 +237,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
             </div>
 
             <div>
-              <label htmlFor="vision-email" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+              <label htmlFor="vision-email" className="block text-sm font-medium text-foreground/80 mb-2 font-sans">
                 Email address <span className="text-red-500/80">*</span>
               </label>
               <input
@@ -251,7 +251,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
             </div>
 
             <div>
-              <label htmlFor="vision-password" className="block text-sm font-medium text-white/80 mb-2 font-sans">
+              <label htmlFor="vision-password" className="block text-sm font-medium text-foreground/80 mb-2 font-sans">
                 Password <span className="text-red-500/80">*</span>
               </label>
               <input
@@ -266,12 +266,12 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
             </div>
 
             <div>
-              <label htmlFor="vision-phone" className="block text-sm font-medium text-white/80 mb-2 font-sans">
-                Phone number <span className="font-normal text-white/30">(optional)</span>
+              <label htmlFor="vision-phone" className="block text-sm font-medium text-foreground/80 mb-2 font-sans">
+                Phone number <span className="font-normal text-muted-foreground/50">(optional)</span>
               </label>
               <div className="flex gap-2">
                 <select
-                  className="px-3 py-3 rounded-xl bg-[#1A1A1C] border border-white/[0.08] text-[#FBF9F7] text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all font-sans w-20 appearance-none text-center"
+                  className="px-3 py-3 rounded-xl bg-input border border-black/[0.08] text-foreground text-sm focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all font-sans w-20 appearance-none text-center"
                 >
                   <option value="US">US</option>
                   <option value="CA">CA</option>
@@ -284,7 +284,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+1 Enter your phone number"
-                  className="flex-1 px-4 py-3 rounded-xl bg-[#1A1A1C] border border-white/[0.08] text-[#FBF9F7] placeholder-white/20 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all font-sans text-[15px]"
+                  className="flex-1 px-4 py-3 rounded-xl bg-input border border-black/[0.08] text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all font-sans text-[15px]"
                 />
               </div>
             </div>
@@ -299,14 +299,14 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
                     setAcceptTerms(e.target.checked);
                     if (errors.terms) setErrors((prev) => ({ ...prev, terms: '' }));
                   }}
-                  className={`mt-1 w-4 h-4 rounded bg-[#1A1A1C] border cursor-pointer appearance-none checked:bg-violet-500 checked:border-violet-500 transition-colors relative flex-shrink-0
-                    ${errors.terms ? 'border-red-500/50' : 'border-white/[0.2] group-hover:border-white/[0.4]'}
+                  className={`mt-1 w-4 h-4 rounded bg-input border cursor-pointer appearance-none checked:bg-violet-500 checked:border-violet-500 transition-colors relative flex-shrink-0
+                    ${errors.terms ? 'border-red-500/50' : 'border-black/[0.12] group-hover:border-black/[0.20]'}
                   `}
                   style={{
                     backgroundImage: acceptTerms ? "url(\"data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e\")" : 'none'
                   }}
                 />
-                <span className="text-xs leading-relaxed text-white/50 font-sans select-none">
+                <span className="text-xs leading-relaxed text-muted-foreground font-sans select-none">
                   I agree to the{' '}
                   <a href="/terms-of-service" target="_blank" rel="noopener noreferrer"
                     className="underline font-medium text-violet-400 hover:text-violet-300 transition-colors"
@@ -335,7 +335,7 @@ export const VisionSignUpPage: React.FC<VisionSignUpPageProps> = ({ onSignUp, on
         </div>
 
         {/* Sign In Link */}
-        <p className="text-center text-sm mt-8 text-white/40 font-sans">
+        <p className="text-center text-sm mt-8 text-muted-foreground/70 font-sans">
           Already have an account?{' '}
           <button
             onClick={onNavigateToSignIn}

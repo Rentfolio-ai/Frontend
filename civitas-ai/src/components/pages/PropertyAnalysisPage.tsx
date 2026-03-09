@@ -83,14 +83,14 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
     return (
         <div className="flex flex-col h-full bg-background">
             {/* Header */}
-            <div className="flex-shrink-0 px-6 py-5 border-b border-white/10 bg-slate-900 text-white relative overflow-hidden">
+            <div className="flex-shrink-0 px-6 py-5 border-b border-black/8 bg-card text-foreground relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-[#C08B5C]/10" />
 
                 <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onBack}
-                            className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors group"
+                            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors group"
                         >
                             <ChevronLeft className="w-4 h-4 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]" />
                             <span className="text-sm font-medium">Chat</span>
@@ -100,7 +100,7 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                         </div>
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">Property Analysis</h2>
-                            <p className="text-sm text-slate-400 font-medium line-clamp-1">
+                            <p className="text-sm text-muted-foreground font-medium line-clamp-1">
                                 {property.address || property.formattedAddress}
                             </p>
                         </div>
@@ -141,8 +141,8 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
 
                 {/* Scenario Presets */}
                 <div className="flex items-center gap-3 mt-5 relative">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scenario</span>
-                    <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Scenario</span>
+                    <div className="flex items-center gap-1 p-1 rounded-lg bg-black/5 border border-black/8">
                         {(Object.keys(SCENARIO_PRESETS) as ScenarioPreset[]).map((preset) => (
                             <button
                                 key={preset}
@@ -151,7 +151,7 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                                     'px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200',
                                     activeScenario === preset
                                         ? 'bg-indigo-500 text-white shadow-sm'
-                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-black/5'
                                 )}
                             >
                                 {SCENARIO_PRESETS[preset].name}
@@ -163,10 +163,10 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                             </span>
                         )}
                     </div>
-                    <div className="h-4 w-px bg-white/10 mx-1" />
+                    <div className="h-4 w-px bg-black/8 mx-1" />
                     <button
                         onClick={resetToDefaults}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-black/5 transition-colors"
                         title="Reset to defaults"
                     >
                         <RefreshCw className="w-3.5 h-3.5" />
@@ -186,7 +186,7 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                     <div className="w-[360px] h-full overflow-y-auto p-6 space-y-6">
                         {/* Photo Gallery */}
                         <div>
-                            <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden border border-white/10 relative">
+                            <div className="aspect-video bg-card rounded-xl overflow-hidden border border-black/8 relative">
                                 {images.length > 0 ? (
                                     <img
                                         src={images[imageIndex]}
@@ -218,22 +218,22 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
 
                         {/* Property Stats */}
                         <Card className="p-5 space-y-4">
-                            <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">Property Details</h3>
+                            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Property Details</h3>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 bg-gray-900/50 rounded-lg">
-                                    <div className="text-2xl font-bold text-white">{property.bedrooms || property.beds || 0}</div>
+                                <div className="p-3 bg-card/50 rounded-lg">
+                                    <div className="text-2xl font-bold text-foreground">{property.bedrooms || property.beds || 0}</div>
                                     <div className="text-xs text-gray-500">Beds</div>
                                 </div>
-                                <div className="p-3 bg-gray-900/50 rounded-lg">
-                                    <div className="text-2xl font-bold text-white">{property.bathrooms || property.baths || 0}</div>
+                                <div className="p-3 bg-card/50 rounded-lg">
+                                    <div className="text-2xl font-bold text-foreground">{property.bathrooms || property.baths || 0}</div>
                                     <div className="text-xs text-gray-500">Baths</div>
                                 </div>
-                                <div className="p-3 bg-gray-900/50 rounded-lg">
-                                    <div className="text-2xl font-bold text-white">{(property.sqft || property.squareFootage || 0).toLocaleString()}</div>
+                                <div className="p-3 bg-card/50 rounded-lg">
+                                    <div className="text-2xl font-bold text-foreground">{(property.sqft || property.squareFootage || 0).toLocaleString()}</div>
                                     <div className="text-xs text-gray-500">Sqft</div>
                                 </div>
-                                <div className="p-3 bg-gray-900/50 rounded-lg">
-                                    <div className="text-2xl font-bold text-white">{property.year_built || property.yearBuilt || 'N/A'}</div>
+                                <div className="p-3 bg-card/50 rounded-lg">
+                                    <div className="text-2xl font-bold text-foreground">{property.year_built || property.yearBuilt || 'N/A'}</div>
                                     <div className="text-xs text-gray-500">Year Built</div>
                                 </div>
                             </div>
@@ -246,23 +246,23 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                                 Financial Data
                             </h3>
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center py-2 border-b border-white/5">
-                                    <span className="text-gray-400">List Price</span>
-                                    <span className="text-white font-medium">
+                                <div className="flex justify-between items-center py-2 border-b border-black/5">
+                                    <span className="text-muted-foreground">List Price</span>
+                                    <span className="text-foreground font-medium">
                                         ${(property.price || 0).toLocaleString()}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center py-2 border-b border-white/5">
-                                    <span className="text-gray-400">Annual Tax</span>
-                                    <span className="text-white font-medium">
+                                <div className="flex justify-between items-center py-2 border-b border-black/5">
+                                    <span className="text-muted-foreground">Annual Tax</span>
+                                    <span className="text-foreground font-medium">
                                         {property.property_tax_annual || property.taxAnnualAmount
                                             ? `$${(property.property_tax_annual || property.taxAnnualAmount).toLocaleString()}`
                                             : 'N/A'}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center py-2 border-b border-white/5">
-                                    <span className="text-gray-400">Monthly HOA</span>
-                                    <span className="text-white font-medium">
+                                <div className="flex justify-between items-center py-2 border-b border-black/5">
+                                    <span className="text-muted-foreground">Monthly HOA</span>
+                                    <span className="text-foreground font-medium">
                                         {property.hoa_fee || property.hoaFee ? `$${property.hoa_fee || property.hoaFee}` : 'N/A'}
                                     </span>
                                 </div>
@@ -275,8 +275,8 @@ export const PropertyAnalysisPage: React.FC<PropertyAnalysisPageProps> = ({ prop
                         {/* Description */}
                         {property.description && (
                             <Card className="p-5">
-                                <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Description</h3>
-                                <p className="text-sm text-gray-300 leading-relaxed">
+                                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Description</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
                                     {property.description}
                                 </p>
                             </Card>

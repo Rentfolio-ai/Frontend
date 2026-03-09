@@ -30,7 +30,7 @@ export const ThinkingTimeline: React.FC<ThinkingTimelineProps> = ({
         <div className={cn('space-y-2', className)}>
             {/* Latest Event - Always Visible */}
             <div
-                className="relative p-3 rounded-lg bg-white/5 border border-white/10"
+                className="relative p-3 rounded-lg bg-black/5 border border-black/8"
                 role="status"
                 aria-live="polite"
                 aria-atomic="true"
@@ -49,11 +49,11 @@ export const ThinkingTimeline: React.FC<ThinkingTimelineProps> = ({
                             />
                             <SourceBadge source={latestEvent.source || 'Agent Tools'} />
                         </div>
-                        <p className="text-sm font-semibold text-gray-100 dark:text-gray-100">
+                        <p className="text-sm font-semibold text-foreground dark:text-foreground">
                             {latestEvent.status}
                         </p>
                         {latestEvent.explanation && (
-                            <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                                 {latestEvent.explanation}
                             </p>
                         )}
@@ -68,8 +68,8 @@ export const ThinkingTimeline: React.FC<ThinkingTimelineProps> = ({
                         onClick={() => setExpanded(!expanded)}
                         className={cn(
                             'flex items-center gap-1.5 px-2 py-1 rounded-md',
-                            'text-xs font-medium text-gray-400 hover:text-gray-300',
-                            'hover:bg-white/5 transition-all duration-200',
+                            'text-xs font-medium text-muted-foreground hover:text-muted-foreground',
+                            'hover:bg-black/5 transition-all duration-200',
                             'focus:outline-none focus:ring-2 focus:ring-purple-500/50'
                         )}
                         aria-expanded={expanded}
@@ -95,7 +95,7 @@ export const ThinkingTimeline: React.FC<ThinkingTimelineProps> = ({
                                 animate={{ height: 'auto', opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="space-y-2 pl-4 border-l-2 border-white/10"
+                                className="space-y-2 pl-4 border-l-2 border-black/8"
                                 role="region"
                                 aria-label="Thinking history"
                             >
@@ -105,13 +105,13 @@ export const ThinkingTimeline: React.FC<ThinkingTimelineProps> = ({
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.05 }}
-                                        className="p-2 rounded-lg bg-white/[0.02] border border-white/5"
+                                        className="p-2 rounded-lg bg-black/[0.02] border border-black/5"
                                     >
                                         <div className="flex items-center gap-2 mb-1">
                                             <div className="w-1 h-1 rounded-full bg-gray-600" aria-hidden="true" />
                                             <SourceBadge source={event.source || 'Agent Tools'} />
                                         </div>
-                                        <p className="text-xs font-medium text-gray-300 dark:text-gray-300">
+                                        <p className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                                             {event.status}
                                         </p>
                                         {event.explanation && (

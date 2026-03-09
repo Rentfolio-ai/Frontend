@@ -27,12 +27,12 @@ const TYPE_LABELS: Record<string, string> = {
 const TrendIcon: React.FC<{ trend?: 'up' | 'down' | 'stable' }> = ({ trend }) => {
   if (trend === 'up') return <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />;
   if (trend === 'down') return <TrendingDown className="w-3.5 h-3.5 text-red-400" />;
-  return <Minus className="w-3 h-3 text-white/20" />;
+  return <Minus className="w-3 h-3 text-muted-foreground/40" />;
 };
 
 const MAX_VISIBLE = 10;
 
-const LEVEL2_CARD = 'rounded-xl bg-[#1C1C21] border border-white/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.4)] overflow-hidden';
+const LEVEL2_CARD = 'rounded-xl bg-card border border-black/[0.06] shadow-[0_2px_8px_rgba(0,0,0,0.4)] overflow-hidden';
 
 interface PropertyRosterProps {
   onNavigateToDeals?: () => void;
@@ -61,14 +61,14 @@ export const PropertyRoster: React.FC<PropertyRosterProps> = ({ onNavigateToDeal
   if (loading) {
     return (
       <div className={LEVEL2_CARD}>
-        <div className="px-4 py-3 bg-[#18181C] border-b border-white/[0.05]">
-          <div className="h-3 w-32 rounded bg-white/[0.06]" />
+        <div className="px-4 py-3 bg-surface border-b border-black/[0.05]">
+          <div className="h-3 w-32 rounded bg-black/[0.05]" />
         </div>
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="px-4 py-3 flex gap-4 border-b border-white/[0.03]">
-            <div className="h-3 w-40 rounded bg-white/[0.05]" />
-            <div className="h-3 w-16 rounded bg-white/[0.05]" />
-            <div className="h-3 w-20 rounded bg-white/[0.05]" />
+          <div key={i} className="px-4 py-3 flex gap-4 border-b border-black/[0.05]">
+            <div className="h-3 w-40 rounded bg-black/[0.04]" />
+            <div className="h-3 w-16 rounded bg-black/[0.04]" />
+            <div className="h-3 w-20 rounded bg-black/[0.04]" />
           </div>
         ))}
       </div>
@@ -77,10 +77,10 @@ export const PropertyRoster: React.FC<PropertyRosterProps> = ({ onNavigateToDeal
 
   if (properties.length === 0) {
     return (
-      <div className="flex items-center gap-3 py-3 text-[13px] text-white/35">
-        <Search className="w-4 h-4 text-white/20" />
+      <div className="flex items-center gap-3 py-3 text-[13px] text-muted-foreground/60">
+        <Search className="w-4 h-4 text-muted-foreground/40" />
         <span>No properties yet</span>
-        <span className="text-white/15">&middot;</span>
+        <span className="text-muted-foreground/40">&middot;</span>
         {onNavigateToDeals && (
           <button onClick={onNavigateToDeals} className="text-[#C08B5C] hover:text-[#D4A27F] transition-colors">
             Browse deals
@@ -95,7 +95,7 @@ export const PropertyRoster: React.FC<PropertyRosterProps> = ({ onNavigateToDeal
 
   return (
     <div className={LEVEL2_CARD}>
-      <div className="grid grid-cols-[1fr_56px_80px_80px_56px_36px_28px] gap-2 px-4 py-2.5 bg-[#18181C] border-b border-white/[0.05] text-[10px] uppercase tracking-wider text-white/25">
+      <div className="grid grid-cols-[1fr_56px_80px_80px_56px_36px_28px] gap-2 px-4 py-2.5 bg-surface border-b border-black/[0.05] text-[10px] uppercase tracking-wider text-muted-foreground/50">
         <span>Property</span>
         <span>Type</span>
         <span className="text-right">Value</span>
@@ -106,23 +106,23 @@ export const PropertyRoster: React.FC<PropertyRosterProps> = ({ onNavigateToDeal
       </div>
 
       {visible.map((p) => {
-        const cashColor = (p.cashFlow || 0) > 0 ? 'text-emerald-400' : (p.cashFlow || 0) < 0 ? 'text-red-400' : 'text-white/50';
-        const tierStyle = TIER_STYLES[p.tier || ''] || 'bg-white/[0.05] text-white/30';
+        const cashColor = (p.cashFlow || 0) > 0 ? 'text-emerald-400' : (p.cashFlow || 0) < 0 ? 'text-red-400' : 'text-muted-foreground';
+        const tierStyle = TIER_STYLES[p.tier || ''] || 'bg-black/[0.04] text-muted-foreground/50';
         return (
           <div
             key={p.id}
-            className="grid grid-cols-[1fr_56px_80px_80px_56px_36px_28px] gap-2 px-4 py-2.5 border-b border-white/[0.03] hover:bg-white/[0.02] items-center transition-colors duration-100"
+            className="grid grid-cols-[1fr_56px_80px_80px_56px_36px_28px] gap-2 px-4 py-2.5 border-b border-black/[0.05] hover:bg-black/[0.02] items-center transition-colors duration-100"
           >
             <div className="min-w-0">
-              <div className="text-[13px] text-white/80 truncate">{p.address}</div>
-              <div className="text-[10px] text-white/25 truncate">{p.city}, {p.state}</div>
+              <div className="text-[13px] text-foreground/80 truncate">{p.address}</div>
+              <div className="text-[10px] text-muted-foreground/50 truncate">{p.city}, {p.state}</div>
             </div>
-            <span className="text-[11px] text-white/40">{TYPE_LABELS[p.propertyType] || p.propertyType}</span>
-            <span className="text-[13px] text-white/75 font-mono text-right">{fmt(p.currentValue)}</span>
+            <span className="text-[11px] text-muted-foreground/70">{TYPE_LABELS[p.propertyType] || p.propertyType}</span>
+            <span className="text-[13px] text-foreground/75 font-mono text-right">{fmt(p.currentValue)}</span>
             <span className={`text-[13px] font-mono text-right ${cashColor}`}>
               {p.cashFlow ? `${p.cashFlow > 0 ? '+' : ''}${fmt(Math.abs(p.cashFlow))}` : '--'}
             </span>
-            <span className="text-[13px] text-white/75 font-mono text-right">
+            <span className="text-[13px] text-foreground/75 font-mono text-right">
               {p.roi ? `${p.roi.toFixed(1)}%` : '--'}
             </span>
             <div className="flex justify-center">
@@ -131,7 +131,7 @@ export const PropertyRoster: React.FC<PropertyRosterProps> = ({ onNavigateToDeal
                   {p.tier}
                 </span>
               ) : (
-                <span className="text-[10px] text-white/15">--</span>
+                <span className="text-[10px] text-muted-foreground/40">--</span>
               )}
             </div>
             <div className="flex justify-center">
@@ -144,7 +144,7 @@ export const PropertyRoster: React.FC<PropertyRosterProps> = ({ onNavigateToDeal
       {hasMore && onNavigateToDeals && (
         <button
           onClick={onNavigateToDeals}
-          className="w-full px-4 py-2.5 text-[12px] text-white/30 hover:text-[#C08B5C] text-center transition-colors"
+          className="w-full px-4 py-2.5 text-[12px] text-muted-foreground/50 hover:text-[#C08B5C] text-center transition-colors"
         >
           View all {properties.length} properties
         </button>

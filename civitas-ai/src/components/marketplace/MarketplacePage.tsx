@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, WifiOff, Search, RefreshCw, ArrowLeft } from 'lucide-react';
-import { MarketplaceHero } from './MarketplaceHero';
-import { MarketplaceCategoryTabs, type CategoryFilter } from './MarketplaceCategoryTabs';
 import { ProfessionalCard } from './ProfessionalCard';
 import { MarketplacePagination } from './MarketplacePagination';
-import { MarketplaceLocationTabs, type LocationOption } from './MarketplaceLocationTabs';
 import {
   professionals as localProfessionals,
-  CATEGORY_ACCENT,
   CATEGORY_LABELS,
+  CATEGORY_ORDER,
   parseServiceAreaState,
   type Professional,
   type ProfessionalCategory,
@@ -20,31 +17,33 @@ import {
   type ProfessionalDTO,
 } from '../../services/marketplaceApi';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 12; // 2-col × 6 rows
 
 function dtoToLocal(dto: ProfessionalDTO): Professional {
   return {
     id: dto.id,
     name: dto.name,
-    category: dto.category,
-    description: dto.description ?? '',
-    specialties: dto.specialties,
-    rating: dto.rating,
-    reviewCount: dto.review_count ?? 0,
-    featured: dto.featured,
-    accentColor:
-      dto.accent_color ?? CATEGORY_ACCENT[dto.category as ProfessionalCategory] ?? 'from-gray-500 to-gray-600',
-    imageUrl: dto.image_url ?? undefined,
-    phone: dto.contact_phone ?? undefined,
-    email: dto.contact_email ?? undefined,
-    website: dto.website_url ?? undefined,
-    serviceAreas: dto.service_areas ?? [],
+    category: dto.category as ProfessionalCategory,
+    description: dto.description || '',
+    specialties: dto.specialties || [],
+    rating: dto.rating || 4.5,
+    reviewCount: dto.review_count || 0,
+    featured: dto.featured || false,
+    accentColor: 'from-blue-500 to-cyan-500',
+    imageUrl: dto.image_url || undefined,
+    phone: dto.contact_phone || undefined,
+    email: dto.contact_email || undefined,
+    website: dto.website_url || undefined,
+    serviceAreas: dto.service_areas || [],
   };
 }
 
+type CategoryFilter = 'all' | ProfessionalCategory;
+type LocationOption = { key: string; label: string; count: number };
+
 interface MarketplacePageProps {
   onStartChat: (context: { name: string; specialty: string; category: string } | null) => void;
-  onStartVoice: (context: { name: string; specialty: string; category: string } | null) => void;
+  onStartVoice: (context: { name: string; specialty: string; category: string }) => void;
   onStartEmail?: (context: { name: string; email: string; category: string; specialty: string }) => void;
   onStartText?: (context: { name: string; phone: string; category: string; specialty: string }) => void;
   onStartCall?: (professional: Professional) => void;
@@ -56,16 +55,13 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   onStartVoice,
   onStartEmail,
   onStartText,
-  onStartCall,
+  onStartCall: _onStartCall,
   onBack,
 }) => {
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('featured');
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
   const [activeLocation, setActiveLocation] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isTabsSticky, setIsTabsSticky] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const tabsSentinelRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const [allProfessionals, setAllProfessionals] = useState<Professional[]>(localProfessionals);
@@ -76,6 +72,12 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   const loadProfessionals = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
+      // When refreshing, trigger backend data generation first
+      if (isRefresh) {
+        const { refreshMarketplace } = await import('../../services/marketplaceApi');
+        await refreshMarketplace();
+      }
+
       const res = await fetchProfessionals({ page_size: 200 });
       if (res.professionals.length > 0) {
         setAllProfessionals(res.professionals.map(dtoToLocal));
@@ -95,21 +97,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     loadProfessionals();
   }, [loadProfessionals]);
 
-  const featured = useMemo(
-    () => allProfessionals.filter(p => p.featured),
-    [allProfessionals],
-  );
 
-  // Category counts
-  const categoryCounts = useMemo(() => {
-    const counts: Partial<Record<CategoryFilter, number>> = {
-      featured: allProfessionals.filter(p => p.featured).length,
-    };
-    for (const p of allProfessionals) {
-      counts[p.category] = (counts[p.category] ?? 0) + 1;
-    }
-    return counts;
-  }, [allProfessionals]);
 
   // Search filtering
   const isSearching = searchQuery.trim().length > 0;
@@ -126,7 +114,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
 
   const categoryFiltered = useMemo(() => {
     if (isSearching) return searchResults;
-    if (activeCategory === 'featured') return allProfessionals.filter(p => p.featured);
+    if (activeCategory === 'all') return allProfessionals;
     return allProfessionals.filter(p => p.category === activeCategory);
   }, [activeCategory, allProfessionals, isSearching, searchResults]);
 
@@ -163,6 +151,12 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     setCurrentPage(1);
   }, [activeCategory, activeLocation, searchQuery]);
 
+  // Extract Top Picks for the featured section
+  const topPicks = useMemo(() => {
+    if (isSearching || activeCategory !== 'all') return [];
+    return allProfessionals.filter(p => p.featured).slice(0, 4);
+  }, [allProfessionals, isSearching, activeCategory]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -173,13 +167,6 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const handleScroll = useCallback(() => {
-    if (!tabsSentinelRef.current || !scrollRef.current) return;
-    const sentinelRect = tabsSentinelRef.current.getBoundingClientRect();
-    const containerRect = scrollRef.current.getBoundingClientRect();
-    setIsTabsSticky(sentinelRect.top <= containerRect.top);
-  }, []);
-
   const makeContext = (p: Professional) => ({
     name: p.name,
     specialty: p.specialties[0] || p.description,
@@ -187,18 +174,18 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   });
 
   const handleChat = useCallback((p: Professional) => {
-    connectProfessional(p.id, 'chat').catch(() => {});
+    connectProfessional(p.id, 'chat').catch(() => { });
     onStartChat(makeContext(p));
   }, [onStartChat]);
 
   const handleVoice = useCallback((p: Professional) => {
-    connectProfessional(p.id, 'voice').catch(() => {});
+    connectProfessional(p.id, 'voice').catch(() => { });
     onStartVoice(makeContext(p));
   }, [onStartVoice]);
 
   const handleEmail = useCallback((p: Professional) => {
     if (!p.email) return;
-    connectProfessional(p.id, 'email').catch(() => {});
+    connectProfessional(p.id, 'email').catch(() => { });
     onStartEmail?.({
       name: p.name,
       email: p.email,
@@ -209,7 +196,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
 
   const handleText = useCallback((p: Professional) => {
     if (!p.phone) return;
-    connectProfessional(p.id, 'text').catch(() => {});
+    connectProfessional(p.id, 'text').catch(() => { });
     onStartText?.({
       name: p.name,
       phone: p.phone,
@@ -218,155 +205,179 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     });
   }, [onStartText]);
 
-  const handleCall = useCallback((p: Professional) => {
-    if (!p.phone) return;
-    onStartCall?.(p);
-  }, [onStartCall]);
 
-  const handleHeroSelect = useCallback((p: Professional) => {
-    connectProfessional(p.id, 'chat').catch(() => {});
-    onStartChat(makeContext(p));
-  }, [onStartChat]);
-
-  // Section label
-  const locationSuffix = activeLocation !== 'all' ? ` in ${activeLocation}` : '';
-  const sectionLabel = isSearching
-    ? `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${searchQuery}"`
-    : activeCategory === 'featured'
-      ? `${filtered.length} Featured${locationSuffix}`
-      : `${filtered.length} ${CATEGORY_LABELS[activeCategory as ProfessionalCategory] ?? ''}${locationSuffix}`;
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-white/30 animate-spin" />
+      <div className="h-full flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 text-muted-foreground/50 animate-spin" />
       </div>
     );
   }
 
   return (
     <div
-      ref={scrollRef}
-      onScroll={handleScroll}
-      className="h-full overflow-y-auto"
-      style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}
+      className="h-full overflow-y-auto bg-background"
+      style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(0,0,0,0.06) transparent' }}
     >
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-3xl mx-auto px-6 py-6 space-y-5"
+        className="max-w-[1000px] mx-auto px-6 py-10 space-y-8"
       >
-        {/* Page header + inline search + refresh */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-shrink-0">
+        {/* ━━ Hero — Search First ━━ */}
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-1"
-                  title="Back to Home"
+                  className="w-8 h-8 rounded-lg hover:bg-black/[0.03] flex items-center justify-center transition-all group -ml-1"
                 >
-                  <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                  <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
               )}
-              <h1 className="text-lg font-bold gradient-text">Marketplace</h1>
             </div>
-            <div className="flex items-center gap-2 flex-1 max-w-[320px]">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/25 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]
-                             text-[12px] text-white/80 placeholder:text-white/20
-                             focus:outline-none focus:border-[#C08B5C]/30 focus:ring-1 focus:ring-[#C08B5C]/20
-                             transition-all duration-150"
-                />
-                {isSearching && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30 hover:text-white/50 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <button
-                onClick={() => loadProfessionals(true)}
-                disabled={refreshing}
-                className="w-7 h-7 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center
-                           text-white/30 hover:text-[#D4A27F]/70 hover:border-[#C08B5C]/20 transition-all
-                           disabled:opacity-40 flex-shrink-0"
-                title="Refresh marketplace"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
+            <button
+              onClick={() => loadProfessionals(true)}
+              disabled={refreshing}
+              className="w-8 h-8 rounded-full bg-black/[0.02] flex items-center justify-center
+                         text-muted-foreground/50 hover:text-foreground/70 hover:bg-black/[0.06] transition-all disabled:opacity-40"
+              title="Refresh Marketplace"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-[12px] text-white/35">
-              Connect with vetted professionals for your next deal
-            </p>
-            <span className="text-[10px] text-white/20 font-mono">
-              {allProfessionals.length} professionals
-            </span>
+
+          <h1 className="text-[32px] font-medium text-foreground mb-6">
+            Professional Marketplace
+          </h1>
+
+          {/* Search Bar - Flat Pill Style */}
+          <div className="relative max-w-[640px] mx-auto mb-8">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search for real estate professionals..."
+              className="w-full pl-12 pr-4 py-3.5 rounded-full bg-muted border border-transparent
+                         text-[15px] text-foreground placeholder:text-muted-foreground/50
+                         focus:outline-none focus:bg-muted focus:border-black/8
+                         transition-all duration-150"
+            />
+            {isSearching && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground/70 hover:text-foreground/80 transition-colors px-2 py-1 rounded-full hover:bg-black/[0.03]"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
 
         {/* Fallback indicator */}
         {usingFallback && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-[12px] text-white/40">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/[0.02] border border-black/[0.06] text-[12px] text-muted-foreground/70">
             <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>Showing sample data — connect the backend to see live professionals</span>
+            <span>Showing sample data — connect the backend for live professionals</span>
           </div>
         )}
 
-        {/* Hero carousel — hidden when searching */}
+        {/* ━━ Category Tabs — Flat Text Style ━━ */}
         {!isSearching && (
-          <MarketplaceHero
-            featured={featured}
-            onSelect={handleHeroSelect}
-            onEmail={handleEmail}
-            onText={handleText}
-            onCall={handleCall}
-          />
-        )}
-
-        {/* Sticky sentinel */}
-        <div ref={tabsSentinelRef} />
-
-        {/* Category tabs — hidden when searching */}
-        {!isSearching && (
-          <div className={isTabsSticky ? 'sticky top-0 z-20' : ''}>
-            <MarketplaceCategoryTabs
-              active={activeCategory}
-              onChange={setActiveCategory}
-              counts={categoryCounts}
-              isSticky={isTabsSticky}
-            />
+          <div className="flex items-center justify-center gap-6 flex-wrap pb-2">
+            <button
+              onClick={() => setActiveCategory('all')}
+              className={`text-[14px] font-medium transition-colors ${activeCategory === 'all'
+                ? 'text-foreground'
+                : 'text-muted-foreground/70 hover:text-foreground/70'
+                }`}
+            >
+              Top Picks
+            </button>
+            {CATEGORY_ORDER.slice(0, 5).map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`text-[14px] font-medium transition-colors ${activeCategory === cat
+                  ? 'text-foreground'
+                  : 'text-muted-foreground/70 hover:text-foreground/70'
+                  }`}
+              >
+                {CATEGORY_LABELS[cat]}
+              </button>
+            ))}
           </div>
         )}
 
-        {/* Location pills — hidden when searching */}
+        {/* ━━ Location pills  ━━ */}
         {!isSearching && locationPills.length > 1 && (
-          <MarketplaceLocationTabs
-            locations={locationPills}
-            active={activeLocation}
-            onChange={setActiveLocation}
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mr-1">Location</span>
+            <button
+              onClick={() => setActiveLocation('all')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${activeLocation === 'all'
+                ? 'bg-black/[0.06] text-foreground/70'
+                : 'text-muted-foreground/50 hover:text-muted-foreground'
+                }`}
+            >
+              All
+            </button>
+            {locationPills.slice(0, 8).map(loc => (
+              <button
+                key={loc.key}
+                onClick={() => setActiveLocation(loc.key)}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${activeLocation === loc.key
+                  ? 'bg-black/[0.06] text-foreground/70'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground'
+                  }`}
+              >
+                {loc.label} ({loc.count})
+              </button>
+            ))}
+          </div>
         )}
 
-        {/* Section header */}
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] text-white/30 font-medium">{sectionLabel}</span>
+        {/* ━━ Featured / Top Picks Section ━━ */}
+        {!isSearching && activeCategory === 'all' && topPicks.length > 0 && currentPage === 1 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between pb-4">
+              <span className="text-[12px] uppercase tracking-widest text-muted-foreground/70 font-medium font-mono">Top Picks</span>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {topPicks.map((professional, i) => (
+                <div key={professional.id} className="relative group/banner">
+                  {/* Banner styling wrap for featured cards to make them slightly richer */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/[0.03] to-transparent rounded-2xl pointer-events-none opacity-0 group-hover/banner:opacity-100 transition-opacity" />
+                  <ProfessionalCard
+                    professional={professional}
+                    index={i}
+                    rank={i + 1}
+                    onChat={handleChat}
+                    onVoice={handleVoice}
+                    onEmail={handleEmail}
+                    onText={handleText}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ━━ Section header ━━ */}
+        <div ref={gridRef} className="flex items-center justify-between pb-4">
+          <span className="text-[12px] uppercase tracking-widest text-muted-foreground/70 font-medium font-mono">
+            {isSearching ? 'Search Results' : 'Trending Professionals'}
+          </span>
+          <span className="text-[11px] text-muted-foreground/40">{filtered.length} total</span>
         </div>
 
-        {/* Professional cards */}
-        <div ref={gridRef}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5">
+        {/* ━━ Professional cards — 2-col grid ━━ */}
+        <div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {paginated.map((professional, i) => (
               <ProfessionalCard
                 key={professional.id}
@@ -383,7 +394,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
 
           {filtered.length === 0 && (
             <div className="py-16 text-center">
-              <p className="text-[14px] text-white/30">
+              <p className="text-[14px] text-muted-foreground/50">
                 {isSearching
                   ? `No professionals match "${searchQuery}"`
                   : 'No professionals in this category yet.'}

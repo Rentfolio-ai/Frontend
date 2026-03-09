@@ -86,18 +86,18 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
   ];
 
   return (
-    <div className={cn('flex flex-col h-full bg-[#0F1115]', className)}>
+    <div className={cn('flex flex-col h-full bg-background', className)}>
       {/* Compact Header - Hidden as it is redundant with Drawer header now, or keep very minimal */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-white/5 flex items-center justify-between">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-black/5 flex items-center justify-between">
         {/* Strategy Toggle - Sleek segments */}
-        <div className="flex items-center bg-white/5 rounded-lg p-1 border border-white/5">
+        <div className="flex items-center bg-black/5 rounded-lg p-1 border border-black/5">
           <button
             onClick={() => setStrategy('STR')}
             className={cn(
               'px-4 py-1.5 rounded-md text-sm font-medium transition-all',
               strategy === 'STR'
                 ? 'bg-blue-500 text-white shadow-sm'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                : 'text-muted-foreground hover:text-foreground hover:bg-black/5'
             )}
           >
             Short-Term
@@ -108,7 +108,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
               'px-4 py-1.5 rounded-md text-sm font-medium transition-all',
               strategy === 'LTR'
                 ? 'bg-blue-500 text-white shadow-sm'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
+                : 'text-muted-foreground hover:text-foreground hover:bg-black/5'
             )}
           >
             Long-Term
@@ -118,7 +118,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
         {/* Reset Button */}
         <button
           onClick={resetToDefaults}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-black/5 transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Reset Defaults
@@ -126,37 +126,37 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
       </div>
 
       {/* Main Content - Full width single column */}
-      <div className="flex-1 overflow-y-auto bg-[#0F1115]">
+      <div className="flex-1 overflow-y-auto bg-background">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
           {/* Key Metrics - Top */}
           {pnlOutput && (
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-emerald-500/30 transition-colors group">
+              <div className="bg-black/5 rounded-xl p-5 border border-black/5 hover:border-emerald-500/30 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <div className="text-sm font-medium text-white/60">Cash Flow</div>
+                  <div className="text-sm font-medium text-muted-foreground">Cash Flow</div>
                 </div>
-                <div className="text-3xl font-semibold text-white tracking-tight">
+                <div className="text-3xl font-semibold text-foreground tracking-tight">
                   <span className="text-emerald-400">$</span>{Math.round((pnlOutput.year1?.cashflowBeforeTaxes || 0) / 12).toLocaleString()}
-                  <span className="text-lg text-white/40 font-normal ml-1">/mo</span>
+                  <span className="text-lg text-muted-foreground/70 font-normal ml-1">/mo</span>
                 </div>
               </div>
-              <div className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-blue-500/30 transition-colors group">
+              <div className="bg-black/5 rounded-xl p-5 border border-black/5 hover:border-blue-500/30 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                  <div className="text-sm font-medium text-white/60">Cap Rate</div>
+                  <div className="text-sm font-medium text-muted-foreground">Cap Rate</div>
                 </div>
-                <div className="text-3xl font-semibold text-white tracking-tight">
+                <div className="text-3xl font-semibold text-foreground tracking-tight">
                   {((pnlOutput.year1?.capRate || 0) * 100).toFixed(2)}
                   <span className="text-lg text-blue-400/80 font-normal ml-0.5">%</span>
                 </div>
               </div>
-              <div className="bg-white/5 rounded-xl p-5 border border-white/5 hover:border-purple-500/30 transition-colors group">
+              <div className="bg-black/5 rounded-xl p-5 border border-black/5 hover:border-purple-500/30 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  <div className="text-sm font-medium text-white/60">CoC ROI</div>
+                  <div className="text-sm font-medium text-muted-foreground">CoC ROI</div>
                 </div>
-                <div className="text-3xl font-semibold text-white tracking-tight">
+                <div className="text-3xl font-semibold text-foreground tracking-tight">
                   {((pnlOutput.year1?.cashOnCash || 0) * 100).toFixed(2)}
                   <span className="text-lg text-purple-400/80 font-normal ml-0.5">%</span>
                 </div>
@@ -165,7 +165,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
           )}
 
           {/* Inputs Panel */}
-          <div className="bg-transparent border border-white/5 rounded-xl overflow-hidden">
+          <div className="bg-transparent border border-black/5 rounded-xl overflow-hidden">
             <TabbedAssumptionsPanel
               strategy={strategy}
               assumptions={assumptions}
@@ -206,7 +206,7 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
                   )}>
                     {aiVerdict === 'Black' ? 'Investment Opportunity' : 'High Risk Factor'}
                   </h3>
-                  <p className="text-sm text-white/70 leading-relaxed">{aiExplanation}</p>
+                  <p className="text-sm text-foreground/70 leading-relaxed">{aiExplanation}</p>
                 </div>
               </div>
             </div>
@@ -219,13 +219,13 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
               <p className="text-sm text-red-400/80">{error}</p>
             </div>
           ) : (
-            <div className="bg-transparent border border-white/5 rounded-xl overflow-hidden">
+            <div className="bg-transparent border border-black/5 rounded-xl overflow-hidden">
               <EnhancedResultsPanel pnlOutput={pnlOutput} />
             </div>
           )}
 
           {/* AI Insights */}
-          <div className="bg-transparent border border-white/5 rounded-xl overflow-hidden">
+          <div className="bg-transparent border border-black/5 rounded-xl overflow-hidden">
             <EnhancedAIInsightsPanel
               insights={pnlOutput?.aiInsights}
               verdict={aiVerdict === 'Black' ? 'good' : aiVerdict === 'Red' ? 'bad' : 'okay'}
@@ -239,17 +239,17 @@ export const DealAnalyzer: React.FC<DealAnalyzerProps> = ({
       </div>
 
       {/* AI Chat Section - Compact */}
-      <div className="flex-shrink-0 border-t border-white/5 bg-[#0F1115]">
+      <div className="flex-shrink-0 border-t border-black/5 bg-background">
         <button
           onClick={() => setShowAIChat(!showAIChat)}
           className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-700 transition-colors group"
         >
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-blue-400" />
-            <span className="text-xs font-bold text-white">Ask AI about this deal</span>
+            <span className="text-xs font-bold text-foreground">Ask AI about this deal</span>
           </div>
           <ChevronDown className={cn(
-            'w-4 h-4 text-slate-400 transition-transform',
+            'w-4 h-4 text-muted-foreground transition-transform',
             showAIChat && 'rotate-180'
           )} />
         </button>

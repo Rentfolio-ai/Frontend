@@ -18,7 +18,7 @@ const getSourceConfig = (source: string) => {
     if (normalized.includes('history')) {
         return { icon: History, label: 'Past Chat', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' };
     }
-    return { icon: null, label: source, color: 'text-white/60 bg-white/5 border-white/10' };
+    return { icon: null, label: source, color: 'text-muted-foreground bg-black/5 border-black/8' };
 };
 
 export const ContextBadge: React.FC<ContextBadgeProps> = ({ source }) => {

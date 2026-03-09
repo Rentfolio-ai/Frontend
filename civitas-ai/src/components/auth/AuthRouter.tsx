@@ -17,12 +17,16 @@ import { HunterModePage } from '../../pages/modes/HunterModePage';
 import { ResearchModePage } from '../../pages/modes/ResearchModePage';
 import { StrategistModePage } from '../../pages/modes/StrategistModePage';
 import { LocationPermissionModal } from '../modals/LocationPermissionModal';
+import { InviteAcceptPage } from '../../pages/invite/InviteAcceptPage';
+import { DealClosePage } from '../../pages/deals/DealClosePage';
 
 type AuthView =
   | 'landing' | 'signin' | 'signup' | 'faq'
   | 'privacy-policy' | 'terms-of-service' | 'cookie-policy'
   | 'hunter' | 'research' | 'strategist'
-  | 'vision-landing' | 'vision-signin' | 'vision-signup' | 'vision-app';
+  | 'vision-landing' | 'vision-signin' | 'vision-signup' | 'vision-app'
+  | 'invite-accept'
+  | 'deal-close';
 
 /** Returns true if the view belongs to the Vision product flow */
 const isVisionView = (view: AuthView) =>
@@ -81,6 +85,14 @@ export const AuthRouter: React.FC = () => {
   useEffect(() => {
     const syncViewFromPath = () => {
       const path = window.location.pathname;
+      if (path.startsWith('/invite/accept/')) {
+        setAuthView('invite-accept');
+        return;
+      }
+      if (path.startsWith('/deal/close/')) {
+        setAuthView('deal-close');
+        return;
+      }
       const matchedView = URL_ROUTES[path];
       if (matchedView) {
         setAuthView(matchedView);
@@ -90,6 +102,16 @@ export const AuthRouter: React.FC = () => {
     window.addEventListener('popstate', syncViewFromPath);
     return () => window.removeEventListener('popstate', syncViewFromPath);
   }, []);
+
+  // Extract invite token from URL
+  const inviteToken = window.location.pathname.startsWith('/invite/accept/')
+    ? window.location.pathname.replace('/invite/accept/', '')
+    : '';
+
+  // Extract deal close token from URL
+  const dealCloseToken = window.location.pathname.startsWith('/deal/close/')
+    ? window.location.pathname.replace('/deal/close/', '')
+    : '';
 
   // ─── Legal pages — always accessible ──────────────────────────────────────
 
@@ -101,6 +123,32 @@ export const AuthRouter: React.FC = () => {
   if (authView === 'privacy-policy') return <PrivacyPolicyPage onBack={legalBack} />;
   if (authView === 'terms-of-service') return <TermsOfServicePage onBack={legalBack} />;
   if (authView === 'cookie-policy') return <CookiePolicyPage onBack={legalBack} />;
+
+  // ─── Deal close page — public, no auth required ────────────────────────
+  if (authView === 'deal-close' && dealCloseToken) {
+    return <DealClosePage token={dealCloseToken} />;
+  }
+
+  // ─── Invite accept — works for both auth and unauth ─────────────────────
+  if (authView === 'invite-accept' && inviteToken) {
+    return (
+      <InviteAcceptPage
+        token={inviteToken}
+        onNavigateToSignIn={() => {
+          window.history.pushState({}, '', '/signin');
+          setAuthView('signin');
+        }}
+        onNavigateToSignUp={() => {
+          window.history.pushState({}, '', '/signup');
+          setAuthView('signup');
+        }}
+        onAccepted={() => {
+          window.history.replaceState({}, '', '/');
+          setAuthView('landing');
+        }}
+      />
+    );
+  }
 
   // ─── Loading ──────────────────────────────────────────────────────────────
 

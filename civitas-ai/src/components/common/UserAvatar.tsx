@@ -44,7 +44,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = AvatarSize.
     <div 
       className={`${sizeClasses[size]} ${className} flex-shrink-0 rounded-full flex items-center justify-center font-medium`}
       style={{
-        background: 'rgba(255, 255, 255, 0.08)',
+        background: 'rgba(0, 0, 0, 0.05)',
         color: 'rgba(255, 255, 255, 0.7)',
       }}
       title={name}

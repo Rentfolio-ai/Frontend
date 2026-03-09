@@ -44,7 +44,7 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
       <div className="absolute inset-0 bg-gradient-to-r from-[#A8734A]/20 via-transparent to-[#C08B5C]/10 z-[1]" />
 
       {/* Counter */}
-      <div className="absolute top-3 right-4 z-[4] text-[10px] text-white/20 font-mono">
+      <div className="absolute top-3 right-4 z-[4] text-[10px] text-muted-foreground/40 font-mono">
         {activeIndex + 1} / {featured.length}
       </div>
 
@@ -70,7 +70,7 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
               ) : (
                 <div
                   className={`w-[72px] h-[72px] rounded-xl bg-gradient-to-br ${current.accentColor}
-                              flex items-center justify-center text-white text-2xl font-bold shadow-lg flex-shrink-0`}
+                              flex items-center justify-center text-foreground text-2xl font-bold shadow-lg flex-shrink-0`}
                 >
                   {current.name.charAt(0)}
                 </div>
@@ -78,29 +78,29 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
 
               {/* Text content */}
               <div className="flex-1 min-w-0">
-                <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">
+                <span className="text-[10px] text-muted-foreground/50 font-medium uppercase tracking-wider">
                   {CATEGORY_LABELS[current.category]}
                 </span>
 
-                <h2 className="font-display text-[17px] text-white font-bold tracking-tight truncate mt-0.5">
+                <h2 className="font-display text-[17px] text-foreground font-bold tracking-tight truncate mt-0.5">
                   {current.name}
                 </h2>
 
                 <div className="flex items-center gap-1.5 mt-1">
                   <Star className="w-3 h-3 text-[#D4A27F] fill-[#D4A27F]" />
-                  <span className="text-[12px] text-white/80 font-medium">{current.rating}</span>
+                  <span className="text-[12px] text-foreground/80 font-medium">{current.rating}</span>
                   {current.reviewCount > 0 && (
-                    <span className="text-[11px] text-white/30">({current.reviewCount} reviews)</span>
+                    <span className="text-[11px] text-muted-foreground/50">({current.reviewCount} reviews)</span>
                   )}
                   {current.serviceAreas[0] && (
-                    <span className="flex items-center gap-0.5 text-[11px] text-white/25 ml-1.5">
+                    <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground/50 ml-1.5">
                       <MapPin className="w-2.5 h-2.5" />
                       {current.serviceAreas[0]}
                     </span>
                   )}
                 </div>
 
-                <p className="text-[12px] text-white/40 leading-snug mt-1.5 line-clamp-2">
+                <p className="text-[12px] text-muted-foreground/70 leading-snug mt-1.5 line-clamp-2">
                   {current.description}
                 </p>
               </div>
@@ -108,8 +108,8 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
               {/* Connect button */}
               <button
                 onClick={() => onSelect(current)}
-                className="flex-shrink-0 mt-3 px-4 py-1.5 rounded-full bg-white/[0.10] hover:bg-white/[0.15]
-                           text-[12px] text-white/90 font-medium transition-all duration-150"
+                className="flex-shrink-0 mt-3 px-4 py-1.5 rounded-full bg-black/[0.07] hover:bg-black/[0.10]
+                           text-[12px] text-foreground font-medium transition-all duration-150"
               >
                 Connect
               </button>
@@ -117,12 +117,12 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
 
             {/* Contact actions row */}
             {hasContact && (
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-black/[0.06]">
                 {current.email && (
                   <button
                     onClick={() => onEmail?.(current)}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium
-                               text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+                               text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.05] transition-all"
                   >
                     <Mail className="w-3 h-3" />
                     <span>Email</span>
@@ -132,7 +132,7 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
                   <button
                     onClick={() => onText?.(current)}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium
-                               text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+                               text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.05] transition-all"
                   >
                     <MessageSquare className="w-3 h-3" />
                     <span>Text</span>
@@ -142,7 +142,7 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
                   <button
                     onClick={() => onCall?.(current)}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium
-                               text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+                               text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.05] transition-all"
                   >
                     <Phone className="w-3 h-3" />
                     <span>Call</span>
@@ -154,7 +154,7 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium
-                               text-white/40 hover:text-white/70 hover:bg-white/[0.06] transition-all truncate ml-auto"
+                               text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.05] transition-all truncate ml-auto"
                   >
                     <Globe className="w-3 h-3 flex-shrink-0" />
                     <span className="truncate">{current.website.replace(/^https?:\/\/(www\.)?/, '')}</span>
@@ -172,14 +172,14 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
           <button
             onClick={goBack}
             className="absolute left-1.5 top-1/2 -translate-y-1/2 z-[4] p-1 rounded-full
-                       bg-black/30 hover:bg-black/50 text-white/30 hover:text-white/60 transition-all"
+                       bg-black/30 hover:bg-black/50 text-muted-foreground/50 hover:text-muted-foreground transition-all"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={advance}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 z-[4] p-1 rounded-full
-                       bg-black/30 hover:bg-black/50 text-white/30 hover:text-white/60 transition-all"
+                       bg-black/30 hover:bg-black/50 text-muted-foreground/50 hover:text-muted-foreground transition-all"
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -195,7 +195,7 @@ export const MarketplaceHero: React.FC<MarketplaceHeroProps> = ({ featured, onSe
               onClick={() => setActiveIndex(i)}
               className="flex-1 relative h-full"
             >
-              <div className="absolute inset-0 bg-white/[0.04]" />
+              <div className="absolute inset-0 bg-black/[0.03]" />
               {i === activeIndex && (
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-[#C08B5C] to-[#D4A27F]"

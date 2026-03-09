@@ -50,10 +50,10 @@ const SubScorePill: React.FC<SubScorePillProps> = ({ label, value, delay = 0 }) 
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: delay + 0.8 }}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]"
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/[0.02] border border-black/[0.06]"
     >
-      <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] min-w-[40px]">
+      <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider">{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-black/[0.05] min-w-[40px]">
         <motion.div
           className="h-full rounded-full"
           style={{ backgroundColor: color }}
@@ -62,7 +62,7 @@ const SubScorePill: React.FC<SubScorePillProps> = ({ label, value, delay = 0 }) 
           transition={{ duration: 0.8, delay: delay + 1.0, ease: 'easeOut' }}
         />
       </div>
-      <span className="text-[11px] font-mono font-bold text-white/70">{Math.round(value)}</span>
+      <span className="text-[11px] font-mono font-bold text-foreground/70">{Math.round(value)}</span>
     </motion.div>
   );
 };
@@ -144,7 +144,7 @@ export const VisionScoreCard: React.FC<VisionScoreCardProps> = ({
             cy={center}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke="rgba(0,0,0,0.06)"
             strokeWidth={strokeWidth}
           />
           {/* Score arc */}
@@ -172,7 +172,7 @@ export const VisionScoreCard: React.FC<VisionScoreCardProps> = ({
             <AnimatedScore value={score} />
           </span>
           {!compact && (
-            <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider mt-0.5">
+            <span className="text-[10px] font-medium text-muted-foreground/70 uppercase tracking-wider mt-0.5">
               {label}
             </span>
           )}
@@ -186,7 +186,7 @@ export const VisionScoreCard: React.FC<VisionScoreCardProps> = ({
         transition={{ delay: 0.6 }}
         className="text-center"
       >
-        <div className="text-[11px] font-medium text-white/40 uppercase tracking-wider">
+        <div className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
           Vision Score
         </div>
       </motion.div>

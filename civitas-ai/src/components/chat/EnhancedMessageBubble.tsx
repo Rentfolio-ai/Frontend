@@ -133,10 +133,10 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
       )}>
         {/* Name and timestamp */}
         <div className={cn(
-          "text-xs text-white/30 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity",
+          "text-xs text-muted-foreground/50 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity",
           isUser ? "text-right" : "text-left"
         )}>
-          <span className="text-white/40">{isUser ? (userName?.split(' ')[0] || 'You') : 'Vasthu AI'}</span>
+          <span className="text-muted-foreground/70">{isUser ? (userName?.split(' ')[0] || 'You') : 'Vasthu AI'}</span>
           <span className="mx-1">•</span>
           <span>{new Date(message.timestamp).toLocaleTimeString()}</span>
         </div>
@@ -153,7 +153,7 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
-            className="prose prose-invert prose-sm max-w-none"
+            className="prose prose-sm max-w-none"
             components={{
               // Custom citation rendering
               p: ({ children, ...props }) => {
@@ -234,7 +234,7 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
           {/* Data Sources */}
           {!isUser && dataSources.length > 0 && !message.isStreaming && (
             <div className="mt-3">
-              <div className="text-xs text-white/40 mb-2">Data Sources:</div>
+              <div className="text-xs text-muted-foreground/70 mb-2">Data Sources:</div>
               <div className="flex flex-wrap gap-2">
                 {dataSources.map((ds, i) => (
                   <DataSourceBadge
@@ -260,25 +260,25 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
           
           {/* Action Buttons (for AI messages only) */}
           {!isUser && !message.isStreaming && (
-            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2 mt-4 pt-3 border-t border-black/8 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleCopy}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg hover:bg-black/8 transition-colors"
                 title="Copy"
               >
                 {copied ? (
                   <Check className="w-4 h-4 text-green-400" />
                 ) : (
-                  <Copy className="w-4 h-4 text-white/60" />
+                  <Copy className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
               
               <button
                 onClick={() => onRefresh?.(message.id)}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg hover:bg-black/8 transition-colors"
                 title="Regenerate"
               >
-                <RotateCcw className="w-4 h-4 text-white/60" />
+                <RotateCcw className="w-4 h-4 text-muted-foreground" />
               </button>
               
               <div className="flex-1" />
@@ -287,7 +287,7 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
                 onClick={() => handleFeedback(true)}
                 className={cn(
                   "p-2 rounded-lg transition-colors",
-                  feedback === 'up' ? "bg-green-500/20 text-green-400" : "hover:bg-white/10 text-white/60"
+                  feedback === 'up' ? "bg-green-500/20 text-green-400" : "hover:bg-black/8 text-muted-foreground"
                 )}
                 title="Good response"
               >
@@ -298,7 +298,7 @@ export const EnhancedMessageBubble: React.FC<EnhancedMessageBubbleProps> = ({
                 onClick={() => handleFeedback(false)}
                 className={cn(
                   "p-2 rounded-lg transition-colors",
-                  feedback === 'down' ? "bg-red-500/20 text-red-400" : "hover:bg-white/10 text-white/60"
+                  feedback === 'down' ? "bg-red-500/20 text-red-400" : "hover:bg-black/8 text-muted-foreground"
                 )}
                 title="Bad response"
               >

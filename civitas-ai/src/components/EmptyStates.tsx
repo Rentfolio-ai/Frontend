@@ -31,7 +31,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     return (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             {icon && (
-                <div className="mb-4 text-gray-400">
+                <div className="mb-4 text-muted-foreground">
                     {icon}
                 </div>
             )}
@@ -160,12 +160,12 @@ export const HomePanelEmptyState: React.FC<HomePanelEmptyStateProps> = ({
     actionLabel,
     onAction,
 }) => (
-    <div className="rounded-xl bg-white/[0.03] border border-white/[0.04] p-8 text-center">
-        <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.05] mx-auto mb-3 flex items-center justify-center text-white/25">
+    <div className="rounded-xl bg-black/[0.02] border border-black/[0.04] p-8 text-center">
+        <div className="w-8 h-8 rounded-lg bg-black/[0.02] border border-black/[0.05] mx-auto mb-3 flex items-center justify-center text-muted-foreground/50">
             {icon}
         </div>
-        <div className="text-[13px] text-white/45">{title}</div>
-        <div className="text-[11px] text-white/25 mt-1">{description}</div>
+        <div className="text-[13px] text-muted-foreground/70">{title}</div>
+        <div className="text-[11px] text-muted-foreground/50 mt-1">{description}</div>
         {actionLabel && onAction && (
             <button
                 onClick={onAction}

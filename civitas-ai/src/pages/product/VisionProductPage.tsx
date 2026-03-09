@@ -41,20 +41,20 @@ export const VisionProductPage: React.FC<VisionProductPageProps> = ({ onBackToAp
   }, [onGoToAI]);
 
   return (
-    <div className="h-screen w-screen bg-[#0a0a0c] text-white flex flex-col overflow-hidden">
+    <div className="h-screen w-screen bg-background text-foreground flex flex-col overflow-hidden">
       {/* ── Product Nav Bar ──────────────────────────────────── */}
-      <nav className="flex items-center justify-between px-5 py-3 border-b border-white/[0.04] bg-[#0a0a0c]/95 backdrop-blur-2xl flex-shrink-0 z-50">
+      <nav className="flex items-center justify-between px-5 py-3 border-b border-black/[0.04] bg-background/95 backdrop-blur-2xl flex-shrink-0 z-50">
         {/* Left: Back + branding */}
         <div className="flex items-center gap-4">
           <button
             onClick={handleBack}
-            className="flex items-center gap-1.5 text-sm text-white/30 hover:text-white/60 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground/50 hover:text-muted-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Vision Home</span>
           </button>
 
-          <div className="h-5 w-px bg-white/[0.06]" />
+          <div className="h-5 w-px bg-black/[0.05]" />
 
           <div className="flex items-center gap-2">
             <ScanEye className="w-5 h-5 text-violet-400" />
@@ -70,22 +70,22 @@ export const VisionProductPage: React.FC<VisionProductPageProps> = ({ onBackToAp
           {onGoToAI && (
             <button
               onClick={handleGoToAI}
-              className="hidden sm:flex items-center gap-1.5 text-[12px] text-white/20 hover:text-white/50 transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-[12px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
             >
               Open Vasthu AI
             </button>
           )}
 
           {user?.name && (
-            <span className="text-sm text-white/30 hidden sm:inline">
+            <span className="text-sm text-muted-foreground/50 hidden sm:inline">
               {user.name.split(' ')[0]}
             </span>
           )}
-          <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-black/[0.03] border border-black/[0.06] flex items-center justify-center overflow-hidden">
             {user?.avatar ? (
               <img src={user.avatar} alt="" className="w-full h-full object-cover" />
             ) : (
-              <User className="w-4 h-4 text-white/25" />
+              <User className="w-4 h-4 text-muted-foreground/50" />
             )}
           </div>
         </div>

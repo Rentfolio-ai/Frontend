@@ -17,9 +17,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
   }
 
   const proseClassName = cn(
-    'prose prose-slate prose-sm max-w-none dark:prose-invert',
+    'prose prose-slate prose-sm max-w-none',
     'prose-headings:text-slate-900 prose-headings:font-semibold',
-    'prose-ul:list-disc prose-ol:list-decimal prose-li:marker:text-slate-400',
+    'prose-ul:list-disc prose-ol:list-decimal prose-li:marker:text-muted-foreground',
     'prose-strong:text-slate-900 prose-a:text-primary',
     className
   );

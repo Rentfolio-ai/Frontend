@@ -133,7 +133,7 @@ export class V2PropertyApi {
    * Use this for quick property searches without AI insights.
    * Response time: ~500ms
    */
-  async searchProperties(query: PropertySearchQuery): Promise<PropertySearchResponse> {
+  async searchProperties(query: PropertySearchQuery, signal?: AbortSignal): Promise<PropertySearchResponse> {
     const url = `${this.baseUrl}/v2/property/search`;
     const startedAt = performance.now();
 
@@ -144,6 +144,7 @@ export class V2PropertyApi {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(query),
+        signal,
       });
 
       if (!response.ok) {

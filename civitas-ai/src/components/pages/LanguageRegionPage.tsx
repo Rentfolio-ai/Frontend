@@ -118,23 +118,23 @@ const SelectRow: React.FC<{
                 <Icon className="w-[18px] h-[18px] text-[#D4A27F]" />
             </div>
             <div className="flex-1 min-w-0">
-                <h4 className="text-[13px] font-medium text-white/85">{label}</h4>
-                <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
+                <h4 className="text-[13px] font-medium text-foreground/85">{label}</h4>
+                <p className="text-[11px] text-muted-foreground/60 mt-0.5">{subtitle}</p>
             </div>
         </div>
         <div className="ml-[52px] relative">
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg bg-[#0E0E11] border border-white/[0.08] text-[12px] text-white/80 appearance-none cursor-pointer focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
+                className="w-full px-3 py-2.5 rounded-lg bg-background border border-black/[0.08] text-[12px] text-foreground/80 appearance-none cursor-pointer focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
             >
                 {options.map(o => (
-                    <option key={o.value} value={o.value} style={{ backgroundColor: '#1e1e24' }}>
+                    <option key={o.value} value={o.value} style={{ backgroundColor: 'hsl(var(--surface-elevated))' }}>
                         {renderOption ? renderOption(o) : o.label}
                     </option>
                 ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50 pointer-events-none" />
         </div>
     </div>
 );
@@ -154,18 +154,18 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
     const currentCurrency = CURRENCIES.find(c => c.value === currency);
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Language & Region</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Language, timezone, and display formats</p>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Language & Region</h1>
+                    <p className="text-[11px] text-muted-foreground/50 mt-0.5">Language, timezone, and display formats</p>
                 </div>
             </header>
 
@@ -178,16 +178,16 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                 >
                     {/* ── AI Response Language ── */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Language</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm overflow-hidden">
-                            <div className="p-6 border-b border-white/[0.04]">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Language</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm overflow-hidden">
+                            <div className="p-6 border-b border-black/[0.04]">
                                 <div className="flex items-center gap-3.5 mb-5">
                                     <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
                                         <Globe className="w-[18px] h-[18px] text-[#D4A27F]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-sm font-medium text-white/90">Display & AI Language</h4>
-                                        <p className="text-[11px] text-white/35 mt-0.5">Vasthu will respond in your selected language</p>
+                                        <h4 className="text-sm font-medium text-foreground">Display & AI Language</h4>
+                                        <p className="text-[11px] text-muted-foreground/60 mt-0.5">Vasthu will respond in your selected language</p>
                                     </div>
                                 </div>
 
@@ -203,15 +203,15 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                                                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${
                                                     selected
                                                         ? 'bg-[#C08B5C]/15 border border-[#C08B5C]/30 shadow-sm shadow-[#C08B5C]/5'
-                                                        : 'bg-[#0E0E11] border border-white/[0.06] hover:border-white/[0.12]'
+                                                        : 'bg-background border border-black/[0.06] hover:border-black/[0.10]'
                                                 }`}
                                             >
                                                 <span className="text-[15px] flex-shrink-0">{lang.flag}</span>
                                                 <div className="flex-1 min-w-0">
-                                                    <span className={`text-[11px] font-medium block truncate ${selected ? 'text-[#D4A27F]' : 'text-white/65'}`}>
+                                                    <span className={`text-[11px] font-medium block truncate ${selected ? 'text-[#D4A27F]' : 'text-muted-foreground/80'}`}>
                                                         {lang.native}
                                                     </span>
-                                                    <span className="text-[9px] text-white/25 block truncate">{lang.label}</span>
+                                                    <span className="text-[9px] text-muted-foreground/50 block truncate">{lang.label}</span>
                                                 </div>
                                                 {selected && <Check className="w-3.5 h-3.5 text-[#C08B5C] flex-shrink-0" />}
                                             </motion.button>
@@ -221,11 +221,11 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                             </div>
 
                             <div className="px-6 py-3.5 flex items-center gap-2.5">
-                                <MessageSquare className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
-                                <p className="text-[10px] text-white/25 leading-relaxed">
-                                    Vasthu will understand messages in any language, but will reply in <span className="text-white/45 font-medium">{getLanguageDisplayName(language)}</span>.
+                                <MessageSquare className="w-3.5 h-3.5 text-muted-foreground/40 flex-shrink-0" />
+                                <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
+                                    Vasthu will understand messages in any language, but will reply in <span className="text-muted-foreground/70 font-medium">{getLanguageDisplayName(language)}</span>.
                                     You can also quickly switch languages from the{' '}
-                                    <span className="text-white/40 font-medium">
+                                    <span className="text-muted-foreground/70 font-medium">
                                         <Globe className="w-3 h-3 inline-block -mt-0.5 mx-0.5" />
                                         globe icon
                                     </span>{' '}
@@ -237,8 +237,8 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
 
                     {/* ── Region Settings ── */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Region</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Region</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <SelectRow
                                 icon={Clock}
                                 label="Timezone"
@@ -262,8 +262,8 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
 
                     {/* ── Format Settings ── */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Format</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Format</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                             <SelectRow
                                 icon={Calendar}
                                 label="Date Format"
@@ -281,8 +281,8 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                                         <Clock className="w-[18px] h-[18px] text-[#D4A27F]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-[13px] font-medium text-white/85">Time Format</h4>
-                                        <p className="text-[11px] text-white/35 mt-0.5">12-hour or 24-hour clock</p>
+                                        <h4 className="text-[13px] font-medium text-foreground/85">Time Format</h4>
+                                        <p className="text-[11px] text-muted-foreground/60 mt-0.5">12-hour or 24-hour clock</p>
                                     </div>
                                 </div>
                                 <div className="ml-[52px] grid grid-cols-2 gap-2.5">
@@ -298,17 +298,17 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                                             className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border text-[12px] font-medium transition-all ${
                                                 timeFormat === tf.v
                                                     ? 'border-[#C08B5C] bg-[#C08B5C]/10 text-[#D4A27F] shadow-sm shadow-[#C08B5C]/10'
-                                                    : 'border-white/[0.08] bg-[#0E0E11] text-white/50 hover:border-white/[0.15] hover:text-white/70'
+                                                    : 'border-black/[0.08] bg-background text-muted-foreground hover:border-black/[0.12] hover:text-foreground/70'
                                             }`}
                                         >
                                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                                                timeFormat === tf.v ? 'border-[#C08B5C]' : 'border-white/20'
+                                                timeFormat === tf.v ? 'border-[#C08B5C]' : 'border-black/12'
                                             }`}>
                                                 {timeFormat === tf.v && <div className="w-2 h-2 rounded-full bg-[#C08B5C]" />}
                                             </div>
                                             <div>
                                                 <span>{tf.l}</span>
-                                                <span className="text-[10px] text-white/25 ml-1.5">({tf.example})</span>
+                                                <span className="text-[10px] text-muted-foreground/50 ml-1.5">({tf.example})</span>
                                             </div>
                                         </motion.button>
                                     ))}
@@ -319,8 +319,8 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
 
                     {/* ── Preview ── */}
                     <motion.div variants={reveal}>
-                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25 mb-3 px-1">Preview</h2>
-                        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-5 space-y-3">
+                        <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Preview</h2>
+                        <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm p-5 space-y-3">
                             {[
                                 { l: 'Language', v: currentLang ? `${currentLang.flag} ${currentLang.native}` : language },
                                 { l: 'Date', v: dateFormat.replace('MM', '02').replace('DD', '07').replace('YYYY', '2026') },
@@ -328,8 +328,8 @@ export const LanguageRegionPage: React.FC<LanguageRegionPageProps> = ({ onBack }
                                 { l: 'Price', v: `${currentCurrency?.symbol || '$'}250,000` },
                             ].map(p => (
                                 <div key={p.l} className="flex items-center justify-between">
-                                    <span className="text-[11px] text-white/35">{p.l}</span>
-                                    <span className="text-[12px] font-medium text-white/75">{p.v}</span>
+                                    <span className="text-[11px] text-muted-foreground/60">{p.l}</span>
+                                    <span className="text-[12px] font-medium text-foreground/75">{p.v}</span>
                                 </div>
                             ))}
                         </div>

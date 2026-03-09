@@ -42,15 +42,15 @@ const Section: React.FC<{
 }> = ({ icon: Icon, title, subtitle, children }) => (
     <motion.div
         variants={reveal}
-        className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm p-6"
+        className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm p-6"
     >
         <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0">
                 <Icon className="w-[18px] h-[18px] text-[#D4A27F]" />
             </div>
             <div>
-                <h3 className="text-sm font-medium text-white/90">{title}</h3>
-                <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
+                <h3 className="text-sm font-medium text-foreground">{title}</h3>
+                <p className="text-[11px] text-muted-foreground/60 mt-0.5">{subtitle}</p>
             </div>
         </div>
         {children}
@@ -65,20 +65,20 @@ const InputField: React.FC<{
     suffix?: string;
 }> = ({ label, value, onChange, prefix, suffix }) => (
     <div>
-        <label className="block text-[11px] font-medium text-white/35 mb-1.5 uppercase tracking-wider">{label}</label>
+        <label className="block text-[11px] font-medium text-muted-foreground/60 mb-1.5 uppercase tracking-wider">{label}</label>
         <div className="relative group">
-            {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-white/25">{prefix}</span>}
+            {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/50">{prefix}</span>}
             <input
                 type="text"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 className={cn(
-                    'w-full py-2.5 rounded-lg bg-[#0E0E11] border border-white/[0.08] text-sm text-white',
-                    'focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all placeholder-white/20',
+                    'w-full py-2.5 rounded-lg bg-background border border-black/[0.08] text-sm text-foreground',
+                    'focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all placeholder-muted-foreground/40',
                     prefix ? 'pl-7 pr-3' : suffix ? 'pl-3 pr-8' : 'px-3'
                 )}
             />
-            {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/25">{suffix}</span>}
+            {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground/50">{suffix}</span>}
         </div>
     </div>
 );
@@ -96,7 +96,7 @@ const Chip: React.FC<{
             'px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all border',
             selected
                 ? 'bg-[#C08B5C] border-[#C08B5C] text-[#0A0A0C] shadow-sm shadow-[#C08B5C]/15'
-                : 'bg-[#0E0E11] border-white/[0.08] text-white/45 hover:border-white/[0.15] hover:text-white/70'
+                : 'bg-background border-black/[0.08] text-muted-foreground/70 hover:border-black/[0.12] hover:text-foreground/70'
         )}
     >
         {label}
@@ -220,18 +220,18 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
     };
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Investment Preferences</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Configure your buy box and underwriting assumptions</p>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Investment Preferences</h1>
+                    <p className="text-[11px] text-muted-foreground/50 mt-0.5">Configure your buy box and underwriting assumptions</p>
                 </div>
 
                 <motion.button
@@ -286,24 +286,24 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                                         'p-4 rounded-xl text-left border transition-all duration-200 relative overflow-hidden',
                                         strategy === s.v
                                             ? 'bg-[#C08B5C] border-[#C08B5C] shadow-lg shadow-[#C08B5C]/15'
-                                            : 'bg-[#0E0E11] border-white/[0.08] hover:border-white/[0.15]'
+                                            : 'bg-background border-black/[0.08] hover:border-black/[0.12]'
                                     )}
                                 >
                                     <div className={cn(
                                         "text-xs font-bold mb-1 tracking-wide uppercase",
-                                        strategy === s.v ? "text-[#0A0A0C]" : "text-white/75"
+                                        strategy === s.v ? "text-[#0A0A0C]" : "text-foreground/75"
                                     )}>
                                         {s.l}
                                     </div>
                                     <div className={cn(
                                         "text-[10px]",
-                                        strategy === s.v ? "text-[#0A0A0C]/60" : "text-white/35"
+                                        strategy === s.v ? "text-[#0A0A0C]/60" : "text-muted-foreground/60"
                                     )}>
                                         {s.d}
                                     </div>
                                     {strategy === s.v && (
                                         <div className="absolute top-2.5 right-2.5">
-                                            <div className="w-5 h-5 rounded-full bg-[#0A0A0C]/20 flex items-center justify-center">
+                                            <div className="w-5 h-5 rounded-full bg-background/20 flex items-center justify-center">
                                                 <Check className="w-3 h-3 text-[#0A0A0C]" />
                                             </div>
                                         </div>
@@ -332,17 +332,17 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                                         onFocus={() => setShowDropdown(true)}
                                         placeholder="Add a city..."
                                         disabled={markets.length >= 10}
-                                        className="w-full px-3 py-2.5 pr-8 rounded-lg bg-[#0E0E11] border border-white/[0.08] text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
+                                        className="w-full px-3 py-2.5 pr-8 rounded-lg bg-background border border-black/[0.08] text-sm text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-[#C08B5C]/40 focus:ring-1 focus:ring-[#C08B5C]/20 transition-all"
                                     />
-                                    <Plus className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-hover:text-white/40 transition-colors" />
+                                    <Plus className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors" />
 
                                     {showDropdown && marketSearch && filteredMarkets.length > 0 && (
-                                        <div className="absolute top-full mt-1 w-full max-h-48 overflow-y-auto bg-[#1a1a1e] border border-white/[0.08] rounded-xl shadow-2xl z-20">
+                                        <div className="absolute top-full mt-1 w-full max-h-48 overflow-y-auto bg-popover border border-black/[0.08] rounded-xl shadow-2xl z-20">
                                             {filteredMarkets.slice(0, 8).map(m => (
                                                 <button
                                                     key={m}
                                                     onClick={() => { setMarkets([...markets, m]); setMarketSearch(''); setShowDropdown(false); }}
-                                                    className="w-full px-4 py-2.5 text-left text-xs text-white/60 hover:bg-white/[0.04] hover:text-white transition-colors border-b border-white/[0.02] last:border-0"
+                                                    className="w-full px-4 py-2.5 text-left text-xs text-muted-foreground hover:bg-black/[0.03] hover:text-foreground transition-colors border-b border-black/[0.04] last:border-0"
                                                 >
                                                     {m}
                                                 </button>
@@ -352,18 +352,18 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {markets.map(m => (
-                                        <div key={m} className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.06] group hover:border-white/[0.1] transition-colors">
-                                            <span className="text-[11px] text-white/60">{m}</span>
+                                        <div key={m} className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-lg bg-black/[0.03] border border-black/[0.06] group hover:border-black/[0.08] transition-colors">
+                                            <span className="text-[11px] text-muted-foreground">{m}</span>
                                             <button
                                                 onClick={() => setMarkets(markets.filter(x => x !== m))}
-                                                className="p-0.5 hover:bg-white/[0.08] rounded transition-colors text-white/25 hover:text-white/50"
+                                                className="p-0.5 hover:bg-black/[0.06] rounded transition-colors text-muted-foreground/50 hover:text-muted-foreground"
                                             >
                                                 <X className="w-3 h-3" />
                                             </button>
                                         </div>
                                     ))}
                                     {markets.length === 0 && (
-                                        <span className="text-[11px] text-white/25 italic px-1">No markets selected</span>
+                                        <span className="text-[11px] text-muted-foreground/50 italic px-1">No markets selected</span>
                                     )}
                                 </div>
                             </div>
@@ -374,7 +374,7 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                     <Section icon={Home} title="Property Criteria" subtitle="Physical characteristics">
                         <div className="space-y-5">
                             <div>
-                                <label className="block text-[11px] font-medium text-white/35 mb-2 uppercase tracking-wider">Bedroom Count</label>
+                                <label className="block text-[11px] font-medium text-muted-foreground/60 mb-2 uppercase tracking-wider">Bedroom Count</label>
                                 <div className="flex flex-wrap gap-2">
                                     {['any', '1', '2', '3', '4', '5+'].map(b => (
                                         <Chip key={b} label={b === 'any' ? 'Any' : `${b}+ Beds`} selected={bedrooms === b} onClick={() => setBedrooms(b)} />
@@ -382,7 +382,7 @@ export const InvestmentPreferencesPage: React.FC<InvestmentPreferencesPageProps>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[11px] font-medium text-white/35 mb-2 uppercase tracking-wider">Property Types</label>
+                                <label className="block text-[11px] font-medium text-muted-foreground/60 mb-2 uppercase tracking-wider">Property Types</label>
                                 <div className="flex flex-wrap gap-2">
                                     {PROPERTY_TYPES.map(t => (
                                         <Chip

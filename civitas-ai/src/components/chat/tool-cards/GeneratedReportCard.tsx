@@ -27,21 +27,21 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; textClass: str
 
 const REC_STYLES: Record<string, { textClass: string; dotClass: string }> = {
   buy:                { textClass: 'text-emerald-400', dotClass: 'bg-emerald-400' },
-  pass:               { textClass: 'text-white/40',    dotClass: 'bg-white/30' },
+  pass:               { textClass: 'text-muted-foreground/70',    dotClass: 'bg-white/30' },
   negotiate:          { textClass: 'text-amber-400',   dotClass: 'bg-amber-400' },
   hold:               { textClass: 'text-sky-400',     dotClass: 'bg-sky-400' },
   'explore further':  { textClass: 'text-cyan-400',    dotClass: 'bg-cyan-400' },
   'strong candidate': { textClass: 'text-emerald-300', dotClass: 'bg-emerald-300' },
   'below market':     { textClass: 'text-amber-300',   dotClass: 'bg-amber-300' },
-  monitor:            { textClass: 'text-white/50',    dotClass: 'bg-white/40' },
+  monitor:            { textClass: 'text-muted-foreground',    dotClass: 'bg-white/40' },
   reposition:         { textClass: 'text-violet-400',  dotClass: 'bg-violet-400' },
 };
 
 const getTypeConfig = (type: string) =>
-  TYPE_CONFIG[type?.toLowerCase()] || { label: type || 'Report', color: '#888', textClass: 'text-white/50' };
+  TYPE_CONFIG[type?.toLowerCase()] || { label: type || 'Report', color: '#888', textClass: 'text-muted-foreground' };
 
 const getRecStyle = (rec: string) =>
-  REC_STYLES[rec?.toLowerCase()] || { textClass: 'text-white/40', dotClass: 'bg-white/30' };
+  REC_STYLES[rec?.toLowerCase()] || { textClass: 'text-muted-foreground/70', dotClass: 'bg-white/30' };
 
 /* ── Report Modal ──────────────────────────────────────────────────── */
 
@@ -81,25 +81,25 @@ const ReportModal: React.FC<ReportModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.97, y: 8 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-[#111113] rounded-xl shadow-2xl overflow-hidden flex flex-col border border-white/[0.08]"
+          className="relative w-full max-w-5xl max-h-[90vh] mx-4 bg-card rounded-xl shadow-2xl overflow-hidden flex flex-col border border-black/[0.08]"
         >
           {/* Accent strip */}
           <div className="h-[2px] w-full flex-shrink-0" style={{ backgroundColor: cfg.color }} />
 
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06]">
             <div className="min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
                 <span className={`text-[10px] font-semibold uppercase tracking-wider ${cfg.textClass}`}>
                   {getTypeConfig(reportType).label}
                 </span>
               </div>
-              <p className="text-[11px] text-white/35 truncate">{propertyAddress}</p>
+              <p className="text-[11px] text-muted-foreground/60 truncate">{propertyAddress}</p>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={() => iframeRef.current?.contentWindow?.print()}
-                className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
+                className="p-2 rounded-lg hover:bg-black/[0.05] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                 title="Print"
               >
                 <Printer className="w-4 h-4" />
@@ -113,14 +113,14 @@ const ReportModal: React.FC<ReportModalProps> = ({
                     window.open(htmlUrl, '_blank');
                   }
                 }}
-                className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
+                className="p-2 rounded-lg hover:bg-black/[0.05] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                 title="Open in new tab"
               >
                 <ExternalLink className="w-4 h-4" />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
+                className="p-2 rounded-lg hover:bg-black/[0.05] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -185,7 +185,7 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        className="mt-3 rounded-lg border border-white/[0.08] bg-white/[0.03] overflow-hidden"
+        className="mt-3 rounded-lg border border-black/[0.08] bg-black/[0.02] overflow-hidden"
       >
         {/* Accent strip */}
         <div className="h-[2px] w-full" style={{ backgroundColor: cfg.color }} />
@@ -194,10 +194,10 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <FileText className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+              <FileText className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0" />
               <span className={`text-[12px] font-semibold ${cfg.textClass}`}>{cfg.label}</span>
             </div>
-            <p className="text-[11px] text-white/40 truncate max-w-[300px]">{property_address}</p>
+            <p className="text-[11px] text-muted-foreground/70 truncate max-w-[300px]">{property_address}</p>
           </div>
 
           {/* Recommendation */}
@@ -217,7 +217,7 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
             {cashFlow != null && (
               <div className="flex items-center gap-1.5">
                 <TrendingUp className={`w-3 h-3 ${cashFlow >= 0 ? 'text-emerald-400/60' : 'text-rose-400/60'}`} />
-                <span className="text-white/35">Cash Flow</span>
+                <span className="text-muted-foreground/60">Cash Flow</span>
                 <span className={`font-semibold font-mono ${cashFlow >= 0 ? 'text-emerald-400/80' : 'text-rose-400/80'}`}>
                   ${Math.abs(cashFlow).toLocaleString()}/mo
                 </span>
@@ -225,24 +225,24 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
             )}
             {capRate != null && (
               <div className="flex items-center gap-1.5">
-                <span className="text-white/35">Cap Rate</span>
-                <span className="font-semibold font-mono text-white/70">{(capRate * 100).toFixed(1)}%</span>
+                <span className="text-muted-foreground/60">Cap Rate</span>
+                <span className="font-semibold font-mono text-foreground/70">{(capRate * 100).toFixed(1)}%</span>
               </div>
             )}
             {coc != null && (
               <div className="flex items-center gap-1.5">
-                <span className="text-white/35">CoC</span>
-                <span className="font-semibold font-mono text-white/70">{(coc * 100).toFixed(1)}%</span>
+                <span className="text-muted-foreground/60">CoC</span>
+                <span className="font-semibold font-mono text-foreground/70">{(coc * 100).toFixed(1)}%</span>
               </div>
             )}
           </div>
         )}
 
         {/* Actions */}
-        <div className="px-4 py-2.5 flex items-center gap-2 border-t border-white/[0.05]">
+        <div className="px-4 py-2.5 flex items-center gap-2 border-t border-black/[0.05]">
           <button
             onClick={() => setIsReportOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.1] text-white/70 hover:text-white/90 rounded-md text-[12px] font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-black/[0.05] hover:bg-black/[0.07] text-foreground/70 hover:text-foreground rounded-md text-[12px] font-medium transition-all"
           >
             <FileText className="w-3.5 h-3.5" />
             View Full Report
@@ -252,7 +252,7 @@ export const GeneratedReportCard: React.FC<GeneratedReportCardProps> = ({
           {onNavigateToReports && (
             <button
               onClick={onNavigateToReports}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-white/30 hover:text-white/50 text-[11px] font-medium transition-colors rounded-md hover:bg-white/[0.03]"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted-foreground/50 hover:text-muted-foreground text-[11px] font-medium transition-colors rounded-md hover:bg-black/[0.02]"
             >
               <FolderOpen className="w-3 h-3" />
               All Reports

@@ -83,7 +83,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onClose, onSelectQ
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-muted-foreground hover:text-gray-600 transition-colors"
                     >
                         <X className="w-6 h-6" />
                     </button>

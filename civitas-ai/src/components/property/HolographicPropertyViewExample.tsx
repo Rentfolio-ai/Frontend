@@ -22,8 +22,8 @@ export const PropertyDisplayExample = () => {
     };
 
     return (
-        <div className="p-8 bg-gray-900">
-            <h2 className="text-2xl font-bold text-white mb-6">Property Visualization</h2>
+        <div className="p-8 bg-card">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Property Visualization</h2>
 
             {/* Full view */}
             <HolographicPropertyView

@@ -54,7 +54,7 @@ const Toggle: React.FC<{ enabled: boolean; onToggle: () => void }> = ({ enabled,
         className={`relative w-10 h-[22px] rounded-full transition-all duration-200 flex-shrink-0 ${
             enabled
                 ? 'bg-gradient-to-r from-[#C08B5C] to-[#D4A27F] shadow-[0_0_10px_rgba(192,139,92,0.3)]'
-                : 'bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.2]'
+                : 'bg-black/[0.05] border border-black/[0.08] hover:border-black/[0.12]'
         }`}
     >
         <div
@@ -74,13 +74,13 @@ const ToggleRow: React.FC<{
     enabled: boolean;
     onToggle: () => void;
 }> = ({ icon: Icon, title, subtitle, enabled, onToggle }) => (
-    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-white/[0.02] transition-colors">
+    <div className="flex items-center gap-3.5 px-4 py-3.5 group hover:bg-black/[0.02] transition-colors">
         <div className="w-9 h-9 rounded-xl bg-[#C08B5C]/[0.08] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C08B5C]/[0.12] transition-colors">
-            <Icon className={`w-[18px] h-[18px] transition-colors ${enabled ? 'text-[#D4A27F]' : 'text-white/35'}`} />
+            <Icon className={`w-[18px] h-[18px] transition-colors ${enabled ? 'text-[#D4A27F]' : 'text-muted-foreground/60'}`} />
         </div>
         <div className="flex-1 min-w-0">
-            <h4 className="text-[13px] font-medium text-white/85 group-hover:text-white transition-colors">{title}</h4>
-            <p className="text-[11px] text-white/35 mt-0.5">{subtitle}</p>
+            <h4 className="text-[13px] font-medium text-foreground/85 group-hover:text-foreground transition-colors">{title}</h4>
+            <p className="text-[11px] text-muted-foreground/60 mt-0.5">{subtitle}</p>
         </div>
         <Toggle enabled={enabled} onToggle={onToggle} />
     </div>
@@ -99,7 +99,7 @@ const TYPE_CONFIG: Record<
     subscription: { icon: CreditCard, color: 'text-[#D4A27F]', bg: 'bg-[#C08B5C]/10', label: 'Billing' },
     portfolio_alert: { icon: Briefcase, color: 'text-orange-400', bg: 'bg-orange-500/10', label: 'Portfolio' },
     new_listing: { icon: Home, color: 'text-cyan-400', bg: 'bg-cyan-500/10', label: 'New Listing' },
-    general: { icon: Info, color: 'text-white/50', bg: 'bg-white/[0.05]', label: 'General' },
+    general: { icon: Info, color: 'text-muted-foreground', bg: 'bg-black/[0.04]', label: 'General' },
 };
 
 // ── Main ────────────────────────────────────────────────────────────────────
@@ -178,18 +178,18 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
     const togglePref = (key: keyof typeof prefs) => setPrefs({ ...prefs, [key]: !prefs[key] });
 
     return (
-        <div className="h-full flex flex-col bg-[#161619]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header */}
-            <header className="flex items-center gap-4 px-8 py-5 border-b border-white/[0.06] bg-[#161619]/80 backdrop-blur-md sticky top-0 z-20">
+            <header className="flex items-center gap-4 px-8 py-5 border-b border-black/[0.06] bg-background/80 backdrop-blur-md sticky top-0 z-20">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 rounded-lg hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] flex items-center justify-center transition-all group -ml-2"
+                    className="w-8 h-8 rounded-lg hover:bg-black/[0.03] border border-transparent hover:border-black/[0.08] flex items-center justify-center transition-all group -ml-2"
                 >
-                    <ArrowLeft className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-lg font-medium text-white tracking-tight">Notifications</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Stay updated on your properties and account</p>
+                    <h1 className="text-lg font-medium text-foreground tracking-tight">Notifications</h1>
+                    <p className="text-[11px] text-muted-foreground/50 mt-0.5">Stay updated on your properties and account</p>
                 </div>
 
                 {activeTab === 'feed' && (
@@ -197,10 +197,10 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                         <button
                             onClick={() => fetchNotifications(false)}
                             disabled={refreshing}
-                            className="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] flex items-center justify-center transition-colors border border-white/[0.06] hover:border-white/[0.1]"
+                            className="w-8 h-8 rounded-lg bg-black/[0.02] hover:bg-black/[0.05] flex items-center justify-center transition-colors border border-black/[0.06] hover:border-black/[0.08]"
                             title="Refresh"
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 text-white/35 ${refreshing ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground/60 ${refreshing ? 'animate-spin' : ''}`} />
                         </button>
                         {unreadCount > 0 && (
                             <button
@@ -221,7 +221,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
             </header>
 
             {/* Tab switcher */}
-            <div className="flex px-8 border-b border-white/[0.06] bg-[#161619]/60 backdrop-blur-sm">
+            <div className="flex px-8 border-b border-black/[0.06] bg-background/60 backdrop-blur-sm">
                 {[
                     { id: 'feed' as const, label: 'Feed', icon: Bell },
                     { id: 'settings' as const, label: 'Preferences', icon: Settings },
@@ -230,7 +230,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-3 text-[11px] font-medium transition-all relative ${
-                            activeTab === tab.id ? 'text-white' : 'text-white/35 hover:text-white/60'
+                            activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground/60 hover:text-muted-foreground'
                         }`}
                     >
                         <tab.icon className="w-3.5 h-3.5" />
@@ -260,11 +260,11 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                         </div>
                     ) : notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-64 gap-3">
-                            <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-center">
-                                <BellOff className="w-6 h-6 text-white/15" />
+                            <div className="w-14 h-14 rounded-2xl bg-black/[0.02] border border-black/[0.06] flex items-center justify-center">
+                                <BellOff className="w-6 h-6 text-muted-foreground/40" />
                             </div>
-                            <p className="text-[13px] text-white/30">No notifications yet</p>
-                            <p className="text-[11px] text-white/15">You'll see updates here when things happen</p>
+                            <p className="text-[13px] text-muted-foreground/50">No notifications yet</p>
+                            <p className="text-[11px] text-muted-foreground/40">You'll see updates here when things happen</p>
                         </div>
                     ) : (
                         <motion.div
@@ -285,29 +285,29 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 10, height: 0 }}
-                                            className={`flex items-start gap-3.5 px-8 py-4 transition-colors group border-b border-white/[0.04] ${
+                                            className={`flex items-start gap-3.5 px-8 py-4 transition-colors group border-b border-black/[0.04] ${
                                                 n.is_read ? 'bg-transparent' : 'bg-[#C08B5C]/[0.02]'
-                                            } hover:bg-white/[0.02]`}
+                                            } hover:bg-black/[0.02]`}
                                         >
                                             <div className={`w-9 h-9 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
                                                 <Icon className={`w-[18px] h-[18px] ${cfg.color}`} />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wider ${cfg.color} px-1.5 py-0.5 rounded-md border border-white/[0.06] bg-white/[0.02]`}>
+                                                    <span className={`text-[9px] font-bold uppercase tracking-wider ${cfg.color} px-1.5 py-0.5 rounded-md border border-black/[0.06] bg-black/[0.02]`}>
                                                         {cfg.label}
                                                     </span>
-                                                    <span className="text-[10px] text-white/25">
+                                                    <span className="text-[10px] text-muted-foreground/50">
                                                         {formatDate(n.created_at)}
                                                     </span>
                                                     {!n.is_read && (
                                                         <div className="w-1.5 h-1.5 rounded-full bg-[#C08B5C] shadow-[0_0_6px_rgba(192,139,92,0.5)] ml-auto flex-shrink-0" />
                                                     )}
                                                 </div>
-                                                <h4 className={`text-[13px] font-medium mb-0.5 ${n.is_read ? 'text-white/55' : 'text-white/90'}`}>
+                                                <h4 className={`text-[13px] font-medium mb-0.5 ${n.is_read ? 'text-muted-foreground/70' : 'text-foreground'}`}>
                                                     {n.title}
                                                 </h4>
-                                                <p className={`text-[11px] leading-relaxed ${n.is_read ? 'text-white/25' : 'text-white/40'}`}>
+                                                <p className={`text-[11px] leading-relaxed ${n.is_read ? 'text-muted-foreground/50' : 'text-muted-foreground/70'}`}>
                                                     {n.message}
                                                 </p>
                                             </div>
@@ -316,10 +316,10 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                                                 {!n.is_read && (
                                                     <button
                                                         onClick={() => handleMarkRead(n.id)}
-                                                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors"
+                                                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.05] transition-colors"
                                                         title="Mark as read"
                                                     >
-                                                        <Check className="w-3.5 h-3.5 text-white/25 hover:text-white/60" />
+                                                        <Check className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground" />
                                                     </button>
                                                 )}
                                                 <button
@@ -327,7 +327,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                                                     className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500/[0.08] transition-colors"
                                                     title="Delete"
                                                 >
-                                                    <Trash2 className="w-3.5 h-3.5 text-white/25 hover:text-red-400" />
+                                                    <Trash2 className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-red-400" />
                                                 </button>
                                             </div>
                                         </motion.div>
@@ -354,9 +354,9 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                                 <div className="w-5 h-5 rounded-md bg-[#C08B5C]/[0.1] flex items-center justify-center">
                                     <Mail className="w-3 h-3 text-[#D4A27F]" />
                                 </div>
-                                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25">Email Notifications</h2>
+                                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Email Notifications</h2>
                             </div>
-                            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                            <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                                 <ToggleRow icon={Home} title="Property Updates" subtitle="Changes to properties in your saved list" enabled={prefs.emailPropertyUpdates} onToggle={() => togglePref('emailPropertyUpdates')} />
                                 <ToggleRow icon={TrendingUp} title="Market Insights" subtitle="Weekly trends and investment opportunities" enabled={prefs.emailMarketInsights} onToggle={() => togglePref('emailMarketInsights')} />
                                 <ToggleRow icon={FileText} title="Report Ready" subtitle="Notified when generated reports are complete" enabled={prefs.emailReportReady} onToggle={() => togglePref('emailReportReady')} />
@@ -370,9 +370,9 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onBack }) 
                                 <div className="w-5 h-5 rounded-md bg-[#C08B5C]/[0.1] flex items-center justify-center">
                                     <Bell className="w-3 h-3 text-[#D4A27F]" />
                                 </div>
-                                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-white/25">Push Notifications</h2>
+                                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Push Notifications</h2>
                             </div>
-                            <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] backdrop-blur-sm divide-y divide-white/[0.04] overflow-hidden">
+                            <div className="rounded-2xl bg-black/[0.02] border border-black/[0.06] backdrop-blur-sm divide-y divide-black/[0.04] overflow-hidden">
                                 <ToggleRow icon={AlertCircle} title="Real-time Alerts" subtitle="Price drops and new listings" enabled={prefs.pushNewListings} onToggle={() => togglePref('pushNewListings')} />
                                 <ToggleRow icon={Briefcase} title="Portfolio Updates" subtitle="Important changes to your portfolio value" enabled={prefs.pushPortfolioAlerts} onToggle={() => togglePref('pushPortfolioAlerts')} />
                                 <ToggleRow icon={MessageSquare} title="Messages" subtitle="New messages and replies" enabled={prefs.inAppMessages} onToggle={() => togglePref('inAppMessages')} />

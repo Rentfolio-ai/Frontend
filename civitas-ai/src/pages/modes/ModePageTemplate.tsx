@@ -70,7 +70,7 @@ export const ModePageTemplate: React.FC<ModePageTemplateProps> = ({
           </p>
           <button
             onClick={onNavigateToSignUp}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-white font-medium text-[14px] transition-all duration-150 shadow-[0_3px_10px_rgba(0,0,0,0.12)] hover:translate-y-[-1px]"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-foreground font-medium text-[14px] transition-all duration-150 shadow-[0_3px_10px_rgba(0,0,0,0.12)] hover:translate-y-[-1px]"
             style={{ backgroundColor: config.accentColor }}
           >
             Get started with {config.name} <ArrowRightIcon className="w-3.5 h-3.5" />
@@ -145,7 +145,7 @@ export const ModePageTemplate: React.FC<ModePageTemplateProps> = ({
           </p>
           <button
             onClick={onNavigateToSignUp}
-            className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-white font-semibold text-[14px] transition-all duration-150 shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:translate-y-[-1px]"
+            className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-foreground font-semibold text-[14px] transition-all duration-150 shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:translate-y-[-1px]"
             style={{ backgroundColor: config.accentColor }}
           >
             Get started free <ArrowRightIcon className="w-4 h-4" />

@@ -61,16 +61,15 @@
 
 @layer base {
   :root {
-    /* Vasthu - Luxury Real Estate Color System */
-    /* Warm obsidian base with copper/bronze accents */
-    --primary: 27 41% 55%;
-    /* Copper #C08B5C */
-    --accent-from: 27 41% 55%;
-    /* Copper */
-    --accent-to: 30 55% 62%;
-    /* Bronze */
+    /* Civitas — Warm Peach-Cream Light Theme */
+    /* Luxury real estate: warm cream canvas + copper accents */
 
-    /* Appearance system — defaults (overridden by useAppearance hook) */
+    --primary: 27 41% 55%;
+    /* #C08B5C - Copper */
+    --accent-from: 27 41% 55%;
+    --accent-to: 30 55% 62%;
+
+    /* Appearance system defaults */
     --accent-primary: #C08B5C;
     --accent-hover: #A8734A;
     --accent-light: #D4A27F;
@@ -79,89 +78,45 @@
     --chat-font-size: 14.5px;
     --chat-density: 12px;
     --highlight: 45 93% 47%;
-    /* Warm Gold #EAB308 */
     --success: 160 84% 39%;
     --warning: 45 93% 47%;
     --danger: 0 84% 60%;
     --info: 199 89% 48%;
-    --neutral: 220 9% 46%;
+    --neutral: 25 5% 55%;
 
-    /* Light mode - Warm Slate: Premium paper feel */
-    --background: 30 20% 98%;
-    --surface: 30 15% 99%;
-    --surface-elevated: 30 10% 100%;
-    --muted: 220 14% 96%;
-    --border: 220 13% 91%;
-    --border-subtle: 220 14% 96%;
-    --foreground: 224 71% 4%;
-    --text-muted: 220 9% 46%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 224 71% 4%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 160 84% 95%;
-    --accent-foreground: 160 84% 25%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --ring: 160 84% 39%;
-    --radius: 0.75rem;
-    --input: 220 13% 91%;
-  }
-
-  .dark {
-    /* Obsidian + Copper — Premium Real Estate Dark Theme */
-
-    /* Base: Warm charcoal (lighter for readability) */
-    --background: 240 5% 12%;
-    /* #1d1d22 - Charcoal shell */
-    --surface: 240 5% 14%;
-    /* #222228 - Sidebar/surface */
-    --surface-elevated: 240 5% 17%;
-    /* #28282f - Elevated cards */
-    --muted: 240 4% 20%;
-    --border: 240 4% 19%;
-    /* Subtle borders */
-    --border-subtle: 240 4% 16%;
-    /* Even more subtle */
-    --foreground: 0 0% 92%;
-    /* #EBEBEB - Primary text */
-    --text-muted: 0 0% 58%;
-    /* Warm gray for secondary text */
-
-    /* Copper / Bronze Accent System */
-    --primary: 27 41% 55%;
-    /* #C08B5C - Copper */
-    --accent-from: 27 41% 55%;
-    /* Copper */
-    --accent-to: 30 55% 62%;
-    /* Warm bronze */
-    --highlight: 27 60% 65%;
-    /* Light copper */
-    --success: 160 84% 39%;
-    --warning: 38 95% 58%;
-    --danger: 0 84% 60%;
-    --info: 199 89% 66%;
-    --neutral: 240 3% 50%;
+    /* Peach-Cream Surfaces */
+    --background: 20 42% 93%;
+    /* #F3E4D6 - Warm peach cream canvas */
+    --surface: 20 35% 95%;
+    /* #F7ECE2 - Sidebar, panels */
+    --surface-elevated: 20 25% 98%;
+    /* #FCF8F4 - Cards, modals */
+    --muted: 20 30% 89%;
+    /* #EBDDD0 */
+    --border: 20 20% 84%;
+    /* #DDD1C6 - Warm taupe border */
+    --border-subtle: 20 18% 89%;
+    /* #E9DFD6 */
+    --foreground: 20 12% 12%;
+    /* #231E1A - Warm near-black */
+    --text-muted: 20 8% 42%;
 
     /* Component colors */
-    --card: 240 5% 10%;
-    /* #18181e */
-    --card-foreground: 0 0% 92%;
-    --popover: 240 6% 9%;
-    --popover-foreground: 0 0% 90%;
+    --card: 20 25% 98%;
+    --card-foreground: 20 12% 12%;
+    --popover: 20 20% 97%;
+    --popover-foreground: 20 12% 12%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 14%;
-    --secondary-foreground: 0 0% 90%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 27 41% 18%;
-    --accent-foreground: 27 41% 90%;
+    --secondary: 20 30% 89%;
+    --secondary-foreground: 20 12% 12%;
+    --muted-foreground: 20 8% 42%;
+    --accent: 27 41% 93%;
+    --accent-foreground: 27 41% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
     --ring: 27 41% 55%;
-    --input: 240 5% 13%;
+    --radius: 0.75rem;
+    --input: 20 22% 87%;
   }
 }
 
@@ -285,15 +240,25 @@
 
   /* Premium glass effects */
   .glass {
-    @apply bg-white/70 dark:bg-white/5 backdrop-blur-2xl border border-white/20 dark:border-white/10;
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
   }
 
   .glass-dark {
-    @apply bg-black/40 backdrop-blur-2xl border border-white/10;
+    background: rgba(0, 0, 0, 0.40);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
 
   .glass-card {
-    @apply bg-white/80 dark:bg-white/[0.03] backdrop-blur-2xl border border-black/5 dark:border-white/[0.08] shadow-xl;
+    background: rgba(255, 255, 255, 0.80);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
 
   /* Text gradient */
@@ -305,25 +270,25 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400;
   }
 
-  /* Animated gradient background - Warm Slate */
+  /* Animated gradient background - Peach Cream */
   .bg-gradient-animated {
     background: linear-gradient(135deg,
-        hsl(30 20% 98%) 0%,
-        hsl(30 18% 96%) 25%,
-        hsl(30 15% 94%) 50%,
-        hsl(30 18% 96%) 75%,
-        hsl(30 20% 98%) 100%);
+        hsl(20 42% 93%) 0%,
+        hsl(20 35% 95%) 25%,
+        hsl(20 30% 96%) 50%,
+        hsl(20 35% 95%) 75%,
+        hsl(20 42% 93%) 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }
 
   .dark .bg-gradient-animated {
     background: linear-gradient(135deg,
-        #111114 0%,
-        #18181c 25%,
-        #1e1e24 50%,
-        #18181c 75%,
-        #111114 100%);
+        #EBDDD0 0%,
+        #F3E4D6 25%,
+        #F7ECE2 50%,
+        #F3E4D6 75%,
+        #EBDDD0 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }

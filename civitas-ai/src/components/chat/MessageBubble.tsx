@@ -234,30 +234,30 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <button
               onClick={() => onNavigateBranch?.(message.id, 'prev')}
               disabled={message.data!.branching.currentVersion <= 1}
-              className="p-1 hover:bg-white/10 rounded-full disabled:opacity-30 transition-colors"
+              className="p-1 hover:bg-black/8 rounded-full disabled:opacity-30 transition-colors"
             >
-              <ChevronLeft className="w-3 h-3 text-white/60" />
+              <ChevronLeft className="w-3 h-3 text-muted-foreground" />
             </button>
-            <span className="text-[10px] text-white/40 font-mono">
+            <span className="text-[10px] text-muted-foreground/70 font-mono">
               {message.data!.branching.currentVersion} / {message.data!.branching.versions.length}
             </span>
             <button
               onClick={() => onNavigateBranch?.(message.id, 'next')}
               disabled={message.data!.branching.currentVersion >= message.data!.branching.versions.length}
-              className="p-1 hover:bg-white/10 rounded-full disabled:opacity-30 transition-colors"
+              className="p-1 hover:bg-black/8 rounded-full disabled:opacity-30 transition-colors"
             >
-              <ChevronRight className="w-3 h-3 text-white/60" />
+              <ChevronRight className="w-3 h-3 text-muted-foreground" />
             </button>
           </div>
         )}
 
         {/* Timestamp & Name (Hover only) */}
         <div className={cn(
-          "flex items-center gap-1.5 text-[10px] text-white/25 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+          "flex items-center gap-1.5 text-[10px] text-muted-foreground/50 mb-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
           isUser ? "flex-row-reverse" : "flex-row"
         )}>
-          <span className="font-medium text-white/35">{isUser ? (userName?.split(' ')[0] || 'You') : 'Vasthu AI'}</span>
-          <span className="text-white/15">·</span>
+          <span className="font-medium text-muted-foreground/60">{isUser ? (userName?.split(' ')[0] || 'You') : 'Vasthu AI'}</span>
+          <span className="text-muted-foreground/40">·</span>
           <span>{formatRelativeTime(message.timestamp)}</span>
         </div>
 
@@ -270,15 +270,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               "w-fit",
               "rounded-xl rounded-br-sm",
               "accent-user-bubble",
-              "border border-white/[0.07]",
+              "border border-black/[0.06]",
               "px-3 py-2",
-              "text-[14px] leading-normal text-white/90",
+              "text-[14px] leading-normal text-foreground",
             ],
             !isUser && "text-[13.5px] leading-[1.7]",
             
           )}
           style={{
-            color: isUser ? '#F0FDFA' : 'rgba(232, 222, 210, 0.9)',
+            color: isUser ? 'hsl(var(--foreground))' : 'hsl(var(--foreground) / 0.9)',
           }}
         >
 
@@ -307,11 +307,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             className={cn(
               "prose prose-sm prose-compact max-w-none relative z-10 chat-message-text",
               message.isStreaming && !isUser && "streaming-text",
-              isUser ? "text-white/90" : "text-[#E8DED2]"
+              isUser ? "text-foreground" : "text-foreground/90"
             )}
           >
             {isUser && isEditing ? (
-              <div className="bg-white/[0.06] rounded-xl p-3 border border-white/[0.1] w-full min-w-[300px]">
+              <div className="bg-black/[0.05] rounded-xl p-3 border border-black/[0.08] w-full min-w-[300px]">
                 <textarea
                   ref={textareaRef}
                   value={editContent}
@@ -321,17 +321,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     e.target.style.height = `${e.target.scrollHeight}px`;
                   }}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white/90 resize-none p-0 placeholder:text-white/30"
+                  className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-foreground resize-none p-0 placeholder:text-muted-foreground/50"
                   style={{ fontSize: '14px', lineHeight: '1.6' }}
                   rows={1}
                 />
-                <div className="flex justify-end gap-1.5 mt-2 pt-2 border-t border-white/[0.06]">
+                <div className="flex justify-end gap-1.5 mt-2 pt-2 border-t border-black/[0.06]">
                   <button
                     onClick={() => {
                       setIsEditing(false);
                       setEditContent(message.content);
                     }}
-                    className="px-3 py-1.5 text-xs font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.06] rounded-lg transition-all"
+                    className="px-3 py-1.5 text-xs font-medium text-muted-foreground/70 hover:text-foreground/70 hover:bg-black/[0.05] rounded-lg transition-all"
                   >
                     Cancel
                   </button>
@@ -352,13 +352,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   components={{
                     // --- Headings ---
                     h2: ({ children }) => (
-                      <h2 className="ai-heading-2 flex items-center gap-2.5 text-[17px] font-bold text-[#F5E6D0] mt-3 -mb-1 pb-0.5 border-b border-white/[0.06]">
+                      <h2 className="ai-heading-2 flex items-center gap-2.5 text-[17px] font-bold text-foreground mt-3 -mb-1 pb-0.5 border-b border-black/[0.06]">
                         <span className="inline-block w-1 h-4 rounded-full accent-bar flex-shrink-0" />
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-[15.5px] font-semibold text-[#F0DCC0] mt-3 mb-1">
+                      <h3 className="text-[15.5px] font-semibold text-foreground mt-3 mb-1">
                         {children}
                       </h3>
                     ),
@@ -370,14 +370,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                         (typeof children === 'string' && !children.trim());
                       if (isEmpty) return null;
                       return (
-                        <p className="text-[15px] leading-[1.75] text-[#E8DED2]/90 my-1.5">
+                        <p className="text-[15px] leading-[1.75] text-foreground/90 my-1.5">
                           {children}
                         </p>
                       );
                     },
                     // --- Strong/Bold ---
                     strong: ({ children }) => (
-                      <strong className="font-bold text-[#FAF0E4]">
+                      <strong className="font-bold text-foreground">
                         {children}
                       </strong>
                     ),
@@ -389,14 +389,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                       if (!inline && match) {
                         return (
-                          <div className="relative group/code my-4 rounded-xl overflow-hidden border border-white/[0.08] bg-[#0a0a0f]">
-                            <div className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] border-b border-white/[0.06]">
-                              <span className="text-[10px] uppercase tracking-wider text-white/30 font-semibold">{language}</span>
+                          <div className="relative group/code my-4 rounded-xl overflow-hidden border border-black/[0.08] bg-card">
+                            <div className="flex items-center justify-between px-3 py-1.5 bg-black/[0.02] border-b border-black/[0.06]">
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">{language}</span>
                               <button
                                 onClick={async () => {
                                   await copy(children as string);
                                 }}
-                                className="p-1 hover:bg-white/10 rounded text-white/30 hover:text-white transition-colors"
+                                className="p-1 hover:bg-black/8 rounded text-muted-foreground/50 hover:text-foreground transition-colors"
                                 title="Copy code"
                               >
                                 <Clipboard className="w-3.5 h-3.5" />
@@ -433,29 +433,29 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     ),
                     // --- Tables ---
                     table: ({ children }) => (
-                      <div className="overflow-x-auto -mt-3 mb-2 rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                      <div className="overflow-x-auto -mt-3 mb-2 rounded-xl border border-black/[0.08] bg-black/[0.02]">
                         <table className="min-w-full text-[12px]">
                           {children}
                         </table>
                       </div>
                     ),
                     thead: ({ children }) => (
-                      <thead className="accent-thead border-b border-white/[0.08]">
+                      <thead className="accent-thead border-b border-black/[0.08]">
                         {children}
                       </thead>
                     ),
                     th: ({ children }) => (
-                      <th className="px-3 py-2.5 text-left text-[10px] uppercase tracking-wider font-bold text-white/50">
+                      <th className="px-3 py-2.5 text-left text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
                         {children}
                       </th>
                     ),
                     td: ({ children }) => (
-                      <td className="px-3 py-2 text-[#E8DED2]/85 border-t border-white/[0.04] font-medium">
+                      <td className="px-3 py-2 text-foreground/85 border-t border-black/[0.04] font-medium">
                         {children}
                       </td>
                     ),
                     tr: ({ children }) => (
-                      <tr className="hover:bg-white/[0.03] transition-colors">
+                      <tr className="hover:bg-black/[0.02] transition-colors">
                         {children}
                       </tr>
                     ),
@@ -471,7 +471,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       </ol>
                     ),
                     li: ({ children, ordered, ...props }: any) => (
-                      <li className="flex items-start gap-2.5 text-[15px] leading-[1.75] text-[#E8DED2]/90 pl-1" {...props}>
+                      <li className="flex items-start gap-2.5 text-[15px] leading-[1.75] text-foreground/90 pl-1" {...props}>
                         <span className="flex-shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full accent-dot opacity-60" />
                         <span className="flex-1">{children}</span>
                       </li>
@@ -479,7 +479,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     // --- Blockquotes ---
                     blockquote: ({ children }) => (
                       <blockquote className="my-3 pl-4 py-2 pr-3 rounded-r-xl accent-blockquote">
-                        <div className="text-[14px] text-white/60 italic">
+                        <div className="text-[14px] text-muted-foreground italic">
                           {children}
                         </div>
                       </blockquote>
@@ -517,7 +517,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {/* Context/Source Badges */}
             {message.contextSources && message.contextSources.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t border-white/5">
+              <div className="flex flex-wrap gap-1.5 mt-3 pt-2 border-t border-black/5">
                 {message.contextSources.filter(src => src !== 'System 2 Reasoning').map((source, idx) => (
                   <ContextBadge key={idx} source={source} />
                 ))}
@@ -537,13 +537,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {/* Attachment Preview (Legacy) */}
             {hasAttachment && (
-              <div className="mt-3 p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
+              <div className="mt-3 p-4 bg-black/5 rounded-xl border border-black/8 flex items-center gap-3">
                 <div className="w-10 h-10 rounded bg-blue-500/20 flex items-center justify-center">
                   <FileSpreadsheet className="w-5 h-5 text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-white/90">{message.attachment!.name}</p>
-                  <p className="text-xs text-white/50">{message.attachment!.type}</p>
+                  <p className="text-sm font-medium truncate text-foreground">{message.attachment!.name}</p>
+                  <p className="text-xs text-muted-foreground">{message.attachment!.type}</p>
                 </div>
               </div>
             )}
@@ -553,9 +553,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               <div className="flex gap-1 mt-2">
                 {Object.entries(reactions).map(([emoji, count]) => (
                   count > 0 && (
-                    <div key={emoji} className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-full text-[10px] flex items-center gap-1">
+                    <div key={emoji} className="px-1.5 py-0.5 bg-black/5 border border-black/8 rounded-full text-[10px] flex items-center gap-1">
                       <span>{emoji}</span>
-                      <span className="text-white/40">{count}</span>
+                      <span className="text-muted-foreground/70">{count}</span>
                     </div>
                   )
                 ))}
@@ -564,8 +564,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {/* 🚀 NEW: Data Sources */}
             {!isUser && dataSources.length > 0 && !message.isStreaming && (
-              <div className="mt-3 pt-3 border-t border-white/5">
-                <div className="text-[10px] text-white/40 mb-2 font-medium">Data Sources:</div>
+              <div className="mt-3 pt-3 border-t border-black/5">
+                <div className="text-[10px] text-muted-foreground/70 mb-2 font-medium">Data Sources:</div>
                 <div className="flex flex-wrap gap-2">
                   {dataSources.map((ds, i) => (
                     <DataSourceBadge
@@ -596,7 +596,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               <div className="flex items-center gap-1.5 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 <button
                   onClick={() => handleCopyMessage()}
-                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-black/5 transition-all"
                   style={{ color: isCopied ? '#10B981' : '#94A3B8' }}
                   title="Copy message"
                 >
@@ -604,7 +604,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 </button>
                 <button
                   onClick={() => handleFeedback(true)}
-                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-black/5 transition-all"
                   style={{ color: feedback === 'up' ? '#10B981' : '#94A3B8' }}
                   title="Helpful"
                 >
@@ -612,7 +612,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 </button>
                 <button
                   onClick={() => handleFeedback(false)}
-                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-black/5 transition-all"
                   style={{ color: feedback === 'down' ? '#EF4444' : '#94A3B8' }}
                   title="Not helpful"
                 >
@@ -627,7 +627,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   onClick={() => toggleReaction('👍')}
                   className={cn(
                     "p-1.5 rounded-lg transition-all text-sm",
-                    reactions['👍'] ? "opacity-100 bg-white/5" : "opacity-40 hover:opacity-70 hover:bg-white/5"
+                    reactions['👍'] ? "opacity-100 bg-black/5" : "opacity-40 hover:opacity-70 hover:bg-black/5"
                   )}
                 >
                   👍
@@ -636,7 +636,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   onClick={() => toggleReaction('❤️')}
                   className={cn(
                     "p-1.5 rounded-lg transition-all text-sm",
-                    reactions['❤️'] ? "opacity-100 bg-white/5" : "opacity-40 hover:opacity-70 hover:bg-white/5"
+                    reactions['❤️'] ? "opacity-100 bg-black/5" : "opacity-40 hover:opacity-70 hover:bg-black/5"
                   )}
                 >
                   ❤️
@@ -645,7 +645,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   onClick={() => toggleReaction('🎯')}
                   className={cn(
                     "p-1.5 rounded-lg transition-all text-sm",
-                    reactions['🎯'] ? "opacity-100 bg-white/5" : "opacity-40 hover:opacity-70 hover:bg-white/5"
+                    reactions['🎯'] ? "opacity-100 bg-black/5" : "opacity-40 hover:opacity-70 hover:bg-black/5"
                   )}
                 >
                   🎯
@@ -676,7 +676,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={() => copy(message.content)}
-              className="flex items-center justify-center p-1.5 text-white/30 hover:text-white/70 hover:bg-white/[0.06] rounded-lg transition-all"
+              className="flex items-center justify-center p-1.5 text-muted-foreground/50 hover:text-foreground/70 hover:bg-black/[0.05] rounded-lg transition-all"
               title={isCopied ? "Copied!" : "Copy message"}
             >
               {isCopied ? (
@@ -688,7 +688,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {onEdit && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center justify-center p-1.5 text-white/30 hover:text-white/70 hover:bg-white/[0.06] rounded-lg transition-all"
+                className="flex items-center justify-center p-1.5 text-muted-foreground/50 hover:text-foreground/70 hover:bg-black/[0.05] rounded-lg transition-all"
                 title="Edit message"
               >
                 <Pencil className="w-3 h-3" />
@@ -697,7 +697,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             {onRefresh && (
               <button
                 onClick={() => onRefresh(message.id)}
-                className="flex items-center justify-center p-1.5 text-white/30 hover:text-white/70 hover:bg-white/[0.06] rounded-lg transition-all"
+                className="flex items-center justify-center p-1.5 text-muted-foreground/50 hover:text-foreground/70 hover:bg-black/[0.05] rounded-lg transition-all"
                 title="Run this query again"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -783,8 +783,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
         {/* Mode Switch Suggestion — Cursor-style minimal banner */}
         {!isUser && message.modeSuggestion && !message.isStreaming && (
-          <div className="w-full mt-4 flex items-center gap-3 px-3 py-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03]">
-            <div className="flex-1 text-[13px] text-zinc-400">
+          <div className="w-full mt-4 flex items-center gap-3 px-3 py-2.5 rounded-lg border border-black/[0.08] bg-black/[0.02]">
+            <div className="flex-1 text-[13px] text-muted-foreground">
               {message.modeSuggestion.reason}
             </div>
             <button
@@ -793,8 +793,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 message.modeSuggestion!.autoQuery
               )}
               className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[13px]
-                rounded-lg border border-white/[0.12] bg-white/[0.06]
-                text-zinc-300 hover:text-white hover:bg-white/[0.1] hover:border-white/[0.2]
+                rounded-lg border border-black/[0.10] bg-black/[0.05]
+                text-foreground/70 hover:text-foreground hover:bg-black/[0.07] hover:border-black/[0.12]
                 transition-all duration-150 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5" />
@@ -944,7 +944,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           <div className="relative group/user-avatar">
             <div className="absolute -inset-0.5 rounded-full bg-[#C08B5C]/20 opacity-0 group-hover/user-avatar:opacity-100 blur-[3px] transition-opacity duration-300" />
 
-            <div className="relative w-8 h-8 rounded-full overflow-hidden ring-[1px] ring-white/[0.08] shadow-md shadow-black/15 group-hover/user-avatar:ring-[#C08B5C]/25 transition-all duration-300">
+            <div className="relative w-8 h-8 rounded-full overflow-hidden ring-[1px] ring-black/[0.08] shadow-md shadow-black/15 group-hover/user-avatar:ring-[#C08B5C]/25 transition-all duration-300">
               {userAvatar && userAvatar.length > 200 ? (
                 <img
                   src={userAvatar}
@@ -953,7 +953,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#C08B5C] to-[#8A5D3B]">
-                  <span className="text-[11px] font-bold text-white/90 leading-none">
+                  <span className="text-[11px] font-bold text-foreground leading-none">
                     {userName ? userName.split(' ')[0].charAt(0).toUpperCase() : 'U'}
                   </span>
                 </div>

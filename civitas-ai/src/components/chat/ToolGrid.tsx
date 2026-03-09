@@ -25,7 +25,7 @@ export const ToolGrid: React.FC<ToolGridProps> = ({ tools, collapsed = false }) 
         <div className={cn("w-full mb-4", collapsed ? "hidden" : "block")}>
             <div className="flex items-center gap-2 mb-2 px-1">
                 <Sparkles className="w-3 h-3 text-purple-400" />
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-white/40">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/70">
                     Active Agents & Tools
                 </span>
             </div>
@@ -49,7 +49,7 @@ const ToolGridItem: React.FC<{ tool: ToolBatchItem }> = ({ tool }) => {
     const priorityColor = {
         high: 'border-purple-500/30 bg-purple-500/5',
         medium: 'border-blue-500/20 bg-blue-500/5',
-        low: 'border-white/10 bg-white/5'
+        low: 'border-black/8 bg-black/5'
     }[tool.priority];
 
     return (
@@ -78,7 +78,7 @@ const ToolGridItem: React.FC<{ tool: ToolBatchItem }> = ({ tool }) => {
             <div className={cn(
                 "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-xs",
                 isComplete ? "bg-emerald-500/20 text-emerald-400" :
-                    isRunning ? "bg-purple-500/20 text-purple-400" : "bg-white/10 text-white/40"
+                    isRunning ? "bg-purple-500/20 text-purple-400" : "bg-black/8 text-muted-foreground/70"
             )}>
                 {isComplete ? <Check className="w-3.5 h-3.5" /> :
                     isRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
@@ -87,10 +87,10 @@ const ToolGridItem: React.FC<{ tool: ToolBatchItem }> = ({ tool }) => {
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-white/90 truncate">
+                <div className="text-xs font-medium text-foreground truncate">
                     {tool.name}
                 </div>
-                <div className="text-[10px] text-white/50 truncate flex items-center gap-1">
+                <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
                     {tool.priority === 'high' && <span className="text-purple-400">●</span>}
                     {isPending ? 'Waiting...' :
                         isRunning ? 'Working...' : 'Done'}

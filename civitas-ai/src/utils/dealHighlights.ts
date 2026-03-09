@@ -56,7 +56,7 @@ export const getWinningHighlights = (property: ScoutedProperty, criteria?: Inves
                 icon: Target,
                 type: 'value',
                 color: 'text-white',
-                bgColor: 'bg-gradient-to-r from-blue-600 to-purple-600 border border-white/20 shadow-lg shadow-purple-500/20'
+                bgColor: 'bg-gradient-to-r from-blue-600 to-purple-600 border border-black/12 shadow-lg shadow-purple-500/20'
             });
         }
     }

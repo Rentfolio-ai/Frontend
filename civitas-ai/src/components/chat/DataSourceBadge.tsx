@@ -63,13 +63,13 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
     >
       {/* Main Badge */}
       <motion.div
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:border-white/20 transition-colors cursor-pointer"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/5 border border-black/8 hover:border-black/12 transition-colors cursor-pointer"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
         <Database className="w-3 h-3 text-blue-400" />
         
-        <span className="text-xs text-white/70 font-medium">
+        <span className="text-xs text-foreground/70 font-medium">
           {source}
         </span>
         
@@ -91,18 +91,18 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 p-3 rounded-lg bg-black/95 backdrop-blur-xl border border-white/20 shadow-xl z-50 min-w-[200px]"
+            className="absolute top-full left-1/2 -translate-x-1/2 mt-2 p-3 rounded-lg bg-black/95 backdrop-blur-xl border border-black/12 shadow-xl z-50 min-w-[200px]"
           >
-            <div className="text-xs text-white/80 space-y-2">
+            <div className="text-xs text-foreground/80 space-y-2">
               {/* Source info */}
               <div>
-                <div className="font-bold text-white/90 mb-1">Data Source</div>
-                <div className="text-white/70">{source}</div>
+                <div className="font-bold text-foreground mb-1">Data Source</div>
+                <div className="text-foreground/70">{source}</div>
               </div>
               
               {/* Status */}
-              <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                <span className="text-white/60">Status:</span>
+              <div className="flex items-center justify-between pt-2 border-t border-black/8">
+                <span className="text-muted-foreground">Status:</span>
                 <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${statusInfo.bgColor}`}>
                   <div className={statusInfo.color}>
                     {statusInfo.icon}
@@ -115,7 +115,7 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
               
               {/* Last updated */}
               {lastUpdated && (
-                <div className="flex items-center justify-between text-white/50">
+                <div className="flex items-center justify-between text-muted-foreground">
                   <span>Updated:</span>
                   <span>{lastUpdated.toLocaleTimeString()}</span>
                 </div>
@@ -123,7 +123,7 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
             </div>
             
             {/* Tooltip arrow */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black/95 border-l border-t border-white/20 rotate-45" />
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black/95 border-l border-t border-black/12 rotate-45" />
           </motion.div>
         )}
       </AnimatePresence>

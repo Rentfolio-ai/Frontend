@@ -119,7 +119,7 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
       {/* Collapsed header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="group flex items-center gap-2 text-[13px] font-medium text-white/35 hover:text-white/50 transition-colors py-1 w-full text-left"
+        className="group flex items-center gap-2 text-[13px] font-medium text-muted-foreground/60 hover:text-muted-foreground transition-colors py-1 w-full text-left"
       >
         <motion.div
           animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -134,7 +134,7 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
         <span className="truncate">
           Thought{durationText ? ` for ${durationText}` : ''}
           {summary && (
-            <span className="text-white/20 ml-1">· {summary}</span>
+            <span className="text-muted-foreground/40 ml-1">· {summary}</span>
           )}
         </span>
       </button>
@@ -166,7 +166,7 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
 
               {/* 3. Minimal fallback when there are only web sources (no reasoning) */}
               {!hasNativeThinking && !hasReasoningSteps && hasSources && (
-                <div className="py-1 flex items-center gap-1.5 text-[12px] text-white/30">
+                <div className="py-1 flex items-center gap-1.5 text-[12px] text-muted-foreground/50">
                   <Globe className="w-3 h-3 flex-shrink-0" />
                   <span>Searched the web · {webSources!.length} source{webSources!.length !== 1 ? 's' : ''}</span>
                 </div>
@@ -184,7 +184,7 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         title={s.title || s.url}
-                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/40 hover:text-white/65 hover:border-white/15 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/[0.03] border border-black/[0.06] text-[11px] text-muted-foreground/70 hover:text-foreground/65 hover:border-black/10 transition-colors"
                       >
                         <img
                           src={`https://www.google.com/s2/favicons?domain=${host}&sz=16`}
@@ -199,7 +199,7 @@ export const AIReasoningPanel: React.FC<AIReasoningPanelProps> = ({
                     );
                   })}
                   {webSources!.length > 6 && (
-                    <span className="inline-flex items-center px-2 py-1 text-[11px] text-white/25">
+                    <span className="inline-flex items-center px-2 py-1 text-[11px] text-muted-foreground/50">
                       +{webSources!.length - 6} more
                     </span>
                   )}

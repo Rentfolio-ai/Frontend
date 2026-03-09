@@ -286,9 +286,9 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       {/* Model Selector Header */}
       <div className="absolute top-4 left-4 z-10">
-        <button className="px-4 py-2 rounded-lg backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-colors flex items-center gap-2 group">
-          <span className="text-sm font-medium text-white/90">{modelVersion.version}</span>
-          <ChevronDown className="w-4 h-4 text-white/50 group-hover:text-white/70 transition-colors" />
+        <button className="px-4 py-2 rounded-lg backdrop-blur-xl bg-black/[0.02] border border-black/[0.08] hover:bg-black/[0.04] transition-colors flex items-center gap-2 group">
+          <span className="text-sm font-medium text-foreground">{modelVersion.version}</span>
+          <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground/70 transition-colors" />
         </button>
       </div>
 
@@ -297,18 +297,18 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         <Tooltip content="Quick Tips & Help Center" shortcut="⌘/">
           <button
             onClick={() => setShowFAQ(true)}
-            className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all duration-200 group hover:scale-110 active:scale-95 hover:border-blue-400/30"
+            className="p-2.5 rounded-xl backdrop-blur-xl bg-black/[0.02] border border-black/[0.08] hover:bg-black/[0.04] transition-all duration-200 group hover:scale-110 active:scale-95 hover:border-blue-400/30"
           >
-            <HelpCircle className="w-5 h-5 text-white/60 group-hover:text-blue-400 group-hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] transition-all" />
+            <HelpCircle className="w-5 h-5 text-muted-foreground group-hover:text-blue-400 group-hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.6)] transition-all" />
           </button>
         </Tooltip>
 
         <Tooltip content="Preferences & Settings" shortcut="⌘,">
           <button
             onClick={() => setShowPreferences(true)}
-            className="p-2.5 rounded-xl backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all duration-200 group hover:scale-110 active:scale-95 hover:border-purple-400/30"
+            className="p-2.5 rounded-xl backdrop-blur-xl bg-black/[0.02] border border-black/[0.08] hover:bg-black/[0.04] transition-all duration-200 group hover:scale-110 active:scale-95 hover:border-purple-400/30"
           >
-            <Settings className="w-5 h-5 text-white/60 group-hover:text-purple-400 group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.6)] transition-all" />
+            <Settings className="w-5 h-5 text-muted-foreground group-hover:text-purple-400 group-hover:drop-shadow-[0_0_10px_rgba(139,92,246,0.6)] transition-all" />
           </button>
         </Tooltip>
       </div>
@@ -357,7 +357,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
               <Sparkles className="w-4 h-4 text-blue-400" />
             </motion.div>
             <div className="flex-1 max-w-xs">
-              <div className="rounded-2xl rounded-tl-sm backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] p-4">
+              <div className="rounded-2xl rounded-tl-sm backdrop-blur-xl bg-black/[0.02] border border-black/[0.08] p-4">
                 <div className="flex gap-1.5">
                   <motion.div
                     className="w-2 h-2 rounded-full bg-blue-400/60"
@@ -384,7 +384,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       </div>
 
       {/* Input Area - Enhanced Smart Input */}
-      <div className="p-4 sm:p-6 border-t border-white/[0.05] bg-gradient-to-b from-transparent to-black/5 backdrop-blur-xl">
+      <div className="p-4 sm:p-6 border-t border-black/[0.05] bg-gradient-to-b from-transparent to-black/5 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto">
           <EnhancedSmartInput
             ref={smartInputRef}
@@ -461,12 +461,12 @@ function MessageBubble({
             "rounded-2xl backdrop-blur-xl border p-4 transition-all duration-200",
             isUser
               ? "rounded-tr-sm bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-400/20 ml-auto shadow-lg shadow-blue-500/5"
-              : "rounded-tl-sm bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.05]"
+              : "rounded-tl-sm bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.04]"
           )}
         >
           <p className={cn(
             "text-sm leading-relaxed",
-            isUser ? "text-white/95" : "text-white/85"
+            isUser ? "text-foreground/95" : "text-foreground/85"
           )}>
             {message.content}
           </p>
@@ -501,7 +501,7 @@ function MessageBubble({
 
         {/* Timestamp - Subtle */}
         <div className={cn(
-          "flex items-center gap-2 text-[10px] text-white/30 font-medium px-1",
+          "flex items-center gap-2 text-[10px] text-muted-foreground/50 font-medium px-1",
           isUser && "justify-end"
         )}>
           <span>{timestamp}</span>
@@ -555,16 +555,16 @@ function ToolCardComponent({ tool }: { tool: ToolCard }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs">{status.icon}</span>
-            <h4 className="font-medium text-sm text-white/90 truncate">{tool.title}</h4>
+            <h4 className="font-medium text-sm text-foreground truncate">{tool.title}</h4>
           </div>
-          <p className="text-xs text-white/50 leading-relaxed">{tool.description}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{tool.description}</p>
 
           {tool.status === 'completed' && tool.data && (
             <div className="mt-3 grid grid-cols-3 gap-2">
               {Object.entries(tool.data).map(([key, value]) => (
-                <div key={key} className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-center">
-                  <div className="text-sm font-semibold text-white/90">{value as string}</div>
-                  <div className="text-[10px] text-white/40 mt-0.5 capitalize">
+                <div key={key} className="p-2 rounded-lg bg-black/[0.02] border border-black/[0.08] text-center">
+                  <div className="text-sm font-semibold text-foreground">{value as string}</div>
+                  <div className="text-[10px] text-muted-foreground/70 mt-0.5 capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </div>
                 </div>

@@ -43,7 +43,7 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
 
   const condition = data.condition;
   const overallCondition = condition?.overall || 'unknown';
-  const style = conditionStyles[overallCondition] || { bg: 'bg-white/5', text: 'text-white/60', border: 'border-white/10' };
+  const style = conditionStyles[overallCondition] || { bg: 'bg-black/5', text: 'text-muted-foreground', border: 'border-black/8' };
   const costs = data.renovation_costs;
   const hasValidCosts = costs && (
     (costs.basic_refresh?.total && costs.basic_refresh.total > 0) ||
@@ -60,17 +60,17 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
             <Camera className={`w-4 h-4 ${style.text}`} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">Property Vision Analysis</p>
+            <p className="text-sm font-semibold text-foreground">Property Vision Analysis</p>
             <div className="flex items-center gap-2 mt-0.5">
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border capitalize ${style.bg} ${style.text} ${style.border}`}>
                 <CheckCircle className="w-3 h-3" />
                 {overallCondition}
               </span>
               {data.room_type && data.room_type !== 'auto' && (
-                <span className="text-[11px] text-white/40 capitalize">{data.room_type.replace('_', ' ')}</span>
+                <span className="text-[11px] text-muted-foreground/70 capitalize">{data.room_type.replace('_', ' ')}</span>
               )}
               {data.analysis_type && (
-                <span className="text-[11px] text-white/30 capitalize">{data.analysis_type}</span>
+                <span className="text-[11px] text-muted-foreground/50 capitalize">{data.analysis_type}</span>
               )}
             </div>
           </div>
@@ -79,7 +79,7 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
 
       {/* Summary */}
       {data.summary && (
-        <p className="text-sm text-white/70 leading-relaxed">{data.summary}</p>
+        <p className="text-sm text-foreground/70 leading-relaxed">{data.summary}</p>
       )}
 
       {/* Cost Tiers */}
@@ -129,9 +129,9 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
               <div className="space-y-2">
                 {condition.structural_issues && condition.structural_issues.length > 0 && (
                   <div>
-                    <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-1">Structural Issues</p>
+                    <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Structural Issues</p>
                     {condition.structural_issues.map((issue: any, i: number) => (
-                      <div key={i} className="text-xs text-white/60 flex items-start gap-1.5 mb-1">
+                      <div key={i} className="text-xs text-muted-foreground flex items-start gap-1.5 mb-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
                         {issue.issue || issue.description}
                       </div>
@@ -140,9 +140,9 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
                 )}
                 {condition.cosmetic_issues && condition.cosmetic_issues.length > 0 && (
                   <div>
-                    <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-1">Cosmetic Issues</p>
+                    <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Cosmetic Issues</p>
                     {condition.cosmetic_issues.map((issue: any, i: number) => (
-                      <div key={i} className="text-xs text-white/60 flex items-start gap-1.5 mb-1">
+                      <div key={i} className="text-xs text-muted-foreground flex items-start gap-1.5 mb-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
                         {issue.issue || issue.description}
                       </div>
@@ -151,9 +151,9 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
                 )}
                 {condition.safety_concerns && condition.safety_concerns.length > 0 && (
                   <div>
-                    <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider mb-1">Safety Concerns</p>
+                    <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Safety Concerns</p>
                     {condition.safety_concerns.map((c: any, i: number) => (
-                      <div key={i} className="text-xs text-white/60 flex items-start gap-1.5 mb-1">
+                      <div key={i} className="text-xs text-muted-foreground flex items-start gap-1.5 mb-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0" />
                         {c.concern || c.description}
                       </div>
@@ -166,7 +166,7 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
             {/* Cost Breakdown */}
             {hasValidCosts && (
               <div className="space-y-2">
-                <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider flex items-center gap-1">
+                <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1">
                   <DollarSign className="w-3 h-3" />
                   Cost Breakdown
                 </p>
@@ -174,12 +174,12 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
                   const tierData = costs![tier as keyof typeof costs] as any;
                   if (!tierData?.breakdown?.length) return null;
                   return (
-                    <div key={tier} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5">
-                      <p className="text-[10px] font-medium text-white/30 uppercase mb-1">{tier.replace('_', ' ')}</p>
+                    <div key={tier} className="rounded-lg border border-black/[0.06] bg-black/[0.02] p-2.5">
+                      <p className="text-[10px] font-medium text-muted-foreground/50 uppercase mb-1">{tier.replace('_', ' ')}</p>
                       {tierData.breakdown.map((item: any, idx: number) => (
                         <div key={idx} className="flex items-center justify-between text-xs py-0.5">
-                          <span className="text-white/50">{item.category || item.description}</span>
-                          <span className="text-white/70 font-medium">${(item.cost || 0).toLocaleString()}</span>
+                          <span className="text-muted-foreground">{item.category || item.description}</span>
+                          <span className="text-foreground/70 font-medium">${(item.cost || 0).toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -191,7 +191,7 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
             {/* Recommendations */}
             {data.recommendations && data.recommendations.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-[11px] font-medium text-white/40 uppercase tracking-wider flex items-center gap-1">
+                <p className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider flex items-center gap-1">
                   <Wrench className="w-3 h-3" />
                   Recommendations
                 </p>
@@ -202,10 +202,10 @@ export const VisionAnalysisCard: React.FC<VisionAnalysisCardProps> = ({ data }) 
                         : rec.priority === 'medium' ? 'bg-amber-400'
                         : 'bg-green-400'
                     }`} />
-                    <span className="text-white/60">
+                    <span className="text-muted-foreground">
                       {rec.action}
                       {rec.estimated_cost > 0 && (
-                        <span className="text-white/40 ml-1">(~${rec.estimated_cost.toLocaleString()})</span>
+                        <span className="text-muted-foreground/70 ml-1">(~${rec.estimated_cost.toLocaleString()})</span>
                       )}
                     </span>
                   </div>

@@ -54,7 +54,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 'relative group rounded-lg border overflow-hidden transition-all cursor-pointer',
                 isHovered
                     ? 'border-blue-500/50 bg-blue-500/5'
-                    : 'border-white/10 bg-white/[0.02]'
+                    : 'border-black/8 bg-black/[0.02]'
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -71,8 +71,8 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                     />
                 ) : (
                     // File icon
-                    <div className="w-full h-full flex items-center justify-center bg-white/5">
-                        <FileIcon className="w-12 h-12 text-white/30" />
+                    <div className="w-full h-full flex items-center justify-center bg-black/5">
+                        <FileIcon className="w-12 h-12 text-muted-foreground/50" />
                     </div>
                 )}
 
@@ -85,7 +85,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                             exit={{ opacity: 0 }}
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center"
                         >
-                            <span className="text-xs text-white/70">Click to view</span>
+                            <span className="text-xs text-foreground/70">Click to view</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -96,18 +96,18 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         e.stopPropagation();
                         onRemove();
                     }}
-                    className="absolute top-1 right-1 p-1 rounded-full bg-black/80 text-white/70 hover:text-white hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute top-1 right-1 p-1 rounded-full bg-black/80 text-foreground/70 hover:text-foreground hover:bg-red-500/80 transition-all opacity-0 group-hover:opacity-100"
                 >
                     <X className="w-3 h-3" />
                 </button>
             </div>
 
             {/* File info */}
-            <div className="p-2 border-t border-white/10">
-                <div className="text-xs text-white/70 truncate font-medium">
+            <div className="p-2 border-t border-black/8">
+                <div className="text-xs text-foreground/70 truncate font-medium">
                     {file.name}
                 </div>
-                <div className="text-[10px] text-white/40 mt-0.5">
+                <div className="text-[10px] text-muted-foreground/70 mt-0.5">
                     {formatFileSize(file.size)}
                 </div>
             </div>
@@ -252,7 +252,7 @@ export const DragDropZone: React.FC<DragDropZoneProps> = ({
                 'relative border-2 border-dashed rounded-xl p-8 cursor-pointer transition-all',
                 isDragging
                     ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-white/20 hover:border-white/30 hover:bg-white/[0.02]',
+                    : 'border-black/12 hover:border-white/30 hover:bg-black/[0.02]',
                 className
             )}
         >
@@ -269,12 +269,12 @@ export const DragDropZone: React.FC<DragDropZoneProps> = ({
                 <div className="text-center">
                     <Upload className={cn(
                         'w-12 h-12 mx-auto mb-3 transition-colors',
-                        isDragging ? 'text-blue-400' : 'text-white/30'
+                        isDragging ? 'text-blue-400' : 'text-muted-foreground/50'
                     )} />
-                    <p className="text-sm text-white/60 mb-1">
+                    <p className="text-sm text-muted-foreground mb-1">
                         {isDragging ? 'Drop files here' : 'Drop files here or click to browse'}
                     </p>
-                    <p className="text-xs text-white/30">
+                    <p className="text-xs text-muted-foreground/50">
                         Max size: {(maxSize / (1024 * 1024)).toFixed(0)}MB
                     </p>
                 </div>
