@@ -1,216 +1,126 @@
-# Civitas AI Frontend
+# Vasthu AI — Frontend
 
-> **AI-Powered Real Estate Investment Platform**
-> An intelligent assistant for real estate investors, leveraging advanced AI agent swarms to provide comprehensive property analysis, market insights, and investment recommendations.
+> **React + TypeScript web application for AI-powered real estate investment analysis.**
 
----
-
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [✨ Key Features](#-key-features)
-- [🛠  Tech Stack](#-tech-stack)
-- [🏗  Architecture](#-architecture)
-- [📁 Project Structure](#-project-structure)
-- [🧩 Key Modules](#-key-modules)
-- [🚀 Getting Started](#-getting-started)
-- [🔌 Backend Integration](#-backend-integration)
-- [🤝 Contributing](#-contributing)
+[![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 ---
 
 ## Overview
 
-**Civitas AI** is a cutting-edge web application producing a "Bloomberg Terminal for Real Estate" experience. It combines a conversational AI interface with rich, interactive data visualizations. Built with **React 19** and **TypeScript**, it features a responsive, glassmorphic UI powered by **TailwindCSS** and **Framer Motion**.
+The Vasthu AI Frontend is a modern web application that provides a conversational AI interface for real estate investment analysis. It connects to the [Vasthu Agentic Layer](https://github.com/Rentfolio-ai/civitas) for AI chat and to the [DataLayer](https://github.com/Rentfolio-ai/datalayer) for data operations.
 
-The platform is designed to handle complex real estate workflows:
-1.  **Discovery**: "Hunter Mode" for finding off-market and on-market deals.
-2.  **Analysis**: Deep P&L calculations, renovation estimates, and cash flow modeling.
-3.  **Execution**: Generating offers, reports, and compliance checks.
+### Key Features
 
----
-
-## ✨ Key Features
-
-### 🧠 **Advanced AI Chat Interface**
-- **Multi-Agent Orchestration**: Interaction with specialized agents (Researcher, Hunter, Strategist).
-- **Thinking Indicators**: Real-time transparency into the AI's reasoning process and tool usage.
-- **Deep Reasoning Traces**: Collapsible "System 2" reasoning steps for complex analysis.
-- **Rich Message Bubbles**: Interactive cards for properties, charts, and reports embedded directly in the chat.
-- **Citations & Sources**: Inline citations linking to data sources (web, documents, database).
-
-### 🔍 **Hunter Mode (Property Discovery)**
-- **Smart Search**: Natural language queries converted into precise filters.
-- **Interactive Maps**: (Future/Planned) Visualizing opportunities.
-- **Deal Scoring**: Automated evaluation of properties against investment criteria.
-
-### 📊 **Financial Engine**
-- **Deal Analyzer**: Instant ROI, Cap Rate, and Cash-on-Cash calculations.
-- **P&L Calculator**: Detailed monthly and yearly cash flow projections.
-- **Renovation Estimator**: AI-driven cost estimates based on property condition.
-
-### 🏛 **Compliance & Due Diligence**
-- **Zoning Checks**: Automated verification of STR/LTR regulations.
-- **Reports**: Generation of PDF investment memos and comparison reports.
-
-### 🎨 **Modern UX/UI**
-- **Glassmorphism Design**: Premium aesthetic with blurred backgrounds and subtle gradients.
-- **Adaptive Layouts**: Seamless experience across Desktop, Tablet, and Mobile.
-- **Command Palette**: Quick navigation and action execution (`Cmd+K`).
+- **AI Chat Interface** — Streaming responses with thinking indicators and tool execution visibility
+- **Financial Analysis** — P&L calculator, ROI/Cap Rate modeling, cash flow projections
+- **Property Discovery** — Natural language search with deal scoring
+- **Report Generation** — AI-driven investment memos
+- **Modern UI** — Glassmorphic design, responsive layout, command palette (`Cmd+K`)
 
 ---
 
-## 🛠 Tech Stack
+## Quick Start
 
-### Core Framework
-- **React 19**: Utilizing the latest concurrent features and hooks.
-- **TypeScript 5**: Strict type safety for robust development.
-- **Vite 7**: Ultra-fast build tool and dev server.
+### Prerequisites
 
-### Styling & Animation
-- **TailwindCSS 3.4**: Utility-first styling with a custom design system.
-- **Framer Motion 12**: Complex layout transitions and micro-interactions.
-- **Lucide React**: Consistent and lightweight icon system.
+- Node.js 18+
+- Backend services running:
+  - [DataLayer](https://github.com/Rentfolio-ai/datalayer) on port 8001
+  - [Vasthu Agentic Layer](https://github.com/Rentfolio-ai/civitas) on port 8000
 
-### State Management
-- **Zustand**: Minimalist store for global state (User, Preferences, Analysis).
-- **React Context**: For auth and theme providers.
+### Setup
 
-### Data & Connectivity
-- **Firebase**: Authentication and secure user management.
-- **Apollo Client (GraphQL)**: Efficient data fetching (where applicable).
-- **Server-Sent Events (SSE)**: Real-time streaming for AI responses.
+```bash
+# Clone & install
+git clone https://github.com/Rentfolio-ai/frontend.git
+cd frontend/civitas-ai
+npm install
 
----
+# Configure environment
+cp .env.example .env
+# Edit .env with your Firebase config
 
-## 🏗 Architecture
+# Start dev server
+npm run dev
+```
 
-The application follows a **Component-Based Architecture** with a focus on separation of concerns:
-
-- **Presentation Layer**: Pure UI components in `src/components/ui` and feature-specific directories.
-- **Logic Layer**: Custom hooks in `src/hooks` encapsulate complex business logic and state interactions.
-- **Service Layer**: `src/services` handles API communication, ensuring UI components remain agnostic of network implementation.
-- **State Layer**: Zustand stores in `src/stores` manage cross-component state (e.g., active deal analysis, user bookmarks).
-
-### Data Flow Pattern
-1.  **User Action**: User types a message or clicks a tool.
-2.  **Service Call**: `ChatService` or `AgentsApi` sends data to the backend.
-3.  **Stream Handling**: The frontend consumes SSE streams, updating the `MessageList` in real-time.
-4.  **State Update**: Stores update to reflect new properties found, analysis results, or UI states.
+The app runs on `http://localhost:5173`. The Vite config proxies `/api` requests to the backend.
 
 ---
 
-## 📁 Project Structure
+## Tech Stack
 
-A comprehensive breakdown of the `src` directory:
+- **React 19** + **TypeScript 5** + **Vite**
+- **TailwindCSS** for styling
+- **Framer Motion** for animations
+- **Lucide React** for icons
+- **Zustand** for state management
+- **Firebase Auth** for authentication
+- **SSE** for real-time AI streaming
+
+---
+
+## Architecture
 
 ```
 src/
-├── components/          # React Components
-│   ├── analysis/        # P&L, Deal Analyzer, Calculators
-│   ├── auth/            # Sign In/Up forms, Protected Routes
-│   ├── chat/            # Chat interface, Message Bubbles, Input
-│   │   ├── MessageList.tsx      # Main chat history renderer
-│   │   ├── MessageBubble.tsx    # Individual message component
-│   │   └── ThinkingIndicator.tsx # AI processing status
-│   ├── common/          # Shared business components (Avatar, Badges)
-│   ├── desktop-shell/   # Main app layout, Sidebar, Navigation
-│   ├── hunter/          # Property finding & filtering components
-│   ├── modals/          # Global modals (Settings, Pricing)
-│   ├── portfolio/       # Portfolio management views
-│   ├── property/        # Property cards, details, and lists
-│   ├── ui/              # Reusable primitives (Buttons, Inputs, Cards)
-│   └── vision/          # Computer Vision / Image upload components
-│
-├── hooks/               # Custom React Hooks
-│   ├── useStreamChat.ts # Core chat streaming logic
-│   └── useDesktopShell.ts # Layout state management
-│
-├── services/            # API Services
-│   ├── chatService.ts   # SSE implementation
-│   └── api.ts           # Axios/Fetch instances
-│
-├── stores/              # Zustand Stores
-│   ├── analysisStore.ts # Financial analysis state
-│   └── preferencesStore.ts # User settings
-│
-├── types/               # TypeScript Definitions
-├── utils/               # Helper functions
-└── pages/               # Top-level Page components
+├── components/        # React components
+│   ├── chat/          # Chat interface, message bubbles, thinking indicators
+│   ├── analysis/      # P&L, deal analyzer, calculators
+│   ├── hunter/        # Property search & filtering
+│   ├── portfolio/     # Portfolio management
+│   ├── desktop-shell/ # App layout, sidebar, navigation
+│   └── ui/            # Reusable primitives (buttons, inputs, cards)
+├── hooks/             # Custom React hooks (useStreamChat, etc.)
+├── services/          # API clients (chat SSE, REST)
+├── stores/            # Zustand stores (analysis, preferences)
+├── types/             # TypeScript definitions
+├── utils/             # Helper functions
+└── pages/             # Route-level page components
 ```
 
----
+### Data Flow
 
-## 🧩 Key Modules
-
-### 1. Chat System (`src/components/chat`)
-The heart of the application. It handles:
-- **Streaming**: Renders tokens as they arrive.
-- **Tool Rendering**: Dynmically imports and renders cards based on tool outputs (e.g., `ScoutProperties` results).
-- **Branching**: Supports experimental conversation branching (navigating through message versions).
-
-### 2. Hunter Mode (`src/components/hunter`)
-A specialized interface for power users to search and filter properties. It connects directly to the `ScoutProperties` agent tool.
-
-### 3. Desktop Shell (`src/components/desktop-shell`)
-The layout wrapper that manages the sidebar, header, and main content area. It handles responsive collapsing and theme switching.
+1. User sends a message or triggers a tool
+2. Frontend streams SSE from `/v2/chat/stream`
+3. AI responses render in real-time with thinking indicators
+4. Tool results (properties, charts, reports) render as interactive cards
 
 ---
 
-## 🚀 Getting Started
+## Configuration
 
-### Prerequisites
-- Node.js > 18
-- NPM or Yarn
+See `.env.example` for all variables. Key ones:
 
-### Installation
+| Variable | Description |
+|----------|-------------|
+| `VITE_FIREBASE_API_KEY` | Firebase Auth API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase project ID |
+| `VITE_API_KEY` | Backend service key |
 
-1.  **Clone the repository**
-    ```bash
-    git clone <repo-url>
-    cd civitas-ai
-    ```
-
-2.  **Install dependencies**
-    ```bash
-    npm install
-    ```
-
-3.  **Environment Setup**
-    Create a `.env` file based on `.env.example`:
-    ```env
-    VITE_FIREBASE_API_KEY=...
-    VITE_BACKEND_URL=http://localhost:8000
-    ```
-
-4.  **Run Development Server**
-    ```bash
-    npm run dev
-    ```
+> **Note**: `VITE_FIREBASE_*` values are public client-side config, not secrets. The `VITE_API_KEY` should be kept private.
 
 ---
 
-## 🔌 Backend Integration
+## Related Repositories
 
-The frontend expects a backend capable of **Server-Sent Events (SSE)** for the chat interface.
-
-- **Endpoint**: `POST /api/stream`
-- **Protocol**: SSE
-- **Events**:
-    - `thinking`: AI is processing (updates the `ThinkingIndicator`).
-    - `tool_start` / `tool_end`: AI is using a tool (renders tool status).
-    - `content`: Text response chunks.
-    - `done`: Stream complete.
+- **[Vasthu DataLayer](https://github.com/Rentfolio-ai/datalayer)** — Data pipeline, financial engine, RAG
+- **[Vasthu Agentic Layer](https://github.com/Rentfolio-ai/civitas)** — LLM orchestration, chat, tool execution
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Please follow these steps:
-1.  Create a feature branch (`git checkout -b feature/amazing-feature`).
-2.  Commit your changes following conventional commits.
-3.  Push to the branch.
-4.  Open a Pull Request.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
----
-**Built with ❤️ for Real Estate Innovators.**
+## Security
+
+See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
